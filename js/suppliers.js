@@ -1,5 +1,12 @@
 import supabase from "./supabaseClient.js";
 
+// ⚠️ Replace with your own restricted key — see setup steps.
+// This key is visible to anyone viewing your site's source. That's normal
+// for a browser-only Places API key, which is why it must be restricted by
+// HTTP referrer (your Netlify domain) and by API (Places API (New) only)
+// in Google Cloud Console — see the setup steps provided alongside this file.
+const GOOGLE_PLACES_API_KEY = "YOUR_GOOGLE_PLACES_API_KEY";
+
 const form = document.getElementById("supplier-form");
 const tableBody = document.getElementById("suppliers-table");
 const modal = document.getElementById("supplier-modal");
@@ -146,6 +153,9 @@ exportButton?.addEventListener("click", () => {
 });
 
 // ---------- Add supplier (manual form) ----------
+// Phone/email formats are no longer restricted to Zimbabwe/Gmail — suppliers
+// can now be found and added from anywhere, so a fixed format would reject
+// perfectly valid international data. Basic sanity checks only.
 
 function isDuplicate(name) {
   const target = name.trim().toLowerCase();
@@ -161,12 +171,8 @@ form.addEventListener("submit", async event => {
     fields.name.focus();
     return;
   }
-  if (supplier.phone && !/^\+263\s\d{2}\s\d{3}\s\d{4}$/.test(supplier.phone)) {
-    showFormMessage("Phone must use this format: +263 00 000 0000", "error");
-    return;
-  }
-  if (supplier.email && !/^[^\s@]+@gmail\.com$/.test(supplier.email)) {
-    showFormMessage("Email must end with @gmail.com", "error");
+  if (supplier.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplier.email)) {
+    showFormMessage("That doesn't look like a valid email address.", "error");
     return;
   }
   if (isDuplicate(supplier.name)) {
@@ -207,78 +213,108 @@ deleteButton.addEventListener("click", async () => {
 cancelButton.addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
 
-// ---------- Search suppliers online (OpenStreetMap / Nominatim) ----------
-// Free, no API key required. Good for name + address; phone/email are
-// rarely available from this source so those fields are left for the
-// user to fill in before saving. For richer results (phone numbers,
-// opening hours, ratings) swap this for the Google Places API behind
-// your own backend endpoint — Nominatim is the quick, key-free option
-// to get this working today.
+// ---------- Search suppliers online (Google Places API, worldwide) ----------
+// Places API (New) Text Search returns phone number and website directly in
+// the search response — no separate "Place Details" call needed. It does
+// NOT return email addresses; Google doesn't expose those for most listings,
+// so that field is still left for the user to fill in (e.g. after checking
+// the business's website).
 
 let onlineSearchToken = 0;
+
+async function searchGooglePlaces(query) {
+  const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+      "X-Goog-FieldMask": [
+        "places.displayName",
+        "places.formattedAddress",
+        "places.nationalPhoneNumber",
+        "places.internationalPhoneNumber",
+        "places.websiteUri",
+      ].join(","),
+    },
+    body: JSON.stringify({ textQuery: query }), // no country/region restriction — worldwide
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error?.message || `Lookup failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  return (data.places || []).map(place => ({
+    name: place.displayName?.text || "Unnamed business",
+    address: place.formattedAddress || "",
+    phone: place.nationalPhoneNumber || place.internationalPhoneNumber || "",
+    website: place.websiteUri || "",
+  }));
+}
 
 onlineForm?.addEventListener("submit", async event => {
   event.preventDefault();
   const query = onlineInput.value.trim();
   if (!query) return;
 
+  if (!GOOGLE_PLACES_API_KEY || GOOGLE_PLACES_API_KEY === "YOUR_GOOGLE_PLACES_API_KEY") {
+    showOnlineMessage("Online search isn't set up yet — add a Google Places API key in suppliers.js.", "error");
+    return;
+  }
+
   const token = ++onlineSearchToken;
   onlineResults.innerHTML = "";
   showOnlineMessage("Searching…");
 
   try {
-    const url = new URL("https://nominatim.openstreetmap.org/search");
-    url.searchParams.set("q", query);
-    url.searchParams.set("format", "jsonv2");
-    url.searchParams.set("addressdetails", "1");
-    url.searchParams.set("countrycodes", "zw");
-    url.searchParams.set("limit", "8");
-
-    const response = await fetch(url, { headers: { "Accept-Language": "en" } });
+    const places = await searchGooglePlaces(query);
     if (token !== onlineSearchToken) return; // a newer search started, drop this one
-    if (!response.ok) throw new Error(`Lookup failed (${response.status})`);
-    const results = await response.json();
 
-    if (!results.length) {
-      showOnlineMessage(`No results for "${query}" in Zimbabwe. Try a more general search, e.g. just the business or area name.`);
+    if (!places.length) {
+      showOnlineMessage(`No results for "${query}". Try a more general search, e.g. just the business or area name.`);
       return;
     }
 
-    showOnlineMessage(`${results.length} result${results.length === 1 ? "" : "s"} — data via OpenStreetMap contributors. Review before adding; phone/email aren't included and should be filled in manually.`);
-    onlineResults.innerHTML = results.map((place, index) => {
-      const name = place.namedetails?.name || place.display_name.split(",")[0];
-      return `
+    showOnlineMessage(`${places.length} result${places.length === 1 ? "" : "s"} — data via Google Maps. Email addresses aren't available from this source; add those manually if you have them.`);
+    onlineResults.innerHTML = places.map((place, index) => `
         <div class="online-result">
           <div class="online-result__info">
-            <strong>${escapeHtml(name)}</strong>
-            <span>${escapeHtml(place.display_name)}</span>
+            <strong>${escapeHtml(place.name)}</strong>
+            <span>${escapeHtml(place.address)}${place.phone ? " · " + escapeHtml(place.phone) : ""}</span>
           </div>
           <button type="button" class="btn btn--primary online-add-btn" data-index="${index}">
             <i data-lucide="plus"></i> Use this
           </button>
-        </div>`;
-    }).join("");
+        </div>`
+    ).join("");
 
     if (window.lucide) lucide.createIcons();
     onlineResults.querySelectorAll(".online-add-btn").forEach(button => {
       button.addEventListener("click", () => {
-        const place = results[button.dataset.index];
-        const name = place.namedetails?.name || place.display_name.split(",")[0];
-        fields.name.value = name;
-        fields.address.value = place.display_name;
+        const place = places[button.dataset.index];
+        fields.name.value = place.name;
+        fields.address.value = place.address;
         fields.contact_person.value = "";
-        fields.phone.value = "";
+        fields.phone.value = place.phone;
         fields.email.value = "";
-        fields.notes.value = "Found via online lookup — confirm phone/email with the vendor.";
+        fields.notes.value = place.website
+          ? `Found via Google Maps. Website: ${place.website}`
+          : "Found via Google Maps.";
         document.getElementById("supplier-form").scrollIntoView({ behavior: "smooth", block: "start" });
-        showFormMessage("Details loaded — confirm phone and email, then click Add Supplier.", "info");
-        fields.phone.focus();
+        showFormMessage(
+          place.phone
+            ? "Details loaded — add an email if you have one, then click Add Supplier."
+            : "Details loaded — phone wasn't available for this listing, add it manually if you have it.",
+          "info"
+        );
+        (place.phone ? fields.email : fields.phone).focus();
       });
     });
   } catch (err) {
     if (token !== onlineSearchToken) return;
     console.error("Online supplier search failed:", err);
-    showOnlineMessage(`Lookup failed: ${err.message}. Nominatim is rate-limited — wait a moment and try again.`, "error");
+    showOnlineMessage(`Lookup failed: ${err.message}. Check that your Google Places API key is valid, billing is enabled, and the key's referrer restriction includes this site.`, "error");
   }
 });
 
