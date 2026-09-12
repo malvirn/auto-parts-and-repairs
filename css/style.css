@@ -312,11 +312,15 @@ body {
 .empty-state svg { width: 16px; height: 16px; vertical-align: middle; opacity: .7; }
 
 /* ---- Table ---- */
+/* Was overflow:hidden, which clipped table columns off-screen on phones instead
+   of letting you scroll to them — this affects every table on every page, since
+   they all sit inside a .panel wrapper. */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table { width: 100%; border-collapse: collapse; }
