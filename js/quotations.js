@@ -224,11 +224,11 @@ function buildOrderDetailText(order) {
 
 // ---------- Send actions (email / WhatsApp) ----------
 // No email/SMS backend is wired up here — these open the customer's
-// own email client (mailto:) or WhatsApp Web/app (wa.me) pre-filled
-// with the quotation text, which needs no server or API key. If you
-// later want it sent automatically without the staff member clicking
-// "send" in their own client, that requires a backend email/WhatsApp
-// API integration instead.
+// own email client (mailto:) or WhatsApp (wa.me) pre-filled with the
+// quotation text, which needs no server or API key. If you later want
+// it sent automatically without the staff member clicking "send" in
+// their own client, that requires a backend email/WhatsApp API
+// integration instead.
 
 function sendByEmail(detailText, customer, subjectPrefix) {
   const email = (customer?.email || "").trim() || prompt("Customer email address:");
@@ -243,9 +243,10 @@ function sendByWhatsApp(detailText, customer) {
   if (!phone) return;
   phone = phone.replace(/[^\d]/g, "");
   const text = encodeURIComponent(detailText);
-  // web.whatsapp.com (not wa.me) keeps this in the browser instead of
-  // trying to hand off to the installed WhatsApp app.
-  window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${text}`, "_blank");
+  // wa.me hands off to the installed WhatsApp app on phones (opening
+  // straight into this contact's chat with the message pre-filled) and
+  // falls back to WhatsApp Web on desktops without the app installed.
+  window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
 }
 
 function copyDetailText(text, statusNode) {
