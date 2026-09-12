@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Mechanics</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link active" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Workshop capacity</p>
+          <h1>Mechanics</h1>
+          <p class="page-intro">Manage the people responsible for diagnosis, repair, and handover.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Team setup</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Mechanic</h2></div><span class="section-note">Keep contact details current</span></div>
+        <form id="tech-form" class="form-grid panel" style="padding:20px; margin-bottom:24px;">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="tech-name" placeholder="e.g. Tapiwa Chikwaka" required />
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="text" id="tech-phone" placeholder="Optional" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Mechanic</button>
+        </div>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Team directory</p><h2><i class="section-heading-icon" data-lucide="hard-hat"></i>Mechanic Roster</h2></div><span class="section-note">Availability and assignments</span></div>
+        <div class="panel">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Active</th><th></th></tr>
+          </thead>
+          <tbody id="tech-table">
+            <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/technicians.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

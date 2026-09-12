@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Suppliers</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ============================================================
+       Modal fix — same issue as the Quotations page: the shared
+       stylesheet has no real positioning for .modal-overlay/.modal,
+       so the Edit Supplier dialog was collapsing into flat gray bars
+       stacked on the page instead of appearing as a centered popup.
+       This forces correct behavior regardless of what's in style.css.
+       ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .modal-overlay.hidden { display: none !important; }
+    .modal-overlay:not(.hidden) { display: flex; }
+
+    .modal {
+      background: #fff;
+      width: 100%;
+      max-width: 520px;
+      max-height: 88vh;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      margin: auto;
+      padding: 22px 24px;
+      gap: 12px;
+    }
+    .modal h3 { margin: 0 0 6px; font-size: 17px; }
+    .modal .field { margin-bottom: 4px; }
+    .modal .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-muted, #8a93a3);
+      margin-bottom: 4px;
+    }
+    .modal .field input,
+    .modal .field textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border, #dde1e8);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .modal-actions {
+      margin-top: 8px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border, #e5e8ee);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    /* Scoped additions for the search filter + online lookup panel.
+       Uses the app's existing CSS variables with safe fallbacks so it
+       matches the rest of the dashboard without needing style.css changes. */
+    .suppliers-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .suppliers-search {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+      max-width: 360px;
+    }
+    .suppliers-search i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted, #8a93a3);
+      pointer-events: none;
+    }
+    .suppliers-search input {
+      width: 100%;
+      padding: 9px 12px 9px 32px;
+      border: 1px solid var(--border, #dde1e8);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .suppliers-count {
+      font-size: 13px;
+      color: var(--text-muted, #8a93a3);
+      white-space: nowrap;
+    }
+    .online-search-panel { padding: 20px; }
+    .online-search-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .online-search-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid var(--border, #dde1e8);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .online-search-hint {
+      margin: 6px 0 0;
+      font-size: 12.5px;
+      color: var(--text-muted, #8a93a3);
+    }
+    #online-search-message {
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: var(--text-muted, #8a93a3);
+    }
+    #online-search-message[data-tone="error"] { color: var(--danger, #c0392b); }
+    #online-search-results {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .online-result {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border, #e5e8ee);
+      border-radius: 8px;
+      background: var(--surface-alt, #f9fafb);
+    }
+    .online-result__info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .online-result__info strong { font-size: 14px; }
+    .online-result__info span {
+      font-size: 12.5px;
+      color: var(--text-muted, #8a93a3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .online-result .btn { flex-shrink: 0; }
+    #supplier-form-message[data-tone="error"] { color: var(--danger, #c0392b); }
+    #supplier-form-message[data-tone="success"] { color: var(--success, #2e7d4f); }
+    .empty-state { color: var(--text-muted, #8a93a3); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link active" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Purchasing network</p>
+          <h1>Suppliers</h1>
+          <p class="page-intro">Keep vendor contacts and purchasing notes ready when stock needs replenishing.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">New supplier</p><h2><i class="section-heading-icon" data-lucide="truck"></i>Add Supplier</h2></div><span class="section-note">Vendor contact details</span></div>
+        <form id="supplier-form" class="panel supplier-form" style="padding:20px;">
+          <div class="form-grid supplier-form-grid">
+            <div class="field"><label for="supplier-name">Name</label><input id="supplier-name" required /></div>
+            <div class="field"><label for="supplier-contact">Contact Person</label><input id="supplier-contact" /></div>
+            <div class="field"><label for="supplier-phone">Phone</label><input id="supplier-phone" type="tel" pattern="\+263\s\d{2}\s\d{3}\s\d{4}" title="Use +263 00 000 0000 format" /></div>
+            <div class="field"><label for="supplier-email">Email</label><input id="supplier-email" type="email" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" /></div>
+            <div class="field"><label for="supplier-address">Address</label><input id="supplier-address" /></div>
+            <div class="field"><label for="supplier-notes">Notes</label><textarea id="supplier-notes" rows="2"></textarea></div>
+          </div>
+          <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add Supplier</button>
+          <p id="supplier-form-message" class="form-message" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Vendor discovery</p><h2><i class="section-heading-icon" data-lucide="search"></i>Search Suppliers Online</h2></div><span class="section-note">Find vendors, then add them straight to your list</span></div>
+        <div class="panel online-search-panel">
+          <form id="online-search-form" class="online-search-form">
+            <input id="online-search-input" type="text" placeholder="e.g. computer parts supplier Harare" />
+            <button type="submit" class="btn btn--primary"><i data-lucide="search"></i> Search</button>
+          </form>
+          <p class="online-search-hint">Looks up real businesses in Zimbabwe by name and location. Phone/email aren't always available from this source — confirm them with the vendor before saving.</p>
+          <p id="online-search-message"></p>
+          <div id="online-search-results"></div>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Vendor directory</p><h2><i class="section-heading-icon" data-lucide="contact"></i>Supplier List</h2></div><span class="section-note">Edit or remove purchasing contacts</span></div>
+        <div class="suppliers-toolbar">
+          <div class="suppliers-search">
+            <i data-lucide="search"></i>
+            <input id="supplier-search" type="text" placeholder="Filter by name, contact, phone, email, address…" />
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span id="supplier-count" class="suppliers-count"></span>
+            <button id="export-suppliers-btn" type="button" class="btn"><i data-lucide="download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div class="panel"><table>
+          <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Address</th><th></th></tr></thead>
+          <tbody id="suppliers-table"><tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="supplier-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Edit Supplier</h3>
+      <div class="field"><label for="edit-supplier-name">Name</label><input id="edit-supplier-name" /></div>
+      <div class="field"><label for="edit-supplier-contact">Contact Person</label><input id="edit-supplier-contact" /></div>
+      <div class="field"><label for="edit-supplier-phone">Phone</label><input id="edit-supplier-phone" /></div>
+      <div class="field"><label for="edit-supplier-email">Email</label><input id="edit-supplier-email" type="email" /></div>
+      <div class="field"><label for="edit-supplier-address">Address</label><input id="edit-supplier-address" /></div>
+      <div class="field"><label for="edit-supplier-notes">Notes</label><textarea id="edit-supplier-notes"></textarea></div>
+      <div class="modal-actions">
+        <button id="supplier-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
+        <button id="supplier-delete" type="button" class="btn btn--danger"><i data-lucide="trash-2"></i> Delete</button>
+        <button id="supplier-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/suppliers.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

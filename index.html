@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <img class="brand-logo" src="assets/logo.png" alt="AUTO PARTS &amp; REPAIRS">
+      </div>
+      <a class="nav-link active" href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="pages/customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="pages/repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="pages/receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="pages/technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="pages/shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="pages/suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="pages/quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <h1>Dashboard</h1>
+        <a class="btn btn--primary" href="pages/repairs.html"><i data-lucide="plus"></i> New Repair Job</a>
+      </div>
+
+      <section class="dashboard-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Daily control</p>
+            <h2>Operations</h2>
+          </div>
+          <span class="section-note">Live repair workflow</span>
+        </div>
+        <div class="card-grid">
+        <div class="stat-card" data-status="active" data-href="pages/repairs.html?status=active">
+          <div class="stat-card__label">Active Jobs</div>
+          <div class="stat-card__value">&mdash;</div>
+        </div>
+        <div class="stat-card" data-status="Awaiting Parts" data-href="pages/repairs.html?status=Awaiting%20Parts">
+          <div class="stat-card__label">Awaiting Parts</div>
+          <div class="stat-card__value">&mdash;</div>
+        </div>
+        <div class="stat-card" data-status="Ready for Pickup" data-href="pages/repairs.html?status=Ready%20for%20Pickup">
+          <div class="stat-card__label">Ready for Pickup</div>
+          <div class="stat-card__value">&mdash;</div>
+        </div>
+        <div class="stat-card" data-status="completed-month" data-href="pages/repairs.html?status=completed-month">
+          <div class="stat-card__label">Completed (This Month)</div>
+          <div class="stat-card__value">&mdash;</div>
+        </div>
+        <div class="stat-card" data-href="pages/customers.html">
+          <div class="stat-card__label">Customers</div>
+          <div class="stat-card__value" id="customer-count">&mdash;</div>
+        </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" data-level="2">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Capacity and stock</p>
+            <h2>Workforce &amp; Inventory</h2>
+          </div>
+          <span class="section-note">Manager view</span>
+        </div>
+        <div class="card-grid">
+        <div class="stat-card" data-level="2" data-href="pages/technicians.html">
+          <div class="stat-card__label">Active Mechanics</div>
+          <div class="stat-card__value" id="mechanic-count">&mdash;</div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/shop.html?filter=low-stock">
+          <div class="stat-card__label">Low Stock Parts</div>
+          <div class="stat-card__value" id="low-stock-count">&mdash;</div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/receipts.html?filter=outstanding">
+          <div class="stat-card__label">Outstanding Payments</div>
+          <div class="stat-card__value" id="outstanding-count">&mdash;</div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/receipts.html">
+          <div class="stat-card__label">Revenue</div>
+          <div class="stat-card__metric">
+            <div class="stat-card__value" id="revenue-total">&mdash;</div>
+            <svg class="mini-trend" viewBox="0 0 120 32" role="img" aria-label="Revenue six month trend" preserveAspectRatio="none">
+              <polyline points="2,26 22,23 42,24 62,17 82,14 102,9 118,6" />
+            </svg>
+          </div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/shop.html">
+          <div class="stat-card__label">Parts Cost</div>
+          <div class="stat-card__value" id="parts-cost-total">&mdash;</div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/repairs.html">
+          <div class="stat-card__label">Labour</div>
+          <div class="stat-card__value" id="labour-total">&mdash;</div>
+        </div>
+        <div class="stat-card" data-level="2" data-href="pages/repairs.html">
+          <div class="stat-card__label">Profit</div>
+          <div class="stat-card__metric">
+            <div class="stat-card__value" id="profit-total">&mdash;</div>
+            <svg class="mini-trend mini-trend--positive" viewBox="0 0 120 32" role="img" aria-label="Profit six month trend" preserveAspectRatio="none">
+              <polyline points="2,25 22,24 42,19 62,21 82,13 102,11 118,5" />
+            </svg>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" data-level="2">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Financial control</p>
+            <h2>Accounting Overview</h2>
+          </div>
+          <a class="btn" href="pages/receipts.html"><i data-lucide="receipt"></i> View Receipts</a>
+        </div>
+        <div class="card-grid">
+          <div class="stat-card" data-href="pages/receipts.html">
+            <div class="stat-card__label">Billed</div>
+            <div class="stat-card__value" id="billed-total">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/receipts.html">
+            <div class="stat-card__label">Collected</div>
+            <div class="stat-card__value" id="collected-total">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/receipts.html?filter=outstanding">
+            <div class="stat-card__label">Outstanding</div>
+            <div class="stat-card__value" id="outstanding-total">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/shop.html">
+            <div class="stat-card__label">Inventory Value</div>
+            <div class="stat-card__value" id="inventory-value">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/repairs.html">
+            <div class="stat-card__label">Gross Profit</div>
+            <div class="stat-card__value" id="gross-profit-total">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/receipts.html">
+            <div class="stat-card__label">Collection Rate</div>
+            <div class="stat-card__metric">
+              <div class="stat-card__value" id="collection-rate">&mdash;</div>
+              <svg class="mini-trend mini-trend--steady" viewBox="0 0 120 32" role="img" aria-label="Collection rate six month trend" preserveAspectRatio="none">
+                <polyline points="2,22 22,20 42,21 62,16 82,17 102,12 118,11" />
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card" data-href="pages/receipts.html">
+            <div class="stat-card__label">Average Invoice</div>
+            <div class="stat-card__metric">
+              <div class="stat-card__value" id="average-invoice">&mdash;</div>
+              <svg class="mini-trend" viewBox="0 0 120 32" role="img" aria-label="Average invoice six month trend" preserveAspectRatio="none">
+                <polyline points="2,23 22,18 42,21 62,15 82,17 102,10 118,8" />
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card" data-href="pages/receipts.html">
+            <div class="stat-card__label">Receipts This Month</div>
+            <div class="stat-card__value" id="monthly-receipts">&mdash;</div>
+          </div>
+          <div class="stat-card" data-href="pages/shop.html">
+            <div class="stat-card__label">Retail Stock Value</div>
+            <div class="stat-card__value" id="retail-inventory-value">&mdash;</div>
+          </div>
+        </div>
+        <div class="panel dashboard-table-panel">
+          <table>
+            <thead>
+              <tr><th>Accounting Item</th><th>Amount</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="accounting-summary">
+              <tr><td colspan="3" style="color:var(--text-muted)">Loading accounting data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="dashboard-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">What needs attention</p>
+            <h2>Operations Overview</h2>
+          </div>
+          <a class="btn" href="pages/repairs.html"><i data-lucide="clipboard-list"></i> View Jobs</a>
+        </div>
+        <div class="panel dashboard-table-panel">
+          <table>
+            <thead>
+              <tr><th>Area</th><th>Total</th><th>Current Detail</th></tr>
+            </thead>
+            <tbody id="operations-summary">
+              <tr><td colspan="3" style="color:var(--text-muted)">Loading operations data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-inline-heading">
+          <div>
+            <p class="section-kicker">Latest activity</p>
+            <h2>Recent Repair Jobs</h2>
+          </div>
+          <a class="btn" href="pages/repairs.html">Open Jobs</a>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Customer</th>
+              <th>Vehicle</th>
+              <th>Status</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody id="recent-jobs">
+            <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

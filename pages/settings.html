@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../js/theme.js"></script>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS & REPAIRS — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .settings-layout { display:flex; gap:24px; }
+    .settings-nav { width:200px; flex-shrink:0; }
+    .settings-nav button { display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:10px 14px; background:none; border:none; color:var(--text-dim,#7c9490); cursor:pointer; border-radius:4px; font-size:0.85rem; }
+    .settings-nav button.active { background:rgba(56,224,201,0.08); color:#38e0c9; }
+    .settings-panel { flex:1; }
+    .settings-section { display:none; }
+    .settings-section.active { display:block; }
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:0.75rem; color:var(--text-dim,#7c9490); margin-bottom:5px; }
+    .field input, .field textarea, .field select { width:100%; padding:8px 10px; background:var(--panel,#10161c); border:1px solid rgba(56,224,201,0.2); border-radius:4px; color:inherit; }
+    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(56,224,201,0.1); }
+    .accordion-item { border:1px solid rgba(56,224,201,0.14); border-radius:4px; margin-bottom:8px; overflow:hidden; }
+    .accordion-header { padding:12px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+    .accordion-body { padding:0 14px 14px; display:none; font-size:0.88rem; color:var(--text-dim,#9a8f82); line-height:1.5; }
+    .accordion-item.open .accordion-body { display:block; }
+    .danger-zone { border:1px solid #ff4d4d; border-radius:6px; padding:18px; background:rgba(255,77,77,0.05); }
+    .danger-zone h3 { color:#ff4d4d; margin-top:0; }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.svg" alt="AUTO PARTS & REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link active" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header"><h1>Settings</h1></div>
+
+      <div class="settings-layout">
+        <div class="settings-nav">
+          <button class="settings-tab active" data-target="appearance"><i data-lucide="sun-moon"></i> Appearance</button>
+          <button class="settings-tab" data-target="about"><i data-lucide="building-2"></i> About Us</button>
+          <button class="settings-tab" data-target="notifications"><i data-lucide="bell"></i> Notifications</button>
+          <button class="settings-tab" data-target="guide"><i data-lucide="book-open"></i> User Guide</button>
+          <button class="settings-tab" data-target="currency"><i data-lucide="banknote"></i> Currency</button>
+          <button class="settings-tab" data-target="account"><i data-lucide="user"></i> Account</button>
+          <button class="settings-tab" data-target="danger"><i data-lucide="triangle-alert"></i> Danger Zone</button>
+        </div>
+
+        <div class="settings-panel">
+          <section id="appearance" class="settings-section active panel" style="padding:20px;">
+            <h2>Appearance</h2>
+            <div class="toggle-row">
+              <span>Dark mode</span>
+              <input type="checkbox" id="dark-mode-toggle" />
+            </div>
+          </section>
+
+          <section id="about" class="settings-section panel" style="padding:20px;">
+            <h2>About Us</h2>
+            <div class="field"><label>Business Name</label><input type="text" id="biz-name" /></div>
+            <div class="field"><label>Tagline</label><input type="text" id="biz-tagline" /></div>
+            <div class="field"><label>Address</label><input type="text" id="biz-address" /></div>
+            <div class="field"><label>Phone</label><input type="text" id="biz-phone" /></div>
+            <div class="field"><label>Email</label><input type="text" id="biz-email" /></div>
+            <div class="field"><label>Hours</label><input type="text" id="biz-hours" placeholder="e.g. Mon–Sat 8am–5pm" /></div>
+            <button id="save-business-btn" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
+          </section>
+
+          <section id="notifications" class="settings-section panel" style="padding:20px;">
+            <h2>Notifications</h2>
+            <div id="notifications-list"><p style="color:var(--text-dim,#7c9490)">Loading…</p></div>
+          </section>
+
+          <section id="guide" class="settings-section panel" style="padding:20px;">
+            <h2>User Guide</h2>
+            <div id="guide-accordion"></div>
+          </section>
+
+          <section id="currency" class="settings-section panel" style="padding:20px;">
+            <h2>Currency &amp; Rates</h2>
+            <div class="field"><label>USD to ZWG Rate</label><input type="number" step="0.0001" id="exchange-rate" /></div>
+            <button id="save-rate-btn" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
+          </section>
+
+          <section id="account" class="settings-section panel" style="padding:20px;">
+            <h2>Account</h2>
+            <div class="field"><label>Email</label><div id="account-email">—</div></div>
+            <div class="field"><label>Role</label><div id="account-role">—</div></div>
+            <button id="reset-password-btn" class="btn"><i data-lucide="key"></i> Send Password Reset Email</button>
+          </section>
+
+          <section id="danger" class="settings-section panel" style="padding:20px;">
+            <div class="danger-zone">
+              <h3><i data-lucide="triangle-alert"></i> Reset All Data</h3>
+              <p>This permanently deletes all customers, jobs, parts, receipts, and suppliers. This cannot be undone.</p>
+              <div class="field"><label>Type RESET to confirm</label><input type="text" id="reset-confirm-input" /></div>
+              <button id="reset-data-btn" class="btn" style="border-color:#ff4d4d; color:#ff4d4d;">Reset Everything</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/settings.js"></script>
+</body>
+</html>

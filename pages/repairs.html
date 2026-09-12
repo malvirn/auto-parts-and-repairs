@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Repair Jobs</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(20, 18, 15, 0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 50;
+    }
+    .modal-overlay.hidden { display: none; }
+    .hidden { display: none !important; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 420px;
+      max-width: 90vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    }
+    .modal h3 { margin-bottom: 16px; font-size: 1.1rem; }
+    .modal .field { margin-bottom: 14px; }
+    .modal textarea { resize: vertical; min-height: 60px; }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Workshop control</p>
+          <h1>Repair Jobs</h1>
+          <p class="page-intro">Track each vehicle from intake through diagnosis, repair, and collection.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Intake</p><h2><i class="section-heading-icon" data-lucide="clipboard-plus"></i>Create Repair Job</h2></div><span class="section-note">Vehicle and fault details</span></div>
+        <form id="job-form" class="panel" style="padding:20px; margin-bottom:24px;">
+        <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+          <div class="field">
+            <label>Customer</label>
+            <select id="job-customer" required></select>
+          </div>
+          <div class="field">
+            <label>Body Type</label>
+            <select id="job-body-type">
+              <option>Sedan</option>
+              <option>SUV</option>
+              <option>Hatchback</option>
+              <option>Pickup</option>
+              <option>Van</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Make</label>
+            <input type="text" id="job-make" placeholder="e.g. Toyota" required />
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <input type="text" id="job-model" placeholder="e.g. Hilux" />
+          </div>
+          <div class="field">
+            <label>Year</label>
+            <input type="number" id="job-year" placeholder="e.g. 2019" min="1970" max="2030" />
+          </div>
+          <div class="field">
+            <label>License Plate</label>
+            <input type="text" id="job-plate" placeholder="e.g. ABC 1234" />
+          </div>
+          <div class="field">
+            <label>VIN</label>
+            <input type="text" id="job-vin" placeholder="Optional" />
+          </div>
+          <div class="field" style="grid-column: span 3;">
+            <label>Fault Reported</label>
+            <textarea id="job-fault" rows="2" placeholder="What the customer says is wrong" required></textarea>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Create Repair Job</button>
+        </div>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Status, mechanic, and cost</span></div>
+        <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Customer</th>
+              <th>Device</th>
+              <th>Fault</th>
+              <th>Status</th>
+              <th>Mechanic</th>
+              <th>Cost</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="repairs-table">
+            <tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Edit Job Modal -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Update Job #<span id="edit-job-number"></span></h3>
+      <div class="field">
+        <label>Status</label>
+        <select id="edit-status"></select>
+      </div>
+      <div class="field">
+        <label>Diagnosis</label>
+        <textarea id="edit-diagnosis" placeholder="Mechanic's findings"></textarea>
+      </div>
+      <div class="field">
+        <label>Labour Cost</label>
+        <input type="number" id="edit-labour" step="0.01" min="0" />
+      </div>
+      <div class="field">
+        <label>Parts Cost</label>
+        <input type="number" id="edit-parts" step="0.01" min="0" />
+      </div>
+      <div class="field">
+        <div id="zig-total" style="font-size:0.85rem; color:var(--text-muted);"></div>
+      </div>
+      <div class="field">
+        <label>Mechanic</label>
+        <select id="edit-technician"></select>
+      </div>
+      <div id="edit-collection-fields" class="hidden">
+        <div class="field">
+          <label>Odometer at Collection</label>
+          <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
+        </div>
+        <div class="field">
+          <label>Collection Notes</label>
+          <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
+        </div>
+      </div>
+      <div class="field">
+        <label>Add Part from Shop</label>
+        <div style="display:flex; gap:8px;">
+          <select id="job-part-select" style="flex:1;"></select>
+          <input type="number" id="job-part-qty" min="1" value="1" style="width:70px;" />
+          <button id="job-part-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Parts Used</label>
+        <div id="job-parts-list" style="font-size:0.85rem;"></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        <button id="edit-save" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
+        <a id="edit-quote-link" class="btn" href="quotations.html"><i data-lucide="file-plus-2"></i> Create Quotation</a>
+        <a id="edit-receipt-link" class="btn hidden" href="receipts.html"><i data-lucide="receipt"></i> Generate Receipt</a>
+        <button id="edit-portal-link" class="btn" type="button"><i data-lucide="share-2"></i> Copy Portal Link</button>
+        <button id="edit-whatsapp" class="btn hidden" type="button">
+          <i data-lucide="message-circle"></i> Notify Customer
+        </button>
+        <button id="edit-cancel" class="btn"><i data-lucide="x"></i> Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/app.js"></script>
+<script type="module" src="../js/repairs.js"></script>
+<script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Check Repair Status</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="portal.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <main class="portal-shell">
+    <div class="portal-brand"><img class="portal-logo" src="assets/logo.svg" alt="AUTO PARTS &amp; REPAIRS"> Customer Portal</div>
+
+    <section class="portal-hero">
+      <span class="portal-kicker">Repair updates, without the phone call</span>
+      <h1>Check your vehicle's repair status.</h1>
+      <p>Enter the phone number used at drop-off and your license plate. We will show the latest safe update for your repair job.</p>
+    </section>
+
+    <section class="portal-panel">
+      <form id="portal-form" class="portal-form">
+        <div class="portal-field">
+          <label for="portal-phone">Phone number</label>
+          <input id="portal-phone" type="tel" autocomplete="tel" placeholder="e.g. 077 123 4567" required />
+        </div>
+        <div class="portal-field">
+          <label for="portal-plate">License plate</label>
+          <input id="portal-plate" type="text" autocomplete="off" placeholder="e.g. ABC 1234" required />
+        </div>
+        <button class="portal-button" type="submit"><i data-lucide="search"></i> Check status</button>
+      </form>
+      <p id="portal-message" class="portal-message" role="alert"></p>
+    </section>
+
+    <section id="portal-result" class="portal-panel portal-result" hidden aria-live="polite">
+      <div class="portal-result-header">
+        <div>
+          <span class="portal-job-number">Repair job <strong id="portal-job-number"></strong></span>
+          <h2 id="portal-customer-greeting">Your repair update</h2>
+        </div>
+        <span id="portal-status" class="portal-status"></span>
+      </div>
+      <div class="portal-vehicle">
+        <h3>Vehicle</h3>
+        <strong id="portal-vehicle-name"></strong>
+        <span id="portal-vehicle-details"></span>
+      </div>
+      <div class="portal-cost">
+        <span>Estimated total cost</span>
+        <strong id="portal-total-cost"></strong>
+      </div>
+      <div id="portal-status-message" class="portal-message-card"></div>
+      <div id="portal-timeline" class="portal-timeline" hidden>
+        <h3>Status timeline</h3>
+        <ol id="portal-timeline-list"></ol>
+      </div>
+    </section>
+
+    <p class="portal-footer">For changes to your repair details, please contact the shop directly.</p>
+  </main>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/portal.js"></script>
+</body>
+</html>

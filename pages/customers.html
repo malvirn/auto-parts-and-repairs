@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Customers</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link active" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Relationship management</p>
+          <h1>Customers</h1>
+          <p class="page-intro">Keep customer contacts and vehicle history ready for every repair.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">New record</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Customer</h2></div><span class="section-note">Contact details</span></div>
+        <form id="customer-form" class="form-grid panel" style="padding:20px; margin-bottom:24px;">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="cust-name" placeholder="e.g. Tendai Moyo" required />
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="cust-phone" placeholder="e.g. +263 77 123 4567" pattern="\+263\s\d{2}\s\d{3}\s\d{4}" title="Use +263 00 000 0000 format" required />
+        </div>
+        <div class="field">
+          <label>Vehicle Plate Number</label>
+          <input type="text" id="cust-plate" placeholder="e.g. ABC 1234" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="customer-email" placeholder="customer@gmail.com" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
+        </div>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2>Registered Customers</h2></div><span class="section-note">Vehicles and repeat visits</span></div>
+        <div class="panel">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th></tr>
+          </thead>
+          <tbody id="customers-table">
+            <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/customers.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

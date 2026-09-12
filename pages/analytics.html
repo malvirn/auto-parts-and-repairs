@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Analytics</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    .analytics-grid { display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom:24px; }
+    .chart-card { background:var(--surface); border-radius:var(--radius); padding:20px; }
+    .leaderboard-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06); }
+    .leaderboard-row:last-child { border-bottom:none; }
+    .rank-badge { display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--primary,#c0522d); color:#fff; align-items:center; justify-content:center; font-size:0.75rem; margin-right:8px; }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link active" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Business intelligence</p>
+          <h1>Analytics</h1>
+          <p class="page-intro">Review revenue movement, team output, parts demand, and workshop efficiency.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">At a glance</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Performance Summary</h2></div><span class="section-note">Current period</span></div>
+        <section class="card-grid" id="summary-cards"></section>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Financial performance</p><h2><i class="section-heading-icon" data-lucide="trending-up"></i>Revenue &amp; Workforce</h2></div><span class="section-note">Six-month trend</span></div>
+        <div class="analytics-grid">
+        <div class="chart-card">
+          <h3><i class="chart-heading-icon" data-lucide="trending-up"></i>Revenue (last 6 months)</h3>
+          <canvas id="revenue-chart" height="90"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3><i class="chart-heading-icon" data-lucide="hard-hat"></i>Top Mechanics</h3>
+          <div id="mechanic-leaderboard"></div>
+        </div>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Demand &amp; efficiency</p><h2><i class="section-heading-icon" data-lucide="bar-chart-3"></i>Parts &amp; Turnaround</h2></div><span class="section-note">Operational signals</span></div>
+        <div class="analytics-grid">
+        <div class="chart-card">
+          <h3><i class="chart-heading-icon" data-lucide="package"></i>Top-Selling Parts</h3>
+          <div id="parts-leaderboard"></div>
+        </div>
+        <div class="chart-card">
+          <h3><i class="chart-heading-icon" data-lucide="clock-3"></i>Avg. Turnaround Time</h3>
+          <div id="turnaround-stat" style="font-size:2rem; font-weight:700;">—</div>
+          <div style="color:var(--text-muted); font-size:0.85rem;">from job creation to completion</div>
+        </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/analytics.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>
