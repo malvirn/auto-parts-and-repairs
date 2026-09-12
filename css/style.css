@@ -386,6 +386,12 @@ th {
 .btn--danger { color: var(--danger); }
 .btn svg { width: 16px; height: 16px; }
 
+/* Utility: elements with this class are hidden until JS explicitly shows them.
+   Without this rule, #receipt-modal (and any other .hidden element) renders as a
+   normal block — and since it's position:fixed;inset:0, that means it covers the
+   whole screen on first load, before any job has even been picked. */
+.hidden { display: none !important; }
+
 .modal-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 .supplier-form { display: grid; gap: 16px; }
 .supplier-form-grid { max-width: none; grid-template-columns: repeat(3, 1fr); }
@@ -770,29 +776,39 @@ body.dashboard-page .brand-logo {
   margin: 0 auto;
 }
 
-/* Force the sidebar to always be visible — undo any collapse/toggle/transform */
-body.dashboard-page .sidebar {
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  transform: none !important;
-  display: block !important;
-  width: 220px;
-  z-index: 100;
+/* Force the sidebar to always be visible — but ONLY on wider screens.
+   These rules used to apply unconditionally, which is what was breaking phones:
+   a 220px sidebar permanently open with no way to collapse it, and the hamburger
+   toggle hidden, left almost no room for actual content on a phone-width screen. */
+@media (min-width: 721px) {
+  body.dashboard-page .sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    display: block !important;
+    width: 220px;
+    z-index: 100;
+  }
+
+  /* Hide the hamburger/toggle button since the sidebar is permanent at this width */
+  body.dashboard-page .sidebar-toggle,
+  body.dashboard-page .menu-toggle,
+  body.dashboard-page .hamburger {
+    display: none !important;
+  }
+
+  /* Push page content over so it doesn't sit underneath the fixed sidebar */
+  body.dashboard-page .app-shell {
+    padding-left: 220px;
+  }
 }
 
-/* Hide the hamburger/toggle button entirely since the sidebar is now permanent */
-body.dashboard-page .sidebar-toggle,
-body.dashboard-page .menu-toggle,
-body.dashboard-page .hamburger {
-  display: none !important;
-}
-
-/* Push page content over so it doesn't sit underneath the now-fixed sidebar */
-body.dashboard-page .app-shell {
-  padding-left: 220px;
-}
+/* On phones (≤720px) the original collapsible behavior takes over instead:
+   sidebar slides in from off-screen (see .dashboard-page .sidebar earlier in
+   this file), the hamburger toggle is visible, and JS adds/removes the
+   .sidebar-open class on <body> to slide it in and show the backdrop. */
 
 /* ===== Light mode =====
    Defines every token the stylesheet actually consumes (--surface-2, --accent-dim,
