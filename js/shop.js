@@ -5,7 +5,7 @@ import { getRate } from "./currency.js";
 // Restricted the same way as the Suppliers page's Google Places key:
 // HTTP referrer + API restricted to Custom Search API only.
 const GOOGLE_IMAGE_API_KEY = "AIzaSyDejnz35wFf1_YmZgUXuF3R3WKf5xOp63A";
-const GOOGLE_IMAGE_CX = "YOUR_SEARCH_ENGINE_ID";
+const GOOGLE_IMAGE_CX = "870b4a94ca9f1457f";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#f2f0ea"/><text x="50%" y="58%" font-size="18" text-anchor="middle" fill="#bbb">?</text></svg>`
@@ -121,6 +121,25 @@ async function searchGoogleImages(query) {
   }));
 }
 
+// Pasting a link copied straight from Google Images gives you a wrapper
+// URL like google.com/imgres?...&imgurl=<the real image>&... — that's an
+// HTML results page, not an image file, so it won't render. This pulls the
+// actual image URL out of it automatically.
+function extractDirectImageUrl(rawUrl) {
+  const trimmed = (rawUrl || "").trim();
+  if (!trimmed) return trimmed;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname.includes("google.") && parsed.searchParams.has("imgurl")) {
+      return decodeURIComponent(parsed.searchParams.get("imgurl"));
+    }
+  } catch (e) {
+    const match = trimmed.match(/[?&]imgurl=([^&]+)/);
+    if (match) return decodeURIComponent(match[1]);
+  }
+  return trimmed;
+}
+
 function wireImageSearch({ nameInputId, searchBtn, resultsContainer, previewImg, urlInput }) {
   if (!searchBtn) return;
   searchBtn.addEventListener("click", async () => {
@@ -145,7 +164,10 @@ function wireImageSearch({ nameInputId, searchBtn, resultsContainer, previewImg,
       });
     } catch (err) {
       console.error("Image search failed:", err);
-      resultsContainer.innerHTML = `<span style="font-size:.8rem;color:var(--danger);">${escapeHtml(err.message)}</span>`;
+      const hint = /invalid argument/i.test(err.message)
+        ? " Check that GOOGLE_IMAGE_CX in shop.js is your real Search Engine ID from programmablesearchengine.google.com (not the placeholder, and not the API key)."
+        : "";
+      resultsContainer.innerHTML = `<span style="font-size:.8rem;color:var(--danger);">${escapeHtml(err.message)}${hint}</span>`;
     } finally {
       searchBtn.disabled = false;
       searchBtn.innerHTML = original;
@@ -153,6 +175,13 @@ function wireImageSearch({ nameInputId, searchBtn, resultsContainer, previewImg,
     }
   });
   urlInput.addEventListener("input", () => { previewImg.src = urlInput.value || PLACEHOLDER_IMG; });
+  urlInput.addEventListener("blur", () => {
+    const cleaned = extractDirectImageUrl(urlInput.value);
+    if (cleaned !== urlInput.value.trim()) {
+      urlInput.value = cleaned;
+      previewImg.src = cleaned || PLACEHOLDER_IMG;
+    }
+  });
 }
 
 wireImageSearch({
