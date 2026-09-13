@@ -11,109 +11,36 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* ============================================================
-       Modal fix — scoped to this page. The previous overlay had no
-       reliable positioning, so its contents (title + footer buttons)
-       collapsed to the bottom of the page instead of appearing as a
-       centered popup. This forces correct behavior regardless of
-       what's (or isn't) in the shared stylesheet.
-       ============================================================ */
+    /* Modal fix — same as before: shared .modal-overlay/.modal classes have
+       no real positioning, so this forces a centered popup on this page. */
     .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      z-index: 1000;
-      overflow-y: auto;
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
     }
     .modal-overlay.hidden { display: none !important; }
     .modal-overlay:not(.hidden) { display: flex; }
-
     .modal {
-      background: #fff;
-      width: 100%;
-      max-width: 640px;
-      max-height: 88vh;
-      border-radius: 14px;
-      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin: auto;
+      background: #fff; width: 100%; max-width: 640px; max-height: 88vh; border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35); display: flex; flex-direction: column;
+      overflow: hidden; margin: auto;
     }
-    .modal h3 {
-      padding: 20px 24px 0;
-      margin: 0 0 4px;
-      font-size: 17px;
-    }
-    .modal > .quotation-lines,
-    .modal > .quote-detail-block,
-    .modal > .quotation-total {
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-    .modal-scroll {
-      overflow-y: auto;
-      padding: 4px 0 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    /* The footer — this is the part that was breaking. Now it's a
-       clean, sticky action bar pinned to the bottom of the modal
-       card itself, not the page. */
+    .modal h3 { padding: 20px 24px 0; margin: 0 0 4px; font-size: 17px; }
+    .modal > .quotation-lines, .modal > .quote-detail-block, .modal > .quotation-total { padding-left: 24px; padding-right: 24px; }
+    .modal-scroll { overflow-y: auto; padding: 4px 0 8px; display: flex; flex-direction: column; gap: 14px; }
     .modal-actions {
-      margin-top: 0;
-      padding: 14px 24px;
-      border-top: 1px solid var(--border, #e5e8ee);
-      background: #fff;
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      position: sticky;
-      bottom: 0;
+      margin-top: 0; padding: 14px 24px; border-top: 1px solid var(--border, #e5e8ee); background: #fff;
+      display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: 0;
     }
-
-    /* Full text detail block */
     .quote-detail-block {
-      background: var(--surface-alt, #f9fafb);
-      border: 1px solid var(--border, #e5e8ee);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin: 0 24px;
+      background: var(--surface-alt, #f9fafb); border: 1px solid var(--border, #e5e8ee);
+      border-radius: 10px; padding: 14px 16px; margin: 0 24px;
     }
-    .quote-detail-block h4 {
-      margin: 0 0 8px;
-      font-size: 12.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted, #8a93a3);
-    }
-    .detail-text {
-      white-space: pre-wrap;
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 12.8px;
-      line-height: 1.55;
-      color: var(--text, #1f2733);
-      max-height: 260px;
-      overflow-y: auto;
-      margin: 0 0 12px;
-    }
-    .detail-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .quote-detail-block h4 { margin: 0 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted, #8a93a3); }
+    .quote-detail-block .receipt-document { max-width: none; margin: 0; padding: 0; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .detail-actions .btn { font-size: 13px; }
-    #quote-detail-copy-status, #order-detail-copy-status {
-      font-size: 12px;
-      color: var(--success, #2e7d4f);
-      margin-left: 4px;
-    }
+    #quote-detail-copy-status, #order-detail-copy-status { font-size: 12px; color: var(--success, #2e7d4f); margin-left: 4px; }
+    #quote-walkin-fields.hidden, #order-walkin-note.hidden { display: none; }
   </style>
 </head>
 <body class="dashboard-page">
@@ -133,20 +60,24 @@
     </aside>
     <main class="main">
       <div class="main__header">
-        <div><p class="section-kicker">Commercial documents</p><h1>Quotations &amp; Sales Orders</h1><p class="page-intro">Prepare 25% markup quotations in USD and ZiG, negotiate them, and convert approved work into sales orders.</p></div>
+        <div><p class="section-kicker">Commercial documents</p><h1>Quotations &amp; Sales Orders</h1><p class="page-intro">Prepare 25% markup quotations in USD and ZiG for any customer — with or without a repair job on file — and convert approved work into sales orders.</p></div>
       </div>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">New document</p><h2><i class="section-heading-icon" data-lucide="file-plus-2"></i>Create Quotation</h2></div><span class="section-note">25% markup · live exchange rate</span></div>
         <form id="quotation-form" class="panel quotation-form" style="padding:20px;">
           <div class="form-grid quotation-form-grid">
-            <div class="field"><label for="quote-job">Repair Job / Vehicle</label><select id="quote-job" required></select></div>
-            <div class="field"><label for="quote-notes">Notes</label><input id="quote-notes" placeholder="Negotiation or customer notes" /></div>
+            <div class="field"><label for="quote-job">Repair Job / Vehicle</label><select id="quote-job"><option value="">No repair job — walk-in customer</option></select></div>
+          </div>
+          <div id="quote-walkin-fields" class="form-grid quotation-form-grid">
+            <div class="field"><label for="quote-walkin-name">Customer Name</label><input id="quote-walkin-name" placeholder="Required if no repair job is selected" /></div>
+            <div class="field"><label for="quote-walkin-phone">Phone</label><input id="quote-walkin-phone" placeholder="+263 77 123 4567" /></div>
+            <div class="field"><label for="quote-walkin-email">Email</label><input id="quote-walkin-email" type="email" /></div>
           </div>
           <div class="quotation-add-row">
             <label class="sr-only" for="quote-part">Part</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
           </div>
-          <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Select a repair job and add parts.</span></div></div>
+          <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
           <div class="quotation-total"><span>Quotation Total</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
           <button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button>
         </form>
@@ -154,12 +85,12 @@
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Issued documents</p><h2><i class="section-heading-icon" data-lucide="files"></i>Quotation List</h2></div><span class="section-note">Amend, negotiate, or convert</span></div>
-        <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Job</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
+        <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Confirmed work</p><h2><i class="section-heading-icon" data-lucide="shopping-cart"></i>Sales Orders</h2></div><span class="section-note">Amendable order records</span></div>
-        <div class="panel"><table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="orders-table"><tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
+        <div class="panel"><table><thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="orders-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
     </main>
   </div>
@@ -167,11 +98,11 @@
   <!-- Quotation amend modal -->
   <div id="quote-edit-modal" class="modal-overlay hidden">
     <div class="modal">
-      <h3>Amend Quotation #<span id="edit-quote-number"></span></h3>
+      <h3>Quotation #<span id="edit-quote-number"></span></h3>
       <div class="modal-scroll">
         <div class="quote-detail-block">
-          <h4>Full Details</h4>
-          <pre id="quote-detail-text" class="detail-text"></pre>
+          <h4>Preview — what the customer sees</h4>
+          <div id="quote-detail-text" class="receipt-document"></div>
           <div class="detail-actions">
             <button id="quote-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Details</button>
             <button id="quote-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Customer</button>
@@ -184,7 +115,7 @@
       </div>
       <div class="modal-actions">
         <button id="edit-quote-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Amendment</button>
-        <button id="edit-quote-order" class="btn" type="button"><i data-lucide="shopping-cart"></i> Create Sales Order</button>
+        <button id="edit-quote-order" class="btn" type="button"><i data-lucide="shopping-cart"></i> Confirm Sales Order</button>
         <button id="edit-quote-cancel" class="btn" type="button"><i data-lucide="x"></i> Cancel</button>
       </div>
     </div>
@@ -193,11 +124,11 @@
   <!-- Sales order amend modal -->
   <div id="order-edit-modal" class="modal-overlay hidden">
     <div class="modal">
-      <h3>Amend Sales Order #<span id="edit-order-number"></span></h3>
+      <h3>Sales Order #<span id="edit-order-number"></span></h3>
       <div class="modal-scroll">
         <div class="quote-detail-block">
-          <h4>Full Details</h4>
-          <pre id="order-detail-text" class="detail-text"></pre>
+          <h4>Preview — what the customer sees</h4>
+          <div id="order-detail-text" class="receipt-document"></div>
           <div class="detail-actions">
             <button id="order-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Details</button>
             <button id="order-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Customer</button>
@@ -209,7 +140,7 @@
         <div class="quotation-total"><span>Order Total</span><strong id="edit-order-total"></strong></div>
       </div>
       <div class="modal-actions">
-        <button id="edit-order-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Order</button>
+        <button id="edit-order-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Order &amp; Issue Receipt</button>
         <button id="edit-order-cancel" class="btn" type="button"><i data-lucide="x"></i> Cancel</button>
       </div>
     </div>
