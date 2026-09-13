@@ -1,76 +1,20 @@
-﻿// ========= Repair Jobs module =========
+﻿// ========= Receipts module =========
 import supabase from "./supabaseClient.js";
-import { STATUS_META, messageForStatus } from "./portalShared.js";
 
-const tableBody = document.getElementById("repairs-table");
-const form = document.getElementById("job-form");
-const customerSelect = document.getElementById("job-customer");
-const jobPlateSelect = document.getElementById("job-plate");
+const SHOP_NAME = "Auto Parts and Repairs";
+const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
+const SHOP_LOGO_PATH = "../assets/logo.png"; // same file already used in the sidebar
 
-const modal = document.getElementById("edit-modal");
-const editJobNumber = document.getElementById("edit-job-number");
-const editStatus = document.getElementById("edit-status");
-const editDiagnosis = document.getElementById("edit-diagnosis");
-const editLabour = document.getElementById("edit-labour");
-const editParts = document.getElementById("edit-parts");
-const editTechnician = document.getElementById("edit-technician");
-const editSaveBtn = document.getElementById("edit-save");
-const editCancelBtn = document.getElementById("edit-cancel");
-const editMarkCollectedBtn = document.getElementById("edit-mark-collected");
-const editWhatsappBtn = document.getElementById("edit-whatsapp");
-const editDiagnosisEta = document.getElementById("edit-diagnosis-eta");
-const editDiagnosisWhatsappBtn = document.getElementById("edit-diagnosis-whatsapp");
-const editDiagnosisEmailBtn = document.getElementById("edit-diagnosis-email");
-const editQuoteLink = document.getElementById("edit-quote-link");
-const editReceiptLink = document.getElementById("edit-receipt-link");
-const zigTotal = document.getElementById("zig-total");
-const editCollectionFields = document.getElementById("edit-collection-fields");
-const editOdometer = document.getElementById("edit-odometer");
-const editCollectionNotes = document.getElementById("edit-collection-notes");
-const jobPartSelect = document.getElementById("job-part-select");
-const jobPartQty = document.getElementById("job-part-qty");
-const jobPartAddBtn = document.getElementById("job-part-add");
-const jobPartsList = document.getElementById("job-parts-list");
-const pickupCountdownBlock = document.getElementById("pickup-countdown-block");
-const pickupCountdownDisplay = document.getElementById("pickup-countdown");
-const applyParkingFeeBtn = document.getElementById("apply-parking-fee");
+const pendingTableBody = document.getElementById("pending-receipts-table");
+const receiptsTableBody = document.getElementById("receipts-table");
+const receiptModal = document.getElementById("receipt-modal");
+const receiptDocument = document.getElementById("receipt-document");
+const receiptWhatsappBtn = document.getElementById("receipt-whatsapp");
+const receiptEmailBtn = document.getElementById("receipt-email");
 
-let currentEditJobId = null;
-let currentEditJob = null;
-let cachedRate = null;
-let customerVehiclesMap = {};   // customer_id -> [{ id, license_plate, make, model, year, vin, body_type }]
-let pendingCollection = false;
-let countdownInterval = null;
-
-// Only these show up in the day-to-day status dropdown. The Postgres enum
-// itself is untouched (still has the old values for historical rows) — this
-// just narrows what staff can pick going forward. "Ready for Pickup" now
-// doubles as the old "Completed" (job finished, waiting on the customer).
-// "Collected" is intentionally not selectable here — it's reached only via
-// the dedicated "Mark as Collected" button below, since it's a one-way,
-// record-keeping action rather than a routine status change.
-const STATUS_LIST = ["Received", "Diagnosing", "Ready for Pickup", "Unclaimed"];
-const TERMINAL_STATUS = "Collected";
-
-const PARKING_GRACE_DAYS = 7;
-const PARKING_FEE_PER_DAY = 3;
-
-async function getRate() {
-  if (cachedRate) return cachedRate;
-  const { data, error } = await supabase.from("settings").select("usd_to_zwg_rate").single();
-  cachedRate = error ? 26.6908 : Number(data.usd_to_zwg_rate);
-  return cachedRate;
-}
-
-async function updateZigDisplay() {
-  if (!zigTotal) return;
-  const rate = await getRate();
-  const total = (parseFloat(editLabour.value) || 0) + (parseFloat(editParts.value) || 0);
-  zigTotal.textContent = `≈ ZiG ${(total * rate).toLocaleString("en-US", { maximumFractionDigits: 2 })} (rate: ${rate})`;
-}
-
-if (editLabour) editLabour.addEventListener("input", updateZigDisplay);
-if (editParts) editParts.addEventListener("input", updateZigDisplay);
+// Set whenever a receipt is rendered, so the send buttons know who/what
+// they're sending without re-querying the database.
+let currentReceipt = null; // { receiptNumber, jobNumber, customer }
 
 function formatPhoneForWhatsApp(raw) {
   if (!raw) return null;
@@ -79,575 +23,307 @@ function formatPhoneForWhatsApp(raw) {
   return digits;
 }
 
-function updateWhatsappButton(job) {
-  if (!editWhatsappBtn) return;
-  const msg = messageForStatus(job);
-  const phone = formatPhoneForWhatsApp(job?.customers?.phone);
+function renderReceipt(receipt) {
+  const job = receipt.repair_jobs;
+  const customer = job?.customers;
+  const vehicle = job?.vehicles;
+  const parts = receipt.parts || [];
+  const partsTotal = parts.reduce((sum, part) => sum + Number(part.quantity) * Number(part.price_at_time), 0);
+  const labour = Number(job?.labour_cost || 0);
+  const total = Number(receipt.amount || partsTotal + labour);
 
-  if (msg && phone) {
-    editWhatsappBtn.classList.remove("hidden");
-    editWhatsappBtn.onclick = () => {
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
-    };
-  } else {
-    editWhatsappBtn.classList.add("hidden");
-    editWhatsappBtn.onclick = null;
-  }
+  currentReceipt = {
+    receiptNumber: receipt.receipt_number,
+    jobNumber: job?.job_number,
+    customer,
+  };
+
+  receiptDocument.innerHTML = `
+    <header class="receipt-header">
+      <div class="receipt-brand">
+        <img src="${SHOP_LOGO_PATH}" alt="${SHOP_NAME}" class="receipt-logo" />
+        <div class="receipt-address">${SHOP_NAME}<br>${SHOP_TAGLINE}</div>
+      </div>
+      <div class="receipt-meta"><strong>RECEIPT #${String(receipt.receipt_number).padStart(4, "0")}</strong>${new Date(receipt.issued_at).toLocaleDateString()}</div>
+    </header>
+    <h3>Customer</h3><div class="receipt-customer">${escapeHtml(customer?.full_name || "—")}<br>${escapeHtml(customer?.phone || "—")}</div>
+    <h3>Repair &amp; Vehicle</h3><div class="receipt-customer">Job #${String(job?.job_number || "").padStart(4, "0")} · ${escapeHtml([vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Vehicle")}<br>Plate: ${escapeHtml(vehicle?.license_plate || "—")}<br>Status: ${escapeHtml(job?.status || "Ready for Pickup")}</div>
+    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${parts.map(part => `<tr><td>${escapeHtml(part.part_name)}</td><td>${part.quantity}</td><td>$${Number(part.price_at_time).toFixed(2)}</td><td>$${(Number(part.quantity) * Number(part.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}<tr><td>Labour</td><td>1</td><td>$${labour.toFixed(2)}</td><td>$${labour.toFixed(2)}</td></tr></tbody></table>
+    <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
+    <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>`;
+  receiptModal.classList.remove("hidden");
+  receiptModal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
 }
 
-// ---- Customers + their registered vehicles ----
-// The license plate is no longer free text: it must be one of the vehicles
-// already registered for that customer (via the Customers page), so this
-// pulls full vehicle records per customer up front and caches them client-side
-// rather than re-querying every time the customer selection changes.
-async function loadCustomersIntoSelect() {
+async function openReceiptForJob(jobId) {
   const { data, error } = await supabase
-    .from("customers")
-    .select("id, full_name, vehicles(id, license_plate, make, model, year, vin, body_type)")
-    .order("full_name");
+    .from("receipts")
+    .select(`id, receipt_number, amount, issued_at, repair_jobs(job_number, status, labour_cost, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time))`)
+    .eq("repair_job_id", jobId)
+    .order("issued_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (error) { console.error("Error loading customers:", error); return; }
-
-  customerVehiclesMap = {};
-  customerSelect.innerHTML =
-    `<option value="" disabled selected>Select a customer…</option>` +
-    data.map(c => {
-      customerVehiclesMap[c.id] = c.vehicles || [];
-      return `<option value="${c.id}">${escapeHtml(c.full_name)}</option>`;
-    }).join("");
-
-  resetVehicleSelect();
+  if (error) { alert("Unable to load receipt: " + error.message); return; }
+  if (!data) { alert("No receipt found for this job."); return; }
+  renderReceipt({ ...data, parts: data.repair_jobs?.job_parts || [] });
 }
 
-function resetVehicleSelect() {
-  jobPlateSelect.innerHTML = `<option value="">Select a customer first…</option>`;
-  jobPlateSelect.disabled = true;
-  clearVehicleFields();
-}
-
-function clearVehicleFields() {
-  document.getElementById("job-body-type").value = "Sedan";
-  document.getElementById("job-make").value = "";
-  document.getElementById("job-model").value = "";
-  document.getElementById("job-year").value = "";
-  document.getElementById("job-vin").value = "";
-}
-
-function autofillVehicleFields(vehicle) {
-  if (!vehicle) return;
-  document.getElementById("job-body-type").value = vehicle.body_type || "Other";
-  document.getElementById("job-make").value = vehicle.make || "";
-  document.getElementById("job-model").value = vehicle.model || "";
-  document.getElementById("job-year").value = vehicle.year || "";
-  document.getElementById("job-vin").value = vehicle.vin || "";
-}
-
-function populateVehicleOptions(customerId) {
-  const vehicles = customerVehiclesMap[customerId] || [];
-  if (!vehicles.length) {
-    jobPlateSelect.innerHTML = `<option value="">No vehicles registered — add one via the Customers page</option>`;
-    jobPlateSelect.disabled = true;
-    clearVehicleFields();
-    return;
-  }
-  jobPlateSelect.disabled = false;
-  jobPlateSelect.innerHTML = vehicles.map(v => {
-    const label = [v.make, v.model].filter(Boolean).join(" ");
-    return `<option value="${v.id}">${escapeHtml(v.license_plate)}${label ? ` — ${escapeHtml(label)}` : ""}</option>`;
-  }).join("");
-  autofillVehicleFields(vehicles[0]);
-}
-
-customerSelect.addEventListener("change", () => populateVehicleOptions(customerSelect.value));
-jobPlateSelect.addEventListener("change", () => {
-  const vehicles = customerVehiclesMap[customerSelect.value] || [];
-  autofillVehicleFields(vehicles.find(v => v.id === jobPlateSelect.value));
-});
-
-async function loadTechniciansIntoSelect() {
-  // Only mechanics show up here — this table now holds every employee
-  // (sales, admin, etc.), and a repair job can only be assigned to
-  // someone who actually works on cars.
+// A sales order's receipt has no repair job / vehicle behind it — this
+// renders from sales_order_items instead, but into the exact same modal.
+async function openReceiptForOrder(orderId) {
   const { data, error } = await supabase
-    .from("technicians")
-    .select("id, full_name")
-    .eq("department", "Mechanics")
-    .eq("is_active", true)
-    .order("full_name");
+    .from("receipts")
+    .select(`id, receipt_number, amount, issued_at, sales_orders(order_number, status, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`)
+    .eq("sales_order_id", orderId)
+    .order("issued_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (error) { console.error("Error loading technicians:", error); return; }
+  if (error) { alert("Unable to load receipt: " + error.message); return; }
+  if (!data) { alert("No receipt found for this sales order."); return; }
 
-  editTechnician.innerHTML =
-    `<option value="">Unassigned</option>` +
-    (data || []).map(t => `<option value="${t.id}">${escapeHtml(t.full_name)}</option>`).join("");
+  const order = data.sales_orders;
+  const customer = order?.customers;
+  const items = order?.sales_order_items || [];
+  const total = Number(data.amount || items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0));
+
+  currentReceipt = { receiptNumber: data.receipt_number, jobNumber: null, customer };
+
+  receiptDocument.innerHTML = `
+    <header class="receipt-header">
+      <div class="receipt-brand">
+        <img src="${SHOP_LOGO_PATH}" alt="${SHOP_NAME}" class="receipt-logo" />
+        <div class="receipt-address">${SHOP_NAME}<br>${SHOP_TAGLINE}</div>
+      </div>
+      <div class="receipt-meta"><strong>RECEIPT #${String(data.receipt_number).padStart(4, "0")}</strong>${new Date(data.issued_at).toLocaleDateString()}</div>
+    </header>
+    <h3>Customer</h3><div class="receipt-customer">${escapeHtml(customer?.full_name || "—")}<br>${escapeHtml(customer?.phone || "—")}</div>
+    <h3>Sales Order</h3><div class="receipt-customer">Order #${String(order?.order_number || "").padStart(4, "0")}<br>Status: ${escapeHtml(order?.status || "—")}</div>
+    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${items.map(item => `<tr><td>${escapeHtml(item.part_name)}</td><td>${item.quantity}</td><td>$${Number(item.unit_price_usd).toFixed(2)}</td><td>$${(Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No items recorded</td></tr>`}</tbody></table>
+    <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
+    <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>`;
+  receiptModal.classList.remove("hidden");
+  receiptModal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
 }
 
-async function loadPartsIntoSelect() {
-  if (!jobPartSelect) return;
-  const { data, error } = await supabase
-    .from("parts")
-    .select("id, name, selling_price, quantity_in_stock")
-    .order("name");
-  if (error) { console.error("Error loading parts:", error); return; }
+async function generateReceipt(jobId, amount) {
+  const { data: job, error: jobError } = await supabase.from("repair_jobs").select("id, status, total_cost").eq("id", jobId).single();
+  if (jobError || !job) { alert("Unable to load repair job."); return; }
+  // "Ready for Pickup" and "Unclaimed" both mean the job is finished
+  // (Unclaimed just means it's been finished a while without being picked up).
+  if (!["Ready for Pickup", "Unclaimed"].includes(job.status)) { alert("A receipt can only be generated once the job is marked Ready for Pickup."); return; }
 
-  jobPartSelect.innerHTML = (data || []).map(p =>
-    `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity_in_stock}" ${Number(p.quantity_in_stock) < 1 ? "disabled" : ""}>
-      ${escapeHtml(p.name)} — $${Number(p.selling_price).toFixed(2)} (${p.quantity_in_stock} in stock)
-    </option>`
-  ).join("");
-}
+  const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);
 
-async function loadJobParts(jobId) {
-  if (!jobPartsList) return;
-  const { data, error } = await supabase
-    .from("job_parts")
-    .select("id, part_name, quantity, price_at_time")
-    .eq("job_id", jobId);
-  if (error) { console.error("Error loading job parts:", error); return; }
-
-  if (!data || data.length === 0) {
-    jobPartsList.innerHTML = `<div style="color:var(--text-muted)">No parts added yet</div>`;
-    await recalcPartsCost(jobId);
+  if (error && error.code !== "23505") { // 23505 = unique_violation — a receipt already exists, which is fine
+    alert("Failed to generate receipt: " + error.message);
     return;
   }
 
-  jobPartsList.innerHTML = data.map(jp => `
-    <div class="part-row" style="justify-content:space-between; padding:4px 0;" data-jp-id="${jp.id}">
-      <span>${escapeHtml(jp.part_name)} × ${jp.quantity} — $${(jp.price_at_time * jp.quantity).toFixed(2)}</span>
-      <button type="button" class="btn remove-job-part-btn" data-jp-id="${jp.id}">✕</button>
-    </div>
-  `).join("");
-
-  document.querySelectorAll(".remove-job-part-btn").forEach(btn => {
-    btn.addEventListener("click", () => removeJobPart(btn.dataset.jpId, jobId));
-  });
-  applyCollectedLock(currentEditJob?.status === TERMINAL_STATUS);
-
-  await recalcPartsCost(jobId);
+  await loadPendingReceipts();
+  await loadAllReceipts();
+  openReceiptForJob(jobId);
 }
 
-async function recalcPartsCost(jobId) {
-  const { data } = await supabase.from("job_parts").select("quantity, price_at_time").eq("job_id", jobId);
-  const total = (data || []).reduce((sum, jp) => sum + jp.quantity * jp.price_at_time, 0);
-  editParts.value = total.toFixed(2);
-  updateZigDisplay();
-}
-
-async function removeJobPart(jobPartId, jobId) {
-  if (currentEditJob?.status === TERMINAL_STATUS) {
-    alert("This vehicle has been collected. Parts can no longer be changed.");
-    return;
-  }
-  const { data: jp } = await supabase.from("job_parts").select("part_id, quantity").eq("id", jobPartId).single();
-  if (jp?.part_id) {
-    const { data: part } = await supabase.from("parts").select("quantity_in_stock").eq("id", jp.part_id).single();
-    if (part) {
-      await supabase.from("parts").update({ quantity_in_stock: part.quantity_in_stock + jp.quantity }).eq("id", jp.part_id);
-    }
-  }
-  await supabase.from("job_parts").delete().eq("id", jobPartId);
-  await loadJobParts(jobId);
-  await loadPartsIntoSelect();
-}
-
-if (jobPartAddBtn) {
-  jobPartAddBtn.addEventListener("click", async () => {
-    if (!currentEditJobId) return;
-    if (currentEditJob?.status === TERMINAL_STATUS) {
-      alert("This vehicle has been collected. Parts can no longer be changed.");
-      return;
-    }
-    const partId = jobPartSelect.value;
-    const opt = jobPartSelect.options[jobPartSelect.selectedIndex];
-    const qty = parseInt(jobPartQty.value) || 1;
-    const price = parseFloat(opt?.dataset.price || 0);
-
-    if (!partId) { alert("Select a part first."); return; }
-    if (!Number.isInteger(qty) || qty < 1) { alert("Enter a valid quantity."); return; }
-
-    const { data: stockConsumed, error: stockError } = await supabase.rpc("consume_part_stock", {
-      p_part_id: partId,
-      p_quantity: qty,
-    });
-    if (stockError) { alert("Unable to reserve this part: " + stockError.message); return; }
-    if (!stockConsumed) { alert("That part is out of stock or does not have enough units available."); return; }
-
-    const { error: insertError } = await supabase.from("job_parts").insert([{
-      job_id: currentEditJobId,
-      part_id: partId,
-      part_name: opt.textContent.split(" — ")[0].trim(),
-      quantity: qty,
-      price_at_time: price,
-    }]);
-    if (insertError) {
-      await supabase.rpc("restore_part_stock", { p_part_id: partId, p_quantity: qty });
-      alert("Failed to add part: " + insertError.message);
-      return;
-    }
-    jobPartQty.value = 1;
-    await loadJobParts(currentEditJobId);
-    await loadPartsIntoSelect();
-  });
-}
-
-function initStatusOptions() {
-  editStatus.innerHTML = STATUS_LIST.map(s => `<option value="${s}">${s}</option>`).join("");
-}
-
-async function loadJobs() {
-  const { data, error } = await supabase
+// ---- Load completed jobs that don't have a receipt yet ----
+async function loadPendingReceipts() {
+  const { data: jobs, error: jobsError } = await supabase
     .from("repair_jobs")
     .select(`
-      id, job_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, parts_cost, total_cost, technician_id, ready_at, collected_at,
-      customers ( full_name, phone, email ),
-      vehicles ( make, model, year, license_plate ),
-      technicians ( full_name )
+      id, job_number, total_cost,
+      customers ( full_name )
     `)
-    .order("created_at", { ascending: false });
+    .in("status", ["Ready for Pickup", "Unclaimed"])
+    .order("completed_at", { ascending: false });
 
-  if (error) {
-    console.error("Error loading repair jobs:", error);
-    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Failed to load jobs: ${error.message}</td></tr>`;
+  if (jobsError) {
+    console.error("Error loading completed jobs:", jobsError);
+    pendingTableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Failed to load: ${jobsError.message}</td></tr>`;
     return;
   }
 
-  if (!data || data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No repair jobs yet</td></tr>`;
+  const { data: receipts, error: receiptsError } = await supabase
+    .from("receipts")
+    .select("repair_job_id");
+
+  if (receiptsError) {
+    console.error("Error loading receipts:", receiptsError);
+    pendingTableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Failed to load: ${receiptsError.message}</td></tr>`;
     return;
   }
 
-  tableBody.innerHTML = data.map(job => {
-    const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
-    const vehicleLabel = [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")
-      + (job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "");
-    return `
-      <tr data-job-id="${job.id}">
-        <td>#${String(job.job_number).padStart(4, "0")}</td>
-        <td>${escapeHtml(job.customers?.full_name ?? "—")}</td>
-        <td>${escapeHtml(vehicleLabel)}</td>
-        <td>${escapeHtml(job.fault_reported)}</td>
-        <td><span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${job.status}</span></td>
-        <td>${escapeHtml(job.technicians?.full_name ?? "Unassigned")}</td>
-        <td>$${Number(job.total_cost ?? 0).toFixed(2)}</td>
-        <td><button class="btn edit-job-btn" data-job='${JSON.stringify(job).replace(/'/g, "&apos;")}'><i data-lucide="eye"></i> View Details</button></td>
-      </tr>
-    `;
-  }).join("");
+  const receiptedJobIds = new Set((receipts || []).map(r => r.repair_job_id));
+  const pending = (jobs || []).filter(j => !receiptedJobIds.has(j.id));
+
+  if (pending.length === 0) {
+    pendingTableBody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted)">No completed jobs awaiting a receipt</td></tr>`;
+    return;
+  }
+
+  pendingTableBody.innerHTML = pending.map(job => `
+    <tr>
+      <td>#${String(job.job_number).padStart(4, "0")}</td>
+      <td>${escapeHtml(job.customers?.full_name ?? "—")}</td>
+      <td>$${Number(job.total_cost ?? 0).toFixed(2)}</td>
+      <td><button class="btn generate-receipt-btn" data-job-id="${job.id}" data-amount="${job.total_cost ?? 0}"><i data-lucide="receipt"></i> Generate</button></td>
+    </tr>
+  `).join("");
 
   if (window.lucide) lucide.createIcons();
 
-  document.querySelectorAll(".edit-job-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const job = JSON.parse(btn.dataset.job);
-      openEditModal(job);
+  document.querySelectorAll(".generate-receipt-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      const jobId = btn.dataset.jobId;
+      const amount = parseFloat(btn.dataset.amount) || 0;
+      await generateReceipt(jobId, amount);
+      btn.disabled = false;
     });
   });
 }
 
-// ---- Live pickup countdown / parking fee ----
-// Purely date-math off ready_at, independent of whatever the status field
-// says — so it works whether the job is "Ready for Pickup" or already
-// flagged "Unclaimed", and stops the moment collected_at is set.
-function renderPickupCountdown(job) {
-  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  if (!pickupCountdownBlock || !pickupCountdownDisplay) return;
+// ---- Load all receipts ----
+async function loadAllReceipts() {
+  const { data, error } = await supabase
+    .from("receipts")
+    .select(`
+      id, receipt_number, amount, issued_at,
+      repair_jobs (
+        id, status, labour_cost,
+        job_number,
+        customers ( full_name, phone, email ),
+        vehicles ( year, make, model, license_plate ),
+        job_parts ( part_name, quantity, price_at_time )
+      ),
+      sales_orders (
+        id, order_number,
+        customers ( full_name )
+      )
+    `)
+    .order("issued_at", { ascending: false });
 
-  const eligible = job.ready_at && !job.collected_at && ["Ready for Pickup", "Unclaimed"].includes(job.status);
-  if (!eligible) {
-    pickupCountdownBlock.classList.add("hidden");
-    if (applyParkingFeeBtn) applyParkingFeeBtn.classList.add("hidden");
+  if (error) {
+    console.error("Error loading receipts:", error);
+    receiptsTableBody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Failed to load receipts: ${error.message}</td></tr>`;
     return;
   }
-  pickupCountdownBlock.classList.remove("hidden");
 
-  const graceEndMs = new Date(job.ready_at).getTime() + PARKING_GRACE_DAYS * 24 * 60 * 60 * 1000;
-
-  const tick = () => {
-    const remaining = graceEndMs - Date.now();
-    if (remaining > 0) {
-      const d = Math.floor(remaining / 86400000);
-      const h = Math.floor((remaining % 86400000) / 3600000);
-      const m = Math.floor((remaining % 3600000) / 60000);
-      const s = Math.floor((remaining % 60000) / 1000);
-      pickupCountdownDisplay.textContent = `Free pickup window: ${d}d ${h}h ${m}m ${s}s remaining before parking fees begin.`;
-      if (applyParkingFeeBtn) applyParkingFeeBtn.classList.add("hidden");
-    } else {
-      const overdueDays = Math.floor(-remaining / 86400000) + 1;
-      const fee = overdueDays * PARKING_FEE_PER_DAY;
-      pickupCountdownDisplay.innerHTML = `<strong style="color:var(--danger)">Overdue ${overdueDays} day${overdueDays === 1 ? "" : "s"} — parking fee: $${fee.toFixed(2)}</strong>`;
-      if (applyParkingFeeBtn) {
-        applyParkingFeeBtn.classList.remove("hidden");
-        applyParkingFeeBtn.onclick = () => {
-          editLabour.value = ((parseFloat(editLabour.value) || 0) + fee).toFixed(2);
-          updateZigDisplay();
-        };
-      }
-    }
-  };
-  tick();
-  countdownInterval = setInterval(tick, 1000);
-}
-
-function openEditModal(job) {
-  currentEditJobId = job.id;
-  currentEditJob = job;
-  pendingCollection = false;
-  editJobNumber.textContent = String(job.job_number).padStart(4, "0");
-  editStatus.value = job.status;
-  editDiagnosis.value = job.diagnosis ?? "";
-  editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);
-  editLabour.value = job.labour_cost ?? 0;
-  editParts.value = job.parts_cost ?? 0;
-  editTechnician.value = job.technician_id ?? "";
-
-  const alreadyCollected = job.status === TERMINAL_STATUS;
-  applyCollectedLock(alreadyCollected);
-  updateWhatsappButton(job);
-  if (editQuoteLink) editQuoteLink.href = `quotations.html?job=${encodeURIComponent(job.id)}`;
-  if (editReceiptLink) {
-    editReceiptLink.href = `receipts.html?job=${encodeURIComponent(job.id)}`;
-    editReceiptLink.classList.toggle("hidden", job.status !== "Ready for Pickup");
+  if (!data || data.length === 0) {
+    receiptsTableBody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted)">No receipts yet</td></tr>`;
+    return;
   }
-  updateZigDisplay();
-  loadJobParts(job.id);
-  loadPartsIntoSelect();
 
-  if (editCollectionFields) editCollectionFields.classList.toggle("hidden", !alreadyCollected);
-  if (editMarkCollectedBtn) {
-    editMarkCollectedBtn.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(job.status));
-    editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Mark as Collected';
-  }
-  renderPickupCountdown(job);
-
-  modal.classList.remove("hidden");
+  receiptsTableBody.innerHTML = data.map(r => {
+    const sourceLabel = r.repair_jobs?.job_number
+      ? `#${String(r.repair_jobs.job_number).padStart(4, "0")}`
+      : (r.sales_orders?.order_number ? `Order #${String(r.sales_orders.order_number).padStart(4, "0")}` : "—");
+    const customerName = r.repair_jobs?.customers?.full_name || r.sales_orders?.customers?.full_name || "—";
+    const viewAttr = r.repair_jobs?.id
+      ? `data-job-id="${r.repair_jobs.id}"`
+      : `data-order-id="${r.sales_orders?.id || ""}"`;
+    return `
+    <tr>
+      <td>#${String(r.receipt_number).padStart(4, "0")}</td>
+      <td>${sourceLabel}</td>
+      <td>${escapeHtml(customerName)}</td>
+      <td>$${Number(r.amount ?? 0).toFixed(2)}</td>
+      <td>${new Date(r.issued_at).toLocaleDateString()}</td>
+      <td><button type="button" class="btn view-receipt-btn" ${viewAttr}><i data-lucide="eye"></i> View</button></td>
+    </tr>`;
+  }).join("");
+  document.querySelectorAll(".view-receipt-btn").forEach(button => button.addEventListener("click", () => {
+    if (button.dataset.jobId) openReceiptForJob(button.dataset.jobId);
+    else if (button.dataset.orderId) openReceiptForOrder(button.dataset.orderId);
+  }));
   if (window.lucide) lucide.createIcons();
 }
 
-function applyCollectedLock(isCollected) {
-  [editStatus, editDiagnosis, editLabour, editParts, editTechnician, editOdometer, editCollectionNotes, jobPartSelect, jobPartQty, jobPartAddBtn].forEach(element => {
-    if (element) element.disabled = isCollected;
+// ---- Share as a high-quality image (WhatsApp) ----
+// wa.me can only pre-fill text, not attach a file (a WhatsApp platform
+// restriction, not something a website can work around) — so this renders
+// a high-resolution image of the receipt, downloads it, and opens the
+// customer's chat with a short note. Staff attach the already-downloaded
+// image with one extra tap.
+async function captureReceiptImage() {
+  if (typeof html2canvas !== "function") {
+    throw new Error("html2canvas didn't load — check your internet connection and reload the page.");
+  }
+  return html2canvas(receiptDocument, {
+    scale: 4, // high resolution for crisp WhatsApp/print quality
+    backgroundColor: "#ffffff",
+    useCORS: true,
   });
-  document.querySelectorAll(".remove-job-part-btn").forEach(button => { button.disabled = isCollected; });
-  if (editSaveBtn) editSaveBtn.disabled = isCollected;
 }
 
-function closeEditModal() {
-  modal.classList.add("hidden");
-  currentEditJobId = null;
-  currentEditJob = null;
-  pendingCollection = false;
-  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  if (editWhatsappBtn) {
-    editWhatsappBtn.classList.add("hidden");
-    editWhatsappBtn.onclick = null;
+async function withButtonBusy(button, busyLabel, fn) {
+  const original = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = `<i data-lucide="loader-circle"></i> ${busyLabel}`;
+  if (window.lucide) lucide.createIcons();
+  try {
+    await fn();
+  } finally {
+    button.disabled = false;
+    button.innerHTML = original;
+    if (window.lucide) lucide.createIcons();
   }
 }
 
-if (editCancelBtn) editCancelBtn.addEventListener("click", closeEditModal);
-if (editStatus) {
-  editStatus.addEventListener("change", () => {
-    if (!currentEditJob) return;
-    updateWhatsappButton({ ...currentEditJob, status: editStatus.value });
-  });
-}
-if (modal) {
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeEditModal();
-  });
-}
+async function sendReceiptWhatsApp() {
+  if (!currentReceipt || !receiptWhatsappBtn) return;
+  const phone = formatPhoneForWhatsApp(currentReceipt.customer?.phone);
+  if (!phone) { alert("No phone number on file for this customer."); return; }
 
-if (editSaveBtn) {
-  editSaveBtn.addEventListener("click", async () => {
-    if (!currentEditJobId) return;
+  await withButtonBusy(receiptWhatsappBtn, "Preparing…", async () => {
+    try {
+      const canvas = await captureReceiptImage();
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `receipt-${String(currentReceipt.receiptNumber).padStart(4, "0")}.png`;
+      link.click();
 
-    const status = editStatus.value;
-    const labour_cost = parseFloat(editLabour.value) || 0;
-    const parts_cost = parseFloat(editParts.value) || 0;
-
-    const updates = {
-      status,
-      diagnosis: editDiagnosis.value.trim() || null,
-      diagnosis_eta: editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null,
-      labour_cost,
-      parts_cost,
-      technician_id: editTechnician.value || null
-    };
-
-    // "Ready for Pickup" absorbed the old "Completed" status, and a job
-    // marked "Unclaimed" is by definition also already finished — both are
-    // treated as "the job is done" for billing/receipt purposes.
-    // IMPORTANT: only set ready_at/completed_at the FIRST time a job enters
-    // one of these states — previously this ran on every single Save while
-    // already in "Ready for Pickup", resetting the 7-day countdown back to
-    // zero on every unrelated edit (e.g. just tweaking labour cost).
-    const isNowReadyOrUnclaimed = ["Ready for Pickup", "Unclaimed"].includes(status);
-    if (isNowReadyOrUnclaimed && !currentEditJob?.ready_at) {
-      updates.ready_at = new Date().toISOString();
+      const text = `Hi ${currentReceipt.customer?.full_name || "there"}, here's your receipt for Job #${String(currentReceipt.jobNumber).padStart(4, "0")} from ${SHOP_NAME}. The receipt image just downloaded to this device — attach it here to send it through.`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
+    } catch (err) {
+      console.error("Failed to prepare receipt image:", err);
+      alert("Couldn't prepare the receipt image: " + err.message);
     }
-    if (isNowReadyOrUnclaimed && !currentEditJob?.completed_at) {
-      updates.completed_at = new Date().toISOString();
-    }
-
-    const { data: updatedRows, error } = await supabase
-      .from("repair_jobs")
-      .update(updates)
-      .eq("id", currentEditJobId)
-      .select();
-
-    if (error) {
-      console.error("Error updating job:", error);
-      alert("Failed to update job: " + error.message);
-      return;
-    }
-
-    if (!updatedRows || updatedRows.length === 0) {
-      alert("Update ran with no error, but 0 rows changed — likely an RLS policy blocking the update.");
-      return;
-    }
-
-    if (isNowReadyOrUnclaimed) {
-      await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost);
-      await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost);
-    }
-
-    closeEditModal();
-    loadJobs();
   });
 }
 
-// ---- Mark as Collected ----
-// A one-way, record-keeping action rather than a routine status change —
-// two clicks: first reveals the odometer/notes fields, second confirms and
-// actually closes the job out.
-if (editMarkCollectedBtn) {
-  editMarkCollectedBtn.addEventListener("click", async () => {
-    if (!currentEditJobId) return;
+async function sendReceiptEmail() {
+  if (!currentReceipt || !receiptEmailBtn) return;
+  const email = (currentReceipt.customer?.email || "").trim() || prompt("Customer email address:");
+  if (!email) return;
 
-    if (!pendingCollection) {
-      pendingCollection = true;
-      if (editCollectionFields) editCollectionFields.classList.remove("hidden");
-      editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Confirm Collection';
-      if (window.lucide) lucide.createIcons();
-      return;
+  await withButtonBusy(receiptEmailBtn, "Sending…", async () => {
+    try {
+      const canvas = await captureReceiptImage();
+      const base64 = canvas.toDataURL("image/png", 1.0).split(",")[1];
+
+      const { error } = await supabase.functions.invoke("send-receipt-email", {
+        body: {
+          to: email,
+          subject: `Your receipt from ${SHOP_NAME} — Job #${String(currentReceipt.jobNumber).padStart(4, "0")}`,
+          imageBase64: base64,
+          jobNumber: currentReceipt.jobNumber,
+        },
+      });
+      if (error) throw error;
+      alert("Receipt emailed to " + email);
+    } catch (err) {
+      console.error("Failed to email receipt:", err);
+      alert("Couldn't email the receipt: " + err.message + "\n\nMake sure the send-receipt-email Edge Function is deployed with an email provider API key set.");
     }
-
-    const { data: updatedRows, error } = await supabase
-      .from("repair_jobs")
-      .update({ status: "Collected", collected_at: new Date().toISOString() })
-      .eq("id", currentEditJobId)
-      .select();
-
-    if (error) { alert("Failed to mark as collected: " + error.message); return; }
-    if (!updatedRows || updatedRows.length === 0) {
-      alert("Update ran with no error, but 0 rows changed — likely an RLS policy blocking the update.");
-      return;
-    }
-
-    if (currentEditJob?.vehicle_id) {
-      const { error: vehicleUpdateError } = await supabase
-        .from("vehicles")
-        .update({
-          odometer_out: parseInt(editOdometer.value) || null,
-          collection_notes: editCollectionNotes.value.trim() || null,
-        })
-        .eq("id", currentEditJob.vehicle_id);
-      if (vehicleUpdateError) console.error("Error updating vehicle on collection:", vehicleUpdateError);
-    }
-
-    pendingCollection = false;
-    closeEditModal();
-    loadJobs();
   });
 }
 
-async function sendStatusEmail(job, status, totalCost) {
-  if (!job?.customers?.email) {
-    console.warn("No email on file for this customer — skipping auto email.");
-    return;
-  }
-  const { error } = await supabase.functions.invoke("send-status-email", {
-    body: {
-      to: job.customers.email,
-      customerName: job.customers.full_name,
-      jobNumber: job.job_number,
-      device: [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" "),
-      status,
-      totalCost,
-    },
-  });
-  if (error) console.error("Email send failed:", error);
-}
-
-async function ensureReceiptExists(jobId, amount) {
-  const { data: existing, error: checkError } = await supabase
-    .from("receipts")
-    .select("id")
-    .eq("repair_job_id", jobId)
-    .limit(1);
-
-  if (checkError) {
-    console.error("Error checking for existing receipt:", checkError);
-    return;
-  }
-  if (existing && existing.length > 0) return;
-
-  const { error: insertError } = await supabase
-    .from("receipts")
-    .insert([{ repair_job_id: jobId, amount }]);
-
-  if (insertError) console.error("Error auto-creating receipt:", insertError);
-}
-
-if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const customer_id = customerSelect.value;
-    const vehicle_id = jobPlateSelect.value;
-    const body_type = document.getElementById("job-body-type").value;
-    const make = document.getElementById("job-make").value.trim();
-    const model = document.getElementById("job-model").value.trim();
-    const year = parseInt(document.getElementById("job-year").value) || null;
-    const vin = document.getElementById("job-vin").value.trim();
-    const fault_reported = document.getElementById("job-fault").value.trim();
-
-    if (!customer_id || !vehicle_id) {
-      alert("Select a customer and one of their registered vehicles. If this customer has no vehicles yet, add one via the Customers page first.");
-      return;
-    }
-    if (!make || !fault_reported) {
-      alert("Make and fault description are required.");
-      return;
-    }
-
-    // The vehicle already exists (it's one of the customer's registered
-    // plates) — just keep its details in sync with whatever was edited here.
-    const { error: vehicleUpdateError } = await supabase
-      .from("vehicles")
-      .update({ body_type, make, model: model || null, year, vin: vin || null })
-      .eq("id", vehicle_id);
-    if (vehicleUpdateError) {
-      console.error("Error updating vehicle:", vehicleUpdateError);
-      alert("Failed to update vehicle details: " + vehicleUpdateError.message);
-      return;
-    }
-
-    const { error: jobError } = await supabase
-      .from("repair_jobs")
-      .insert([{ customer_id, vehicle_id, fault_reported, status: "Received" }]);
-
-    if (jobError) {
-      console.error("Error creating repair job:", jobError);
-      alert("Failed to create repair job: " + jobError.message);
-      return;
-    }
-
-    form.reset();
-    resetVehicleSelect();
-    loadJobs();
-  });
-}
+if (receiptWhatsappBtn) receiptWhatsappBtn.addEventListener("click", sendReceiptWhatsApp);
+if (receiptEmailBtn) receiptEmailBtn.addEventListener("click", sendReceiptEmail);
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -655,107 +331,17 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Converts a stored ISO timestamp to the value a <input type="datetime-local">
-// expects (local time, no timezone suffix), or "" if there's nothing stored.
-function toDatetimeLocalValue(isoString) {
-  if (!isoString) return "";
-  const d = new Date(isoString);
-  const pad = n => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-// ---- AI-generated diagnosis update (WhatsApp / Email) ----
-// Calls a Supabase Edge Function that holds the Anthropic API key
-// server-side (never put an LLM API key in this file — see
-// supabase/functions/generate-diagnosis-update). WhatsApp still opens a
-// pre-filled wa.me link for staff to send themselves, same as elsewhere in
-// this app; email opens the customer's own mail client via mailto:.
-async function generateDiagnosisMessage(job, diagnosisText, eta) {
-  const vehicleLabel = [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ");
-  const { data, error } = await supabase.functions.invoke("generate-diagnosis-update", {
-    body: {
-      customerName: job.customers?.full_name || "there",
-      jobNumber: job.job_number,
-      vehicle: vehicleLabel,
-      diagnosis: diagnosisText,
-      eta: eta || null,
-    },
-  });
-  if (error) throw error;
-  if (!data?.message) throw new Error(data?.error || "No message returned.");
-  return data.message;
-}
-
-async function sendDiagnosisUpdate(channel) {
-  if (!currentEditJob) return;
-  const diagnosisText = editDiagnosis.value.trim();
-  if (!diagnosisText) {
-    alert("Add diagnosis notes first — the update message is generated from them.");
-    return;
-  }
-
-  const btn = channel === "whatsapp" ? editDiagnosisWhatsappBtn : editDiagnosisEmailBtn;
-  const originalHtml = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<i data-lucide="loader-circle"></i> Generating…`;
-  if (window.lucide) lucide.createIcons();
-
-  try {
-    const etaIso = editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null;
-    const message = await generateDiagnosisMessage(currentEditJob, diagnosisText, etaIso);
-
-    if (channel === "whatsapp") {
-      const phone = formatPhoneForWhatsApp(currentEditJob.customers?.phone);
-      if (!phone) { alert("No phone number on file for this customer."); return; }
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
-    } else {
-      const email = (currentEditJob.customers?.email || "").trim() || prompt("Customer email address:");
-      if (!email) return;
-      const subject = encodeURIComponent(`Update on your repair — Job #${String(currentEditJob.job_number).padStart(4, "0")}`);
-      window.open(`mailto:${email}?subject=${subject}&body=${encodeURIComponent(message)}`, "_blank");
-    }
-  } catch (err) {
-    console.error("Failed to generate diagnosis update:", err);
-    alert("Couldn't generate the update message: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHtml;
-    if (window.lucide) lucide.createIcons();
-  }
-}
-
-if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
-if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));
-
-document.addEventListener("DOMContentLoaded", async () => {
-  initStatusOptions();
-  loadCustomersIntoSelect();
-  loadTechniciansIntoSelect();
-  loadPartsIntoSelect();
-  await loadJobs();
-
+document.addEventListener("DOMContentLoaded", () => {
+  loadPendingReceipts();
+  loadAllReceipts();
   const params = new URLSearchParams(window.location.search);
-  const editId = params.get("edit");
-  const statusFilter = params.get("status");
-
-  if (editId) {
-    const btn = [...document.querySelectorAll(".edit-job-btn")]
-      .find(b => JSON.parse(b.dataset.job).id === editId);
-    if (btn) btn.click();
-  } else if (statusFilter) {
-    filterTableByStatus(statusFilter);
+  const requestedJob = params.get("job");
+  const requestedOrder = params.get("order");
+  if (requestedJob) {
+    setTimeout(() => generateReceipt(requestedJob), 250);
+  } else if (requestedOrder) {
+    setTimeout(() => openReceiptForOrder(requestedOrder), 250);
   }
 });
-
-function filterTableByStatus(status) {
-  document.querySelectorAll("#repairs-table tr").forEach(row => {
-    const job = row.querySelector(".edit-job-btn")?.dataset.job;
-    if (!job) return;
-    const parsed = JSON.parse(job);
-    let match = false;
-    if (status === "active") match = !["Ready for Pickup", "Collected", "Unclaimed"].includes(parsed.status);
-    else if (status === "completed-month") match = parsed.status === "Ready for Pickup";
-    else match = parsed.status === status;
-    row.style.display = match ? "" : "none";
-  });
-}
+document.getElementById("receipt-print")?.addEventListener("click", () => window.print());
+document.getElementById("receipt-close")?.addEventListener("click", () => { receiptModal.classList.add("hidden"); receiptModal.style.display = "none"; });
