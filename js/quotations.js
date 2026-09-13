@@ -22,7 +22,7 @@ let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 
 const markup = 0.25;
-const SHOP_NAME = "CRMS Repair Shop"; // adjust to your actual shop/brand name
+const SHOP_NAME = "Auto Parts and Repairs";
 
 function escapeHtml(value) {
   const div = document.createElement("div");

@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
@@ -69,6 +70,8 @@
   <div id="receipt-modal" class="modal-overlay hidden">
     <div class="receipt-modal-card">
       <div class="receipt-toolbar no-print">
+        <button id="receipt-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> Send WhatsApp</button>
+        <button id="receipt-email" type="button" class="btn"><i data-lucide="mail"></i> Send Email</button>
         <button id="receipt-print" type="button" class="btn btn--primary"><i data-lucide="printer"></i> Print Receipt</button>
         <button id="receipt-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
       </div>

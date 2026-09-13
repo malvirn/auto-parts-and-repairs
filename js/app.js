@@ -42,7 +42,7 @@ async function loadDashboard() {
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
     getData("customers", supabase.from("customers").select("id")),
-    getData("mechanics", supabase.from("technicians").select("id, is_active")),
+    getData("mechanics", supabase.from("technicians").select("id, is_active").eq("department", "Mechanics")),
     getData("parts", supabase.from("parts").select("id, name, quantity_in_stock, cost_price")),
     getData("receipts", supabase.from("receipts").select("repair_job_id, amount, issued_at")),
   ]);
@@ -56,16 +56,21 @@ async function loadDashboard() {
   if (window.lucide) lucide.createIcons();
 }
 
+// NOTE: "Ready for Pickup" now doubles as the old "Completed" status (job
+// finished, waiting on the customer) — repairs.js no longer sets a job to
+// "Completed" at all, so every place that used to check for it needs to
+// check "Ready for Pickup" instead, or these figures would silently stop
+// updating the moment the new status list went live.
 function renderOperationalMetrics(jobs, customers, mechanics, parts, receipts) {
-  const activeJobs = jobs.filter(job => !["Completed", "Collected", "Unclaimed"].includes(job.status));
+  const activeJobs = jobs.filter(job => !["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
   const now = new Date();
   const completedThisMonth = jobs.filter(job => {
-    if (!["Completed", "Collected"].includes(job.status) || !job.completed_at) return false;
+    if (!["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status) || !job.completed_at) return false;
     const completedAt = new Date(job.completed_at);
     return completedAt.getMonth() === now.getMonth() && completedAt.getFullYear() === now.getFullYear();
   });
   const receiptedJobIds = new Set(receipts.map(receipt => receipt.repair_job_id));
-  const outstanding = jobs.filter(job => ["Completed", "Collected"].includes(job.status) && !receiptedJobIds.has(job.id));
+  const outstanding = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
 
   setText(dashboard.active, activeJobs.length);
   setText(dashboard.awaitingParts, jobs.filter(job => job.status === "Awaiting Parts").length);
@@ -92,7 +97,7 @@ function renderOperationalMetrics(jobs, customers, mechanics, parts, receipts) {
 }
 
 function renderFinancialMetrics(jobs, receipts) {
-  const finished = jobs.filter(job => ["Completed", "Collected"].includes(job.status));
+  const finished = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
   const revenue = receipts.reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0);
   const partsCost = finished.reduce((sum, job) => sum + Number(job.parts_cost || 0), 0);
   const labour = jobs.reduce((sum, job) => sum + Number(job.labour_cost || 0), 0);
@@ -107,7 +112,7 @@ function renderFinancialMetrics(jobs, receipts) {
 }
 
 function renderAccountingSummary(jobs, parts, receipts) {
-  const finished = jobs.filter(job => ["Completed", "Collected"].includes(job.status));
+  const finished = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
   const billed = finished.reduce((sum, job) => sum + Number(job.total_cost || 0), 0);
   const collected = receipts.reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0);
   const outstanding = Math.max(0, billed - collected);
@@ -148,7 +153,7 @@ function renderAccountingSummary(jobs, parts, receipts) {
 }
 
 function renderOperationsSummary(jobs, customers, mechanics, parts) {
-  const activeJobs = jobs.filter(job => !["Completed", "Collected", "Unclaimed"].includes(job.status));
+  const activeJobs = jobs.filter(job => !["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
   const lowStock = parts.filter(part => Number(part.quantity_in_stock) < 3);
   const activeMechanics = mechanics.filter(mechanic => mechanic.is_active !== false);
   const rows = [

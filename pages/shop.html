@@ -11,22 +11,61 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    .icon-picker { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
-    .icon-option {
-      width:38px; height:38px; border-radius:10px; border:1px solid var(--border, #ddd);
-      display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--surface);
+    /* ============================================================
+       Modal fix — same root cause as the Suppliers/Quotations pages:
+       the shared stylesheet's .modal-overlay/.modal have no real
+       positioning, so anything using just those classes (the Restock
+       modal) renders broken instead of as a centered popup. Edit Part's
+       own inline styles override this for that element specifically;
+       this fixes Restock and anything else on this page using the
+       shared classes.
+       ============================================================ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      align-items: center; justify-content: center;
+      padding: 24px; z-index: 1000; overflow-y: auto;
     }
-    .icon-option.selected { border-color:var(--primary, #c0522d); background: rgba(192,82,45,0.1); }
-    .part-icon-badge {
-      width:36px; height:36px; border-radius:8px; background:rgba(192,82,45,0.12);
-      display:flex; align-items:center; justify-content:center; color:var(--primary, #c0522d);
+    .modal-overlay.hidden { display: none !important; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    .modal {
+      background: #fff; width: 100%; max-width: 480px; max-height: 88vh;
+      border-radius: 14px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      display: flex; flex-direction: column; overflow-y: auto; margin: auto;
+      padding: 22px 24px; gap: 12px;
     }
-    .part-row { display:flex; align-items:center; gap:12px; }
-    .stock-low { color:#c0392b; font-weight:600; }
-    .stock-ok { color:var(--text-muted); }
-    .margin-badge { font-size:0.75rem; color:#2e7d32; }
-    .restock-modal-actions { display:flex; gap:8px; margin-top:14px; }
-    .restock-modal-actions .btn { flex:1; }
+
+    .part-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border, #ddd); background: #f2f0ea; }
+    .part-image-field { display: flex; gap: 14px; align-items: flex-start; }
+    .part-image-preview { width: 68px; height: 68px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border, #ddd); background: #f2f0ea; flex-shrink: 0; }
+    .image-search-row { display: flex; gap: 8px; }
+    .image-search-row input { flex: 1; }
+    .image-results { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .image-result-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+    .image-result-thumb:hover, .image-result-thumb.selected { border-color: var(--accent, #c0522d); }
+
+    .suppliers-checklist { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 8px; padding: 8px; }
+    .supplier-check-row { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
+    .star-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; line-height: 1; padding: 2px; }
+    .star-btn.active { color: #e0a30c; }
+    .supplier-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.06); font-size: .72rem; margin: 2px 2px 2px 0; }
+    .supplier-chip.preferred { background: rgba(192,82,45,.15); color: var(--accent, #c0522d); font-weight: 600; }
+
+    .alerts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .alert-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+    .alert-card h4 { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+    .alert-row { display: flex; justify-content: space-between; font-size: .85rem; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .alert-row:last-child { border-bottom: none; }
+
+    .markup-control { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .markup-control input { width: 90px; }
+
+    .icon-picker, .icon-option, .part-icon-badge { display: none !important; } /* icons retired in favor of photos */
+    .stock-low { color: #c0392b; font-weight: 600; }
+    .stock-ok { color: var(--text-muted); }
+    .margin-badge { font-size: 0.75rem; color: #2e7d32; }
+    .restock-modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .restock-modal-actions .btn { flex: 1; }
   </style>
 </head>
 <body class="dashboard-page">
@@ -55,6 +94,20 @@
       </div>
 
       <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Needs attention</p><h2><i class="section-heading-icon" data-lucide="bell"></i>Alerts</h2></div></div>
+        <div class="alerts-grid">
+          <div class="alert-card">
+            <h4><i data-lucide="trending-down"></i> Low Stock</h4>
+            <div id="low-stock-alert"><span style="color:var(--text-muted); font-size:.85rem;">Loading…</span></div>
+          </div>
+          <div class="alert-card">
+            <h4><i data-lucide="flame"></i> Best Sellers</h4>
+            <div id="top-sellers-alert"><span style="color:var(--text-muted); font-size:.85rem;">Loading…</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Cost, price, and opening stock</span></div>
         <form id="part-form" class="panel" style="padding:20px; margin-bottom:24px;">
         <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
@@ -75,17 +128,26 @@
             <input type="number" id="part-cost" step="0.01" min="0" placeholder="What you pay" required />
           </div>
           <div class="field">
-            <label>Selling Price ($) — automatic 15% markup</label>
+            <label>Selling Price ($) — <span id="part-markup-label">15%</span> markup</label>
             <input type="number" id="part-price" step="0.01" min="0" placeholder="Calculated from cost" readonly required />
           </div>
-          <div class="field">
-            <label>Default Supplier</label>
-            <select id="part-supplier"></select>
+          <div></div>
+          <div class="field" style="grid-column: span 3;">
+            <label>Suppliers (check all that can supply this part — ★ marks the preferred one)</label>
+            <div id="part-suppliers-list" class="suppliers-checklist"></div>
           </div>
           <div class="field" style="grid-column: span 3;">
-            <label>Icon</label>
-            <div class="icon-picker" id="icon-picker"></div>
-            <input type="hidden" id="part-icon" value="package" />
+            <label>Photo</label>
+            <div class="part-image-field">
+              <img id="part-image-preview" class="part-image-preview" src="" alt="" />
+              <div style="flex:1;">
+                <div class="image-search-row">
+                  <button type="button" id="part-image-search-btn" class="btn"><i data-lucide="search"></i> Search Google Images</button>
+                  <input type="url" id="part-image-url" placeholder="Or paste an image URL directly" />
+                </div>
+                <div id="part-image-results" class="image-results"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div style="margin-top:14px;">
@@ -98,8 +160,15 @@
         <div class="section-heading"><div><p class="section-kicker">Current inventory</p><h2><i class="section-heading-icon" data-lucide="warehouse"></i>Stock Summary</h2></div><span class="section-note">Units and value on hand</span></div>
         <div class="card-grid stock-summary-grid">
           <div class="stat-card"><div class="stat-card__label">Total Units</div><div class="stat-card__value" id="shop-total-units">—</div></div>
-          <div class="stat-card"><div class="stat-card__label">Stock Value at Cost</div><div class="stat-card__value" id="shop-cost-value">—</div></div>
-          <div class="stat-card"><div class="stat-card__label">Stock Value at Selling Price</div><div class="stat-card__value" id="shop-retail-value">—</div></div>
+          <div class="stat-card"><div class="stat-card__label">Stock Value at Cost</div><div class="stat-card__value" id="shop-cost-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-cost-value-zig"></div></div>
+          <div class="stat-card"><div class="stat-card__label">Stock Value at Selling Price</div><div class="stat-card__value" id="shop-retail-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-retail-value-zig"></div></div>
+        </div>
+        <div class="markup-control">
+          <label style="font-size:.85rem;">Markup rate:</label>
+          <input type="number" id="markup-rate-input" step="0.1" min="0" />
+          <span>%</span>
+          <button id="save-markup-btn" type="button" class="btn"><i data-lucide="check"></i> Save Rate</button>
+          <button id="apply-markup-all-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Apply to All Existing Parts</button>
         </div>
       </section>
 
@@ -116,7 +185,7 @@
               <th>Price</th>
               <th>Margin</th>
               <th>Stock</th>
-              <th>Default Supplier</th>
+              <th>Suppliers</th>
               <th></th>
             </tr>
           </thead>
@@ -140,7 +209,7 @@
   <div id="restock-modal" class="modal-overlay hidden">
     <div class="modal">
       <h3>Restock <span id="restock-part-name"></span></h3>
-      <div class="field"><label for="restock-supplier">Supplier (optional)</label><select id="restock-supplier"></select></div>
+      <div class="field"><label for="restock-supplier">Supplier</label><select id="restock-supplier"></select></div>
       <div class="field"><label for="restock-quantity">Quantity</label><input type="number" id="restock-quantity" min="1" required /></div>
       <div class="field"><label for="restock-unit-cost">Unit Cost ($)</label><input type="number" id="restock-unit-cost" step="0.01" min="0" required /></div>
       <div class="restock-modal-actions">
@@ -150,19 +219,30 @@
     </div>
   </div>
 
-  <div id="edit-part-modal" class="modal-overlay hidden" style="position:fixed;inset:0;background:rgba(20,18,15,0.45);display:flex;align-items:center;justify-content:center;z-index:50;">
-    <div class="modal" style="background:var(--surface);border-radius:var(--radius);padding:24px;width:420px;max-width:90vw;">
+  <div id="edit-part-modal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:460px;">
       <h3>Edit Part</h3>
       <div class="field"><label>Name</label><input type="text" id="edit-part-name" /></div>
       <div class="field"><label>Category</label><input type="text" id="edit-part-category" /></div>
       <div class="field"><label>Quantity in Stock</label><input type="number" id="edit-part-qty" min="0" /></div>
-      <div class="field"><label>Default Supplier</label><select id="edit-part-supplier"></select></div>
       <div class="field"><label>Cost per Unit ($)</label><input type="number" id="edit-part-cost" step="0.01" min="0" /></div>
-      <div class="field"><label>Selling Price ($) — automatic 15% markup</label><input type="number" id="edit-part-price" step="0.01" min="0" readonly /></div>
+      <div class="field"><label>Selling Price ($) — <span id="edit-part-markup-label">15%</span> markup</label><input type="number" id="edit-part-price" step="0.01" min="0" readonly /></div>
       <div class="field">
-        <label>Icon</label>
-        <div class="icon-picker" id="edit-icon-picker"></div>
-        <input type="hidden" id="edit-part-icon" />
+        <label>Suppliers (★ = preferred)</label>
+        <div id="edit-part-suppliers-list" class="suppliers-checklist"></div>
+      </div>
+      <div class="field">
+        <label>Photo</label>
+        <div class="part-image-field">
+          <img id="edit-part-image-preview" class="part-image-preview" src="" alt="" />
+          <div style="flex:1;">
+            <div class="image-search-row">
+              <button type="button" id="edit-part-image-search-btn" class="btn"><i data-lucide="search"></i> Search</button>
+              <input type="url" id="edit-part-image-url" placeholder="Or paste an image URL" />
+            </div>
+            <div id="edit-part-image-results" class="image-results"></div>
+          </div>
+        </div>
       </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button id="edit-part-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save</button>

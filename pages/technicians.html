@@ -4,12 +4,33 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Mechanics</title>
+  <title>AUTO PARTS &amp; REPAIRS — Team</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-overlay { position: fixed; inset: 0; background: rgba(20,18,15,0.45); display: flex; align-items: center; justify-content: center; z-index: 50; }
+    .modal-overlay.hidden { display: none; }
+    .hidden { display: none !important; }
+    .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 560px; max-width: 92vw; max-height: 88vh; overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+    .modal h3 { margin-bottom: 16px; font-size: 1.1rem; }
+    .modal .field { margin-bottom: 14px; }
+    .contract-warning { display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px; font-size:.72rem; font-weight:600; background:rgba(201,58,58,.12); color:var(--danger); margin-left:8px; }
+    .dept-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; }
+    .dept-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; }
+    .dept-card h3 { font-size:1rem; margin-bottom:4px; }
+    .dept-card .dept-count { font-size:.78rem; color:var(--text-muted); margin-bottom:14px; }
+    .rank-tier { margin-bottom:14px; }
+    .rank-tier__label { font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:700; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; }
+    .rank-tier__people { display:flex; flex-direction:column; gap:4px; }
+    .hierarchy-person { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:.85rem; }
+    .hierarchy-person:hover { background: rgba(0,0,0,0.04); }
+    .hierarchy-person .off-count { font-size:.7rem; color:var(--text-muted); white-space:nowrap; }
+    .off-days-list { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+    .off-day-chip { padding:2px 8px; border-radius:999px; background:rgba(0,0,0,0.06); font-size:.75rem; }
+  </style>
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
@@ -18,8 +39,8 @@
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
       <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
-      <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
-      <a class="nav-link active" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link active" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Team</a>
       <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
       <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
       <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
@@ -30,43 +51,103 @@
     <main class="main">
       <div class="main__header">
         <div>
-          <p class="section-kicker">Workshop capacity</p>
-          <h1>Mechanics</h1>
-          <p class="page-intro">Manage the people responsible for diagnosis, repair, and handover.</p>
+          <p class="section-kicker">People</p>
+          <h1>Team</h1>
+          <p class="page-intro">Every employee across the company — mechanics, sales, and admin — with departments, ranks, and contracts.</p>
         </div>
       </div>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Team setup</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Mechanic</h2></div><span class="section-note">Keep contact details current</span></div>
-        <form id="tech-form" class="form-grid panel" style="padding:20px; margin-bottom:24px;">
-        <div class="field">
-          <label>Full Name</label>
-          <input type="text" id="tech-name" placeholder="e.g. Tapiwa Chikwaka" required />
-        </div>
-        <div class="field">
-          <label>Phone</label>
-          <input type="text" id="tech-phone" placeholder="Optional" />
-        </div>
-        <div style="grid-column: 1 / -1;">
-          <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Mechanic</button>
-        </div>
+        <div class="section-heading"><div><p class="section-kicker">New hire</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Employee</h2></div><span class="section-note">Full staff record</span></div>
+        <form id="employee-form" class="panel" style="padding:20px; margin-bottom:24px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="field"><label>Full Name</label><input type="text" id="emp-name" required /></div>
+            <div class="field"><label>Date of Birth</label><input type="date" id="emp-dob" /></div>
+            <div class="field"><label>Gender</label>
+              <select id="emp-gender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option></select>
+            </div>
+            <div class="field"><label>Phone</label><input type="tel" id="emp-phone" placeholder="+263 77 123 4567" /></div>
+            <div class="field"><label>Alternative Phone</label><input type="tel" id="emp-alt-phone" /></div>
+            <div class="field"><label>Email</label><input type="email" id="emp-email" /></div>
+            <div class="field" style="grid-column: span 2;"><label>Home Address</label><input type="text" id="emp-address" /></div>
+            <div class="field"><label>Job Title</label><input type="text" id="emp-job-title" placeholder="e.g. Senior Mechanic" /></div>
+            <div class="field"><label>Department</label><select id="emp-department" required></select></div>
+            <div class="field"><label>Rank</label><select id="emp-rank" required></select></div>
+            <div class="field"><label>Employee Type</label>
+              <select id="emp-type"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Intern</option></select>
+            </div>
+            <div class="field"><label>Contract Start</label><input type="date" id="emp-contract-start" /></div>
+            <div class="field"><label>Contract End</label><input type="date" id="emp-contract-end" /></div>
+            <div class="field"><label>Salary (USD/month)</label><input type="number" step="0.01" min="0" id="emp-salary" /></div>
+            <div class="field"><label>Work Location</label><input type="text" id="emp-location" placeholder="e.g. Main Branch" value="Main Branch" /></div>
+            <div class="field"><label>Account Number</label><input type="text" id="emp-account" /></div>
+            <div class="field"><label>Monthly Deductions (USD)</label><input type="number" step="0.01" min="0" id="emp-deductions" value="0" /></div>
+            <div class="field" style="grid-column: span 3;"><label>Deduction Notes</label><input type="text" id="emp-deductions-notes" placeholder="e.g. NSSA $10, Uniform $5" /></div>
+          </div>
+          <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add Employee</button>
+          <p id="employee-form-message" class="form-message" role="alert"></p>
         </form>
       </section>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Team directory</p><h2><i class="section-heading-icon" data-lucide="hard-hat"></i>Mechanic Roster</h2></div><span class="section-note">Availability and assignments</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Directory</p><h2><i class="section-heading-icon" data-lucide="users"></i>All Employees</h2></div><span class="section-note">Every department</span></div>
         <div class="panel">
-        <table>
-          <thead>
-            <tr><th>Name</th><th>Phone</th><th>Active</th><th></th></tr>
-          </thead>
-          <tbody id="tech-table">
-            <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
-          </tbody>
-        </table>
+          <table>
+            <thead><tr><th>Name</th><th>Department</th><th>Rank</th><th>Type</th><th>Status</th><th></th></tr></thead>
+            <tbody id="employees-table"><tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
         </div>
       </section>
+
+      <section class="page-section">
+        <div class="section-heading">
+          <div><p class="section-kicker">Org structure</p><h2><i class="section-heading-icon" data-lucide="git-branch"></i>Departments &amp; Hierarchy</h2></div>
+          <button id="generate-all-off-days" type="button" class="btn"><i data-lucide="shuffle"></i> Generate This Month's Off Days</button>
+        </div>
+        <div id="departments-grid" class="dept-grid"></div>
+      </section>
     </main>
+  </div>
+
+  <!-- Employee detail / edit modal -->
+  <div id="employee-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="emp-modal-name"></h3>
+      <div class="form-grid" style="max-width:none; grid-template-columns: repeat(2, 1fr);">
+        <div class="field"><label>Full Name</label><input type="text" id="edit-emp-name" /></div>
+        <div class="field"><label>Date of Birth</label><input type="date" id="edit-emp-dob" /></div>
+        <div class="field"><label>Gender</label><select id="edit-emp-gender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option></select></div>
+        <div class="field"><label>Phone</label><input type="tel" id="edit-emp-phone" /></div>
+        <div class="field"><label>Alternative Phone</label><input type="tel" id="edit-emp-alt-phone" /></div>
+        <div class="field"><label>Email</label><input type="email" id="edit-emp-email" /></div>
+        <div class="field" style="grid-column: span 2;"><label>Home Address</label><input type="text" id="edit-emp-address" /></div>
+        <div class="field"><label>Job Title</label><input type="text" id="edit-emp-job-title" /></div>
+        <div class="field"><label>Department</label><select id="edit-emp-department"></select></div>
+        <div class="field"><label>Rank</label><select id="edit-emp-rank"></select></div>
+        <div class="field"><label>Employee Type</label><select id="edit-emp-type"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Intern</option></select></div>
+        <div class="field"><label>Work Location</label><input type="text" id="edit-emp-location" /></div>
+        <div class="field"><label>Contract Start</label><input type="date" id="edit-emp-contract-start" /></div>
+        <div class="field"><label>Contract End <span id="edit-emp-contract-warning"></span></label><input type="date" id="edit-emp-contract-end" /></div>
+        <div class="field"><label>Salary (USD/month)</label><input type="number" step="0.01" min="0" id="edit-emp-salary" /></div>
+        <div class="field"><label>Account Number</label><input type="text" id="edit-emp-account" /></div>
+        <div class="field"><label>Monthly Deductions (USD)</label><input type="number" step="0.01" min="0" id="edit-emp-deductions" /></div>
+        <div class="field"><label>Deduction Notes</label><input type="text" id="edit-emp-deductions-notes" /></div>
+        <div class="field" style="grid-column: span 2;"><label>Notes</label><textarea id="edit-emp-notes" rows="2"></textarea></div>
+      </div>
+
+      <div class="field">
+        <label>This Month's Off Days</label>
+        <div id="edit-emp-off-days" class="off-days-list"></div>
+        <button id="edit-emp-generate-off-days" type="button" class="btn" style="margin-top:8px;"><i data-lucide="shuffle"></i> Generate/Reshuffle Off Days</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+        <button id="edit-emp-save" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save</button>
+        <button id="edit-emp-renew" class="btn" type="button"><i data-lucide="refresh-cw"></i> Renew Contract</button>
+        <button id="edit-emp-terminate" class="btn btn--danger" type="button"><i data-lucide="user-x"></i> Terminate</button>
+        <button id="edit-emp-cancel" class="btn" type="button"><i data-lucide="x"></i> Cancel</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>

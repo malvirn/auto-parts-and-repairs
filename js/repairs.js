@@ -5,6 +5,7 @@ import { STATUS_META, messageForStatus } from "./portalShared.js";
 const tableBody = document.getElementById("repairs-table");
 const form = document.getElementById("job-form");
 const customerSelect = document.getElementById("job-customer");
+const jobPlateSelect = document.getElementById("job-plate");
 
 const modal = document.getElementById("edit-modal");
 const editJobNumber = document.getElementById("edit-job-number");
@@ -15,8 +16,11 @@ const editParts = document.getElementById("edit-parts");
 const editTechnician = document.getElementById("edit-technician");
 const editSaveBtn = document.getElementById("edit-save");
 const editCancelBtn = document.getElementById("edit-cancel");
+const editMarkCollectedBtn = document.getElementById("edit-mark-collected");
 const editWhatsappBtn = document.getElementById("edit-whatsapp");
-const editPortalBtn = document.getElementById("edit-portal-link");
+const editDiagnosisEta = document.getElementById("edit-diagnosis-eta");
+const editDiagnosisWhatsappBtn = document.getElementById("edit-diagnosis-whatsapp");
+const editDiagnosisEmailBtn = document.getElementById("edit-diagnosis-email");
 const editQuoteLink = document.getElementById("edit-quote-link");
 const editReceiptLink = document.getElementById("edit-receipt-link");
 const zigTotal = document.getElementById("zig-total");
@@ -27,16 +31,29 @@ const jobPartSelect = document.getElementById("job-part-select");
 const jobPartQty = document.getElementById("job-part-qty");
 const jobPartAddBtn = document.getElementById("job-part-add");
 const jobPartsList = document.getElementById("job-parts-list");
+const pickupCountdownBlock = document.getElementById("pickup-countdown-block");
+const pickupCountdownDisplay = document.getElementById("pickup-countdown");
+const applyParkingFeeBtn = document.getElementById("apply-parking-fee");
 
 let currentEditJobId = null;
 let currentEditJob = null;
 let cachedRate = null;
+let customerVehiclesMap = {};   // customer_id -> [{ id, license_plate, make, model, year, vin, body_type }]
+let pendingCollection = false;
+let countdownInterval = null;
 
-const STATUS_LIST = [
-  "Received", "Diagnosing", "Awaiting Parts", "In Repair",
-  "Ready for Pickup", "Completed", "Collected", "Unclaimed"
-];
+// Only these show up in the day-to-day status dropdown. The Postgres enum
+// itself is untouched (still has the old values for historical rows) — this
+// just narrows what staff can pick going forward. "Ready for Pickup" now
+// doubles as the old "Completed" (job finished, waiting on the customer).
+// "Collected" is intentionally not selectable here — it's reached only via
+// the dedicated "Mark as Collected" button below, since it's a one-way,
+// record-keeping action rather than a routine status change.
+const STATUS_LIST = ["Received", "Diagnosing", "Ready for Pickup", "Unclaimed"];
 const TERMINAL_STATUS = "Collected";
+
+const PARKING_GRACE_DAYS = 7;
+const PARKING_FEE_PER_DAY = 3;
 
 async function getRate() {
   if (cachedRate) return cachedRate;
@@ -79,26 +96,84 @@ function updateWhatsappButton(job) {
   }
 }
 
+// ---- Customers + their registered vehicles ----
+// The license plate is no longer free text: it must be one of the vehicles
+// already registered for that customer (via the Customers page), so this
+// pulls full vehicle records per customer up front and caches them client-side
+// rather than re-querying every time the customer selection changes.
 async function loadCustomersIntoSelect() {
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, vehicles(license_plate)")
+    .select("id, full_name, vehicles(id, license_plate, make, model, year, vin, body_type)")
     .order("full_name");
 
   if (error) { console.error("Error loading customers:", error); return; }
 
+  customerVehiclesMap = {};
   customerSelect.innerHTML =
     `<option value="" disabled selected>Select a customer…</option>` +
     data.map(c => {
-      const plates = (c.vehicles || []).map(v => v.license_plate).filter(Boolean).join(", ");
-      return `<option value="${c.id}" data-plates="${escapeHtml(plates)}">${escapeHtml(c.full_name)}${plates ? ` (${escapeHtml(plates)})` : ""}</option>`;
+      customerVehiclesMap[c.id] = c.vehicles || [];
+      return `<option value="${c.id}">${escapeHtml(c.full_name)}</option>`;
     }).join("");
+
+  resetVehicleSelect();
 }
 
+function resetVehicleSelect() {
+  jobPlateSelect.innerHTML = `<option value="">Select a customer first…</option>`;
+  jobPlateSelect.disabled = true;
+  clearVehicleFields();
+}
+
+function clearVehicleFields() {
+  document.getElementById("job-body-type").value = "Sedan";
+  document.getElementById("job-make").value = "";
+  document.getElementById("job-model").value = "";
+  document.getElementById("job-year").value = "";
+  document.getElementById("job-vin").value = "";
+}
+
+function autofillVehicleFields(vehicle) {
+  if (!vehicle) return;
+  document.getElementById("job-body-type").value = vehicle.body_type || "Other";
+  document.getElementById("job-make").value = vehicle.make || "";
+  document.getElementById("job-model").value = vehicle.model || "";
+  document.getElementById("job-year").value = vehicle.year || "";
+  document.getElementById("job-vin").value = vehicle.vin || "";
+}
+
+function populateVehicleOptions(customerId) {
+  const vehicles = customerVehiclesMap[customerId] || [];
+  if (!vehicles.length) {
+    jobPlateSelect.innerHTML = `<option value="">No vehicles registered — add one via the Customers page</option>`;
+    jobPlateSelect.disabled = true;
+    clearVehicleFields();
+    return;
+  }
+  jobPlateSelect.disabled = false;
+  jobPlateSelect.innerHTML = vehicles.map(v => {
+    const label = [v.make, v.model].filter(Boolean).join(" ");
+    return `<option value="${v.id}">${escapeHtml(v.license_plate)}${label ? ` — ${escapeHtml(label)}` : ""}</option>`;
+  }).join("");
+  autofillVehicleFields(vehicles[0]);
+}
+
+customerSelect.addEventListener("change", () => populateVehicleOptions(customerSelect.value));
+jobPlateSelect.addEventListener("change", () => {
+  const vehicles = customerVehiclesMap[customerSelect.value] || [];
+  autofillVehicleFields(vehicles.find(v => v.id === jobPlateSelect.value));
+});
+
 async function loadTechniciansIntoSelect() {
+  // Only mechanics show up here — this table now holds every employee
+  // (sales, admin, etc.), and a repair job can only be assigned to
+  // someone who actually works on cars.
   const { data, error } = await supabase
     .from("technicians")
     .select("id, full_name")
+    .eq("department", "Mechanics")
+    .eq("is_active", true)
     .order("full_name");
 
   if (error) { console.error("Error loading technicians:", error); return; }
@@ -224,7 +299,7 @@ async function loadJobs() {
   const { data, error } = await supabase
     .from("repair_jobs")
     .select(`
-      id, job_number, portal_token, vehicle_id, fault_reported, diagnosis, status, labour_cost, parts_cost, total_cost, technician_id,
+      id, job_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, parts_cost, total_cost, technician_id, ready_at, collected_at,
       customers ( full_name, phone, email ),
       vehicles ( make, model, year, license_plate ),
       technicians ( full_name )
@@ -270,30 +345,83 @@ async function loadJobs() {
   });
 }
 
+// ---- Live pickup countdown / parking fee ----
+// Purely date-math off ready_at, independent of whatever the status field
+// says — so it works whether the job is "Ready for Pickup" or already
+// flagged "Unclaimed", and stops the moment collected_at is set.
+function renderPickupCountdown(job) {
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+  if (!pickupCountdownBlock || !pickupCountdownDisplay) return;
+
+  const eligible = job.ready_at && !job.collected_at && ["Ready for Pickup", "Unclaimed"].includes(job.status);
+  if (!eligible) {
+    pickupCountdownBlock.classList.add("hidden");
+    if (applyParkingFeeBtn) applyParkingFeeBtn.classList.add("hidden");
+    return;
+  }
+  pickupCountdownBlock.classList.remove("hidden");
+
+  const graceEndMs = new Date(job.ready_at).getTime() + PARKING_GRACE_DAYS * 24 * 60 * 60 * 1000;
+
+  const tick = () => {
+    const remaining = graceEndMs - Date.now();
+    if (remaining > 0) {
+      const d = Math.floor(remaining / 86400000);
+      const h = Math.floor((remaining % 86400000) / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      pickupCountdownDisplay.textContent = `Free pickup window: ${d}d ${h}h ${m}m ${s}s remaining before parking fees begin.`;
+      if (applyParkingFeeBtn) applyParkingFeeBtn.classList.add("hidden");
+    } else {
+      const overdueDays = Math.floor(-remaining / 86400000) + 1;
+      const fee = overdueDays * PARKING_FEE_PER_DAY;
+      pickupCountdownDisplay.innerHTML = `<strong style="color:var(--danger)">Overdue ${overdueDays} day${overdueDays === 1 ? "" : "s"} — parking fee: $${fee.toFixed(2)}</strong>`;
+      if (applyParkingFeeBtn) {
+        applyParkingFeeBtn.classList.remove("hidden");
+        applyParkingFeeBtn.onclick = () => {
+          editLabour.value = ((parseFloat(editLabour.value) || 0) + fee).toFixed(2);
+          updateZigDisplay();
+        };
+      }
+    }
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
 function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
+  pendingCollection = false;
   editJobNumber.textContent = String(job.job_number).padStart(4, "0");
   editStatus.value = job.status;
   editDiagnosis.value = job.diagnosis ?? "";
+  editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);
   editLabour.value = job.labour_cost ?? 0;
   editParts.value = job.parts_cost ?? 0;
   editTechnician.value = job.technician_id ?? "";
-  applyCollectedLock(job.status === TERMINAL_STATUS);
+
+  const alreadyCollected = job.status === TERMINAL_STATUS;
+  applyCollectedLock(alreadyCollected);
   updateWhatsappButton(job);
   if (editQuoteLink) editQuoteLink.href = `quotations.html?job=${encodeURIComponent(job.id)}`;
   if (editReceiptLink) {
     editReceiptLink.href = `receipts.html?job=${encodeURIComponent(job.id)}`;
-    editReceiptLink.classList.toggle("hidden", job.status !== "Completed");
+    editReceiptLink.classList.toggle("hidden", job.status !== "Ready for Pickup");
   }
-  setupPortalLink(job);
   updateZigDisplay();
   loadJobParts(job.id);
   loadPartsIntoSelect();
-  if (editCollectionFields) {
-    editCollectionFields.classList.toggle("hidden", job.status !== "Collected");
+
+  if (editCollectionFields) editCollectionFields.classList.toggle("hidden", !alreadyCollected);
+  if (editMarkCollectedBtn) {
+    editMarkCollectedBtn.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(job.status));
+    editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Mark as Collected';
   }
+  renderPickupCountdown(job);
+
   modal.classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
 }
 
 function applyCollectedLock(isCollected) {
@@ -302,52 +430,14 @@ function applyCollectedLock(isCollected) {
   });
   document.querySelectorAll(".remove-job-part-btn").forEach(button => { button.disabled = isCollected; });
   if (editSaveBtn) editSaveBtn.disabled = isCollected;
-  if (isCollected && editStatus) editStatus.value = TERMINAL_STATUS;
-}
-
-async function setupPortalLink(job) {
-  if (!editPortalBtn) return;
-  let token = job.portal_token;
-  if (!token) {
-    token = crypto.randomUUID
-      ? crypto.randomUUID().replace(/-/g, "")
-      : `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
-    const { error } = await supabase
-      .from("repair_jobs")
-      .update({ portal_token: token })
-      .eq("id", job.id);
-    if (error) {
-      console.error("Error creating portal token:", error);
-      editPortalBtn.disabled = true;
-      return;
-    }
-    job.portal_token = token;
-    if (currentEditJob?.id === job.id) currentEditJob.portal_token = token;
-  }
-
-  editPortalBtn.disabled = false;
-  editPortalBtn.onclick = async () => {
-    const portalUrl = new URL("../portal.html", window.location.href);
-    portalUrl.searchParams.set("job", job.job_number);
-    portalUrl.searchParams.set("token", token);
-    try {
-      await navigator.clipboard.writeText(portalUrl.href);
-      editPortalBtn.innerHTML = '<i data-lucide="check"></i> Link Copied';
-      if (window.lucide) lucide.createIcons();
-      setTimeout(() => {
-        editPortalBtn.innerHTML = '<i data-lucide="share-2"></i> Copy Portal Link';
-        if (window.lucide) lucide.createIcons();
-      }, 1800);
-    } catch (error) {
-      window.prompt("Copy this customer portal link:", portalUrl.href);
-    }
-  };
 }
 
 function closeEditModal() {
   modal.classList.add("hidden");
   currentEditJobId = null;
   currentEditJob = null;
+  pendingCollection = false;
+  if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
   if (editWhatsappBtn) {
     editWhatsappBtn.classList.add("hidden");
     editWhatsappBtn.onclick = null;
@@ -358,15 +448,7 @@ if (editCancelBtn) editCancelBtn.addEventListener("click", closeEditModal);
 if (editStatus) {
   editStatus.addEventListener("change", () => {
     if (!currentEditJob) return;
-    if (currentEditJob.status === TERMINAL_STATUS && editStatus.value !== TERMINAL_STATUS) {
-      editStatus.value = TERMINAL_STATUS;
-      alert("Collected vehicles are locked and cannot move back to earlier statuses.");
-      return;
-    }
     updateWhatsappButton({ ...currentEditJob, status: editStatus.value });
-    if (editCollectionFields) {
-      editCollectionFields.classList.toggle("hidden", editStatus.value !== "Collected");
-    }
   });
 }
 if (modal) {
@@ -380,24 +462,32 @@ if (editSaveBtn) {
     if (!currentEditJobId) return;
 
     const status = editStatus.value;
-    if (currentEditJob?.status === TERMINAL_STATUS && status !== TERMINAL_STATUS) {
-      alert("Collected vehicles are locked and cannot move back to earlier statuses.");
-      return;
-    }
     const labour_cost = parseFloat(editLabour.value) || 0;
     const parts_cost = parseFloat(editParts.value) || 0;
 
     const updates = {
       status,
       diagnosis: editDiagnosis.value.trim() || null,
+      diagnosis_eta: editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null,
       labour_cost,
       parts_cost,
       technician_id: editTechnician.value || null
     };
 
-    if (status === "Ready for Pickup") updates.ready_at = new Date().toISOString();
-    if (status === "Completed") updates.completed_at = new Date().toISOString();
-    if (status === "Collected") updates.collected_at = new Date().toISOString();
+    // "Ready for Pickup" absorbed the old "Completed" status, and a job
+    // marked "Unclaimed" is by definition also already finished — both are
+    // treated as "the job is done" for billing/receipt purposes.
+    // IMPORTANT: only set ready_at/completed_at the FIRST time a job enters
+    // one of these states — previously this ran on every single Save while
+    // already in "Ready for Pickup", resetting the 7-day countdown back to
+    // zero on every unrelated edit (e.g. just tweaking labour cost).
+    const isNowReadyOrUnclaimed = ["Ready for Pickup", "Unclaimed"].includes(status);
+    if (isNowReadyOrUnclaimed && !currentEditJob?.ready_at) {
+      updates.ready_at = new Date().toISOString();
+    }
+    if (isNowReadyOrUnclaimed && !currentEditJob?.completed_at) {
+      updates.completed_at = new Date().toISOString();
+    }
 
     const { data: updatedRows, error } = await supabase
       .from("repair_jobs")
@@ -416,7 +506,45 @@ if (editSaveBtn) {
       return;
     }
 
-    if (status === "Collected" && currentEditJob?.vehicle_id) {
+    if (isNowReadyOrUnclaimed) {
+      await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost);
+      await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost);
+    }
+
+    closeEditModal();
+    loadJobs();
+  });
+}
+
+// ---- Mark as Collected ----
+// A one-way, record-keeping action rather than a routine status change —
+// two clicks: first reveals the odometer/notes fields, second confirms and
+// actually closes the job out.
+if (editMarkCollectedBtn) {
+  editMarkCollectedBtn.addEventListener("click", async () => {
+    if (!currentEditJobId) return;
+
+    if (!pendingCollection) {
+      pendingCollection = true;
+      if (editCollectionFields) editCollectionFields.classList.remove("hidden");
+      editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Confirm Collection';
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    const { data: updatedRows, error } = await supabase
+      .from("repair_jobs")
+      .update({ status: "Collected", collected_at: new Date().toISOString() })
+      .eq("id", currentEditJobId)
+      .select();
+
+    if (error) { alert("Failed to mark as collected: " + error.message); return; }
+    if (!updatedRows || updatedRows.length === 0) {
+      alert("Update ran with no error, but 0 rows changed — likely an RLS policy blocking the update.");
+      return;
+    }
+
+    if (currentEditJob?.vehicle_id) {
       const { error: vehicleUpdateError } = await supabase
         .from("vehicles")
         .update({
@@ -424,18 +552,10 @@ if (editSaveBtn) {
           collection_notes: editCollectionNotes.value.trim() || null,
         })
         .eq("id", currentEditJob.vehicle_id);
-
       if (vehicleUpdateError) console.error("Error updating vehicle on collection:", vehicleUpdateError);
     }
 
-    if (status === "Completed") {
-      await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost);
-    }
-
-    if (status === "Ready for Pickup" || status === "Completed") {
-      await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost);
-    }
-
+    pendingCollection = false;
     closeEditModal();
     loadJobs();
   });
@@ -484,62 +604,38 @@ if (form) {
     e.preventDefault();
 
     const customer_id = customerSelect.value;
+    const vehicle_id = jobPlateSelect.value;
     const body_type = document.getElementById("job-body-type").value;
     const make = document.getElementById("job-make").value.trim();
     const model = document.getElementById("job-model").value.trim();
     const year = parseInt(document.getElementById("job-year").value) || null;
-    const license_plate = document.getElementById("job-plate").value.trim();
     const vin = document.getElementById("job-vin").value.trim();
     const fault_reported = document.getElementById("job-fault").value.trim();
 
-    if (!customer_id || !make || !fault_reported) {
-      alert("Customer, make, and fault description are required.");
+    if (!customer_id || !vehicle_id) {
+      alert("Select a customer and one of their registered vehicles. If this customer has no vehicles yet, add one via the Customers page first.");
+      return;
+    }
+    if (!make || !fault_reported) {
+      alert("Make and fault description are required.");
       return;
     }
 
-    let vehicleData = null;
-    if (license_plate) {
-      const { data: existingVehicle, error: lookupError } = await supabase
-        .from("vehicles")
-        .select("id")
-        .eq("customer_id", customer_id)
-        .ilike("license_plate", license_plate)
-        .maybeSingle();
-      if (lookupError) console.error("Error checking existing vehicle:", lookupError);
-      if (existingVehicle) {
-        const { data: updatedVehicle, error: updateVehicleError } = await supabase
-          .from("vehicles")
-          .update({ body_type, make, model: model || null, year, vin: vin || null })
-          .eq("id", existingVehicle.id)
-          .select()
-          .single();
-        if (updateVehicleError) {
-          console.error("Error updating vehicle:", updateVehicleError);
-          alert("Failed to update vehicle: " + updateVehicleError.message);
-          return;
-        }
-        vehicleData = updatedVehicle;
-      }
-    }
-
-    if (!vehicleData) {
-      const { data: newVehicle, error: vehicleError } = await supabase
-        .from("vehicles")
-        .insert([{ customer_id, body_type, make, model: model || null, year, license_plate: license_plate || null, vin: vin || null }])
-        .select()
-        .single();
-
-      if (vehicleError) {
-        console.error("Error creating vehicle:", vehicleError);
-        alert("Failed to save vehicle: " + vehicleError.message);
-        return;
-      }
-      vehicleData = newVehicle;
+    // The vehicle already exists (it's one of the customer's registered
+    // plates) — just keep its details in sync with whatever was edited here.
+    const { error: vehicleUpdateError } = await supabase
+      .from("vehicles")
+      .update({ body_type, make, model: model || null, year, vin: vin || null })
+      .eq("id", vehicle_id);
+    if (vehicleUpdateError) {
+      console.error("Error updating vehicle:", vehicleUpdateError);
+      alert("Failed to update vehicle details: " + vehicleUpdateError.message);
+      return;
     }
 
     const { error: jobError } = await supabase
       .from("repair_jobs")
-      .insert([{ customer_id, vehicle_id: vehicleData.id, fault_reported, status: "Received" }]);
+      .insert([{ customer_id, vehicle_id, fault_reported, status: "Received" }]);
 
     if (jobError) {
       console.error("Error creating repair job:", jobError);
@@ -548,6 +644,7 @@ if (form) {
     }
 
     form.reset();
+    resetVehicleSelect();
     loadJobs();
   });
 }
@@ -557,6 +654,78 @@ function escapeHtml(str) {
   div.textContent = str ?? "";
   return div.innerHTML;
 }
+
+// Converts a stored ISO timestamp to the value a <input type="datetime-local">
+// expects (local time, no timezone suffix), or "" if there's nothing stored.
+function toDatetimeLocalValue(isoString) {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ---- AI-generated diagnosis update (WhatsApp / Email) ----
+// Calls a Supabase Edge Function that holds the Anthropic API key
+// server-side (never put an LLM API key in this file — see
+// supabase/functions/generate-diagnosis-update). WhatsApp still opens a
+// pre-filled wa.me link for staff to send themselves, same as elsewhere in
+// this app; email opens the customer's own mail client via mailto:.
+async function generateDiagnosisMessage(job, diagnosisText, eta) {
+  const vehicleLabel = [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ");
+  const { data, error } = await supabase.functions.invoke("generate-diagnosis-update", {
+    body: {
+      customerName: job.customers?.full_name || "there",
+      jobNumber: job.job_number,
+      vehicle: vehicleLabel,
+      diagnosis: diagnosisText,
+      eta: eta || null,
+    },
+  });
+  if (error) throw error;
+  if (!data?.message) throw new Error(data?.error || "No message returned.");
+  return data.message;
+}
+
+async function sendDiagnosisUpdate(channel) {
+  if (!currentEditJob) return;
+  const diagnosisText = editDiagnosis.value.trim();
+  if (!diagnosisText) {
+    alert("Add diagnosis notes first — the update message is generated from them.");
+    return;
+  }
+
+  const btn = channel === "whatsapp" ? editDiagnosisWhatsappBtn : editDiagnosisEmailBtn;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i data-lucide="loader-circle"></i> Generating…`;
+  if (window.lucide) lucide.createIcons();
+
+  try {
+    const etaIso = editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null;
+    const message = await generateDiagnosisMessage(currentEditJob, diagnosisText, etaIso);
+
+    if (channel === "whatsapp") {
+      const phone = formatPhoneForWhatsApp(currentEditJob.customers?.phone);
+      if (!phone) { alert("No phone number on file for this customer."); return; }
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+    } else {
+      const email = (currentEditJob.customers?.email || "").trim() || prompt("Customer email address:");
+      if (!email) return;
+      const subject = encodeURIComponent(`Update on your repair — Job #${String(currentEditJob.job_number).padStart(4, "0")}`);
+      window.open(`mailto:${email}?subject=${subject}&body=${encodeURIComponent(message)}`, "_blank");
+    }
+  } catch (err) {
+    console.error("Failed to generate diagnosis update:", err);
+    alert("Couldn't generate the update message: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
+if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));
 
 document.addEventListener("DOMContentLoaded", async () => {
   initStatusOptions();
@@ -584,8 +753,8 @@ function filterTableByStatus(status) {
     if (!job) return;
     const parsed = JSON.parse(job);
     let match = false;
-    if (status === "active") match = !["Completed", "Collected", "Unclaimed"].includes(parsed.status);
-    else if (status === "completed-month") match = parsed.status === "Completed";
+    if (status === "active") match = !["Ready for Pickup", "Collected", "Unclaimed"].includes(parsed.status);
+    else if (status === "completed-month") match = parsed.status === "Ready for Pickup";
     else match = parsed.status === status;
     row.style.display = match ? "" : "none";
   });

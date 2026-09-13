@@ -32,6 +32,39 @@ async function loadCustomers() {
   `).join("");
 }
 
+// ---- Find an existing customer by phone or email ----
+// Phone and/or email identify a real person: if either already exists in
+// the table, this form submission is that same customer coming back (most
+// likely to register another vehicle) rather than a genuinely new person —
+// so we must not insert a second, duplicate customer row for them.
+async function findExistingCustomer(phone, email) {
+  const filters = [`phone.eq.${phone}`];
+  if (email) filters.push(`email.eq.${email}`);
+
+  const { data, error } = await supabase
+    .from("customers")
+    .select("id, full_name, phone, email, is_repeat_customer")
+    .or(filters.join(","))
+    .limit(1);
+
+  if (error) {
+    console.error("Error checking for an existing customer:", error);
+    return { customer: null, error };
+  }
+  return { customer: data && data[0] ? data[0] : null, error: null };
+}
+
+async function addVehicle(customerId, license_plate) {
+  const { error } = await supabase.from("vehicles").insert([{
+    customer_id: customerId,
+    body_type: "Other",
+    make: "",
+    license_plate,
+  }]);
+  if (error) console.error("Error adding vehicle plate:", error);
+  return error;
+}
+
 // ---- Handle new customer form submit ----
 if (form) {
   form.addEventListener("submit", async (e) => {
@@ -56,6 +89,38 @@ if (form) {
       return;
     }
 
+    const { customer: existing, error: lookupError } = await findExistingCustomer(phone, email);
+    if (lookupError) {
+      alert("Couldn't check for an existing customer: " + lookupError.message);
+      return;
+    }
+
+    if (existing) {
+      // This phone or email already belongs to someone in the system.
+      // Treat it as that customer returning — add the vehicle to their
+      // existing record and flag them as a repeat customer, rather than
+      // creating a second customer row with the same credentials.
+      if (license_plate) {
+        const vehicleError = await addVehicle(existing.id, license_plate);
+        if (vehicleError) {
+          alert(`${existing.full_name} is already a customer, but the vehicle plate could not be saved: ${vehicleError.message}`);
+          return;
+        }
+      }
+      if (!existing.is_repeat_customer) {
+        const { error: flagError } = await supabase
+          .from("customers")
+          .update({ is_repeat_customer: true })
+          .eq("id", existing.id);
+        if (flagError) console.error("Error marking repeat customer:", flagError);
+      }
+      form.reset();
+      await loadCustomers();
+      alert(`${existing.full_name} is already in the system with this phone/email${license_plate ? " — the vehicle has been added to their profile." : "."}`);
+      return;
+    }
+
+    // No existing match — this really is a new customer.
     const { data: customer, error } = await supabase.from("customers").insert([
       { full_name, phone, email: email || null }
     ]).select("id").single();
@@ -67,14 +132,8 @@ if (form) {
     }
 
     if (license_plate) {
-      const { error: vehicleError } = await supabase.from("vehicles").insert([{
-        customer_id: customer.id,
-        body_type: "Other",
-        make: "",
-        license_plate,
-      }]);
+      const vehicleError = await addVehicle(customer.id, license_plate);
       if (vehicleError) {
-        console.error("Error adding vehicle plate:", vehicleError);
         alert("Customer was added, but the vehicle plate could not be saved: " + vehicleError.message);
       }
     }
