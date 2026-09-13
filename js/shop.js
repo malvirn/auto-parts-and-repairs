@@ -4,7 +4,7 @@ import { getRate } from "./currency.js";
 // ⚠️ Fill these in — see the setup steps provided alongside this file.
 // Restricted the same way as the Suppliers page's Google Places key:
 // HTTP referrer + API restricted to Custom Search API only.
-const GOOGLE_IMAGE_API_KEY = "AIzaSyAQypJNRtv5ef0OZ68b7_sFwlEA3gBZZHU";
+const GOOGLE_IMAGE_API_KEY = "AIzaSyDejnz35wFf1_YmZgUXuF3R3WKf5xOp63A";
 const GOOGLE_IMAGE_CX = "YOUR_SEARCH_ENGINE_ID";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
