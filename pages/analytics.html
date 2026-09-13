@@ -17,6 +17,10 @@
     .leaderboard-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06); }
     .leaderboard-row:last-child { border-bottom:none; }
     .rank-badge { display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--primary,#c0522d); color:#fff; align-items:center; justify-content:center; font-size:0.75rem; margin-right:8px; }
+    .payroll-banner { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:20px; }
+    .payroll-banner .due-date { font-size:1.1rem; font-weight:700; }
+    .payroll-banner .due-note { font-size:.82rem; color:var(--text-muted); }
+    .payroll-banner.processed { border-color: var(--success, #2e7d4f); }
   </style>
 </head>
 <body class="dashboard-page">
@@ -40,13 +44,49 @@
         <div>
           <p class="section-kicker">Business intelligence</p>
           <h1>Analytics</h1>
-          <p class="page-intro">Review revenue movement, team output, parts demand, and workshop efficiency.</p>
+          <p class="page-intro">Revenue, workforce, inventory, payroll, and workshop efficiency — everything at a glance.</p>
         </div>
       </div>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">At a glance</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Performance Summary</h2></div><span class="section-note">Current period</span></div>
+        <div class="section-heading"><div><p class="section-kicker">At a glance</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Performance Summary</h2></div><span class="section-note">All time</span></div>
         <section class="card-grid" id="summary-cards"></section>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Right now</p><h2><i class="section-heading-icon" data-lucide="activity"></i>Daily Operations</h2></div><span class="section-note">Live workshop state</span></div>
+        <section class="card-grid" id="operations-cards"></section>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Manager view</p><h2><i class="section-heading-icon" data-lucide="layout-dashboard"></i>Capacity, Workforce &amp; Inventory</h2></div><span class="section-note">All time</span></div>
+        <section class="card-grid" id="manager-cards"></section>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Money</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Financial Control</h2></div><span class="section-note">Receipts, inventory value, profit</span></div>
+        <section class="card-grid" id="financial-cards"></section>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Payroll</p><h2><i class="section-heading-icon" data-lucide="banknote"></i>Staff Salaries</h2></div><span class="section-note">Paid on the last Friday of every month</span></div>
+        <div id="payroll-banner" class="payroll-banner">
+          <div>
+            <div class="due-date" id="payroll-due-date">—</div>
+            <div class="due-note" id="payroll-due-note">Loading…</div>
+          </div>
+          <button id="process-payroll-btn" type="button" class="btn btn--primary"><i data-lucide="banknote"></i> Process This Month's Payroll</button>
+        </div>
+        <div class="analytics-grid">
+          <div class="chart-card">
+            <h3><i class="chart-heading-icon" data-lucide="trending-up"></i>Payroll (last 6 months)</h3>
+            <canvas id="payroll-chart" height="90"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3><i class="chart-heading-icon" data-lucide="history"></i>Recent Payroll Runs</h3>
+            <div id="payroll-history"></div>
+          </div>
+        </div>
       </section>
 
       <section class="page-section">
