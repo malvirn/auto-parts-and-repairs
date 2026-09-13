@@ -2,28 +2,18 @@ import supabase from "./supabaseClient.js";
 
 const recentJobsBody = document.getElementById("recent-jobs");
 
-const dashboard = {
-  active: document.querySelector('[data-status="active"] .stat-card__value'),
-  awaitingParts: document.querySelector('[data-status="Awaiting Parts"] .stat-card__value'),
-  readyForPickup: document.querySelector('[data-status="Ready for Pickup"] .stat-card__value'),
-  completedMonth: document.querySelector('[data-status="completed-month"] .stat-card__value'),
-  customers: document.getElementById("customer-count"),
-  mechanics: document.getElementById("mechanic-count"),
-  lowStock: document.getElementById("low-stock-count"),
-  outstanding: document.getElementById("outstanding-count"),
-  revenue: document.getElementById("revenue-total"),
-  partsCost: document.getElementById("parts-cost-total"),
-  profit: document.getElementById("profit-total"),
-  billed: document.getElementById("billed-total"),
-  collected: document.getElementById("collected-total"),
-  outstandingTotal: document.getElementById("outstanding-total"),
-  inventoryValue: document.getElementById("inventory-value"),
-  grossProfit: document.getElementById("gross-profit-total"),
-  collectionRate: document.getElementById("collection-rate"),
-  averageInvoice: document.getElementById("average-invoice"),
-  monthlyReceipts: document.getElementById("monthly-receipts"),
-  retailInventoryValue: document.getElementById("retail-inventory-value"),
-};
+// Same thresholds as repairs.js (parking fee countdown) and analytics.js
+// (payroll due date) — duplicated here rather than shared, since there's
+// no shared utils module across pages yet.
+const PARKING_GRACE_DAYS = 7;
+const PARKING_FEE_PER_DAY = 3;
+
+function lastFridayOfMonth(year, month) {
+  const lastDay = new Date(year, month + 1, 0);
+  const offset = (lastDay.getDay() - 5 + 7) % 7; // 5 = Friday
+  lastDay.setDate(lastDay.getDate() - offset);
+  return lastDay;
+}
 
 async function getData(label, query) {
   const { data, error } = await query;
@@ -35,141 +25,120 @@ async function getData(label, query) {
 }
 
 async function loadDashboard() {
-  const [jobs, customers, mechanics, parts, receipts] = await Promise.all([
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
+  const [jobs, customers, parts, receipts, payrollRuns] = await Promise.all([
     getData("repair jobs", supabase.from("repair_jobs").select(`
-      id, job_number, status, total_cost, labour_cost, parts_cost, created_at, completed_at,
+      id, job_number, status, total_cost, created_at, completed_at, ready_at, collected_at,
       customers ( full_name ),
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
-    getData("customers", supabase.from("customers").select("id")),
-    getData("mechanics", supabase.from("technicians").select("id, is_active").eq("department", "Mechanics")),
-    getData("parts", supabase.from("parts").select("id, name, quantity_in_stock, cost_price")),
-    getData("receipts", supabase.from("receipts").select("repair_job_id, amount, issued_at")),
+    getData("customers", supabase.from("customers").select("id, created_at")),
+    getData("parts", supabase.from("parts").select("id, name, quantity_in_stock")),
+    getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
+    getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
   ]);
 
-  renderOperationalMetrics(jobs, customers, mechanics, parts, receipts);
-  renderFinancialMetrics(jobs, receipts);
-  renderAccountingSummary(jobs, parts, receipts);
-  renderOperationsSummary(jobs, customers, mechanics, parts);
+  renderGreeting();
+  renderTodaySnapshot(jobs, customers, receipts, todayStr);
+  renderNeedsAttention(jobs, parts, receipts, payrollRuns);
   renderRecentJobs(jobs.slice(0, 10));
 
   if (window.lucide) lucide.createIcons();
 }
 
-// NOTE: "Ready for Pickup" now doubles as the old "Completed" status (job
-// finished, waiting on the customer) — repairs.js no longer sets a job to
-// "Completed" at all, so every place that used to check for it needs to
-// check "Ready for Pickup" instead, or these figures would silently stop
-// updating the moment the new status list went live.
-function renderOperationalMetrics(jobs, customers, mechanics, parts, receipts) {
-  const activeJobs = jobs.filter(job => !["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
-  const now = new Date();
-  const completedThisMonth = jobs.filter(job => {
-    if (!["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status) || !job.completed_at) return false;
-    const completedAt = new Date(job.completed_at);
-    return completedAt.getMonth() === now.getMonth() && completedAt.getFullYear() === now.getFullYear();
-  });
-  const receiptedJobIds = new Set(receipts.map(receipt => receipt.repair_job_id));
-  const outstanding = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
-
-  setText(dashboard.active, activeJobs.length);
-  setText(dashboard.awaitingParts, jobs.filter(job => job.status === "Awaiting Parts").length);
-  setText(dashboard.readyForPickup, jobs.filter(job => job.status === "Ready for Pickup").length);
-  setText(dashboard.completedMonth, completedThisMonth.length);
-  setText(dashboard.customers, customers.length);
-  setText(dashboard.mechanics, mechanics.filter(mechanic => mechanic.is_active !== false).length);
-  setText(dashboard.lowStock, parts.filter(part => Number(part.quantity_in_stock) < 3).length);
-  setText(dashboard.outstanding, outstanding.length);
-
-  document.querySelectorAll(".stat-card[data-href]").forEach(card => {
-    card.classList.add("is-actionable");
-    card.setAttribute("role", "link");
-    card.setAttribute("tabindex", "0");
-    const navigate = () => { window.location.href = card.dataset.href; };
-    card.addEventListener("click", navigate);
-    card.addEventListener("keydown", event => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        navigate();
-      }
-    });
-  });
-}
-
-function renderFinancialMetrics(jobs, receipts) {
-  const finished = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
-  const revenue = receipts.reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0);
-  const partsCost = finished.reduce((sum, job) => sum + Number(job.parts_cost || 0), 0);
-  const labour = jobs.reduce((sum, job) => sum + Number(job.labour_cost || 0), 0);
-  const profit = revenue - partsCost;
-
-  setText(dashboard.revenue, formatMoney(revenue));
-  setText(dashboard.partsCost, formatMoney(partsCost));
-  setText(dashboard.profit, formatMoney(profit));
-
-  const labourCard = document.getElementById("labour-total");
-  setText(labourCard, formatMoney(labour));
-}
-
-function renderAccountingSummary(jobs, parts, receipts) {
-  const finished = jobs.filter(job => ["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
-  const billed = finished.reduce((sum, job) => sum + Number(job.total_cost || 0), 0);
-  const collected = receipts.reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0);
-  const outstanding = Math.max(0, billed - collected);
-  const partsCost = finished.reduce((sum, job) => sum + Number(job.parts_cost || 0), 0);
-  const inventoryValue = parts.reduce((sum, part) => sum + Number(part.quantity_in_stock || 0) * Number(part.cost_price || 0), 0);
-  const retailInventoryValue = parts.reduce((sum, part) => sum + Number(part.quantity_in_stock || 0) * Number(part.selling_price || 0), 0);
-  const grossProfit = billed - partsCost;
-  const collectionRate = billed > 0 ? `${Math.min(100, (collected / billed) * 100).toFixed(1)}%` : "0.0%";
-  const averageInvoice = finished.length ? billed / finished.length : 0;
-  const now = new Date();
-  const monthlyReceipts = receipts.filter(receipt => {
-    const issuedAt = receipt.issued_at ? new Date(receipt.issued_at) : null;
-    return issuedAt && issuedAt.getMonth() === now.getMonth() && issuedAt.getFullYear() === now.getFullYear();
-  }).length;
-
-  setText(dashboard.billed, formatMoney(billed));
-  setText(dashboard.collected, formatMoney(collected));
-  setText(dashboard.outstandingTotal, formatMoney(outstanding));
-  setText(dashboard.inventoryValue, formatMoney(inventoryValue));
-  setText(dashboard.grossProfit, formatMoney(grossProfit));
-  setText(dashboard.collectionRate, collectionRate);
-  setText(dashboard.averageInvoice, formatMoney(averageInvoice));
-  setText(dashboard.monthlyReceipts, monthlyReceipts);
-  setText(dashboard.retailInventoryValue, formatMoney(retailInventoryValue));
-
-  const summary = document.getElementById("accounting-summary");
-  if (!summary) return;
-  summary.innerHTML = [
-    ["Billed", formatMoney(billed), "Completed and collected jobs"],
-    ["Collected", formatMoney(collected), `${receipts.length} receipt(s)`],
-    ["Outstanding", formatMoney(outstanding), "Billed less recorded receipts"],
-    ["Parts Cost", formatMoney(partsCost), "Parts used on completed work"],
-    ["Inventory Value", formatMoney(inventoryValue), "Current stock at cost price"],
-    ["Gross Profit", formatMoney(grossProfit), "Billed less parts cost"],
-  ].map(([label, amount, note]) => `
-    <tr><td>${label}</td><td>${amount}</td><td>${note}</td></tr>
-  `).join("");
-}
-
-function renderOperationsSummary(jobs, customers, mechanics, parts) {
-  const activeJobs = jobs.filter(job => !["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status));
-  const lowStock = parts.filter(part => Number(part.quantity_in_stock) < 3);
-  const activeMechanics = mechanics.filter(mechanic => mechanic.is_active !== false);
-  const rows = [
-    ["Customers", customers.length, "Registered customers"],
-    ["Active Mechanics", activeMechanics.length, "Mechanics available for assignment"],
-    ["Active Jobs", activeJobs.length, "Jobs currently in progress"],
-    ["Awaiting Parts", jobs.filter(job => job.status === "Awaiting Parts").length, "Jobs blocked by parts"],
-    ["Ready for Pickup", jobs.filter(job => job.status === "Ready for Pickup").length, "Customers to notify"],
-    ["Low Stock Parts", lowStock.length, lowStock.map(part => part.name).filter(Boolean).join(", ") || "Stock levels are healthy"],
-  ];
-  const summary = document.getElementById("operations-summary");
-  if (summary) {
-    summary.innerHTML = rows.map(([area, total, detail]) => `
-      <tr><td>${area}</td><td>${total}</td><td>${escapeHtml(detail)}</td></tr>
-    `).join("");
+function renderGreeting() {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  setText(document.getElementById("dashboard-greeting"), greeting);
+  const dateEl = document.getElementById("dashboard-date");
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   }
+}
+
+function renderTodaySnapshot(jobs, customers, receipts, todayStr) {
+  const isToday = iso => iso && iso.slice(0, 10) === todayStr;
+  const createdToday = jobs.filter(j => isToday(j.created_at)).length;
+  const completedToday = jobs.filter(j => isToday(j.completed_at)).length;
+  const revenueToday = receipts.filter(r => isToday(r.issued_at)).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const newCustomersToday = customers.filter(c => isToday(c.created_at)).length;
+
+  const el = document.getElementById("today-cards");
+  if (el) {
+    el.innerHTML = `
+      <div class="stat-card"><div class="stat-card__label">Jobs Created Today</div><div class="stat-card__value">${createdToday}</div></div>
+      <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">${completedToday}</div></div>
+      <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">$${revenueToday.toFixed(2)}</div></div>
+      <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">${newCustomersToday}</div></div>
+    `;
+  }
+  const dateNote = document.getElementById("snapshot-date");
+  if (dateNote) dateNote.textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+}
+
+// Pulls together everything that actually needs a human decision today —
+// overdue pickups racking up parking fees, stock running low, jobs that
+// are done but not yet receipted, and payroll sitting unprocessed past
+// its due date. Each links straight to where it gets fixed.
+function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
+  const el = document.getElementById("attention-panel");
+  if (!el) return;
+  const items = [];
+
+  const now = Date.now();
+  let overdueCount = 0;
+  let overdueFeeTotal = 0;
+  jobs.forEach(job => {
+    if (!job.ready_at || job.collected_at || !["Ready for Pickup", "Unclaimed"].includes(job.status)) return;
+    const graceEnd = new Date(job.ready_at).getTime() + PARKING_GRACE_DAYS * 86400000;
+    if (now <= graceEnd) return;
+    overdueCount += 1;
+    overdueFeeTotal += (Math.floor((now - graceEnd) / 86400000) + 1) * PARKING_FEE_PER_DAY;
+  });
+  if (overdueCount > 0) {
+    items.push({
+      level: "urgent", icon: "alarm-clock", href: "pages/repairs.html?status=Unclaimed",
+      text: `${overdueCount} vehicle${overdueCount === 1 ? "" : "s"} overdue for pickup — ~$${overdueFeeTotal.toFixed(2)} in accrued parking fees`,
+    });
+  }
+
+  const lowStock = parts.filter(p => Number(p.quantity_in_stock) < 3);
+  if (lowStock.length > 0) {
+    items.push({
+      level: "warning", icon: "package-x", href: "pages/shop.html",
+      text: `${lowStock.length} part${lowStock.length === 1 ? "" : "s"} low on stock`,
+    });
+  }
+
+  const receiptedJobIds = new Set(receipts.map(r => r.repair_job_id).filter(Boolean));
+  const pendingReceipts = jobs.filter(job => ["Ready for Pickup", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
+  if (pendingReceipts.length > 0) {
+    items.push({
+      level: "warning", icon: "file-clock", href: "pages/receipts.html",
+      text: `${pendingReceipts.length} completed job${pendingReceipts.length === 1 ? "" : "s"} awaiting a receipt`,
+    });
+  }
+
+  const now2 = new Date();
+  const dueDate = lastFridayOfMonth(now2.getFullYear(), now2.getMonth());
+  const processed = payrollRuns.some(r => r.year === now2.getFullYear() && r.month === now2.getMonth() + 1);
+  if (!processed && now2 >= dueDate) {
+    items.push({
+      level: "urgent", icon: "banknote", href: "pages/analytics.html",
+      text: `Payroll for ${now2.toLocaleString("default", { month: "long" })} is due and hasn't been processed`,
+    });
+  }
+
+  el.innerHTML = items.length
+    ? items.map(item => `
+      <a class="attention-item ${item.level}" href="${item.href}">
+        <span class="attention-item__label"><i class="attention-item__icon" data-lucide="${item.icon}"></i>${escapeHtml(item.text)}</span>
+        <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+      </a>
+    `).join("")
+    : `<div class="attention-empty"><i data-lucide="check-circle-2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"></i>All caught up — nothing urgent right now.</div>`;
 }
 
 function renderRecentJobs(jobs) {
@@ -195,10 +164,6 @@ function renderRecentJobs(jobs) {
 
 function setText(element, value) {
   if (element) element.textContent = value;
-}
-
-function formatMoney(value) {
-  return `$${Number(value).toFixed(2)}`;
 }
 
 function escapeHtml(value) {
