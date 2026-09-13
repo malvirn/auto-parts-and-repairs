@@ -5,7 +5,7 @@ import supabase from "./supabaseClient.js";
 // for a browser-only Places API key, which is why it must be restricted by
 // HTTP referrer (your Netlify domain) and by API (Places API (New) only)
 // in Google Cloud Console — see the setup steps provided alongside this file.
-const GOOGLE_PLACES_API_KEY = "AIzaSyCnkz5Y71BA7UnNQqtkRm-bLyCnGV3NESA";
+const GOOGLE_PLACES_API_KEY = "AIzaSyBVEIOfzRpcYL3fgGvrWq3V1bXPdBOsU78";
 
 const form = document.getElementById("supplier-form");
 const tableBody = document.getElementById("suppliers-table");
