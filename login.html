@@ -4,31 +4,142 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AUTO PARTS &amp; REPAIRS — Sign In</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    html, body { height: 100%; }
+    body.login-page {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,157,61,0.08), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(255,157,61,0.05), transparent 40%),
+        var(--bg, #0e0d0c);
+      padding: 24px;
+    }
+    .login-card {
+      width: 100%; max-width: 400px;
+      background: var(--surface, #161412);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent, #ff9d3d), var(--accent-dim, #8a5a25));
+    }
+    .login-logo { display: flex; justify-content: center; margin-bottom: 20px; }
+    .login-logo img { height: 44px; width: auto; }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; font-size: 1.5rem; text-align: center; color: #fff; margin: 0 0 6px;
+    }
+    .login-subtitle { text-align: center; color: var(--text-muted, #9a9690); font-size: .86rem; margin-bottom: 28px; }
+    .login-field { margin-bottom: 16px; }
+    .login-field label {
+      display: block; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--text-muted, #9a9690); margin-bottom: 6px; font-weight: 600;
+    }
+    .login-input-wrap { position: relative; display: flex; align-items: center; }
+    .login-input-wrap i.field-icon {
+      position: absolute; left: 12px; width: 16px; height: 16px; color: var(--text-muted, #9a9690); pointer-events: none;
+    }
+    .login-input-wrap input {
+      width: 100%; padding: 11px 14px 11px 38px; background: var(--surface-2, #0c0b0a);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #fff;
+      font-size: .92rem; transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .login-input-wrap input:focus {
+      outline: none; border-color: var(--accent, #ff9d3d); box-shadow: 0 0 0 3px rgba(255,157,61,0.15);
+    }
+    .login-input-wrap .toggle-password {
+      position: absolute; right: 10px; background: none; border: none; color: var(--text-muted, #9a9690);
+      cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
+    }
+    .login-input-wrap .toggle-password:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .login-submit {
+      width: 100%; margin-top: 6px; padding: 12px; border: none; border-radius: 8px;
+      background: var(--accent, #ff9d3d); color: #1a1310; font-weight: 700; font-size: .92rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: filter .15s ease, transform .1s ease;
+    }
+    .login-submit:hover { filter: brightness(1.08); }
+    .login-submit:active { transform: scale(0.99); }
+    .login-submit:disabled { opacity: .65; cursor: not-allowed; }
+    .login-submit .spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .login-message {
+      margin-top: 14px; font-size: .85rem; text-align: center; min-height: 1.2em;
+    }
+    .login-message[data-tone="error"] { color: var(--danger, #ff4d4d); }
+    .login-message[data-tone="info"] { color: var(--text-muted, #9a9690); }
+    .login-footer { text-align: center; margin-top: 22px; font-size: .76rem; color: var(--text-muted, #6b6864); }
+  </style>
 </head>
-<body>
-  <main class="main" style="max-width:460px; margin:0 auto; padding-top:12vh;">
-    <section class="panel" style="padding:28px;">
-      <h1 style="margin-bottom:8px;">AUTO PARTS &amp; REPAIRS Sign In</h1>
-      <p style="color:var(--text-muted); margin-bottom:22px;">Use your authorized staff account.</p>
-      <form id="login-form">
-        <div class="field">
-          <label for="login-email">Email</label>
+<body class="login-page">
+  <div class="login-card">
+    <div class="login-logo"><img src="assets/logo.png" alt="AUTO PARTS &amp; REPAIRS" onerror="this.style.display='none'"></div>
+    <h1 class="login-title">Sign In</h1>
+    <p class="login-subtitle">Use your authorized staff account</p>
+
+    <form id="login-form">
+      <div class="login-field">
+        <label for="login-email">Email</label>
+        <div class="login-input-wrap">
+          <i data-lucide="mail" class="field-icon"></i>
           <input type="email" id="login-email" autocomplete="username" required />
         </div>
-        <div class="field">
-          <label for="login-password">Password</label>
+      </div>
+
+      <div class="login-field">
+        <label for="login-password">Password</label>
+        <div class="login-input-wrap">
+          <i data-lucide="lock" class="field-icon"></i>
           <input type="password" id="login-password" autocomplete="current-password" required />
+          <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password">
+            <i data-lucide="eye"></i>
+          </button>
         </div>
-        <button type="submit" class="btn btn--primary">Sign In</button>
-        <p id="login-message" role="alert" style="margin-top:14px; color:var(--danger);"></p>
-      </form>
-    </section>
-  </main>
+      </div>
+
+      <button type="submit" class="login-submit" id="login-submit">
+        <i data-lucide="log-in"></i> Sign In
+      </button>
+
+      <p id="login-message" class="login-message" role="alert"></p>
+    </form>
+
+    <p class="login-footer">Auto Parts &amp; Repairs · Internal System</p>
+  </div>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="js/login.js"></script>
+  <script>
+    lucide.createIcons();
+    const pwInput = document.getElementById("login-password");
+    const toggleBtn = document.getElementById("toggle-password");
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = pwInput.type === "password";
+      pwInput.type = isHidden ? "text" : "password";
+      toggleBtn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      toggleBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+      lucide.createIcons();
+    });
+
+    // Give login.js a hook to show its own loading state without needing
+    // to know about this markup's internals.
+    document.getElementById("login-form").addEventListener("submit", () => {
+      const btn = document.getElementById("login-submit");
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-circle" class="spin"></i> Signing in…';
+      lucide.createIcons();
+    });
+  </script>
 </body>
 </html>

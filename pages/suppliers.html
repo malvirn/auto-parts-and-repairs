@@ -11,13 +11,6 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* ============================================================
-       Modal fix — same issue as the Quotations page: the shared
-       stylesheet has no real positioning for .modal-overlay/.modal,
-       so the Edit Supplier dialog was collapsing into flat gray bars
-       stacked on the page instead of appearing as a centered popup.
-       This forces correct behavior regardless of what's in style.css.
-       ============================================================ */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -76,9 +69,6 @@
       flex-wrap: wrap;
     }
 
-    /* Scoped additions for the search filter + online lookup panel.
-       Uses the app's existing CSS variables with safe fallbacks so it
-       matches the rest of the dashboard without needing style.css changes. */
     .suppliers-toolbar {
       display: flex;
       align-items: center;
@@ -211,7 +201,6 @@
             <div class="field"><label for="supplier-name">Name</label><input id="supplier-name" required /></div>
             <div class="field"><label for="supplier-contact">Contact Person</label><input id="supplier-contact" /></div>
              <div class="field"><label for="supplier-phone">Phone</label><input id="supplier-phone" type="tel" placeholder="e.g. +263 77 123 4567" /></div>
-            <div class="field"><label for="supplier-email">Email</label><input id="supplier-email" type="email" /></div>
             <div class="field"><label for="supplier-email">Email</label><input id="supplier-email" type="email" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" /></div>
             <div class="field"><label for="supplier-address">Address</label><input id="supplier-address" /></div>
             <div class="field"><label for="supplier-notes">Notes</label><textarea id="supplier-notes" rows="2"></textarea></div>
@@ -274,6 +263,7 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/suppliers.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
 </body>
