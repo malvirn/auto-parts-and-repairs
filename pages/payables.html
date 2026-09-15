@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Payables</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
+    }
+    .modal-overlay.hidden { display: none !important; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    .modal {
+      background: #fff; width: 100%; max-width: 480px; max-height: 88vh;
+      border-radius: 14px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      display: flex; flex-direction: column; overflow-y: auto; margin: auto;
+      padding: 22px 24px; gap: 12px;
+    }
+    .aging-current { color: var(--success, #2e7d4f); }
+    .aging-warn { color: var(--warning, #c99a2e); }
+    .aging-danger { color: var(--danger, #b23b3b); font-weight: 700; }
+    .status-badge { font-size: .72rem; padding: 2px 8px; border-radius: 999px; }
+    .status-badge.unpaid { background: rgba(178,59,59,0.12); color: var(--danger, #b23b3b); }
+    .status-badge.partially_paid { background: rgba(201,154,46,0.15); color: var(--warning, #c99a2e); }
+    .status-badge.paid { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link active" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn btn--primary"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </div>
+
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Creditors</p>
+          <h1>Accounts Payable</h1>
+          <p class="page-intro">What you owe each supplier, when it's due, and what's been paid. Every bill and payment posts a real entry to the Ledger automatically.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Who's owed what</p><h2><i class="section-heading-icon" data-lucide="alarm-clock"></i>Aging Summary</h2></div></div>
+        <div class="card-grid" id="aging-cards"></div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Record a bill</p><h2><i class="section-heading-icon" data-lucide="file-plus-2"></i>Add Payable</h2></div><span class="section-note">Posts a debit + credit to the Ledger</span></div>
+        <form id="payable-form" class="panel" style="padding:20px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="field"><label>Supplier</label><select id="pay-supplier" required></select></div>
+            <div class="field"><label>Bill Number</label><input type="text" id="pay-bill-number" placeholder="Supplier's invoice #" /></div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="pay-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Bill Date</label><input type="date" id="pay-bill-date" required /></div>
+            <div class="field"><label>Due Date</label><input type="date" id="pay-due-date" required /></div>
+            <div class="field"><label>What was this for</label><select id="pay-debit-account" required></select></div>
+            <div class="field" style="grid-column: span 3;"><label>Description</label><input type="text" id="pay-description" placeholder="e.g. Brake pads restock" /></div>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Payable</button>
+          <p id="payable-form-message" class="form-message"></p>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="list"></i>Open &amp; Recent Payables</h2></div></div>
+        <div class="panel">
+          <table>
+            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+            <tbody id="payables-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="payment-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Record Payment</h3>
+      <p id="payment-modal-summary" style="color:var(--text-muted); font-size:.88rem;"></p>
+      <div class="field"><label>Amount ($)</label><input type="number" id="payment-amount" step="0.01" min="0.01" /></div>
+      <div class="field"><label>Payment Date</label><input type="date" id="payment-date" /></div>
+      <div class="field"><label>Paid From</label><select id="payment-credit-account"></select></div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button id="payment-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save Payment</button>
+        <button id="payment-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+      </div>
+      <p id="payment-form-message" class="form-message"></p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/payables.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

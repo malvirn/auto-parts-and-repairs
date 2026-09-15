@@ -317,6 +317,17 @@ async function createOrderFromQuote() {
 
 // ---------- Sales order editor ----------
 
+let salespeople = [];
+async function loadSalespeople() {
+  const { data, error } = await supabase.from("technician_directory").select("id, full_name").eq("is_active", true).order("full_name");
+  if (error) { console.error("Error loading employees for salesperson list:", error); return; }
+  salespeople = data || [];
+  const select = document.getElementById("edit-order-salesperson");
+  if (select) {
+    select.innerHTML = `<option value="">No salesperson — no commission</option>` + salespeople.map(s => `<option value="${s.id}">${escapeHtml(s.full_name)}</option>`).join("");
+  }
+}
+
 async function openOrderEditor(id) {
   const { data, error } = await fetchOrder(id);
   if (!data) { alert("Couldn't load that sales order" + (error ? `: ${error.message}` : ".")); return; }
@@ -325,6 +336,9 @@ async function openOrderEditor(id) {
   editingOrderDetailText = buildDetailText(editingOrder, "Sales Order", editingOrder.sales_order_items);
   document.getElementById("order-detail-text").innerHTML = buildDetailHtml(editingOrder, "Sales Order", editingOrder.sales_order_items);
   await renderEditor(document.getElementById("edit-order-lines"), document.getElementById("edit-order-total"), editingOrder.sales_order_items, editingOrder.usd_to_zig_rate);
+  if (!salespeople.length) await loadSalespeople();
+  const salespersonSelect = document.getElementById("edit-order-salesperson");
+  if (salespersonSelect) salespersonSelect.value = editingOrder.salesperson_id || "";
   orderModal.classList.remove("hidden"); orderModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
 }
@@ -332,7 +346,8 @@ async function saveOrderChanges() {
   if (!editingOrder) return;
   const inputs = [...document.querySelectorAll("#edit-order-lines .amend-qty")]; const prices = [...document.querySelectorAll("#edit-order-lines .amend-price")]; const rate = Number(editingOrder.usd_to_zig_rate || exchangeRate); let total = 0;
   for (let i = 0; i < editingOrder.sales_order_items.length; i++) { const quantity = Number(inputs[i].value); const unit = Number(prices[i].value); total += quantity * unit; await supabase.from("sales_order_items").update({ quantity, unit_price_usd: unit, total_usd: quantity * unit, unit_price_zig: unit * rate, total_zig: quantity * unit * rate }).eq("id", editingOrder.sales_order_items[i].id); }
-  await supabase.from("sales_orders").update({ total_usd: total, total_zig: total * rate, status: "Confirmed", updated_at: new Date().toISOString() }).eq("id", editingOrder.id);
+  const salespersonId = document.getElementById("edit-order-salesperson")?.value || null;
+  await supabase.from("sales_orders").update({ total_usd: total, total_zig: total * rate, status: "Confirmed", salesperson_id: salespersonId, updated_at: new Date().toISOString() }).eq("id", editingOrder.id);
 
   const receiptOk = await ensureReceiptForOrder(editingOrder.id, total);
   closeModal(orderModal);

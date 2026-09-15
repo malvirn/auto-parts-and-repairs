@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Cash Book</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    #cashbook-table td:nth-child(3), #cashbook-table td:nth-child(4), #cashbook-table td:nth-child(5),
+    #petty-cash-table td:nth-child(3) {
+      text-align: right; font-variant-numeric: tabular-nums;
+    }
+    #cashbook-table th:nth-child(3), #cashbook-table th:nth-child(4), #cashbook-table th:nth-child(5),
+    #petty-cash-table th:nth-child(3) { text-align: right; }
+    .cash-in { color: var(--success, #2e7d4f); }
+    .cash-out { color: var(--danger, #b23b3b); }
+    .float-status { font-size: .82rem; margin-top: 6px; }
+    .float-status.low { color: var(--danger, #b23b3b); font-weight: 600; }
+    .float-status.ok { color: var(--success, #2e7d4f); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link active" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn btn--primary"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </div>
+
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Where money actually moved</p>
+          <h1>Cash Book &amp; Petty Cash</h1>
+          <p class="page-intro">A live view over the Ledger's Cash and Bank accounts, plus the small day-to-day float kept separately for minor expenses.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Record a movement</p><h2><i class="section-heading-icon" data-lucide="arrow-left-right"></i>New Cash Transaction</h2></div><span class="section-note">For anything not already covered by Payables or Receipts</span></div>
+        <form id="cash-form" class="panel" style="padding:20px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="field"><label>Date</label><input type="date" id="cash-date" required /></div>
+            <div class="field"><label>Direction</label>
+              <select id="cash-direction">
+                <option value="in">Money In</option>
+                <option value="out">Money Out</option>
+              </select>
+            </div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="cash-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Cash / Bank Account</label><select id="cash-account" required></select></div>
+            <div class="field"><label>Other Side (what this affects)</label><select id="cash-contra-account" required></select></div>
+            <div class="field"><label>Description</label><input type="text" id="cash-description" placeholder="e.g. Bank deposit, owner drawing" required /></div>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Post Transaction</button>
+          <p id="cash-form-message" class="form-message"></p>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading">
+          <div><p class="section-kicker">Live report</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Cash Book</h2></div>
+          <select id="cashbook-filter" style="min-height:38px;">
+            <option value="all">Cash on Hand + Bank</option>
+            <option value="1000">Cash on Hand only</option>
+            <option value="1010">Bank Account only</option>
+          </select>
+        </div>
+        <div class="card-grid" id="cashbook-summary"></div>
+        <div class="panel">
+          <table id="cashbook-table">
+            <thead><tr><th>Date</th><th>Description</th><th>In</th><th>Out</th><th>Balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Small day-to-day spend</p><h2><i class="section-heading-icon" data-lucide="coins"></i>Petty Cash</h2></div></div>
+        <div class="card-grid">
+          <div class="stat-card">
+            <div class="stat-card__label">Current Float</div>
+            <div class="stat-card__value" id="petty-cash-balance">—</div>
+            <div class="float-status" id="petty-cash-status"></div>
+          </div>
+        </div>
+
+        <div class="analytics-grid" style="grid-template-columns: 1fr 1fr; margin-top:16px;">
+          <form id="petty-expense-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem; margin-bottom:10px;">Log an Expense</h3>
+            <div class="field"><label>Date</label><input type="date" id="pe-date" required /></div>
+            <div class="field"><label>What for</label><input type="text" id="pe-description" placeholder="e.g. Fuel for parts run" required /></div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="pe-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Expense Account</label><select id="pe-account" required></select></div>
+            <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="minus"></i> Log Expense</button>
+            <p id="pe-form-message" class="form-message"></p>
+          </form>
+
+          <form id="petty-topup-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem; margin-bottom:10px;">Top Up Float</h3>
+            <div class="field"><label>Date</label><input type="date" id="pt-date" required /></div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="pt-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Funded From</label><select id="pt-account" required></select></div>
+            <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Top Up</button>
+            <p id="pt-form-message" class="form-message"></p>
+          </form>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <table id="petty-cash-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+            <tbody><tr><td colspan="3" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/cashbook.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

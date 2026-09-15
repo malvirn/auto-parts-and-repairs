@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Fixed Assets</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
+    }
+    .modal-overlay.hidden { display: none !important; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    .modal {
+      background: #fff; width: 100%; max-width: 440px; max-height: 88vh;
+      border-radius: 14px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      display: flex; flex-direction: column; overflow-y: auto; margin: auto;
+      padding: 22px 24px; gap: 12px;
+    }
+    #assets-table td:nth-child(3), #assets-table td:nth-child(4), #assets-table td:nth-child(5) { text-align: right; font-variant-numeric: tabular-nums; }
+    #assets-table th:nth-child(3), #assets-table th:nth-child(4), #assets-table th:nth-child(5) { text-align: right; }
+    .status-badge { font-size: .72rem; padding: 2px 8px; border-radius: 999px; }
+    .status-badge.active { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
+    .status-badge.disposed { background: rgba(0,0,0,0.06); color: var(--text-muted); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link active" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn btn--primary"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </div>
+
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">What you own, and what it's worth now</p>
+          <h1>Fixed Assets</h1>
+          <p class="page-intro">Tools, lifts, diagnostic equipment, vehicles — straight-line depreciated monthly, so profit isn't overstated by ignoring wear.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Register an asset</p><h2><i class="section-heading-icon" data-lucide="plus"></i>Add Fixed Asset</h2></div></div>
+        <form id="asset-form" class="panel" style="padding:20px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="field"><label>Name</label><input type="text" id="asset-name" placeholder="e.g. 2-Post Vehicle Lift" required /></div>
+            <div class="field"><label>Category</label>
+              <select id="asset-category">
+                <option>Equipment</option><option>Vehicle</option><option>Tools</option><option>Furniture</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field"><label>Purchase Date</label><input type="date" id="asset-date" required /></div>
+            <div class="field"><label>Purchase Cost ($)</label><input type="number" id="asset-cost" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Salvage Value ($)</label><input type="number" id="asset-salvage" step="0.01" min="0" value="0" /></div>
+            <div class="field"><label>Useful Life (years)</label><input type="number" id="asset-life" step="0.5" min="0.5" value="5" required /></div>
+            <div class="field"><label>Payment</label>
+              <select id="asset-payment">
+                <option value="on_credit">On Credit (creates a Payable)</option>
+                <option value="paid">Paid Immediately</option>
+              </select>
+            </div>
+            <div class="field" id="asset-payment-account-field"><label>Paid From</label><select id="asset-payment-account"></select></div>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Asset</button>
+          <p id="asset-form-message" class="form-message"></p>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading">
+          <div><p class="section-kicker">Monthly</p><h2><i class="section-heading-icon" data-lucide="trending-down"></i>Depreciation</h2></div>
+          <button id="run-depreciation-btn" type="button" class="btn btn--primary"><i data-lucide="trending-down"></i> Run This Month's Depreciation</button>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Register</p><h2><i class="section-heading-icon" data-lucide="list"></i>All Fixed Assets</h2></div></div>
+        <div class="panel">
+          <table>
+            <thead><tr><th>Name</th><th>Category</th><th>Purchase Cost</th><th>Accum. Depreciation</th><th>Net Book Value</th><th>Status</th><th></th></tr></thead>
+            <tbody id="assets-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="dispose-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Dispose Asset</h3>
+      <p id="dispose-summary" style="color:var(--text-muted); font-size:.88rem;"></p>
+      <div class="field"><label>Disposal Date</label><input type="date" id="dispose-date" /></div>
+      <div class="field"><label>Proceeds Received ($)</label><input type="number" id="dispose-proceeds" step="0.01" min="0" value="0" /></div>
+      <div class="field"><label>Deposit Proceeds Into</label><select id="dispose-account"></select></div>
+      <p id="dispose-preview" style="font-size:.85rem; color:var(--text-muted);"></p>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button id="dispose-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Confirm Disposal</button>
+        <button id="dispose-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+      </div>
+      <p id="dispose-form-message" class="form-message"></p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/fixed-assets.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

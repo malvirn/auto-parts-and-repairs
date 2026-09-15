@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Financial Statements</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .statement-table td:last-child, .statement-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .statement-section-label { font-weight: 700; background: var(--surface-2, #f6f5f2); }
+    .statement-total-row td { font-weight: 700; border-top: 2px solid var(--border); }
+    .statement-net-row td { font-weight: 700; font-size: 1.05rem; border-top: 3px double var(--border); }
+    .preset-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .preset-btns button { font-size: .78rem; padding: 4px 10px; }
+    .balance-status { padding: 10px 14px; border-radius: var(--radius); font-weight: 600; margin-top: 10px; }
+    .balance-status.ok { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
+    .balance-status.off { background: rgba(178,59,59,0.12); color: var(--danger, #b23b3b); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+      <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+      <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+      <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+      <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link active" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
+      <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+      <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+    </aside>
+
+    <main class="main">
+      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn btn--primary"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </div>
+
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">The two documents an owner actually reads</p>
+          <h1>Financial Statements</h1>
+          <p class="page-intro">Both computed live from every entry posted through the Ledger and every phase built on top of it — nothing here is entered separately.</p>
+        </div>
+      </div>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Period report</p><h2><i class="section-heading-icon" data-lucide="trending-up"></i>Profit &amp; Loss</h2></div></div>
+        <div class="panel" style="padding:20px;">
+          <div class="preset-btns">
+            <button type="button" class="btn" data-pl-preset="month">This Month</button>
+            <button type="button" class="btn" data-pl-preset="year">This Year</button>
+            <button type="button" class="btn" data-pl-preset="all">All Time</button>
+          </div>
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr); align-items:end;">
+            <div class="field"><label>From</label><input type="date" id="pl-start" /></div>
+            <div class="field"><label>To</label><input type="date" id="pl-end" /></div>
+            <button id="pl-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
+          </div>
+          <table class="statement-table" style="margin-top:16px;">
+            <tbody id="pl-body"><tr><td colspan="2" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Point in time</p><h2><i class="section-heading-icon" data-lucide="scale"></i>Balance Sheet</h2></div></div>
+        <div class="panel" style="padding:20px;">
+          <div class="preset-btns">
+            <button type="button" class="btn" data-bs-preset="today">Today</button>
+            <button type="button" class="btn" data-bs-preset="month-end">End of This Month</button>
+            <button type="button" class="btn" data-bs-preset="year-end">End of This Year</button>
+          </div>
+          <div class="form-grid" style="max-width:none; grid-template-columns: 1fr auto; align-items:end;">
+            <div class="field"><label>As Of</label><input type="date" id="bs-asof" /></div>
+            <button id="bs-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
+          </div>
+          <table class="statement-table" style="margin-top:16px;">
+            <tbody id="bs-body"><tr><td colspan="2" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+          <div id="bs-balance-status" class="balance-status"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/financial-statements.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+</body>
+</html>

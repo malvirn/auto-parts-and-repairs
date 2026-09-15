@@ -17,10 +17,15 @@ let revenueChart = null;
 let payrollChart = null;
 
 async function loadAnalytics() {
-  const [jobsRes, jobPartsRes, customersRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes] = await Promise.all([
-    supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id, technicians ( full_name )`),
+  // technician_directory (Phase 0 security) is the safe, no-salary view —
+  // used for names and counts that every staff member should still see.
+  // The full technicians table stays admin-only, fetched separately below,
+  // used only for payroll processing which legitimately needs salary data.
+  const [jobsRes, jobPartsRes, customersRes, techDirRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes] = await Promise.all([
+    supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id`),
     supabase.from("job_parts").select("part_name, quantity, price_at_time"),
     supabase.from("customers").select("id"),
+    supabase.from("technician_directory").select("id, full_name, department, is_active"),
     supabase.from("technicians").select("id, full_name, department, is_active, salary, deductions"),
     supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),
     supabase.from("receipts").select("id, amount, issued_at, repair_job_id"),
@@ -35,19 +40,21 @@ async function loadAnalytics() {
   const jobs = jobsRes.data || [];
   const jobParts = jobPartsRes.data || [];
   const customers = customersRes.data || [];
-  const technicians = techniciansRes.data || [];
+  const techDirectory = techDirRes.data || [];
+  const technicians = techniciansRes.data || []; // empty array for non-admins, by design
   const parts = partsRes.data || [];
   const receipts = receiptsRes.data || [];
   const payrollRuns = (payrollRunsRes.data || []).slice().reverse(); // oldest→newest for charting
 
-  const mechanics = technicians.filter(t => t.department === "Mechanics");
+  const mechanics = techDirectory.filter(t => t.department === "Mechanics");
+  const techNames = Object.fromEntries(techDirectory.map(t => [t.id, t.full_name]));
 
   renderSummary(jobs);
   renderOperationsCards(jobs, customers);
   renderManagerCards(jobs, mechanics, parts, receipts);
   renderFinancialCards(jobs, parts, receipts, payrollRuns);
   renderRevenueChart(jobs);
-  renderMechanicLeaderboard(jobs);
+  renderMechanicLeaderboard(jobs, techNames);
   renderPartsLeaderboard(jobParts);
   renderTurnaround(jobs);
   renderPayrollChart(payrollRuns);
@@ -165,11 +172,11 @@ function renderRevenueChart(jobs) {
   });
 }
 
-function renderMechanicLeaderboard(jobs) {
+function renderMechanicLeaderboard(jobs, techNames) {
   const stats = {};
   jobs.forEach(j => {
     if (!FINISHED.includes(j.status) || !j.technician_id) return;
-    const name = j.technicians?.full_name || "Unassigned";
+    const name = techNames[j.technician_id] || "Unassigned";
     if (!stats[name]) stats[name] = { count: 0, revenue: 0 };
     stats[name].count += 1;
     stats[name].revenue += Number(j.total_cost || 0);
@@ -275,28 +282,79 @@ async function processPayroll(technicians, year, month, payDate) {
   if (!active.length) { alert("No active employees to pay."); return; }
   if (!confirm(`Process payroll for ${active.length} active employee(s), payable ${payDate.toLocaleDateString()}? This can't be undone from here.`)) return;
 
+  // Pull in any unpaid commissions so they go out with the same payroll
+  // run, the way most shops actually pay commission — not as a separate
+  // cash-out every time a job or sale closes.
+  const { data: unpaidCommissions } = await supabase.from("commissions").select("id, employee_id, commission_amount").eq("status", "unpaid");
+  const commissionByEmployee = {};
+  (unpaidCommissions || []).forEach(c => {
+    commissionByEmployee[c.employee_id] = (commissionByEmployee[c.employee_id] || 0) + Number(c.commission_amount);
+  });
+
   const payments = active.map(t => {
     const gross = Number(t.salary || 0);
     const deductions = Number(t.deductions || 0);
+    const commission = commissionByEmployee[t.id] || 0;
     return {
       employee_id: t.id, employee_name: t.full_name, department: t.department,
-      gross_salary: gross, deductions, net_pay: Math.max(0, gross - deductions),
+      gross_salary: gross, deductions, commission_amount: commission,
+      net_pay: Math.max(0, gross + commission - deductions),
     };
   });
-  const total = payments.reduce((sum, p) => sum + p.net_pay, 0);
+  const totalNet = payments.reduce((sum, p) => sum + p.net_pay, 0);
+  const totalGrossPlusCommission = payments.reduce((sum, p) => sum + p.gross_salary + p.commission_amount, 0);
+  const totalDeductions = payments.reduce((sum, p) => sum + p.deductions, 0);
+
+  // ---- Post to the ledger: Debit Wages Expense (5100) for the full cost,
+  //      Credit Bank (1010) for what's actually paid out, Credit Tax
+  //      Payable (2200) for anything withheld rather than paid — it's
+  //      owed elsewhere (tax authority), not vanished. ----
+  const { data: accounts } = await supabase.from("accounts").select("id, code");
+  const wagesExpense = accounts?.find(a => a.code === "5100");
+  const bankAccount = accounts?.find(a => a.code === "1010");
+  const taxPayable = accounts?.find(a => a.code === "2200");
+
+  if (!wagesExpense || !bankAccount || !taxPayable) {
+    alert("Couldn't find the Wages Expense (5100), Bank (1010), or Tax Payable (2200) accounts — check your Chart of Accounts in the Ledger.");
+    return;
+  }
+
+  const { data: entry, error: entryError } = await supabase.from("journal_entries").insert([{
+    entry_date: payDate.toISOString().slice(0, 10),
+    description: `Payroll for ${new Date(year, month - 1, 1).toLocaleString("default", { month: "long", year: "numeric" })}`,
+    source_type: "payroll",
+  }]).select().single();
+  if (entryError) { alert("Failed to post payroll to the ledger: " + entryError.message); return; }
+
+  const lines = [{ account_id: wagesExpense.id, debit: totalGrossPlusCommission, credit: 0 }];
+  if (totalDeductions > 0) lines.push({ account_id: taxPayable.id, debit: 0, credit: totalDeductions });
+  lines.push({ account_id: bankAccount.id, debit: 0, credit: totalNet });
+
+  const { error: linesError } = await supabase.from("journal_lines").insert(lines.map(l => ({ ...l, journal_entry_id: entry.id })));
+  if (linesError) {
+    await supabase.from("journal_entries").delete().eq("id", entry.id);
+    alert("Failed to post payroll to the ledger: " + linesError.message);
+    return;
+  }
 
   const { data: run, error } = await supabase
     .from("payroll_runs")
-    .insert([{ year, month, pay_date: payDate.toISOString().slice(0, 10), total_amount: total }])
+    .insert([{ year, month, pay_date: payDate.toISOString().slice(0, 10), total_amount: totalNet, journal_entry_id: entry.id }])
     .select().single();
-  if (error) { alert("Failed to process payroll: " + error.message); return; }
+  if (error) { alert("Ledger entry posted, but payroll run record failed to save: " + error.message); return; }
 
   const { error: paymentsError } = await supabase
     .from("payroll_payments")
     .insert(payments.map(p => ({ ...p, payroll_run_id: run.id })));
   if (paymentsError) { alert("Payroll run was created, but individual payment records failed to save: " + paymentsError.message); return; }
 
-  alert(`Payroll processed — $${total.toFixed(2)} across ${payments.length} employee(s).`);
+  // Mark the commissions that just got paid out as paid, tied to this run.
+  const paidCommissionIds = (unpaidCommissions || []).map(c => c.id);
+  if (paidCommissionIds.length) {
+    await supabase.from("commissions").update({ status: "paid", payroll_run_id: run.id }).in("id", paidCommissionIds);
+  }
+
+  alert(`Payroll processed — ${totalNet.toFixed(2)} net across ${payments.length} employee(s), including ${(unpaidCommissions || []).length} commission payment(s). Posted to the Ledger.`);
   loadAnalytics();
 }
 
