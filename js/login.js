@@ -15,12 +15,12 @@ function showMessage(text, tone) {
   messageEl.dataset.tone = tone;
 }
 
-// If someone's already got a valid session and lands back on the login
-// page (e.g. a bookmark), send them straight through instead of making
-// them log in again for no reason.
+// If someone's already got a valid, server-verified session and lands
+// back on the login page (e.g. a bookmark), send them straight through
+// instead of making them log in again for no reason.
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) window.location.replace("index.html");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) window.location.replace("index.html");
 })();
 
 form.addEventListener("submit", async (e) => {
@@ -45,11 +45,9 @@ form.addEventListener("submit", async (e) => {
   }
 
   // This is the step a premature redirect would skip — confirming the
-  // session is actually readable back from storage before navigating
-  // away. Skipping this is the single most common cause of "logs in
-  // fine, but the very next page acts logged out": the redirect fires
-  // before the async write to storage has actually finished.
-  const { data: { session: confirmed } } = await supabase.auth.getSession();
+  // session is actually valid (checked against the server, not just
+  // trusting what got written to storage) before navigating away.
+  const { data: { user: confirmed } } = await supabase.auth.getUser();
   if (!confirmed) {
     showMessage("Session didn't save properly — please try again.", "error");
     resetButton();

@@ -1,19 +1,6 @@
 import supabase from "./supabaseClient.js";
 
 const path = window.location.pathname.replace(/\\/g, "/");
-const isLoginPage = path.endsWith("/login.html");
-const loginPath = path.includes("/pages/") ? "../login.html" : "login.html";
-const levelTwoRoles = new Set(["admin", "manager", "owner", "staff"]);
-
-async function getAccessProfile(user) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("access_level, role")
-    .eq("id", user.id)
-    .maybeSingle();
-import supabase from "./supabaseClient.js";
-
-const path = window.location.pathname.replace(/\\/g, "/");
 const isLoginPage = path.endsWith("/login.html") || path.endsWith("login.html");
 const inPagesFolder = path.includes("/pages/");
 const loginPath = inPagesFolder ? "../login.html" : "login.html";
@@ -73,12 +60,17 @@ function applyAccess(role) {
 }
 
 async function protectPage() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
+  // getUser() verifies with Supabase's Auth server, unlike getSession()
+  // which only reads local storage without checking whether that session
+  // is still actually valid server-side. This matters specifically after
+  // an account gets deleted (e.g. a database reset) — a stale local
+  // session would otherwise still "look" logged in and load the page.
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
     window.location.replace(loginPath);
     return;
   }
-  const role = await getMyRole(session.user.id);
+  const role = await getMyRole(user.id);
   applyAccess(role);
 }
 
@@ -97,41 +89,3 @@ if (!isLoginPage) {
 }
 
 export { applyAccess, getMyRole };
-  if (error) {
-    console.error("Unable to load access profile:", error);
-    return { accessLevel: 1, role: "user" };
-  }
-
-  const accessLevel = Number(data?.access_level || 1);
-  const role = String(data?.role || "user").toLowerCase();
-  return { accessLevel, role };
-}
-
-function applyAccess(profile) {
-  const hasLevelTwo = profile.accessLevel >= 2 || levelTwoRoles.has(profile.role);
-  document.body.dataset.accessLevel = String(profile.accessLevel);
-  document.body.dataset.role = profile.role;
-
-  document.querySelectorAll("[data-level=\"2\"]").forEach(element => {
-    if (!hasLevelTwo) element.remove();
-  });
-
-  if (!hasLevelTwo && ["receipts.html", "technicians.html", "shop.html", "suppliers.html", "quotations.html"].some(page => path.endsWith(`/pages/${page}`))) {
-    window.location.replace("../index.html");
-  }
-}
-
-async function protectPage() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.replace(loginPath);
-    return;
-  }
-  applyAccess(await getAccessProfile(session.user));
-}
-
-if (!isLoginPage) {
-  protectPage();
-}
-
-export { applyAccess, getAccessProfile };
