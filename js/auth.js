@@ -13,30 +13,38 @@ const dashboardPath = inPagesFolder ? "../index.html" : "index.html";
 // is accessible to every logged-in role by default; RLS is still the
 // real boundary underneath regardless of what this hides or allows.
 const PAGE_ACCESS = {
-  "accounting.html": ["super_admin", "accounting"],
-  "ledger.html": ["super_admin", "accounting"],
-  "payables.html": ["super_admin", "accounting"],
-  "cashbook.html": ["super_admin", "accounting"],
-  "commissions.html": ["super_admin", "accounting"],
-  "landed-cost.html": ["super_admin", "accounting"],
-  "fixed-assets.html": ["super_admin", "accounting"],
-  "financial-statements.html": ["super_admin", "accounting"],
-  "technicians.html": ["super_admin"], // salary/bank data — super_admin only
-  "customers.html": ["super_admin", "staff"], // accounting has no reason to see customer PII
-  "repairs.html": ["super_admin", "staff"], // accounting has no reason to edit repair jobs directly
-  "suppliers.html": ["super_admin", "staff"], // accounting still reads the suppliers TABLE fine (for Payables/Landed Cost dropdowns) — this only hides the management PAGE
-  "analytics.html": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
+  "accounting": ["super_admin", "accounting"],
+  "ledger": ["super_admin", "accounting"],
+  "payables": ["super_admin", "accounting"],
+  "cashbook": ["super_admin", "accounting"],
+  "commissions": ["super_admin", "accounting"],
+  "landed-cost": ["super_admin", "accounting"],
+  "fixed-assets": ["super_admin", "accounting"],
+  "financial-statements": ["super_admin", "accounting"],
+  "technicians": ["super_admin"], // salary/bank data — super_admin only
+  "customers": ["super_admin", "staff"], // accounting has no reason to see customer PII
+  "repairs": ["super_admin", "staff"], // accounting has no reason to edit repair jobs directly
+  "suppliers": ["super_admin", "staff"], // accounting still reads the suppliers TABLE fine (for Payables/Landed Cost dropdowns) — this only hides the management PAGE
+  "analytics": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
 };
 
 // Where each role lands instead of the generic dashboard, since "their
 // dashboard should only show things related to their department" is best
 // served by sending them straight to the hub that's actually theirs.
 const DASHBOARD_REDIRECT = {
-  accounting: "accounting.html",
+  accounting: "accounting",
 };
 
+// Netlify's "Pretty URLs" post-processing rewrites internal links at
+// deploy time — "technicians.html" becomes "/pages/technicians" in the
+// actual served HTML, extension stripped, path made absolute. This has
+// to match regardless of whether that rewriting is happening or not, so
+// it strips a trailing .html if present rather than assuming either form.
 function basename(href) {
-  return href.split("/").pop().split("?")[0].split("#")[0];
+  if (!href) return "";
+  let name = href.split("/").pop().split("?")[0].split("#")[0];
+  if (name.endsWith(".html")) name = name.slice(0, -5);
+  return name;
 }
 
 async function getMyProfile(userId) {
@@ -64,7 +72,7 @@ function applyAccess(role) {
 
   // Send this role to its own landing page instead of the generic
   // dashboard, if one's defined for them.
-  const isDashboard = currentPage === "index.html" || currentPage === "";
+  const isDashboard = currentPage === "index" || currentPage === "index.html" || currentPage === "";
   if (isDashboard && DASHBOARD_REDIRECT[role]) {
     window.location.replace(DASHBOARD_REDIRECT[role]);
     return;
