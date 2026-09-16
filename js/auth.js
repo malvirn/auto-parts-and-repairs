@@ -71,10 +71,13 @@ function applyAccess(role) {
   const currentPage = basename(path);
 
   // Send this role to its own landing page instead of the generic
-  // dashboard, if one's defined for them.
+  // dashboard, if one's defined for them. This only ever fires from the
+  // root index.html (that's what isDashboard means), so the target
+  // always needs the pages/ prefix — a bare relative path here would
+  // resolve against the root, not the pages folder, and 404.
   const isDashboard = currentPage === "index" || currentPage === "index.html" || currentPage === "";
   if (isDashboard && DASHBOARD_REDIRECT[role]) {
-    window.location.replace(DASHBOARD_REDIRECT[role]);
+    window.location.replace("pages/" + DASHBOARD_REDIRECT[role]);
     return;
   }
 
