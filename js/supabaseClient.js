@@ -1,4 +1,4 @@
-﻿// ========= Supabase Client =========
+// ========= Supabase Client =========
 // 1. npm install @supabase/supabase-js  (if you move to a bundler later)
 // 2. For plain HTML/JS, we load Supabase from CDN in each page's <script> tag
 //    and initialise it here.

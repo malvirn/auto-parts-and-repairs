@@ -19,6 +19,11 @@ function showMessage(text, tone) {
 // back on the login page (e.g. a bookmark), send them straight through
 // instead of making them log in again for no reason.
 (async () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("terminated") === "1") {
+    showMessage("This account has been deactivated. Contact your Super Admin.", "error");
+    return; // don't auto-redirect a terminated account back in
+  }
   const { data: { user } } = await supabase.auth.getUser();
   if (user) window.location.replace("index.html");
 })();

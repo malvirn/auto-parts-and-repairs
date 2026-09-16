@@ -21,21 +21,31 @@ const PAGE_ACCESS = {
   "landed-cost.html": ["super_admin", "accounting"],
   "fixed-assets.html": ["super_admin", "accounting"],
   "financial-statements.html": ["super_admin", "accounting"],
-  "technicians.html": ["super_admin"], // salary/bank data — super_admin only, matches the RLS refinement
-  "customers.html": ["super_admin", "staff"], // accounting has no legitimate reason to see customer PII
+  "technicians.html": ["super_admin"], // salary/bank data — super_admin only
+  "customers.html": ["super_admin", "staff"], // accounting has no reason to see customer PII
+  "repairs.html": ["super_admin", "staff"], // accounting has no reason to edit repair jobs directly
+  "suppliers.html": ["super_admin", "staff"], // accounting still reads the suppliers TABLE fine (for Payables/Landed Cost dropdowns) — this only hides the management PAGE
+  "analytics.html": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
+};
+
+// Where each role lands instead of the generic dashboard, since "their
+// dashboard should only show things related to their department" is best
+// served by sending them straight to the hub that's actually theirs.
+const DASHBOARD_REDIRECT = {
+  accounting: "accounting.html",
 };
 
 function basename(href) {
   return href.split("/").pop().split("?")[0].split("#")[0];
 }
 
-async function getMyRole(userId) {
-  const { data, error } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+async function getMyProfile(userId) {
+  const { data, error } = await supabase.from("profiles").select("role, is_active").eq("id", userId).maybeSingle();
   if (error) {
-    console.error("Unable to load role — defaulting to the most restrictive tier (staff):", error);
-    return "staff";
+    console.error("Unable to load profile — defaulting to the most restrictive tier (staff):", error);
+    return { role: "staff", is_active: true };
   }
-  return data?.role || "staff";
+  return { role: data?.role || "staff", is_active: data?.is_active !== false };
 }
 
 function applyAccess(role) {
@@ -50,9 +60,18 @@ function applyAccess(role) {
     if (allowed && !allowed.includes(role)) link.remove();
   });
 
+  const currentPage = basename(path);
+
+  // Send this role to its own landing page instead of the generic
+  // dashboard, if one's defined for them.
+  const isDashboard = currentPage === "index.html" || currentPage === "";
+  if (isDashboard && DASHBOARD_REDIRECT[role]) {
+    window.location.replace(DASHBOARD_REDIRECT[role]);
+    return;
+  }
+
   // If the CURRENT page itself isn't allowed for this role, don't wait
   // for a confused click-around — redirect immediately.
-  const currentPage = basename(path);
   const allowedHere = PAGE_ACCESS[currentPage];
   if (allowedHere && !allowedHere.includes(role)) {
     window.location.replace(dashboardPath);
@@ -70,8 +89,16 @@ async function protectPage() {
     window.location.replace(loginPath);
     return;
   }
-  const role = await getMyRole(user.id);
-  applyAccess(role);
+
+  const profile = await getMyProfile(user.id);
+
+  if (!profile.is_active) {
+    await supabase.auth.signOut();
+    window.location.replace(loginPath + (loginPath.includes("?") ? "&" : "?") + "terminated=1");
+    return;
+  }
+
+  applyAccess(profile.role);
 }
 
 if (!isLoginPage) {
@@ -88,4 +115,4 @@ if (!isLoginPage) {
   });
 }
 
-export { applyAccess, getMyRole };
+export { applyAccess, getMyProfile };

@@ -96,7 +96,7 @@ async function init() {
 }
 
 async function renderRoster(myId) {
-  const { data: profiles, error } = await supabase.from("profiles").select("id, email, full_name, role, created_at").order("created_at");
+  const { data: profiles, error } = await supabase.from("profiles").select("id, email, full_name, role, is_active, created_at").order("created_at");
   if (error) { content.innerHTML = `<p style="color:#ff4d4d;">Failed to load users: ${escapeHtml(error.message)}</p>`; return; }
 
   content.innerHTML = `
@@ -105,8 +105,11 @@ async function renderRoster(myId) {
       <strong>Accounting</strong> — Ledger, Payables, Cash Book, Commissions, Landed Cost, Fixed Assets, Statements. No payroll/salary access, no customer or vehicle data, and repair jobs / sales orders are read-only.
       <strong>Staff</strong> — day-to-day operations (Repairs, Customers, Shop, Receipts) — no financial data at all.
     </p>
+    <p style="color:var(--text-dim,#7c9490); font-size:.82rem; margin-bottom:14px;">
+      <strong>Terminate</strong> reversibly blocks a login without deleting it — flip it back anytime. <strong>Delete</strong> permanently removes the login itself; there's no undo.
+    </p>
     <table>
-      <thead><tr><th>User</th><th>Current Role</th><th>Change To</th><th></th></tr></thead>
+      <thead><tr><th>User</th><th>Role</th><th>Change To</th><th>Status</th><th></th></tr></thead>
       <tbody id="access-control-table"></tbody>
     </table>
     <p id="access-control-message" class="form-message"></p>
@@ -123,11 +126,16 @@ async function renderRoster(myId) {
           <option value="accounting" ${p.role === "accounting" ? "selected" : ""}>Accounting</option>
           <option value="staff" ${p.role === "staff" ? "selected" : ""}>Staff</option>
         </select>
+        ${p.id === myId ? "" : `<button type="button" class="btn save-role-btn" style="margin-left:6px;"><i data-lucide="check"></i></button>`}
       </td>
+      <td>${p.is_active !== false ? `<span style="color:var(--success,#2e7d4f);">Active</span>` : `<span style="color:var(--danger,#ff4d4d);">Terminated</span>`}</td>
       <td>
         ${p.id === myId
           ? `<span style="font-size:.78rem; color:var(--text-dim,#7c9490);">This is you</span>`
-          : `<button type="button" class="btn save-role-btn"><i data-lucide="check"></i> Save</button>`}
+          : `
+            <button type="button" class="btn terminate-btn">${p.is_active !== false ? "Terminate" : "Reactivate"}</button>
+            <button type="button" class="btn delete-user-btn" style="border-color:#ff4d4d; color:#ff4d4d;">Delete</button>
+          `}
       </td>
     </tr>
   `).join("");
@@ -149,7 +157,49 @@ async function renderRoster(myId) {
       const { error } = await supabase.from("profiles").update({ role: newRole }).eq("id", id);
       if (error) { message.textContent = "Failed: " + error.message; message.dataset.tone = "error"; return; }
       message.textContent = "Role updated. They'll see the change next time they load a page."; message.dataset.tone = "success";
-      row.querySelector("td:nth-child(2)").textContent = ROLE_LABELS[newRole] || newRole;
+      row.children[1].textContent = ROLE_LABELS[newRole] || newRole;
+    });
+  });
+
+  tbody.querySelectorAll(".terminate-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const row = btn.closest("tr");
+      const id = row.dataset.id;
+      const name = row.dataset.name;
+      const message = document.getElementById("access-control-message");
+      const currentlyActive = btn.textContent.trim() === "Terminate";
+
+      const confirmed = await askForPasswordConfirmation(`Confirm your password to ${currentlyActive ? "terminate" : "reactivate"} ${name}'s login.`);
+      if (!confirmed) { message.textContent = "Cancelled."; message.dataset.tone = "info"; return; }
+
+      message.textContent = "Saving…"; message.dataset.tone = "info";
+      const { error } = await supabase.from("profiles").update({ is_active: !currentlyActive }).eq("id", id);
+      if (error) { message.textContent = "Failed: " + error.message; message.dataset.tone = "error"; return; }
+      message.textContent = currentlyActive ? "Login terminated — they'll be signed out next time they load a page." : "Login reactivated."; message.dataset.tone = "success";
+      renderRoster(myId);
+    });
+  });
+
+  tbody.querySelectorAll(".delete-user-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const row = btn.closest("tr");
+      const id = row.dataset.id;
+      const name = row.dataset.name;
+      const message = document.getElementById("access-control-message");
+
+      if (!confirm(`Permanently delete ${name}'s login? This cannot be undone.`)) return;
+      const confirmed = await askForPasswordConfirmation(`Confirm your password to permanently delete ${name}'s login.`);
+      if (!confirmed) { message.textContent = "Cancelled — nothing was deleted."; message.dataset.tone = "info"; return; }
+
+      message.textContent = "Deleting…"; message.dataset.tone = "info";
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { targetUserId: id },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error || data?.error) { message.textContent = "Failed: " + (data?.error || error.message); message.dataset.tone = "error"; return; }
+      message.textContent = "Login permanently deleted."; message.dataset.tone = "success";
+      renderRoster(myId);
     });
   });
 }
