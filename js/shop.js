@@ -4,8 +4,8 @@ import { getRate } from "./currency.js";
 // ⚠️ Fill these in — see the setup steps provided alongside this file.
 // Restricted the same way as the Suppliers page's Google Places key:
 // HTTP referrer + API restricted to Custom Search API only.
-const GOOGLE_IMAGE_API_KEY = "AIzaSyBVEIOfzRpcYL3fgGvrWq3V1bXPdBOsU78";
-const GOOGLE_IMAGE_CX = "870b4a94ca9f1457f";
+const GOOGLE_IMAGE_API_KEY = "YOUR_GOOGLE_API_KEY";
+const GOOGLE_IMAGE_CX = "YOUR_SEARCH_ENGINE_ID";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#f2f0ea"/><text x="50%" y="58%" font-size="18" text-anchor="middle" fill="#bbb">?</text></svg>`
@@ -553,6 +553,99 @@ if (form) form.addEventListener("submit", async (e) => {
   loadParts();
 });
 
+// ---- Quick Sale: a walk-in counter sale, reusing the same
+// sales_orders/sales_order_items/receipts infrastructure as the full
+// Quotations flow — just reached through one fast form instead of the
+// draft → amend → confirm sequence. This is also where stock actually
+// gets deducted for a sale, which the regular Sales Order confirmation
+// flow currently does NOT do (a pre-existing gap, fixed here for this
+// path at least). ----
+let quickSaleParts = [];
+let quickSaleSalespeople = [];
+
+async function loadQuickSaleData() {
+  const [{ data: partsData }, { data: peopleData }] = await Promise.all([
+    supabase.from("parts").select("id, name, selling_price, quantity_in_stock").order("name"),
+    supabase.from("technician_directory").select("id, full_name").eq("is_active", true).order("full_name"),
+  ]);
+  quickSaleParts = partsData || [];
+  quickSaleSalespeople = peopleData || [];
+
+  const partSelect = document.getElementById("quick-sale-part");
+  if (partSelect) {
+    partSelect.innerHTML = quickSaleParts.map(p =>
+      `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity_in_stock}" ${Number(p.quantity_in_stock) < 1 ? "disabled" : ""}>${escapeHtml(p.name)} — ${formatMoney(p.selling_price)} (${p.quantity_in_stock} in stock)</option>`
+    ).join("");
+  }
+  const salespersonSelect = document.getElementById("quick-sale-salesperson");
+  if (salespersonSelect) {
+    salespersonSelect.innerHTML = `<option value="">No salesperson — no commission</option>` + quickSaleSalespeople.map(s => `<option value="${s.id}">${escapeHtml(s.full_name)}</option>`).join("");
+  }
+}
+
+function updateQuickSaleTotal() {
+  const partSelect = document.getElementById("quick-sale-part");
+  const opt = partSelect?.options[partSelect.selectedIndex];
+  const price = parseFloat(opt?.dataset.price || 0);
+  const qty = parseInt(document.getElementById("quick-sale-qty")?.value) || 0;
+  const totalEl = document.getElementById("quick-sale-total");
+  if (totalEl) totalEl.textContent = `Total: ${formatMoney(price * qty)}`;
+}
+document.getElementById("quick-sale-part")?.addEventListener("change", updateQuickSaleTotal);
+document.getElementById("quick-sale-qty")?.addEventListener("input", updateQuickSaleTotal);
+
+document.getElementById("quick-sale-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = document.getElementById("quick-sale-message");
+  const partSelect = document.getElementById("quick-sale-part");
+  const partId = partSelect.value;
+  const opt = partSelect.options[partSelect.selectedIndex];
+  const price = parseFloat(opt?.dataset.price || 0);
+  const stock = parseInt(opt?.dataset.stock || 0);
+  const qty = parseInt(document.getElementById("quick-sale-qty").value) || 0;
+  const salespersonId = document.getElementById("quick-sale-salesperson").value || null;
+  const customerName = document.getElementById("quick-sale-customer").value.trim() || "Walk-in Sale";
+  const partName = opt?.textContent.split(" — ")[0].trim();
+
+  if (!partId || qty < 1) { message.textContent = "Select a part and a valid quantity."; message.dataset.tone = "error"; return; }
+  if (qty > stock) { message.textContent = `Only ${stock} in stock — can't sell ${qty}.`; message.dataset.tone = "error"; return; }
+
+  message.textContent = "Processing…"; message.dataset.tone = "info";
+  const rate = await getRate();
+  const total = qty * price;
+
+  const { data: order, error: orderError } = await supabase.from("sales_orders").insert([{
+    walk_in_name: customerName, usd_to_zig_rate: rate, total_usd: total, total_zig: total * rate,
+    status: "Confirmed", salesperson_id: salespersonId,
+  }]).select().single();
+  if (orderError) { message.textContent = "Failed: " + orderError.message; message.dataset.tone = "error"; return; }
+
+  const { error: itemError } = await supabase.from("sales_order_items").insert([{
+    sales_order_id: order.id, part_id: partId, part_name: partName, quantity: qty,
+    unit_price_usd: price, total_usd: total, unit_price_zig: price * rate, total_zig: total * rate,
+  }]);
+  if (itemError) {
+    await supabase.from("sales_orders").delete().eq("id", order.id);
+    message.textContent = "Failed: " + itemError.message; message.dataset.tone = "error";
+    return;
+  }
+
+  // The actual stock deduction — this is the part the regular Sales
+  // Order confirmation flow is currently missing entirely.
+  const { error: stockError } = await supabase.from("parts").update({ quantity_in_stock: stock - qty }).eq("id", partId);
+  if (stockError) console.error("Sale recorded, but stock deduction failed:", stockError);
+
+  const { error: receiptError } = await supabase.from("receipts").insert([{ sales_order_id: order.id, amount: total }]);
+  if (receiptError) console.error("Sale recorded, but receipt creation failed:", receiptError);
+
+  document.getElementById("quick-sale-form").reset();
+  document.getElementById("quick-sale-total").textContent = "";
+  message.textContent = `Sale complete — ${formatMoney(total)}${salespersonId ? " · commission will show after the next Generate Commissions scan" : ""}.`;
+  message.dataset.tone = "success";
+  await loadQuickSaleData();
+  await loadParts();
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("part-image-preview").src = PLACEHOLDER_IMG;
   await loadMarkupRate();
@@ -560,4 +653,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadParts();
   loadRestocks();
   renderTopSellers();
+  loadQuickSaleData();
 });

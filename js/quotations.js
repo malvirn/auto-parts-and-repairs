@@ -344,10 +344,28 @@ async function openOrderEditor(id) {
 }
 async function saveOrderChanges() {
   if (!editingOrder) return;
+  const wasAlreadyConfirmed = editingOrder.status === "Confirmed";
   const inputs = [...document.querySelectorAll("#edit-order-lines .amend-qty")]; const prices = [...document.querySelectorAll("#edit-order-lines .amend-price")]; const rate = Number(editingOrder.usd_to_zig_rate || exchangeRate); let total = 0;
   for (let i = 0; i < editingOrder.sales_order_items.length; i++) { const quantity = Number(inputs[i].value); const unit = Number(prices[i].value); total += quantity * unit; await supabase.from("sales_order_items").update({ quantity, unit_price_usd: unit, total_usd: quantity * unit, unit_price_zig: unit * rate, total_zig: quantity * unit * rate }).eq("id", editingOrder.sales_order_items[i].id); }
   const salespersonId = document.getElementById("edit-order-salesperson")?.value || null;
   await supabase.from("sales_orders").update({ total_usd: total, total_zig: total * rate, status: "Confirmed", salesperson_id: salespersonId, updated_at: new Date().toISOString() }).eq("id", editingOrder.id);
+
+  // Stock only gets deducted once — on the actual Draft-to-Confirmed
+  // transition. Re-saving an already-confirmed order (amending it later)
+  // doesn't deduct again, since that stock was already taken out the
+  // first time this order was confirmed. This was the gap Quick Sale
+  // didn't have but this flow did.
+  if (!wasAlreadyConfirmed) {
+    for (let i = 0; i < editingOrder.sales_order_items.length; i++) {
+      const item = editingOrder.sales_order_items[i];
+      const quantity = Number(inputs[i].value);
+      if (!item.part_id) continue;
+      const { data: part } = await supabase.from("parts").select("quantity_in_stock").eq("id", item.part_id).single();
+      if (part) {
+        await supabase.from("parts").update({ quantity_in_stock: Math.max(0, Number(part.quantity_in_stock) - quantity) }).eq("id", item.part_id);
+      }
+    }
+  }
 
   const receiptOk = await ensureReceiptForOrder(editingOrder.id, total);
   closeModal(orderModal);
