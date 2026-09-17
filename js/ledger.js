@@ -217,7 +217,7 @@ async function loadEntries() {
 async function openEntryModal(id) {
   const { data, error } = await supabase
     .from("journal_entries")
-    .select("id, entry_date, reference, description, journal_lines(debit, credit, memo, accounts(code, name))")
+    .select("id, entry_date, reference, description, source_type, journal_lines(debit, credit, memo, accounts(code, name))")
     .eq("id", id)
     .single();
   if (error || !data) { alert("Couldn't load that entry."); return; }
@@ -234,6 +234,34 @@ async function openEntryModal(id) {
       </tbody>
     </table>
   `;
+
+  // Payroll entries only show the lump-sum totals above (Wages Expense /
+  // Bank / Tax Payable) — the actual per-employee split lives in a
+  // separate table (payroll_payments), linked via the payroll_runs row
+  // that points back at this journal entry. Only super_admin can
+  // actually see this (RLS on payroll_payments) — for anyone else this
+  // section just quietly stays empty rather than erroring, which is the
+  // correct behaviour, not a bug.
+  if (data.source_type === "payroll") {
+    const { data: run } = await supabase.from("payroll_runs").select("id").eq("journal_entry_id", id).maybeSingle();
+    if (run) {
+      const { data: payments } = await supabase.from("payroll_payments").select("employee_name, department, gross_salary, deductions, commission_amount, net_pay").eq("payroll_run_id", run.id).order("employee_name");
+      if (payments && payments.length) {
+        entryModalLines.innerHTML += `
+          <h4 style="margin:16px 0 8px; font-size:.85rem;">Per-Employee Breakdown</h4>
+          <table>
+            <thead><tr><th>Employee</th><th>Gross</th><th>Deductions</th><th>Commission</th><th>Net Paid</th></tr></thead>
+            <tbody>
+              ${payments.map(p => `
+                <tr><td>${escapeHtml(p.employee_name)}</td><td>${money(p.gross_salary)}</td><td>${money(p.deductions)}</td><td>${money(p.commission_amount)}</td><td><strong>${money(p.net_pay)}</strong></td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+  }
+
   entryModal.classList.remove("hidden");
   entryModal.style.display = "flex";
 }
