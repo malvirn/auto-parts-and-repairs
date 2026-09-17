@@ -307,8 +307,8 @@ async function loadJobs() {
   // them up client-side by technician_id.
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, parts_cost, total_cost, technician_id, ready_at, collected_at,
-      customers ( full_name, phone, email ),
+      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, parts_cost, total_cost, technician_id, ready_at, collected_at,
+      customers ( full_name, phone, email, customer_type ),
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false }),
     supabase.from("technician_directory").select("id, full_name"),
@@ -330,10 +330,13 @@ async function loadJobs() {
     const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
     const vehicleLabel = [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ")
       + (job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "");
+    const isCompany = job.customers?.customer_type === "company";
+    const customerLabel = escapeHtml(job.customers?.full_name ?? "—")
+      + (isCompany ? ` <span style="font-size:.7rem; padding:1px 6px; border-radius:999px; background:rgba(0,0,0,.08); color:var(--text-muted);">Company</span>` : "");
     return `
       <tr data-job-id="${job.id}">
-        <td>#${String(job.job_number).padStart(4, "0")}</td>
-        <td>${escapeHtml(job.customers?.full_name ?? "—")}</td>
+        <td>${escapeHtml(job.cro_number || `#${String(job.job_number).padStart(4, "0")}`)}</td>
+        <td>${customerLabel}</td>
         <td>${escapeHtml(vehicleLabel)}</td>
         <td>${escapeHtml(job.fault_reported)}</td>
         <td><span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${job.status}</span></td>
@@ -402,7 +405,7 @@ function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
   pendingCollection = false;
-  editJobNumber.textContent = String(job.job_number).padStart(4, "0");
+  editJobNumber.textContent = job.cro_number || String(job.job_number).padStart(4, "0");
   editStatus.value = job.status;
   editDiagnosis.value = job.diagnosis ?? "";
   editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);

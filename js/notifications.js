@@ -157,7 +157,7 @@ async function checkExpiringContracts() {
 async function checkUnclaimedVehicles() {
   try {
     const GRACE_DAYS = 7;
-    const { data } = await supabase.from("repair_jobs").select("id, job_number, ready_at, status, collected_at").in("status", ["Ready for Pickup", "Unclaimed"]).is("collected_at", null).not("ready_at", "is", null);
+    const { data } = await supabase.from("repair_jobs").select("id, job_number, cro_number, ready_at, status, collected_at").in("status", ["Ready for Pickup", "Unclaimed"]).is("collected_at", null).not("ready_at", "is", null);
     const now = Date.now();
     return (data || [])
       .filter(j => now - new Date(j.ready_at).getTime() > GRACE_DAYS * 86400000)
@@ -165,7 +165,7 @@ async function checkUnclaimedVehicles() {
         const overdueDays = Math.floor((now - new Date(j.ready_at).getTime()) / 86400000) - GRACE_DAYS;
         return {
           severity: "warning",
-          message: `Job #${String(j.job_number).padStart(4, "0")} uncollected ${overdueDays} day${overdueDays === 1 ? "" : "s"} past free pickup window`,
+          message: `${j.cro_number || "Job #" + String(j.job_number).padStart(4, "0")} uncollected ${overdueDays} day${overdueDays === 1 ? "" : "s"} past free pickup window`,
           link: "repairs.html",
         };
       });

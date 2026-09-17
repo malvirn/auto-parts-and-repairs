@@ -84,6 +84,15 @@
 
       <section class="page-section">
         <div class="section-heading">
+          <div><p class="section-kicker">Morning check-in, end-of-day close</p><h2><i class="section-heading-icon" data-lucide="sunrise"></i>Daily Float</h2></div>
+          <input type="date" id="float-date" style="min-height:38px;" />
+        </div>
+        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">What you started the day with, what came in and went out, and what that leaves you with — combined Cash on Hand + Bank, computed live from the Ledger, not a separate record.</p>
+        <div class="card-grid" id="daily-float-summary"></div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading">
           <div><p class="section-kicker">Live report</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Cash Book</h2></div>
           <select id="cashbook-filter" style="min-height:38px;">
             <option value="all">Cash on Hand + Bank</option>

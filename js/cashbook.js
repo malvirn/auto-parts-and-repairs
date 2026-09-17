@@ -96,7 +96,7 @@ cashForm.addEventListener("submit", async (e) => {
   cashForm.reset();
   cashDateInput.value = new Date().toISOString().slice(0, 10);
   cashFormMessage.textContent = "Posted to the ledger."; cashFormMessage.dataset.tone = "success";
-  loadCashBook();
+  loadCashBook(); loadDailyFloat();
 });
 
 // ---------- Cash Book (live report over the ledger) ----------
@@ -147,6 +147,51 @@ async function loadCashBook() {
       `).join("")
     : `<tr><td colspan="5" class="empty-state">No cash movements recorded yet</td></tr>`;
 }
+
+async function loadDailyFloat() {
+  const dateInput = document.getElementById("float-date");
+  const summaryEl = document.getElementById("daily-float-summary");
+  if (!dateInput || !summaryEl) return;
+  const dateStr = dateInput.value || new Date().toISOString().slice(0, 10);
+
+  const accountIds = accounts.filter(a => CASH_BANK_CODES.includes(a.code)).map(a => a.id);
+  if (!accountIds.length) return;
+
+  const { data, error } = await supabase
+    .from("journal_lines")
+    .select("debit, credit, journal_entries(entry_date)")
+    .in("account_id", accountIds);
+
+  if (error) {
+    summaryEl.innerHTML = `<div class="stat-card"><div class="stat-card__label">Error</div><div class="stat-card__value" style="font-size:.85rem;">${escapeHtml(error.message)}</div></div>`;
+    return;
+  }
+
+  let openingFloat = 0, cashIn = 0, cashOut = 0;
+  (data || []).forEach(row => {
+    const rowDate = row.journal_entries?.entry_date;
+    if (!rowDate) return;
+    if (rowDate < dateStr) {
+      openingFloat += Number(row.debit || 0) - Number(row.credit || 0);
+    } else if (rowDate === dateStr) {
+      cashIn += Number(row.debit || 0);
+      cashOut += Number(row.credit || 0);
+    }
+  });
+
+  const netChange = cashIn - cashOut;
+  const closingBalance = openingFloat + netChange;
+
+  summaryEl.innerHTML = `
+    <div class="stat-card"><div class="stat-card__label">Opening Float</div><div class="stat-card__value">${money(openingFloat)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Cash In Today</div><div class="stat-card__value cash-in">${money(cashIn)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Cash Out Today</div><div class="stat-card__value cash-out">${money(cashOut)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">${netChange >= 0 ? "Net Made Today" : "Net Loss Today"}</div><div class="stat-card__value" style="color:${netChange >= 0 ? "var(--success,#2e7d4f)" : "var(--danger,#b23b3b)"};">${money(Math.abs(netChange))}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Closing Balance</div><div class="stat-card__value">${money(closingBalance)}</div></div>
+  `;
+}
+document.getElementById("float-date")?.addEventListener("change", loadDailyFloat);
+
 cashbookFilter.addEventListener("change", loadCashBook);
 
 // ---------- Petty Cash ----------
@@ -255,7 +300,7 @@ pettyTopupForm.addEventListener("submit", async (e) => {
   document.getElementById("pt-date").value = new Date().toISOString().slice(0, 10);
   ptFormMessage.textContent = "Float topped up."; ptFormMessage.dataset.tone = "success";
   loadPettyCash();
-  loadCashBook(); // the funding side of this shows up here too
+  loadCashBook(); loadDailyFloat(); // the funding side of this shows up here too
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -263,8 +308,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   cashDateInput.value = today;
   document.getElementById("pe-date").value = today;
   document.getElementById("pt-date").value = today;
+  const floatDateInput = document.getElementById("float-date");
+  if (floatDateInput) floatDateInput.value = today;
 
   await loadAccounts();
   loadCashBook();
   loadPettyCash();
+  loadDailyFloat();
 });

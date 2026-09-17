@@ -26,9 +26,11 @@ function renderReceipt(receipt) {
   const customer = job?.customers;
   const vehicle = job?.vehicles;
   const parts = receipt.parts || [];
+  const incidentals = receipt.incidentals || [];
   const partsTotal = parts.reduce((sum, part) => sum + Number(part.quantity) * Number(part.price_at_time), 0);
+  const incidentalsTotal = incidentals.reduce((sum, inc) => sum + Number(inc.amount), 0);
   const labour = Number(job?.labour_cost || 0);
-  const total = Number(receipt.amount || partsTotal + labour);
+  const total = Number(receipt.amount || partsTotal + incidentalsTotal + labour);
 
   currentReceipt = {
     receiptNumber: receipt.receipt_number,
@@ -45,8 +47,8 @@ function renderReceipt(receipt) {
       <div class="receipt-meta"><strong>RECEIPT #${String(receipt.receipt_number).padStart(4, "0")}</strong>${new Date(receipt.issued_at).toLocaleDateString()}</div>
     </header>
     <h3>Customer</h3><div class="receipt-customer">${escapeHtml(customer?.full_name || "—")}<br>${escapeHtml(customer?.phone || "—")}</div>
-    <h3>Repair &amp; Vehicle</h3><div class="receipt-customer">Job #${String(job?.job_number || "").padStart(4, "0")} · ${escapeHtml([vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Vehicle")}<br>Plate: ${escapeHtml(vehicle?.license_plate || "—")}<br>Status: ${escapeHtml(job?.status || "Ready for Pickup")}</div>
-    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${parts.map(part => `<tr><td>${escapeHtml(part.part_name)}</td><td>${part.quantity}</td><td>$${Number(part.price_at_time).toFixed(2)}</td><td>$${(Number(part.quantity) * Number(part.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}<tr><td>Labour</td><td>1</td><td>$${labour.toFixed(2)}</td><td>$${labour.toFixed(2)}</td></tr></tbody></table>
+    <h3>Repair &amp; Vehicle</h3><div class="receipt-customer">${escapeHtml(job?.cro_number || "Job #" + String(job?.job_number || "").padStart(4, "0"))} · ${escapeHtml([vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Vehicle")}<br>Plate: ${escapeHtml(vehicle?.license_plate || "—")}<br>Status: ${escapeHtml(job?.status || "Ready for Pickup")}</div>
+    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${parts.map(part => `<tr><td>${escapeHtml(part.part_name)}</td><td>${part.quantity}</td><td>$${Number(part.price_at_time).toFixed(2)}</td><td>$${(Number(part.quantity) * Number(part.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}${incidentals.map(inc => `<tr><td>${escapeHtml(inc.description)}</td><td>1</td><td>$${Number(inc.amount).toFixed(2)}</td><td>$${Number(inc.amount).toFixed(2)}</td></tr>`).join("")}<tr><td>Labour</td><td>1</td><td>$${labour.toFixed(2)}</td><td>$${labour.toFixed(2)}</td></tr></tbody></table>
     <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
     <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>`;
   receiptModal.classList.remove("hidden");
@@ -65,7 +67,7 @@ async function openReceiptForJob(jobId) {
   }
   const { data, error } = await supabase
     .from("receipts")
-    .select(`id, receipt_number, amount, issued_at, repair_jobs(job_number, status, labour_cost, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time))`)
+    .select(`id, receipt_number, amount, issued_at, repair_jobs(job_number, cro_number, status, labour_cost, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount))`)
     .eq("repair_job_id", jobId)
     .order("issued_at", { ascending: false })
     .limit(1)
@@ -73,7 +75,7 @@ async function openReceiptForJob(jobId) {
 
   if (error) { alert("Unable to load receipt: " + error.message); return; }
   if (!data) { alert("No receipt found for this job."); return; }
-  renderReceipt({ ...data, parts: data.repair_jobs?.job_parts || [] });
+  renderReceipt({ ...data, parts: data.repair_jobs?.job_parts || [], incidentals: data.repair_jobs?.job_incidentals || [] });
 }
 
 async function generateReceipt(jobId, amount) {
