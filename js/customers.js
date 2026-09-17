@@ -1,4 +1,4 @@
-﻿// ========= Customers module =========
+// ========= Customers module =========
 import supabase from "./supabaseClient.js";
 
 const tableBody = document.getElementById("customers-table");
@@ -8,23 +8,24 @@ const form = document.getElementById("customer-form");
 async function loadCustomers() {
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, phone, is_repeat_customer, vehicles(license_plate)")
+    .select("id, full_name, phone, customer_type, is_repeat_customer, vehicles(license_plate)")
     .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error loading customers:", error);
-    tableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Failed to load customers: ${error.message}</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Failed to load customers: ${error.message}</td></tr>`;
     return;
   }
 
   if (!data || data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted)">No customers yet — add one above</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted)">No customers yet — add one above</td></tr>`;
     return;
   }
 
   tableBody.innerHTML = data.map(c => `
     <tr>
       <td>${escapeHtml(c.full_name)}</td>
+      <td>${c.customer_type === "company" ? "Company" : "Individual"}</td>
       <td>${escapeHtml(c.phone)}</td>
       <td>${vehiclePlates(c.vehicles)}</td>
       <td>${c.is_repeat_customer ? "Yes" : "No"}</td>
@@ -71,6 +72,7 @@ if (form) {
     e.preventDefault();
 
     const full_name = document.getElementById("cust-name").value.trim();
+    const customer_type = document.getElementById("cust-type").value;
     const phone = document.getElementById("cust-phone").value.trim();
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
@@ -122,7 +124,7 @@ if (form) {
 
     // No existing match — this really is a new customer.
     const { data: customer, error } = await supabase.from("customers").insert([
-      { full_name, phone, email: email || null }
+      { full_name, customer_type, phone, email: email || null }
     ]).select("id").single();
 
     if (error) {

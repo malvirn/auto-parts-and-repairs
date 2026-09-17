@@ -1,4 +1,4 @@
-﻿// ========= Receipts module =========
+// ========= Receipts module =========
 import supabase from "./supabaseClient.js";
 
 const SHOP_NAME = "Auto Parts and Repairs";
@@ -12,8 +12,6 @@ const receiptDocument = document.getElementById("receipt-document");
 const receiptWhatsappBtn = document.getElementById("receipt-whatsapp");
 const receiptEmailBtn = document.getElementById("receipt-email");
 
-// Set whenever a receipt is rendered, so the send buttons know who/what
-// they're sending without re-querying the database.
 let currentReceipt = null; // { receiptNumber, jobNumber, customer }
 
 function formatPhoneForWhatsApp(raw) {
@@ -56,7 +54,15 @@ function renderReceipt(receipt) {
   if (window.lucide) lucide.createIcons();
 }
 
+// jobId being missing/empty is exactly what was crashing this with
+// "invalid input syntax" — Postgres refusing an empty string where a UUID
+// belongs. Guarding here stops it before it ever reaches Supabase, and
+// gives a real explanation instead of a raw database error.
 async function openReceiptForJob(jobId) {
+  if (!jobId) {
+    alert("This receipt isn't linked to a repair job record anymore, so it can't be opened. This usually means the underlying job was deleted after the receipt was issued.");
+    return;
+  }
   const { data, error } = await supabase
     .from("receipts")
     .select(`id, receipt_number, amount, issued_at, repair_jobs(job_number, status, labour_cost, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time))`)
@@ -71,15 +77,14 @@ async function openReceiptForJob(jobId) {
 }
 
 async function generateReceipt(jobId, amount) {
+  if (!jobId) return; // guards the DOMContentLoaded ?job= path the same way
   const { data: job, error: jobError } = await supabase.from("repair_jobs").select("id, status, total_cost").eq("id", jobId).single();
   if (jobError || !job) { alert("Unable to load repair job."); return; }
-  // "Ready for Pickup" and "Unclaimed" both mean the job is finished
-  // (Unclaimed just means it's been finished a while without being picked up).
   if (!["Ready for Pickup", "Unclaimed"].includes(job.status)) { alert("A receipt can only be generated once the job is marked Ready for Pickup."); return; }
 
   const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);
 
-  if (error && error.code !== "23505") { // 23505 = unique_violation — a receipt already exists, which is fine
+  if (error && error.code !== "23505") {
     alert("Failed to generate receipt: " + error.message);
     return;
   }
@@ -89,7 +94,6 @@ async function generateReceipt(jobId, amount) {
   openReceiptForJob(jobId);
 }
 
-// ---- Load completed jobs that don't have a receipt yet ----
 async function loadPendingReceipts() {
   const { data: jobs, error: jobsError } = await supabase
     .from("repair_jobs")
@@ -146,7 +150,6 @@ async function loadPendingReceipts() {
   });
 }
 
-// ---- Load all receipts ----
 async function loadAllReceipts() {
   const { data, error } = await supabase
     .from("receipts")
@@ -173,32 +176,35 @@ async function loadAllReceipts() {
     return;
   }
 
-  receiptsTableBody.innerHTML = data.map(r => `
+  // If repair_jobs is null (its underlying job record is gone), don't
+  // render a "View" button pointing at an empty id — that's exactly what
+  // was producing the invalid-UUID crash. Show a plain, honest label
+  // instead of a button that's guaranteed to fail.
+  receiptsTableBody.innerHTML = data.map(r => {
+    const jobId = r.repair_jobs?.id;
+    return `
     <tr>
       <td>#${String(r.receipt_number).padStart(4, "0")}</td>
       <td>#${String(r.repair_jobs?.job_number ?? "").padStart(4, "0")}</td>
       <td>${escapeHtml(r.repair_jobs?.customers?.full_name ?? "—")}</td>
       <td>$${Number(r.amount ?? 0).toFixed(2)}</td>
       <td>${new Date(r.issued_at).toLocaleDateString()}</td>
-      <td><button type="button" class="btn view-receipt-btn" data-job-id="${r.repair_jobs?.id || ""}"><i data-lucide="eye"></i> View</button></td>
+      <td>${jobId
+        ? `<button type="button" class="btn view-receipt-btn" data-job-id="${jobId}"><i data-lucide="eye"></i> View</button>`
+        : `<span style="color:var(--text-muted); font-size:.85rem;">Job record missing</span>`}</td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
   document.querySelectorAll(".view-receipt-btn").forEach(button => button.addEventListener("click", () => openReceiptForJob(button.dataset.jobId)));
   if (window.lucide) lucide.createIcons();
 }
 
-// ---- Share as a high-quality image (WhatsApp) ----
-// wa.me can only pre-fill text, not attach a file (a WhatsApp platform
-// restriction, not something a website can work around) — so this renders
-// a high-resolution image of the receipt, downloads it, and opens the
-// customer's chat with a short note. Staff attach the already-downloaded
-// image with one extra tap.
 async function captureReceiptImage() {
   if (typeof html2canvas !== "function") {
     throw new Error("html2canvas didn't load — check your internet connection and reload the page.");
   }
   return html2canvas(receiptDocument, {
-    scale: 4, // high resolution for crisp WhatsApp/print quality
+    scale: 4,
     backgroundColor: "#ffffff",
     useCORS: true,
   });

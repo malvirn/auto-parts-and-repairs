@@ -1,4 +1,4 @@
-﻿// ========= Repair Jobs module =========
+// ========= Repair Jobs module =========
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 
@@ -38,7 +38,7 @@ const applyParkingFeeBtn = document.getElementById("apply-parking-fee");
 let currentEditJobId = null;
 let currentEditJob = null;
 let cachedRate = null;
-let customerVehiclesMap = {};   // customer_id -> [{ id, license_plate, make, model, year, vin, body_type }]
+let customerVehiclesMap = {};   // customer_id -> [{ id, license_plate, make, model, year, chassis_number, engine_number, body_type }]
 let pendingCollection = false;
 let countdownInterval = null;
 
@@ -104,7 +104,7 @@ function updateWhatsappButton(job) {
 async function loadCustomersIntoSelect() {
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, vehicles(id, license_plate, make, model, year, vin, body_type)")
+    .select("id, full_name, vehicles(id, license_plate, make, model, year, chassis_number, engine_number, body_type)")
     .order("full_name");
 
   if (error) { console.error("Error loading customers:", error); return; }
@@ -131,7 +131,8 @@ function clearVehicleFields() {
   document.getElementById("job-make").value = "";
   document.getElementById("job-model").value = "";
   document.getElementById("job-year").value = "";
-  document.getElementById("job-vin").value = "";
+  document.getElementById("job-chassis").value = "";
+  document.getElementById("job-engine").value = "";
 }
 
 function autofillVehicleFields(vehicle) {
@@ -140,7 +141,8 @@ function autofillVehicleFields(vehicle) {
   document.getElementById("job-make").value = vehicle.make || "";
   document.getElementById("job-model").value = vehicle.model || "";
   document.getElementById("job-year").value = vehicle.year || "";
-  document.getElementById("job-vin").value = vehicle.vin || "";
+  document.getElementById("job-chassis").value = vehicle.chassis_number || "";
+  document.getElementById("job-engine").value = vehicle.engine_number || "";
 }
 
 function populateVehicleOptions(customerId) {
@@ -616,7 +618,8 @@ if (form) {
     const make = document.getElementById("job-make").value.trim();
     const model = document.getElementById("job-model").value.trim();
     const year = parseInt(document.getElementById("job-year").value) || null;
-    const vin = document.getElementById("job-vin").value.trim();
+    const chassis_number = document.getElementById("job-chassis").value.trim();
+    const engine_number = document.getElementById("job-engine").value.trim();
     const fault_reported = document.getElementById("job-fault").value.trim();
 
     if (!customer_id || !vehicle_id) {
@@ -627,12 +630,16 @@ if (form) {
       alert("Make and fault description are required.");
       return;
     }
+    if (!chassis_number || !engine_number) {
+      alert("Chassis number and engine number are both required — a plate alone isn't a reliable enough identifier for this vehicle.");
+      return;
+    }
 
     // The vehicle already exists (it's one of the customer's registered
     // plates) — just keep its details in sync with whatever was edited here.
     const { error: vehicleUpdateError } = await supabase
       .from("vehicles")
-      .update({ body_type, make, model: model || null, year, vin: vin || null })
+      .update({ body_type, make, model: model || null, year, chassis_number, engine_number })
       .eq("id", vehicle_id);
     if (vehicleUpdateError) {
       console.error("Error updating vehicle:", vehicleUpdateError);

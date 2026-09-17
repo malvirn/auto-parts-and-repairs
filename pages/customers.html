@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <script src="../js/theme.js"></script>
@@ -45,6 +45,13 @@
           <input type="text" id="cust-name" placeholder="e.g. Tendai Moyo" required />
         </div>
         <div class="field">
+          <label>Customer Type</label>
+          <select id="cust-type">
+            <option value="individual">Individual</option>
+            <option value="company">Company</option>
+          </select>
+        </div>
+        <div class="field">
           <label>Phone Number</label>
           <input type="tel" id="cust-phone" placeholder="e.g. +263 77 123 4567" pattern="\+263\s\d{2}\s\d{3}\s\d{4}" title="Use +263 00 000 0000 format" required />
         </div>
@@ -67,10 +74,10 @@
         <div class="panel">
         <table>
           <thead>
-            <tr><th>Name</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th></tr>
+            <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th></tr>
           </thead>
           <tbody id="customers-table">
-            <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+            <tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
           </tbody>
         </table>
         </div>

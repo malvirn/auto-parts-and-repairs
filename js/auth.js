@@ -78,7 +78,7 @@ function applyAccess(role) {
   const isDashboard = currentPage === "index" || currentPage === "index.html" || currentPage === "";
   if (isDashboard && DASHBOARD_REDIRECT[role]) {
     window.location.replace("pages/" + DASHBOARD_REDIRECT[role]);
-    return;
+    return; // stay hidden — a redirect is about to happen
   }
 
   // If the CURRENT page itself isn't allowed for this role, don't wait
@@ -86,7 +86,25 @@ function applyAccess(role) {
   const allowedHere = PAGE_ACCESS[currentPage];
   if (allowedHere && !allowedHere.includes(role)) {
     window.location.replace(dashboardPath);
+    return; // stay hidden — a redirect is about to happen
   }
+
+  // Only NOW is it confirmed this role is actually allowed on this exact
+  // page — reveal it. Every earlier return in this function leaves the
+  // page hidden on purpose, because a redirect is about to happen.
+  revealPage();
+}
+
+function hidePage() {
+  if (document.getElementById("auth-gate-style")) return;
+  const style = document.createElement("style");
+  style.id = "auth-gate-style";
+  style.textContent = "body { visibility: hidden !important; }";
+  document.head.appendChild(style);
+}
+
+function revealPage() {
+  document.getElementById("auth-gate-style")?.remove();
 }
 
 async function protectPage() {
@@ -113,6 +131,7 @@ async function protectPage() {
 }
 
 if (!isLoginPage) {
+  hidePage(); // synchronous, immediate — closes the exposure window as much as possible before the async role check below even starts
   protectPage();
 
   // Also react to sign-out happening in another tab, and to a token

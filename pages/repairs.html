@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <script src="../js/theme.js"></script>
@@ -104,8 +104,12 @@
             <input type="number" id="job-year" placeholder="e.g. 2019" min="1970" max="2030" />
           </div>
           <div class="field">
-            <label>VIN</label>
-            <input type="text" id="job-vin" placeholder="Optional" />
+            <label>Chassis Number</label>
+            <input type="text" id="job-chassis" placeholder="Required — plate alone isn't a reliable identifier" required />
+          </div>
+          <div class="field">
+            <label>Engine Number</label>
+            <input type="text" id="job-engine" placeholder="Required" required />
           </div>
           <div class="field" style="grid-column: span 3;">
             <label>Fault Reported</label>
