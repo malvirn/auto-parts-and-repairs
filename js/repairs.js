@@ -1,4 +1,4 @@
-// ========= Repair Jobs module =========
+﻿// ========= Repair Jobs module =========
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 
@@ -201,6 +201,8 @@ jobPlateSelect.addEventListener("change", () => {
   const vehicles = customerVehiclesMap[customerSelect.value] || [];
   autofillVehicleFields(vehicles.find(v => v.id === jobPlateSelect.value));
 });
+
+let mechanicsList = []; // [{ id, full_name, busyWith: label | null }]
 
 async function refreshBusyMechanics() {
   const { data: busyJobs } = await supabase.from("repair_jobs").select("technician_id, cro_number, job_number").not("technician_id", "is", null).not("status", "in", '("Ready for Pickup","Unclaimed","Collected")');
