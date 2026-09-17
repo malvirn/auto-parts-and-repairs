@@ -4,8 +4,9 @@ import { getRate } from "./currency.js";
 // ⚠️ Fill these in — see the setup steps provided alongside this file.
 // Restricted the same way as the Suppliers page's Google Places key:
 // HTTP referrer + API restricted to Custom Search API only.
-const GOOGLE_IMAGE_API_KEY = "AIzaSyBVEIOfzRpcYL3fgGvrWq3V1bXPdBOsU78";
-const GOOGLE_IMAGE_CX = "870b4a94ca9f1457f";
+// ⚠️ Fill this in with your free Pexels API key (pexels.com/api — no
+// credit card required, just a developer account signup).
+const PEXELS_API_KEY = "YOUR_PEXELS_API_KEY";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#f2f0ea"/><text x="50%" y="58%" font-size="18" text-anchor="middle" fill="#bbb">?</text></svg>`
@@ -96,28 +97,29 @@ document.getElementById("apply-markup-all-btn")?.addEventListener("click", async
   loadParts();
 });
 
-// ---- Google Image Search ----
+// ---- Pexels Image Search ----
+// Free, no credit card required — but it's a stock-photo library, not a
+// product catalog, so results for specific auto parts will be hit-or-miss
+// compared to a general web image search. The "paste an image URL"
+// field next to this stays the more reliable option for finding an
+// actual product photo of a specific part.
 async function searchGoogleImages(query) {
-  if (!GOOGLE_IMAGE_API_KEY || GOOGLE_IMAGE_API_KEY === "YOUR_GOOGLE_API_KEY") {
-    throw new Error("Google Image Search isn't set up yet — add your API key and Search Engine ID in shop.js.");
+  if (!PEXELS_API_KEY || PEXELS_API_KEY === "YOUR_PEXELS_API_KEY") {
+    throw new Error("Pexels image search isn't set up yet — add your free API key in shop.js (get one at pexels.com/api).");
   }
-  const url = new URL("https://www.googleapis.com/customsearch/v1");
-  url.searchParams.set("key", GOOGLE_IMAGE_API_KEY);
-  url.searchParams.set("cx", GOOGLE_IMAGE_CX);
-  url.searchParams.set("searchType", "image");
-  url.searchParams.set("q", `${query} auto part`);
-  url.searchParams.set("num", "6");
-  url.searchParams.set("safe", "active");
+  const url = new URL("https://api.pexels.com/v1/search");
+  url.searchParams.set("query", `${query} auto part`);
+  url.searchParams.set("per_page", "6");
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: { Authorization: PEXELS_API_KEY } });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error?.message || `Image search failed (${response.status})`);
+    throw new Error(body?.error || `Image search failed (${response.status})`);
   }
   const data = await response.json();
-  return (data.items || []).map(item => ({
-    thumbnail: item.image?.thumbnailLink || item.link,
-    full: item.link,
+  return (data.photos || []).map(photo => ({
+    thumbnail: photo.src?.small || photo.src?.medium || photo.src?.original,
+    full: photo.src?.original || photo.src?.large,
   }));
 }
 
@@ -164,10 +166,7 @@ function wireImageSearch({ nameInputId, searchBtn, resultsContainer, previewImg,
       });
     } catch (err) {
       console.error("Image search failed:", err);
-      const hint = /invalid argument/i.test(err.message)
-        ? " Check that GOOGLE_IMAGE_CX in shop.js is your real Search Engine ID from programmablesearchengine.google.com (not the placeholder, and not the API key)."
-        : "";
-      resultsContainer.innerHTML = `<span style="font-size:.8rem;color:var(--danger);">${escapeHtml(err.message)}${hint}</span>`;
+      resultsContainer.innerHTML = `<span style="font-size:.8rem;color:var(--danger);">${escapeHtml(err.message)}</span>`;
     } finally {
       searchBtn.disabled = false;
       searchBtn.innerHTML = original;
