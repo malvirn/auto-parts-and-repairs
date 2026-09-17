@@ -111,6 +111,21 @@
             <label>Engine Number</label>
             <input type="text" id="job-engine" placeholder="Required" required />
           </div>
+          <div class="field">
+            <label>Fuel Level at Drop-off</label>
+            <select id="job-fuel-in">
+              <option value="">Not recorded</option>
+              <option>Empty</option>
+              <option>1/4</option>
+              <option>1/2</option>
+              <option>3/4</option>
+              <option>Full</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Odometer at Drop-off</label>
+            <input type="number" id="job-odometer-in" placeholder="e.g. 82000" min="0" />
+          </div>
           <div class="field" style="grid-column: span 3;">
             <label>Fault Reported</label>
             <textarea id="job-fault" rows="2" placeholder="What the customer says is wrong" required></textarea>
@@ -124,6 +139,15 @@
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Status, mechanic, and cost</span></div>
+        <div class="panel" style="padding:14px 16px; margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="jobs-search" placeholder="Search CRO, customer, engine number, make, model…" style="flex:1; min-width:220px;" />
+          <select id="jobs-filter-mechanic" style="min-width:160px;"><option value="">All Mechanics</option></select>
+          <select id="jobs-filter-type" style="min-width:150px;">
+            <option value="">Company + Personal</option>
+            <option value="company">Company Only</option>
+            <option value="individual">Personal Only</option>
+          </select>
+        </div>
         <div class="panel">
         <table>
           <thead>
@@ -142,6 +166,26 @@
             <tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
           </tbody>
         </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Pricing setup</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Vehicle Rate Tiers</h2></div><span class="section-note">Auto-detected from make, overridable per job</span></div>
+        <form id="tier-form" class="panel" style="padding:20px; margin-bottom:16px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: 2fr 1fr 2fr auto;">
+            <div class="field"><label>Tier Name</label><input type="text" id="tier-name" placeholder="e.g. Electric / Hybrid" required /></div>
+            <div class="field"><label>Rate ($/hr)</label><input type="number" id="tier-rate" step="0.01" min="0" required /></div>
+            <div class="field"><label>Makes (comma-separated)</label><input type="text" id="tier-makes" placeholder="e.g. Tesla, BYD" /></div>
+            <div class="field" style="display:flex; align-items:flex-end;"><label style="display:flex; align-items:center; gap:6px; font-weight:normal;"><input type="checkbox" id="tier-default" style="width:auto;" /> Default tier</label></div>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Add Tier</button>
+          <p id="tier-form-message" class="form-message"></p>
+        </form>
+        <div class="panel">
+          <table>
+            <thead><tr><th>Tier</th><th>Rate</th><th>Auto-matches</th><th>Default</th><th></th></tr></thead>
+            <tbody id="tiers-table"><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
         </div>
       </section>
     </main>
@@ -164,7 +208,15 @@
         <input type="datetime-local" id="edit-diagnosis-eta" />
       </div>
       <div class="field">
-        <label>Labour Cost</label>
+        <label>Vehicle Rate Tier</label>
+        <select id="edit-rate-tier"></select>
+      </div>
+      <div class="field">
+        <label>Hours Worked</label>
+        <input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" />
+      </div>
+      <div class="field">
+        <label>Labour Cost <span style="font-weight:normal; color:var(--text-muted); font-size:.78rem;">(auto-filled from hours × rate — edit directly to override)</span></label>
         <input type="number" id="edit-labour" step="0.01" min="0" />
       </div>
       <div class="field">
@@ -194,6 +246,10 @@
           <label>Odometer at Collection</label>
           <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
         </div>
+        <div id="picked-up-by-field" class="field hidden">
+          <label>Picked Up By <span style="font-weight:normal; color:var(--text-muted); font-size:.78rem;">(company vehicle — who collected it)</span></label>
+          <input type="text" id="edit-picked-up-by" placeholder="Driver or staff member's name" />
+        </div>
         <div class="field">
           <label>Collection Notes</label>
           <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
@@ -210,6 +266,18 @@
       <div class="field">
         <label>Parts Used</label>
         <div id="job-parts-list" style="font-size:0.85rem;"></div>
+      </div>
+      <div class="field">
+        <label>Add Incidental (oil, rags, misc consumables)</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="incidental-desc" placeholder="e.g. Engine cleaning degreaser" style="flex:1;" />
+          <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" style="width:90px;" />
+          <button id="incidental-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Incidentals</label>
+        <div id="incidentals-list" style="font-size:0.85rem;"></div>
       </div>
       <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
         <button id="edit-save" class="btn btn--primary"><i data-lucide="check"></i> Save</button>

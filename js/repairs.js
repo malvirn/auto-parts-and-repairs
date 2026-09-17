@@ -41,6 +41,41 @@ let cachedRate = null;
 let customerVehiclesMap = {};   // customer_id -> [{ id, license_plate, make, model, year, chassis_number, engine_number, body_type }]
 let pendingCollection = false;
 let countdownInterval = null;
+let rateTiers = [];
+
+const editRateTier = document.getElementById("edit-rate-tier");
+const editHours = document.getElementById("edit-hours");
+
+// ---- Vehicle rate tiers: load once, used for auto-detection by make ----
+async function loadRateTiers() {
+  const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
+  if (error) { console.error("Error loading rate tiers:", error); return; }
+  rateTiers = data || [];
+  if (editRateTier) {
+    editRateTier.innerHTML = rateTiers.map(t => `<option value="${t.id}">${escapeHtml(t.tier_name)} — $${Number(t.hourly_rate).toFixed(2)}/hr</option>`).join("");
+  }
+}
+
+// Case-insensitive match against each tier's makes list; falls back to
+// whichever tier is flagged is_default if nothing matches (or the first
+// tier at all, if somehow no default is set).
+function detectTierForMake(make) {
+  if (!make) return rateTiers.find(t => t.is_default) || rateTiers[0];
+  const needle = make.trim().toLowerCase();
+  const matched = rateTiers.find(t => (t.makes || []).some(m => m.toLowerCase() === needle));
+  return matched || rateTiers.find(t => t.is_default) || rateTiers[0];
+}
+
+function recalcLabourFromHours() {
+  const tier = rateTiers.find(t => t.id === editRateTier.value);
+  const hours = parseFloat(editHours.value) || 0;
+  if (tier && hours > 0) {
+    editLabour.value = (hours * Number(tier.hourly_rate)).toFixed(2);
+    updateZigDisplay();
+  }
+}
+if (editRateTier) editRateTier.addEventListener("change", recalcLabourFromHours);
+if (editHours) editHours.addEventListener("input", recalcLabourFromHours);
 
 // Only these show up in the day-to-day status dropdown. The Postgres enum
 // itself is untouched (still has the old values for historical rows) — this
@@ -167,6 +202,12 @@ jobPlateSelect.addEventListener("change", () => {
   autofillVehicleFields(vehicles.find(v => v.id === jobPlateSelect.value));
 });
 
+async function refreshBusyMechanics() {
+  const { data: busyJobs } = await supabase.from("repair_jobs").select("technician_id, cro_number, job_number").not("technician_id", "is", null).not("status", "in", '("Ready for Pickup","Unclaimed","Collected")');
+  const busyMap = Object.fromEntries((busyJobs || []).map(j => [j.technician_id, j.cro_number || `Job #${String(j.job_number).padStart(4, "0")}`]));
+  mechanicsList = mechanicsList.map(m => ({ ...m, busyWith: busyMap[m.id] || null }));
+}
+
 async function loadTechniciansIntoSelect() {
   // Only mechanics show up here — this table now holds every employee
   // (sales, admin, etc.), and a repair job can only be assigned to
@@ -174,18 +215,32 @@ async function loadTechniciansIntoSelect() {
   // the technicians table directly) since that table is now admin-only
   // at the database level — this view is the safe, name-only subset
   // every logged-in staff member is still allowed to read.
-  const { data, error } = await supabase
-    .from("technician_directory")
-    .select("id, full_name")
-    .eq("department", "Mechanics")
-    .eq("is_active", true)
-    .order("full_name");
-
+  const { data: mechanics, error } = await supabase.from("technician_directory").select("id, full_name").eq("department", "Mechanics").eq("is_active", true).order("full_name");
   if (error) { console.error("Error loading technicians:", error); return; }
 
+  mechanicsList = (mechanics || []).map(m => ({ ...m, busyWith: null }));
+  await refreshBusyMechanics();
+  refreshTechnicianOptions(null);
+
+  const mechanicFilter = document.getElementById("jobs-filter-mechanic");
+  if (mechanicFilter) {
+    mechanicFilter.innerHTML = `<option value="">All Mechanics</option>` + mechanicsList.map(m => `<option value="${m.id}">${escapeHtml(m.full_name)}</option>`).join("");
+  }
+}
+
+// Rebuilds the dropdown's options every time the modal opens, since
+// whether a given mechanic is "busy" depends on context — a mechanic
+// busy with THIS job specifically isn't actually unavailable, they're
+// just already on it.
+function refreshTechnicianOptions(currentJobTechnicianId) {
   editTechnician.innerHTML =
     `<option value="">Unassigned</option>` +
-    (data || []).map(t => `<option value="${t.id}">${escapeHtml(t.full_name)}</option>`).join("");
+    mechanicsList.map(m => {
+      const isBusyElsewhere = m.busyWith && m.id !== currentJobTechnicianId;
+      const label = isBusyElsewhere ? `${m.full_name} — Busy (${m.busyWith})` : m.full_name;
+      return `<option value="${m.id}" ${isBusyElsewhere ? "disabled" : ""}>${escapeHtml(label)}</option>`;
+    }).join("");
+  if (currentJobTechnicianId) editTechnician.value = currentJobTechnicianId;
 }
 
 async function loadPartsIntoSelect() {
@@ -296,6 +351,54 @@ if (jobPartAddBtn) {
   });
 }
 
+async function loadJobIncidentals(jobId) {
+  const list = document.getElementById("incidentals-list");
+  if (!list) return;
+  const { data, error } = await supabase.from("job_incidentals").select("id, description, amount").eq("job_id", jobId).order("created_at");
+  if (error) { console.error("Error loading incidentals:", error); return; }
+
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div style="color:var(--text-muted)">None added yet</div>`;
+  } else {
+    list.innerHTML = data.map(inc => `
+      <div class="part-row" style="justify-content:space-between; padding:4px 0;" data-inc-id="${inc.id}">
+        <span>${escapeHtml(inc.description)} — $${Number(inc.amount).toFixed(2)}</span>
+        <button type="button" class="btn remove-incidental-btn" data-inc-id="${inc.id}">✕</button>
+      </div>
+    `).join("");
+    list.querySelectorAll(".remove-incidental-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await supabase.from("job_incidentals").delete().eq("id", btn.dataset.incId);
+        await loadJobIncidentals(jobId);
+      });
+    });
+  }
+
+  const total = (data || []).reduce((sum, inc) => sum + Number(inc.amount), 0);
+  await supabase.from("repair_jobs").update({ incidentals_cost: total }).eq("id", jobId);
+}
+
+const incidentalAddBtn = document.getElementById("incidental-add");
+if (incidentalAddBtn) {
+  incidentalAddBtn.addEventListener("click", async () => {
+    if (!currentEditJobId) return;
+    if (currentEditJob?.status === TERMINAL_STATUS) {
+      alert("This vehicle has been collected. Incidentals can no longer be changed.");
+      return;
+    }
+    const description = document.getElementById("incidental-desc").value.trim();
+    const amount = parseFloat(document.getElementById("incidental-amount").value);
+    if (!description || !amount || amount <= 0) { alert("Enter a description and a valid amount."); return; }
+
+    const { error } = await supabase.from("job_incidentals").insert([{ job_id: currentEditJobId, description, amount }]);
+    if (error) { alert("Failed to add incidental: " + error.message); return; }
+
+    document.getElementById("incidental-desc").value = "";
+    document.getElementById("incidental-amount").value = "";
+    await loadJobIncidentals(currentEditJobId);
+  });
+}
+
 function initStatusOptions() {
   editStatus.innerHTML = STATUS_LIST.map(s => `<option value="${s}">${s}</option>`).join("");
 }
@@ -307,9 +410,9 @@ async function loadJobs() {
   // them up client-side by technician_id.
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, parts_cost, total_cost, technician_id, ready_at, collected_at,
+      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, total_cost, technician_id, ready_at, collected_at,
       customers ( full_name, phone, email, customer_type ),
-      vehicles ( make, model, year, license_plate )
+      vehicles ( make, model, year, license_plate, engine_number )
     `).order("created_at", { ascending: false }),
     supabase.from("technician_directory").select("id, full_name"),
   ]);
@@ -401,7 +504,7 @@ function renderPickupCountdown(job) {
   countdownInterval = setInterval(tick, 1000);
 }
 
-function openEditModal(job) {
+async function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
   pendingCollection = false;
@@ -412,6 +515,11 @@ function openEditModal(job) {
   editLabour.value = job.labour_cost ?? 0;
   editParts.value = job.parts_cost ?? 0;
   editTechnician.value = job.technician_id ?? "";
+  await refreshBusyMechanics();
+  refreshTechnicianOptions(job.technician_id || null);
+  editHours.value = job.labour_hours ?? "";
+  const detectedTier = job.rate_tier_id ? rateTiers.find(t => t.id === job.rate_tier_id) : detectTierForMake(job.vehicles?.make);
+  if (editRateTier) editRateTier.value = detectedTier?.id || "";
 
   const alreadyCollected = job.status === TERMINAL_STATUS;
   applyCollectedLock(alreadyCollected);
@@ -423,9 +531,12 @@ function openEditModal(job) {
   }
   updateZigDisplay();
   loadJobParts(job.id);
+  loadJobIncidentals(job.id);
   loadPartsIntoSelect();
 
   if (editCollectionFields) editCollectionFields.classList.toggle("hidden", !alreadyCollected);
+  const pickedUpByField = document.getElementById("picked-up-by-field");
+  if (pickedUpByField) pickedUpByField.classList.toggle("hidden", job.customers?.customer_type !== "company");
   if (editMarkCollectedBtn) {
     editMarkCollectedBtn.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(job.status));
     editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Mark as Collected';
@@ -437,10 +548,15 @@ function openEditModal(job) {
 }
 
 function applyCollectedLock(isCollected) {
-  [editStatus, editDiagnosis, editLabour, editParts, editTechnician, editOdometer, editCollectionNotes, jobPartSelect, jobPartQty, jobPartAddBtn].forEach(element => {
+  [editStatus, editDiagnosis, editLabour, editParts, editTechnician, editOdometer, editCollectionNotes, jobPartSelect, jobPartQty, jobPartAddBtn, editHours, editRateTier].forEach(element => {
     if (element) element.disabled = isCollected;
   });
-  document.querySelectorAll(".remove-job-part-btn").forEach(button => { button.disabled = isCollected; });
+  const incidentalDesc = document.getElementById("incidental-desc");
+  const incidentalAmount = document.getElementById("incidental-amount");
+  [incidentalDesc, incidentalAmount, incidentalAddBtn].forEach(element => {
+    if (element) element.disabled = isCollected;
+  });
+  document.querySelectorAll(".remove-job-part-btn, .remove-incidental-btn").forEach(button => { button.disabled = isCollected; });
   if (editSaveBtn) editSaveBtn.disabled = isCollected;
 }
 
@@ -482,6 +598,8 @@ if (editSaveBtn) {
       diagnosis: editDiagnosis.value.trim() || null,
       diagnosis_eta: editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null,
       labour_cost,
+      labour_hours: parseFloat(editHours.value) || null,
+      rate_tier_id: editRateTier.value || null,
       parts_cost,
       technician_id: editTechnician.value || null
     };
@@ -546,7 +664,11 @@ if (editMarkCollectedBtn) {
 
     const { data: updatedRows, error } = await supabase
       .from("repair_jobs")
-      .update({ status: "Collected", collected_at: new Date().toISOString() })
+      .update({
+        status: "Collected",
+        collected_at: new Date().toISOString(),
+        picked_up_by: document.getElementById("edit-picked-up-by")?.value.trim() || null,
+      })
       .eq("id", currentEditJobId)
       .select();
 
@@ -623,6 +745,8 @@ if (form) {
     const year = parseInt(document.getElementById("job-year").value) || null;
     const chassis_number = document.getElementById("job-chassis").value.trim();
     const engine_number = document.getElementById("job-engine").value.trim();
+    const fuel_level_in = document.getElementById("job-fuel-in").value || null;
+    const odometer_in = parseInt(document.getElementById("job-odometer-in").value) || null;
     const fault_reported = document.getElementById("job-fault").value.trim();
 
     if (!customer_id || !vehicle_id) {
@@ -652,7 +776,7 @@ if (form) {
 
     const { error: jobError } = await supabase
       .from("repair_jobs")
-      .insert([{ customer_id, vehicle_id, fault_reported, status: "Received" }]);
+      .insert([{ customer_id, vehicle_id, fault_reported, status: "Received", fuel_level_in, odometer_in }]);
 
     if (jobError) {
       console.error("Error creating repair job:", jobError);
@@ -744,11 +868,60 @@ async function sendDiagnosisUpdate(channel) {
 if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
 if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));
 
+function renderTiersTable() {
+  const tbody = document.getElementById("tiers-table");
+  if (!tbody) return;
+  tbody.innerHTML = rateTiers.length ? rateTiers.map(t => `
+    <tr>
+      <td>${escapeHtml(t.tier_name)}</td>
+      <td>$${Number(t.hourly_rate).toFixed(2)}/hr</td>
+      <td>${(t.makes || []).length ? escapeHtml(t.makes.join(", ")) : `<span style="color:var(--text-muted);">Manual selection only</span>`}</td>
+      <td>${t.is_default ? "✓" : ""}</td>
+      <td><button type="button" class="btn delete-tier-btn" data-id="${t.id}"><i data-lucide="trash-2"></i></button></td>
+    </tr>
+  `).join("") : `<tr><td colspan="5" class="empty-state">No rate tiers yet</td></tr>`;
+  if (window.lucide) lucide.createIcons();
+  tbody.querySelectorAll(".delete-tier-btn").forEach(btn => btn.addEventListener("click", async () => {
+    if (!confirm("Delete this rate tier? Jobs that already used it keep their recorded rate — this only removes it from future selection.")) return;
+    await supabase.from("vehicle_rate_tiers").delete().eq("id", btn.dataset.id);
+    await loadRateTiers();
+    renderTiersTable();
+  }));
+}
+
+const tierForm = document.getElementById("tier-form");
+if (tierForm) {
+  tierForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const tier_name = document.getElementById("tier-name").value.trim();
+    const hourly_rate = parseFloat(document.getElementById("tier-rate").value);
+    const makes = document.getElementById("tier-makes").value.split(",").map(m => m.trim()).filter(Boolean);
+    const is_default = document.getElementById("tier-default").checked;
+    const message = document.getElementById("tier-form-message");
+
+    if (!tier_name || !hourly_rate) { message.textContent = "Tier name and rate are required."; message.dataset.tone = "error"; return; }
+
+    if (is_default) {
+      await supabase.from("vehicle_rate_tiers").update({ is_default: false }).eq("is_default", true);
+    }
+
+    const { error } = await supabase.from("vehicle_rate_tiers").insert([{ tier_name, hourly_rate, makes, is_default, sort_order: rateTiers.length + 1 }]);
+    if (error) { message.textContent = "Failed to add tier: " + error.message; message.dataset.tone = "error"; return; }
+
+    tierForm.reset();
+    message.textContent = "Tier added."; message.dataset.tone = "success";
+    await loadRateTiers();
+    renderTiersTable();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   initStatusOptions();
   loadCustomersIntoSelect();
   loadTechniciansIntoSelect();
   loadPartsIntoSelect();
+  await loadRateTiers();
+  renderTiersTable();
   await loadJobs();
 
   const params = new URLSearchParams(window.location.search);
@@ -762,6 +935,47 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else if (statusFilter) {
     filterTableByStatus(statusFilter);
   }
+});
+
+function applyJobFilters() {
+  const searchTerm = (document.getElementById("jobs-search")?.value || "").trim().toLowerCase();
+  const mechanicId = document.getElementById("jobs-filter-mechanic")?.value || "";
+  const typeFilter = document.getElementById("jobs-filter-type")?.value || "";
+
+  document.querySelectorAll("#repairs-table tr[data-job-id]").forEach(row => {
+    const jobJson = row.querySelector(".edit-job-btn")?.dataset.job;
+    if (!jobJson) return;
+    const job = JSON.parse(jobJson);
+
+    let matches = true;
+
+    if (searchTerm) {
+      const haystack = [
+        job.cro_number,
+        job.customers?.full_name,
+        job.vehicles?.engine_number,
+        job.vehicles?.make,
+        job.vehicles?.model,
+      ].filter(Boolean).join(" ").toLowerCase();
+      matches = matches && haystack.includes(searchTerm);
+    }
+
+    if (mechanicId) {
+      matches = matches && job.technician_id === mechanicId;
+    }
+
+    if (typeFilter) {
+      const isCompany = job.customers?.customer_type === "company";
+      matches = matches && (typeFilter === "company" ? isCompany : !isCompany);
+    }
+
+    row.style.display = matches ? "" : "none";
+  });
+}
+
+["jobs-search", "jobs-filter-mechanic", "jobs-filter-type"].forEach(id => {
+  document.getElementById(id)?.addEventListener("input", applyJobFilters);
+  document.getElementById(id)?.addEventListener("change", applyJobFilters);
 });
 
 function filterTableByStatus(status) {
