@@ -6,7 +6,7 @@ import { getRate } from "./currency.js";
 // HTTP referrer + API restricted to Custom Search API only.
 // ⚠️ Fill this in with your free Pexels API key (pexels.com/api — no
 // credit card required, just a developer account signup).
-const PEXELS_API_KEY = "YOUR_PEXELS_API_KEY";
+const PEXELS_API_KEY = "Qulr1UcmmWsKdPimbDdgj8Eifl3VpHaPrf4fcSbSVgmPz1Ccwzd5stCc";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#f2f0ea"/><text x="50%" y="58%" font-size="18" text-anchor="middle" fill="#bbb">?</text></svg>`
