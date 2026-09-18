@@ -645,6 +645,72 @@ document.getElementById("quick-sale-form")?.addEventListener("submit", async (e)
   await loadParts();
 });
 
+// ---- Smart Reorder Suggestions ----
+// Weighs total historical usage (from both repair jobs AND direct sales)
+// against current stock, rather than the flat "below 3 units" rule the
+// Low Stock alert uses. Uses Gemini to turn the raw numbers into a
+// prioritized, readable writeup — the actual ranking/math happens here
+// in plain JS first, so the AI is explaining real numbers, not inventing
+// its own analysis from scratch.
+document.getElementById("reorder-suggest-btn")?.addEventListener("click", async () => {
+  const btn = document.getElementById("reorder-suggest-btn");
+  const resultEl = document.getElementById("reorder-suggest-result");
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i data-lucide="loader-circle"></i> Analyzing…`;
+  if (window.lucide) lucide.createIcons();
+
+  try {
+    const [{ data: currentParts }, { data: jobPartsUsage }, { data: saleItemsUsage }] = await Promise.all([
+      supabase.from("parts").select("id, name, quantity_in_stock"),
+      supabase.from("job_parts").select("part_id, quantity"),
+      supabase.from("sales_order_items").select("part_id, quantity"),
+    ]);
+
+    const usageByPartId = {};
+    (jobPartsUsage || []).forEach(row => { if (row.part_id) usageByPartId[row.part_id] = (usageByPartId[row.part_id] || 0) + Number(row.quantity || 0); });
+    (saleItemsUsage || []).forEach(row => { if (row.part_id) usageByPartId[row.part_id] = (usageByPartId[row.part_id] || 0) + Number(row.quantity || 0); });
+
+    const candidates = (currentParts || [])
+      .map(p => {
+        const usage = usageByPartId[p.id] || 0;
+        const stock = Number(p.quantity_in_stock || 0);
+        return { name: p.name, usage, stock, priority: usage / Math.max(stock, 1) };
+      })
+      .filter(c => c.usage > 0)
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, 10);
+
+    if (!candidates.length) {
+      resultEl.textContent = "Not enough sales/usage history yet to make a meaningful suggestion.";
+      resultEl.style.display = "block";
+      return;
+    }
+
+    const prompt = candidates.map(c => `${c.name}: ${c.usage} used historically, ${c.stock} currently in stock`).join("\n");
+
+    const { data, error } = await supabase.functions.invoke("ai-assist", {
+      body: {
+        provider: "gemini",
+        systemPrompt: "You help an auto parts shop owner decide what to reorder. You're given each part's total historical usage (from repairs and sales combined) and its current stock level, already sorted by urgency (highest usage-relative-to-stock first). Write a short, prioritized list of what to reorder and roughly how much, in plain language — a few sentences or a short list, not a table. Focus on the parts where usage is high relative to what's left. If a part shows high usage but healthy stock, it's fine to not mention it at all.",
+        prompt: `Parts ranked by reorder urgency (most urgent first):\n${prompt}`,
+      },
+    });
+    if (error) throw error;
+    if (!data?.text) throw new Error(data?.error || "No suggestion returned.");
+    resultEl.textContent = data.text;
+    resultEl.style.display = "block";
+  } catch (err) {
+    console.error("Reorder suggestion failed:", err);
+    resultEl.textContent = "Couldn't generate suggestions: " + err.message;
+    resultEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    if (window.lucide) lucide.createIcons();
+  }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("part-image-preview").src = PLACEHOLDER_IMG;
   await loadMarkupRate();

@@ -1,4 +1,4 @@
-﻿// ========= Repair Jobs module =========
+// ========= Repair Jobs module =========
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 
@@ -516,6 +516,8 @@ async function openEditModal(job) {
   editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);
   editLabour.value = job.labour_cost ?? 0;
   editParts.value = job.parts_cost ?? 0;
+  const aiResultEl = document.getElementById("ai-suggest-causes-result");
+  if (aiResultEl) { aiResultEl.style.display = "none"; aiResultEl.textContent = ""; }
   editTechnician.value = job.technician_id ?? "";
   await refreshBusyMechanics();
   refreshTechnicianOptions(job.technician_id || null);
@@ -866,6 +868,49 @@ async function sendDiagnosisUpdate(channel) {
     if (window.lucide) lucide.createIcons();
   }
 }
+
+// ---- AI diagnostic assistance ----
+// Uses Groq specifically (not Gemini) for this one — it's meant to be a
+// quick, in-the-moment assist while a mechanic is standing at the
+// vehicle, and Groq's inference speed matters more here than Gemini's
+// slightly stronger reasoning would. This is always a SUGGESTION the
+// mechanic reads and judges for themselves — it never auto-fills the
+// actual Diagnosis field, since that stays their own professional call.
+async function suggestPossibleCauses() {
+  if (!currentEditJob) return;
+  const btn = document.getElementById("ai-suggest-causes-btn");
+  const resultEl = document.getElementById("ai-suggest-causes-result");
+  const vehicleLabel = [currentEditJob.vehicles?.year, currentEditJob.vehicles?.make, currentEditJob.vehicles?.model].filter(Boolean).join(" ") || "the vehicle";
+
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i data-lucide="loader-circle"></i> Thinking…`;
+  if (window.lucide) lucide.createIcons();
+
+  try {
+    const { data, error } = await supabase.functions.invoke("ai-assist", {
+      body: {
+        provider: "groq",
+        systemPrompt: "You are an experienced automotive diagnostic assistant helping a mechanic think through possible causes for a vehicle issue. Given the vehicle and reported symptom, list the 3-5 most likely causes, most common first, each with a short note on how to quickly verify it. Keep it practical and brief — this is read by someone standing at the vehicle, not a full report. This is a suggestion only; the mechanic makes the final diagnosis themselves.",
+        prompt: `Vehicle: ${vehicleLabel}\nReported fault: ${currentEditJob.fault_reported}`,
+      },
+    });
+    if (error) throw error;
+    if (!data?.text) throw new Error(data?.error || "No suggestion returned.");
+
+    resultEl.textContent = data.text;
+    resultEl.style.display = "block";
+  } catch (err) {
+    console.error("Diagnostic suggestion failed:", err);
+    resultEl.textContent = "Couldn't get a suggestion: " + err.message;
+    resultEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    if (window.lucide) lucide.createIcons();
+  }
+}
+document.getElementById("ai-suggest-causes-btn")?.addEventListener("click", suggestPossibleCauses);
 
 if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
 if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));

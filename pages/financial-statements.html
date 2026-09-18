@@ -60,6 +60,14 @@
       </div>
 
       <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">In plain English</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Monthly Summary</h2></div><button id="generate-summary-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Summary</button></div>
+        <div class="panel" style="padding:20px;">
+          <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Refresh P&amp;L and Balance Sheet below first (whatever period/date you want summarized), then click Generate — this reads the numbers already on this page, nothing separate.</p>
+          <div id="ai-summary-result" style="display:none; margin-top:12px; padding:14px 16px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.9rem; white-space:pre-wrap; line-height:1.6;"></div>
+        </div>
+      </section>
+
+      <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Period report</p><h2><i class="section-heading-icon" data-lucide="trending-up"></i>Profit &amp; Loss</h2></div></div>
         <div class="panel" style="padding:20px;">
           <div class="preset-btns">

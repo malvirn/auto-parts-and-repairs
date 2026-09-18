@@ -12,6 +12,8 @@ const bsBalanceStatus = document.getElementById("bs-balance-status");
 
 let accounts = [];
 let lines = []; // { account_id, debit, credit, entry_date }
+let lastPLSummary = null;
+let lastBSSummary = null;
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -82,6 +84,12 @@ function renderProfitLoss() {
   }).filter(r => Math.abs(r.amount) > 0.001);
 
   const netProfit = totalRevenue - totalExpense;
+  lastPLSummary = {
+    start: start || "the beginning", end: end || "today",
+    totalRevenue, totalExpense, netProfit,
+    topRevenue: revenueRows.slice().sort((a, b) => b.amount - a.amount).slice(0, 3),
+    topExpenses: expenseRows.slice().sort((a, b) => b.amount - a.amount).slice(0, 3),
+  };
 
   plBody.innerHTML = `
     <tr class="statement-section-label"><td colspan="2">Revenue</td></tr>
@@ -155,6 +163,7 @@ function renderBalanceSheet() {
   accountsByType("revenue").forEach(a => { const { debit, credit } = sumFor(a.id); netIncomeToDate += credit - debit; });
   accountsByType("expense").forEach(a => { const { debit, credit } = sumFor(a.id); netIncomeToDate -= debit - credit; });
   totalEquity += netIncomeToDate;
+  lastBSSummary = { asOf, totalAssets, totalLiabilities, totalEquity, netIncomeToDate };
 
   bsBody.innerHTML = `
     <tr class="statement-section-label"><td colspan="2">Assets</td></tr>
@@ -200,4 +209,59 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const ok = await loadLedgerData();
   if (ok) { renderProfitLoss(); renderBalanceSheet(); }
+});
+
+// ---- AI monthly summary ----
+// Uses Gemini specifically (not Groq) — this is read by an owner making
+// real decisions, so writing quality matters more here than speed does.
+// It only ever reads the numbers already computed above on this page —
+// it never queries anything itself, so it can't show a different figure
+// than what's actually displayed.
+document.getElementById("generate-summary-btn")?.addEventListener("click", async () => {
+  const btn = document.getElementById("generate-summary-btn");
+  const resultEl = document.getElementById("ai-summary-result");
+  if (!lastPLSummary || !lastBSSummary) { alert("Refresh the P&L and Balance Sheet below first."); return; }
+
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i data-lucide="loader-circle"></i> Writing…`;
+  if (window.lucide) lucide.createIcons();
+
+  const pl = lastPLSummary, bs = lastBSSummary;
+  const prompt = [
+    `Period: ${pl.start} to ${pl.end}`,
+    `Total revenue: ${money(pl.totalRevenue)}`,
+    `Total expenses: ${money(pl.totalExpense)}`,
+    `Net ${pl.netProfit >= 0 ? "profit" : "loss"}: ${money(Math.abs(pl.netProfit))}`,
+    pl.topRevenue.length ? `Top revenue sources: ${pl.topRevenue.map(r => `${r.name} (${money(r.amount)})`).join(", ")}` : "",
+    pl.topExpenses.length ? `Top expenses: ${pl.topExpenses.map(r => `${r.name} (${money(r.amount)})`).join(", ")}` : "",
+    ``,
+    `Balance sheet as of ${bs.asOf}:`,
+    `Total assets: ${money(bs.totalAssets)}`,
+    `Total liabilities: ${money(bs.totalLiabilities)}`,
+    `Total equity: ${money(bs.totalEquity)}`,
+    `Net income to date: ${money(bs.netIncomeToDate)}`,
+  ].filter(Boolean).join("\n");
+
+  try {
+    const { data, error } = await supabase.functions.invoke("ai-assist", {
+      body: {
+        provider: "gemini",
+        systemPrompt: "You are writing a short, plain-English summary of a small auto repair shop's finances for the owner — someone who isn't an accountant. Two to four sentences, no jargon, no bullet points, just a natural paragraph. Mention the overall trend (profit/loss), what's driving it if the data shows a clear driver, and anything genuinely worth their attention (e.g. liabilities exceeding a comfortable level). Don't just restate every number — synthesize it into something a busy owner can read in ten seconds.",
+        prompt,
+      },
+    });
+    if (error) throw error;
+    if (!data?.text) throw new Error(data?.error || "No summary returned.");
+    resultEl.textContent = data.text;
+    resultEl.style.display = "block";
+  } catch (err) {
+    console.error("Summary generation failed:", err);
+    resultEl.textContent = "Couldn't generate a summary: " + err.message;
+    resultEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    if (window.lucide) lucide.createIcons();
+  }
 });

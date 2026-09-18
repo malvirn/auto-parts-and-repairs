@@ -205,6 +205,55 @@ async function checkLedgerIntegrity() {
   } catch { return []; }
 }
 
+// Flags a genuine statistical outlier — an amount more than 2.5 standard
+// deviations above the mean of its own group. Requires at least 5 data
+// points before flagging anything at all, since "unusual" is meaningless
+// with too little history to compare against. Pure arithmetic, no AI
+// call — this runs on every notification refresh (every 5 minutes, on
+// every page), so it needs to stay instant and free.
+function findOutliers(values, labelForIndex) {
+  if (values.length < 5) return [];
+  const mean = values.reduce((s, v) => s + v, 0) / values.length;
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+  const stdDev = Math.sqrt(variance);
+  if (stdDev === 0) return [];
+  const outliers = [];
+  values.forEach((v, i) => {
+    if (v > mean + 2.5 * stdDev) outliers.push({ index: i, value: v, mean });
+  });
+  return outliers;
+}
+
+async function checkCommissionAnomalies() {
+  try {
+    const { data } = await supabase.from("commissions").select("commission_amount, employee_id").order("created_at", { ascending: false }).limit(100);
+    if (!data || data.length < 5) return [];
+    const { data: employees } = await supabase.from("technician_directory").select("id, full_name");
+    const names = Object.fromEntries((employees || []).map(e => [e.id, e.full_name]));
+    const values = data.map(c => Number(c.commission_amount));
+    const outliers = findOutliers(values, i => data[i].employee_id);
+    return outliers.slice(0, 3).map(o => ({
+      severity: "warning",
+      message: `Unusually high commission — ${money(o.value)} for ${names[data[o.index].employee_id] || "an employee"} (typical is around ${money(o.mean)})`,
+      link: "commissions.html",
+    }));
+  } catch { return []; }
+}
+
+async function checkPayableAnomalies() {
+  try {
+    const { data } = await supabase.from("payables").select("amount, bill_number, suppliers(name)").order("created_at", { ascending: false }).limit(100);
+    if (!data || data.length < 5) return [];
+    const values = data.map(p => Number(p.amount));
+    const outliers = findOutliers(values);
+    return outliers.slice(0, 3).map(o => ({
+      severity: "warning",
+      message: `Unusually large bill — ${money(o.value)} from ${data[o.index].suppliers?.name || "a supplier"} (typical is around ${money(o.mean)})`,
+      link: "payables.html",
+    }));
+  } catch { return []; }
+}
+
 async function runAllChecks() {
   const results = await Promise.all([
     checkLedgerIntegrity(),
@@ -213,6 +262,8 @@ async function runAllChecks() {
     checkUnclaimedVehicles(),
     checkPettyCash(),
     checkLowStock(),
+    checkCommissionAnomalies(),
+    checkPayableAnomalies(),
   ]);
   const items = results.flat();
   // Critical first, then everything else in whatever order it came back.
