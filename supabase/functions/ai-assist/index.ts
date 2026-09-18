@@ -15,6 +15,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const GEMINI_MODEL = "gemini-3.6-flash"; // current stable Gemini flash model as of Sept 2026 — 2.5 Flash retires Oct 16 2026
