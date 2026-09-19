@@ -19,7 +19,7 @@ const corsHeaders = {
 };
 
 const GEMINI_MODEL = "gemini-3.6-flash"; // current stable Gemini flash model as of Sept 2026 — 2.5 Flash retires Oct 16 2026
-const GROQ_MODEL = "llama-3.3-70b-versatile"; // current, well-supported Groq model
+const GROQ_MODEL = "openai/gpt-oss-120b"; // Groq's official replacement for llama-3.3-70b-versatile, deprecated June 17 2026
 
 async function callGemini(prompt: string, systemPrompt?: string): Promise<string> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
