@@ -35,7 +35,8 @@
       padding: 22px 24px; gap: 12px;
     }
 
-    .part-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border, #ddd); background: #f2f0ea; }
+    .part-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border, #ddd); background: #f2f0ea; cursor: pointer; transition: transform .15s; }
+    .part-thumb:hover { transform: scale(1.05); }
     .part-image-field { display: flex; gap: 14px; align-items: flex-start; }
     .part-image-preview { width: 68px; height: 68px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border, #ddd); background: #f2f0ea; flex-shrink: 0; }
     .image-search-row { display: flex; gap: 8px; }
@@ -109,6 +110,14 @@
       </section>
 
       <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Based on how fast things actually move</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Smart Reorder Suggestions</h2></div><button id="reorder-suggest-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Suggestions</button></div>
+        <div class="panel" style="padding:20px;">
+          <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Weighs total historical usage (repairs + sales) against current stock — not just a flat "below 3 units" rule.</p>
+          <div id="reorder-suggest-result" style="display:none; margin-top:12px; padding:14px 16px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.9rem; white-space:pre-wrap; line-height:1.6;"></div>
+        </div>
+      </section>
+
+      <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Cost, price, and opening stock</span></div>
         <form id="part-form" class="panel" style="padding:20px; margin-bottom:24px;">
         <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
@@ -175,6 +184,9 @@
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Stock ledger</p><h2><i class="section-heading-icon" data-lucide="package"></i>Parts Catalogue</h2></div><span class="section-note">Margin and stock health</span></div>
+        <div class="panel" style="padding:12px 16px; margin-bottom:12px;">
+          <input type="text" id="parts-search" placeholder="Search parts by name or category…" style="width:100%;" />
+        </div>
         <div class="panel">
         <table>
           <thead>
@@ -274,5 +286,8 @@
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/shop.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <div id="image-lightbox" class="modal-overlay hidden" style="cursor:zoom-out;">
+    <img id="image-lightbox-img" src="" alt="" style="max-width:90vw; max-height:90vh; border-radius:12px; object-fit:contain;" />
+  </div>
 </body>
 </html>

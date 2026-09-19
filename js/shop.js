@@ -9,7 +9,7 @@ import { getRate } from "./currency.js";
 const PEXELS_API_KEY = "Qulr1UcmmWsKdPimbDdgj8Eifl3VpHaPrf4fcSbSVgmPz1Ccwzd5stCc";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml;utf8," + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" rx="8" fill="#f2f0ea"/><text x="50%" y="58%" font-size="18" text-anchor="middle" fill="#bbb">?</text></svg>`
+  `<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"><rect width="72" height="72" rx="10" fill="#f2f0ea"/><text x="50%" y="58%" font-size="28" text-anchor="middle" fill="#bbb">?</text></svg>`
 );
 
 const form = document.getElementById("part-form");
@@ -251,6 +251,8 @@ async function loadPartSuppliersMap() {
 }
 
 // ---- Load + render parts ----
+let allPartsData = [];
+
 async function loadParts() {
   const [{ data, error }, partSuppliersMap] = await Promise.all([
     supabase.from("parts").select("*").order("name"),
@@ -264,15 +266,17 @@ async function loadParts() {
     return;
   }
 
+  allPartsData = data || [];
+  renderStockSummary(allPartsData);
+  renderLowStockAlert(allPartsData);
+  renderPartsTable(allPartsData);
+}
+
+function renderPartsTable(data) {
   if (!data || data.length === 0) {
-    renderStockSummary([]);
-    renderLowStockAlert([]);
-    tableBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted)">No parts yet — add your first one above</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted)">${allPartsData.length ? "No parts match your search" : "No parts yet — add your first one above"}</td></tr>`;
     return;
   }
-
-  renderStockSummary(data);
-  renderLowStockAlert(data);
 
   tableBody.innerHTML = data.map(p => {
     const margin = p.selling_price - p.cost_price;
@@ -308,7 +312,28 @@ async function loadParts() {
   document.querySelectorAll(".restock-part-btn").forEach(btn => {
     btn.addEventListener("click", () => openRestockModal(JSON.parse(btn.closest("tr").dataset.part)));
   });
+  document.querySelectorAll(".part-thumb").forEach(img => {
+    img.addEventListener("click", () => openImageLightbox(img.src, img.alt));
+  });
 }
+
+function openImageLightbox(src, alt) {
+  document.getElementById("image-lightbox-img").src = src;
+  document.getElementById("image-lightbox-img").alt = alt;
+  document.getElementById("image-lightbox").classList.remove("hidden");
+}
+document.getElementById("image-lightbox")?.addEventListener("click", () => {
+  document.getElementById("image-lightbox").classList.add("hidden");
+});
+
+document.getElementById("parts-search")?.addEventListener("input", (e) => {
+  const term = e.target.value.trim().toLowerCase();
+  if (!term) { renderPartsTable(allPartsData); return; }
+  const filtered = allPartsData.filter(p =>
+    (p.name || "").toLowerCase().includes(term) || (p.category || "").toLowerCase().includes(term)
+  );
+  renderPartsTable(filtered);
+});
 
 async function renderStockSummary(parts) {
   const totals = parts.reduce((acc, part) => {
