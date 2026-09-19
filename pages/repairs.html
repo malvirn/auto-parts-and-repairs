@@ -15,21 +15,51 @@
       position: fixed; inset: 0;
       background: rgba(20, 18, 15, 0.45);
       display: flex; align-items: center; justify-content: center;
-      z-index: 50;
+      z-index: 50; padding: 24px;
     }
     .modal-overlay.hidden { display: none; }
     .hidden { display: none !important; }
     .modal {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 24px;
-      width: 420px;
-      max-width: 90vw;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+      width: 640px;
+      max-width: 100%;
+      max-height: 88vh;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .modal h3 { margin-bottom: 16px; font-size: 1.1rem; }
+    .modal > h3 {
+      padding: 20px 24px 16px;
+      margin: 0;
+      font-size: 1.05rem;
+      border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
+      flex-shrink: 0;
+    }
+    .modal-body {
+      overflow-y: auto;
+      padding: 4px 24px 8px;
+      flex: 1;
+    }
+    .modal-section {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border, rgba(0,0,0,.06));
+    }
+    .modal-section:last-child { border-bottom: none; }
+    .modal-section-title {
+      font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--text-muted); margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
+      font-weight: 700;
+    }
+    .modal-section-title i { width: 14px; height: 14px; }
+    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-row .field { margin-bottom: 0; }
+    .modal-actions {
+      flex-shrink: 0; padding: 14px 24px; border-top: 1px solid var(--border, rgba(0,0,0,.08));
+      display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface);
+    }
+    .modal-actions-secondary { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border, rgba(0,0,0,.08)); }
     .modal .field { margin-bottom: 14px; }
     .modal textarea { resize: vertical; min-height: 60px; }
     #pickup-countdown-block {
@@ -129,6 +159,7 @@
           <div class="field" style="grid-column: span 3;">
             <label>Fault Reported</label>
             <textarea id="job-fault" rows="2" placeholder="What the customer says is wrong" required></textarea>
+            <button type="button" id="voice-fault-btn" class="btn" style="margin-top:6px; display:none;"><i data-lucide="mic"></i> Speak Fault Description</button>
           </div>
         </div>
         <div style="margin-top:14px;">
@@ -195,103 +226,112 @@
   <div id="edit-modal" class="modal-overlay hidden">
     <div class="modal">
       <h3>Update CRO <span id="edit-job-number"></span></h3>
-      <div class="field">
-        <label>Status</label>
-        <select id="edit-status"></select>
-      </div>
-      <div class="field">
-        <label>Diagnosis</label>
-        <textarea id="edit-diagnosis" placeholder="Mechanic's findings"></textarea>
-        <button type="button" id="ai-suggest-causes-btn" class="btn" style="margin-top:6px;"><i data-lucide="sparkles"></i> Suggest Possible Causes</button>
-        <div id="ai-suggest-causes-result" style="display:none; margin-top:8px; padding:10px 12px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.85rem; white-space:pre-wrap; line-height:1.5;"></div>
-      </div>
-      <div class="field">
-        <label>Expected Diagnosis Completion</label>
-        <input type="datetime-local" id="edit-diagnosis-eta" />
-      </div>
-      <div class="field">
-        <label>Vehicle Rate Tier</label>
-        <select id="edit-rate-tier"></select>
-      </div>
-      <div class="field">
-        <label>Hours Worked</label>
-        <input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" />
-      </div>
-      <div class="field">
-        <label>Labour Cost <span style="font-weight:normal; color:var(--text-muted); font-size:.78rem;">(auto-filled from hours × rate — edit directly to override)</span></label>
-        <input type="number" id="edit-labour" step="0.01" min="0" />
-      </div>
-      <div class="field">
-        <label>Parts Cost</label>
-        <input type="number" id="edit-parts" step="0.01" min="0" />
-      </div>
-      <div class="field">
-        <div id="zig-total" style="font-size:0.85rem; color:var(--text-muted);"></div>
-      </div>
-      <div class="field">
-        <label>Mechanic</label>
-        <select id="edit-technician"></select>
+      <div class="modal-body">
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i data-lucide="clipboard-list"></i> Status &amp; Diagnosis</h4>
+          <div class="field">
+            <label>Status</label>
+            <select id="edit-status"></select>
+          </div>
+          <div class="field">
+            <label>Diagnosis</label>
+            <textarea id="edit-diagnosis" placeholder="Mechanic's findings"></textarea>
+            <button type="button" id="ai-suggest-causes-btn" class="btn" style="margin-top:6px;"><i data-lucide="sparkles"></i> Suggest Possible Causes</button>
+            <div id="ai-suggest-causes-result" style="display:none; margin-top:8px; padding:10px 12px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.85rem; white-space:pre-wrap; line-height:1.5;"></div>
+          </div>
+          <div class="field">
+            <label>Expected Diagnosis Completion</label>
+            <input type="datetime-local" id="edit-diagnosis-eta" />
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i data-lucide="gauge"></i> Labour &amp; Billing</h4>
+          <div class="modal-row" style="margin-bottom:14px;">
+            <div class="field"><label>Vehicle Rate Tier</label><select id="edit-rate-tier"></select></div>
+            <div class="field"><label>Hours Worked</label><input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" /></div>
+          </div>
+          <div class="modal-row" style="margin-bottom:14px;">
+            <div class="field"><label>Labour Cost <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(auto from hours × rate)</span></label><input type="number" id="edit-labour" step="0.01" min="0" /></div>
+            <div class="field"><label>Parts Cost</label><input type="number" id="edit-parts" step="0.01" min="0" /></div>
+          </div>
+          <div id="zig-total" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;"></div>
+          <div class="field">
+            <label>Mechanic</label>
+            <select id="edit-technician"></select>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h4 class="modal-section-title"><i data-lucide="package"></i> Parts &amp; Incidentals</h4>
+          <div class="field">
+            <label>Add Part from Shop</label>
+            <div style="display:flex; gap:8px;">
+              <select id="job-part-select" style="flex:1;"></select>
+              <input type="number" id="job-part-qty" min="1" value="1" style="width:70px;" />
+              <button id="job-part-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Parts Used</label>
+            <div id="job-parts-list" style="font-size:0.85rem;"></div>
+          </div>
+          <div class="field">
+            <label>Add Incidental <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(oil, rags, misc consumables)</span></label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="incidental-desc" placeholder="e.g. Engine cleaning degreaser" style="flex:1;" />
+              <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" style="width:90px;" />
+              <button id="incidental-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Incidentals</label>
+            <div id="incidentals-list" style="font-size:0.85rem;"></div>
+          </div>
+        </div>
+
+        <!-- Live pickup countdown / parking fee — only shown once a job has
+             been marked Ready for Pickup and hasn't been collected yet -->
+        <div id="pickup-countdown-block" class="modal-section hidden">
+          <h4 class="modal-section-title"><i data-lucide="alarm-clock"></i> Pickup Window</h4>
+          <div id="pickup-countdown" style="font-size:0.9rem;"></div>
+          <button id="apply-parking-fee" type="button" class="btn hidden" style="margin-top:8px;">
+            <i data-lucide="plus"></i> Add Parking Fee to Labour Cost
+          </button>
+        </div>
+
+        <div id="edit-collection-fields" class="modal-section hidden">
+          <h4 class="modal-section-title"><i data-lucide="check-check"></i> Collection Details</h4>
+          <div class="modal-row" style="margin-bottom:14px;">
+            <div class="field">
+              <label>Odometer at Collection</label>
+              <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
+            </div>
+            <div id="picked-up-by-field" class="field hidden">
+              <label>Picked Up By <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(company vehicle)</span></label>
+              <input type="text" id="edit-picked-up-by" placeholder="Driver or staff member's name" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Collection Notes</label>
+            <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Live pickup countdown / parking fee — only shown once a job has
-           been marked Ready for Pickup and hasn't been collected yet -->
-      <div id="pickup-countdown-block" class="field hidden">
-        <label>Pickup Window</label>
-        <div id="pickup-countdown" style="font-size:0.9rem;"></div>
-        <button id="apply-parking-fee" type="button" class="btn hidden" style="margin-top:8px;">
-          <i data-lucide="plus"></i> Add Parking Fee to Labour Cost
-        </button>
-      </div>
-
-      <div id="edit-collection-fields" class="hidden">
-        <div class="field">
-          <label>Odometer at Collection</label>
-          <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
-        </div>
-        <div id="picked-up-by-field" class="field hidden">
-          <label>Picked Up By <span style="font-weight:normal; color:var(--text-muted); font-size:.78rem;">(company vehicle — who collected it)</span></label>
-          <input type="text" id="edit-picked-up-by" placeholder="Driver or staff member's name" />
-        </div>
-        <div class="field">
-          <label>Collection Notes</label>
-          <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
-        </div>
-      </div>
-      <div class="field">
-        <label>Add Part from Shop</label>
-        <div style="display:flex; gap:8px;">
-          <select id="job-part-select" style="flex:1;"></select>
-          <input type="number" id="job-part-qty" min="1" value="1" style="width:70px;" />
-          <button id="job-part-add" type="button" class="btn"><i data-lucide="plus"></i></button>
-        </div>
-      </div>
-      <div class="field">
-        <label>Parts Used</label>
-        <div id="job-parts-list" style="font-size:0.85rem;"></div>
-      </div>
-      <div class="field">
-        <label>Add Incidental (oil, rags, misc consumables)</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="incidental-desc" placeholder="e.g. Engine cleaning degreaser" style="flex:1;" />
-          <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" style="width:90px;" />
-          <button id="incidental-add" type="button" class="btn"><i data-lucide="plus"></i></button>
-        </div>
-      </div>
-      <div class="field">
-        <label>Incidentals</label>
-        <div id="incidentals-list" style="font-size:0.85rem;"></div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+      <div class="modal-actions">
         <button id="edit-save" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
         <button id="edit-mark-collected" class="btn hidden" type="button"><i data-lucide="check-check"></i> Mark as Collected</button>
-        <a id="edit-quote-link" class="btn" href="quotations.html"><i data-lucide="file-plus-2"></i> Create Quotation</a>
-        <button id="edit-diagnosis-whatsapp" class="btn" type="button"><i data-lucide="message-circle"></i> WhatsApp Update</button>
-        <button id="edit-diagnosis-email" class="btn" type="button"><i data-lucide="mail"></i> Email Update</button>
-        <a id="edit-receipt-link" class="btn hidden" href="receipts.html"><i data-lucide="receipt"></i> Generate Receipt</a>
-        <button id="edit-whatsapp" class="btn hidden" type="button">
-          <i data-lucide="message-circle"></i> Notify Customer
-        </button>
         <button id="edit-cancel" class="btn"><i data-lucide="x"></i> Cancel</button>
+        <div class="modal-actions-secondary">
+          <a id="edit-quote-link" class="btn" href="quotations.html"><i data-lucide="file-plus-2"></i> Create Quotation</a>
+          <a id="edit-receipt-link" class="btn hidden" href="receipts.html"><i data-lucide="receipt"></i> Generate Receipt</a>
+          <button id="edit-diagnosis-whatsapp" class="btn" type="button"><i data-lucide="message-circle"></i> WhatsApp Update</button>
+          <button id="edit-diagnosis-email" class="btn" type="button"><i data-lucide="mail"></i> Email Update</button>
+          <button id="edit-whatsapp" class="btn hidden" type="button"><i data-lucide="message-circle"></i> Notify Customer</button>
+        </div>
       </div>
     </div>
   </div>

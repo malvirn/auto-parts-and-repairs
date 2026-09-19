@@ -412,7 +412,7 @@ async function loadJobs() {
   // them up client-side by technician_id.
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, total_cost, technician_id, ready_at, collected_at,
+      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, total_cost, technician_id, ready_at, collected_at, ai_suggested_causes,
       customers ( full_name, phone, email, customer_type ),
       vehicles ( make, model, year, license_plate, engine_number )
     `).order("created_at", { ascending: false }),
@@ -517,7 +517,10 @@ async function openEditModal(job) {
   editLabour.value = job.labour_cost ?? 0;
   editParts.value = job.parts_cost ?? 0;
   const aiResultEl = document.getElementById("ai-suggest-causes-result");
-  if (aiResultEl) { aiResultEl.style.display = "none"; aiResultEl.textContent = ""; }
+  if (aiResultEl) {
+    if (job.ai_suggested_causes) { aiResultEl.textContent = job.ai_suggested_causes; aiResultEl.style.display = "block"; }
+    else { aiResultEl.style.display = "none"; aiResultEl.textContent = ""; }
+  }
   editTechnician.value = job.technician_id ?? "";
   await refreshBusyMechanics();
   refreshTechnicianOptions(job.technician_id || null);
@@ -900,6 +903,7 @@ async function suggestPossibleCauses() {
 
     resultEl.textContent = data.text;
     resultEl.style.display = "block";
+    await supabase.from("repair_jobs").update({ ai_suggested_causes: data.text }).eq("id", currentEditJobId);
   } catch (err) {
     console.error("Diagnostic suggestion failed:", err);
     resultEl.textContent = "Couldn't get a suggestion: " + err.message;
@@ -961,6 +965,91 @@ if (tierForm) {
     renderTiersTable();
   });
 }
+
+// ---- Voice-powered fault intake ----
+// Transcription itself uses the browser's own free, built-in Web Speech
+// API — no AI call needed for that part, and it works offline-ish (just
+// needs the browser's speech service). Gemini's only job here is
+// cleaning up the raw, messy transcript (filler words, false starts)
+// into something concise — it never does the actual listening.
+(function setupVoiceFaultIntake() {
+  const btn = document.getElementById("voice-fault-btn");
+  if (!btn) return;
+  const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognitionImpl) return; // quietly stays hidden in unsupported browsers (Firefox, some Safari versions)
+
+  btn.style.display = "inline-flex";
+  let recognition = null;
+  let isRecording = false;
+  let rawTranscript = "";
+
+  function setBtnState(state) {
+    if (state === "recording") {
+      btn.innerHTML = `<i data-lucide="square"></i> Stop (Listening…)`;
+      btn.classList.add("btn--primary");
+    } else if (state === "cleaning") {
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-circle"></i> Cleaning up…`;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove("btn--primary");
+      btn.innerHTML = `<i data-lucide="mic"></i> Speak Fault Description`;
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function cleanUpTranscript(text) {
+    setBtnState("cleaning");
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-assist", {
+        body: {
+          provider: "gemini",
+          systemPrompt: "You clean up voice-dictated auto repair complaints for a job intake form. Remove filler words (um, uh, like), false starts, and repetition. Keep it as a single concise sentence or two, in the customer's own words as much as possible — don't add technical diagnosis, just clean up how it's phrased. Output only the cleaned text, nothing else.",
+          prompt: text,
+        },
+      });
+      if (error) throw error;
+      document.getElementById("job-fault").value = data?.text?.trim() || text;
+    } catch (err) {
+      console.error("Transcript cleanup failed, using raw transcript instead:", err);
+      document.getElementById("job-fault").value = text; // graceful fallback — raw dictation is still usable
+    } finally {
+      setBtnState("idle");
+    }
+  }
+
+  btn.addEventListener("click", () => {
+    if (isRecording) {
+      recognition?.stop();
+      return;
+    }
+    recognition = new SpeechRecognitionImpl();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    rawTranscript = "";
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) rawTranscript += event.results[i][0].transcript + " ";
+      }
+    };
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      isRecording = false;
+      setBtnState("idle");
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      if (rawTranscript.trim()) cleanUpTranscript(rawTranscript.trim());
+      else setBtnState("idle");
+    };
+
+    recognition.start();
+    isRecording = true;
+    setBtnState("recording");
+  });
+})();
 
 document.addEventListener("DOMContentLoaded", async () => {
   initStatusOptions();
