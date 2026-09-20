@@ -1,4 +1,4 @@
-// ========= Receipts module =========
+﻿// ========= Receipts module =========
 import supabase from "./supabaseClient.js";
 
 const SHOP_NAME = "Auto Parts and Repairs";
@@ -12,7 +12,7 @@ const receiptDocument = document.getElementById("receipt-document");
 const receiptWhatsappBtn = document.getElementById("receipt-whatsapp");
 const receiptEmailBtn = document.getElementById("receipt-email");
 
-let currentReceipt = null; // { receiptNumber, jobNumber, customer }
+let currentReceipt = null; // { receiptNumber, referenceLabel, customer }
 
 function formatPhoneForWhatsApp(raw) {
   if (!raw) return null;
@@ -21,21 +21,73 @@ function formatPhoneForWhatsApp(raw) {
   return digits;
 }
 
-function renderReceipt(receipt) {
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
+  return div.innerHTML;
+}
+
+// A receipt links to EITHER a repair job OR a sales order (Quick Sale,
+// or a confirmed sale from Quotations) — never both. This normalizes
+// whichever one is present into one common shape, so rendering doesn't
+// need to know or care which source it came from. A receipt with
+// neither present genuinely has no source left (the underlying record
+// was deleted after the receipt was issued) — that's the only case
+// that's actually "missing", not sales receipts in general.
+function normalizeReceiptSource(receipt) {
   const job = receipt.repair_jobs;
-  const customer = job?.customers;
-  const vehicle = job?.vehicles;
-  const parts = receipt.parts || [];
-  const incidentals = receipt.incidentals || [];
-  const partsTotal = parts.reduce((sum, part) => sum + Number(part.quantity) * Number(part.price_at_time), 0);
+  const order = receipt.sales_orders;
+
+  if (job) {
+    return {
+      kind: "job",
+      id: job.id,
+      referenceLabel: job.cro_number || `Job #${String(job.job_number || "").padStart(4, "0")}`,
+      customer: job.customers || null,
+      vehicleLabel: [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" "),
+      plate: job.vehicles?.license_plate,
+      status: job.status,
+      labour: Number(job.labour_cost || 0),
+      items: job.job_parts || [],
+      incidentals: job.job_incidentals || [],
+      aiNotes: job.ai_suggested_causes,
+    };
+  }
+  if (order) {
+    return {
+      kind: "order",
+      id: order.id,
+      referenceLabel: `Order #${String(order.order_number || "").padStart(4, "0")}`,
+      customer: order.customers || (order.walk_in_name ? { full_name: order.walk_in_name } : null),
+      vehicleLabel: "",
+      plate: "",
+      status: order.status,
+      labour: 0,
+      items: (order.sales_order_items || []).map(i => ({ part_name: i.part_name, quantity: i.quantity, price_at_time: i.unit_price_usd })),
+      incidentals: [],
+      aiNotes: null,
+    };
+  }
+  return null;
+}
+
+function renderReceipt(receipt) {
+  const source = normalizeReceiptSource(receipt);
+  if (!source) {
+    alert("This receipt isn't linked to a repair job or sales order anymore — the underlying record was likely deleted after the receipt was issued.");
+    return;
+  }
+
+  const items = source.items;
+  const incidentals = source.incidentals;
+  const itemsTotal = items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.price_at_time), 0);
   const incidentalsTotal = incidentals.reduce((sum, inc) => sum + Number(inc.amount), 0);
-  const labour = Number(job?.labour_cost || 0);
-  const total = Number(receipt.amount || partsTotal + incidentalsTotal + labour);
+  const total = Number(receipt.amount || itemsTotal + incidentalsTotal + source.labour);
 
   currentReceipt = {
     receiptNumber: receipt.receipt_number,
-    jobNumber: job?.job_number,
-    customer,
+    referenceLabel: source.referenceLabel,
+    customer: source.customer,
   };
 
   receiptDocument.innerHTML = `
@@ -46,16 +98,22 @@ function renderReceipt(receipt) {
       </div>
       <div class="receipt-meta"><strong>RECEIPT #${String(receipt.receipt_number).padStart(4, "0")}</strong>${new Date(receipt.issued_at).toLocaleDateString()}</div>
     </header>
-    <h3>Customer</h3><div class="receipt-customer">${escapeHtml(customer?.full_name || "—")}<br>${escapeHtml(customer?.phone || "—")}</div>
-    <h3>Repair &amp; Vehicle</h3><div class="receipt-customer">${escapeHtml(job?.cro_number || "Job #" + String(job?.job_number || "").padStart(4, "0"))} · ${escapeHtml([vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Vehicle")}<br>Plate: ${escapeHtml(vehicle?.license_plate || "—")}<br>Status: ${escapeHtml(job?.status || "Ready for Pickup")}</div>
-    ${job?.ai_suggested_causes ? `<h3>AI-Assisted Diagnostic Notes</h3><div class="receipt-customer" style="white-space:pre-wrap; font-size:.85em;">${escapeHtml(job.ai_suggested_causes)}</div>` : ""}
-    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${parts.map(part => `<tr><td>${escapeHtml(part.part_name)}</td><td>${part.quantity}</td><td>$${Number(part.price_at_time).toFixed(2)}</td><td>$${(Number(part.quantity) * Number(part.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}${incidentals.map(inc => `<tr><td>${escapeHtml(inc.description)}</td><td>1</td><td>$${Number(inc.amount).toFixed(2)}</td><td>$${Number(inc.amount).toFixed(2)}</td></tr>`).join("")}<tr><td>Labour</td><td>1</td><td>$${labour.toFixed(2)}</td><td>$${labour.toFixed(2)}</td></tr></tbody></table>
+    <h3>Customer</h3><div class="receipt-customer">${escapeHtml(source.customer?.full_name || "Walk-in Customer")}<br>${escapeHtml(source.customer?.phone || "—")}</div>
+    ${source.kind === "job"
+      ? `<h3>Repair &amp; Vehicle</h3><div class="receipt-customer">${escapeHtml(source.referenceLabel)} · ${escapeHtml(source.vehicleLabel || "Vehicle")}<br>Plate: ${escapeHtml(source.plate || "—")}<br>Status: ${escapeHtml(source.status || "Ready for Pickup")}</div>`
+      : `<h3>Sale</h3><div class="receipt-customer">${escapeHtml(source.referenceLabel)}<br>Status: ${escapeHtml(source.status || "Confirmed")}</div>`}
+    ${source.aiNotes ? `<h3>AI-Assisted Diagnostic Notes</h3><div class="receipt-customer" style="white-space:pre-wrap; font-size:.85em;">${escapeHtml(source.aiNotes)}</div>` : ""}
+    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${items.map(i => `<tr><td>${escapeHtml(i.part_name)}</td><td>${i.quantity}</td><td>$${Number(i.price_at_time).toFixed(2)}</td><td>$${(Number(i.quantity) * Number(i.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}${incidentals.map(inc => `<tr><td>${escapeHtml(inc.description)}</td><td>1</td><td>$${Number(inc.amount).toFixed(2)}</td><td>$${Number(inc.amount).toFixed(2)}</td></tr>`).join("")}${source.labour > 0 ? `<tr><td>Labour</td><td>1</td><td>$${source.labour.toFixed(2)}</td><td>$${source.labour.toFixed(2)}</td></tr>` : ""}</tbody></table>
     <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
     <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>`;
   receiptModal.classList.remove("hidden");
   receiptModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
 }
+
+const RECEIPT_SELECT = `id, receipt_number, amount, issued_at,
+  repair_jobs(id, job_number, cro_number, status, labour_cost, ai_suggested_causes, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount)),
+  sales_orders(id, order_number, status, walk_in_name, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`;
 
 // jobId being missing/empty is exactly what was crashing this with
 // "invalid input syntax" — Postgres refusing an empty string where a UUID
@@ -66,17 +124,24 @@ async function openReceiptForJob(jobId) {
     alert("This receipt isn't linked to a repair job record anymore, so it can't be opened. This usually means the underlying job was deleted after the receipt was issued.");
     return;
   }
-  const { data, error } = await supabase
-    .from("receipts")
-    .select(`id, receipt_number, amount, issued_at, repair_jobs(job_number, cro_number, status, labour_cost, ai_suggested_causes, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount))`)
-    .eq("repair_job_id", jobId)
-    .order("issued_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
+  const { data, error } = await supabase.from("receipts").select(RECEIPT_SELECT).eq("repair_job_id", jobId).order("issued_at", { ascending: false }).limit(1).maybeSingle();
   if (error) { alert("Unable to load receipt: " + error.message); return; }
   if (!data) { alert("No receipt found for this job."); return; }
-  renderReceipt({ ...data, parts: data.repair_jobs?.job_parts || [], incidentals: data.repair_jobs?.job_incidentals || [] });
+  renderReceipt(data);
+}
+
+// The Sales Order equivalent of openReceiptForJob — used for Quick Sale
+// receipts and confirmed Sales Order receipts, neither of which have a
+// repair_job_id at all.
+async function openReceiptForOrder(orderId) {
+  if (!orderId) {
+    alert("This receipt isn't linked to a sales order record anymore.");
+    return;
+  }
+  const { data, error } = await supabase.from("receipts").select(RECEIPT_SELECT).eq("sales_order_id", orderId).order("issued_at", { ascending: false }).limit(1).maybeSingle();
+  if (error) { alert("Unable to load receipt: " + error.message); return; }
+  if (!data) { alert("No receipt found for this order."); return; }
+  renderReceipt(data);
 }
 
 async function generateReceipt(jobId, amount) {
@@ -154,19 +219,7 @@ async function loadPendingReceipts() {
 }
 
 async function loadAllReceipts() {
-  const { data, error } = await supabase
-    .from("receipts")
-    .select(`
-      id, receipt_number, amount, issued_at,
-      repair_jobs (
-        id, status, labour_cost,
-        job_number,
-        customers ( full_name, phone, email ),
-        vehicles ( year, make, model, license_plate ),
-        job_parts ( part_name, quantity, price_at_time )
-      )
-    `)
-    .order("issued_at", { ascending: false });
+  const { data, error } = await supabase.from("receipts").select(RECEIPT_SELECT).order("issued_at", { ascending: false });
 
   if (error) {
     console.error("Error loading receipts:", error);
@@ -179,26 +232,34 @@ async function loadAllReceipts() {
     return;
   }
 
-  // If repair_jobs is null (its underlying job record is gone), don't
-  // render a "View" button pointing at an empty id — that's exactly what
-  // was producing the invalid-UUID crash. Show a plain, honest label
-  // instead of a button that's guaranteed to fail.
+  // Only genuinely show "record missing" when NEITHER a repair job NOR a
+  // sales order is attached — a sales receipt (Quick Sale or a confirmed
+  // Sales Order) is a completely normal, valid receipt, just a different
+  // source than a repair job.
   receiptsTableBody.innerHTML = data.map(r => {
-    const jobId = r.repair_jobs?.id;
+    const source = normalizeReceiptSource(r);
+    const viewAttr = source
+      ? (source.kind === "job" ? `data-job-id="${source.id}"` : `data-order-id="${source.id}"`)
+      : "";
     return `
     <tr>
       <td>#${String(r.receipt_number).padStart(4, "0")}</td>
-      <td>#${String(r.repair_jobs?.job_number ?? "").padStart(4, "0")}</td>
-      <td>${escapeHtml(r.repair_jobs?.customers?.full_name ?? "—")}</td>
+      <td>${source ? escapeHtml(source.referenceLabel) : "—"}</td>
+      <td>${escapeHtml(source?.customer?.full_name ?? "—")}</td>
       <td>$${Number(r.amount ?? 0).toFixed(2)}</td>
       <td>${new Date(r.issued_at).toLocaleDateString()}</td>
-      <td>${jobId
-        ? `<button type="button" class="btn view-receipt-btn" data-job-id="${jobId}"><i data-lucide="eye"></i> View</button>`
-        : `<span style="color:var(--text-muted); font-size:.85rem;">Job record missing</span>`}</td>
+      <td>${source
+        ? `<button type="button" class="btn view-receipt-btn" ${viewAttr}><i data-lucide="eye"></i> View</button>`
+        : `<span style="color:var(--text-muted); font-size:.85rem;">Record missing</span>`}</td>
     </tr>
   `;
   }).join("");
-  document.querySelectorAll(".view-receipt-btn").forEach(button => button.addEventListener("click", () => openReceiptForJob(button.dataset.jobId)));
+  document.querySelectorAll(".view-receipt-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      if (button.dataset.jobId) openReceiptForJob(button.dataset.jobId);
+      else if (button.dataset.orderId) openReceiptForOrder(button.dataset.orderId);
+    });
+  });
   if (window.lucide) lucide.createIcons();
 }
 
@@ -241,7 +302,7 @@ async function sendReceiptWhatsApp() {
       link.download = `receipt-${String(currentReceipt.receiptNumber).padStart(4, "0")}.png`;
       link.click();
 
-      const text = `Hi ${currentReceipt.customer?.full_name || "there"}, here's your receipt for Job #${String(currentReceipt.jobNumber).padStart(4, "0")} from ${SHOP_NAME}. The receipt image just downloaded to this device — attach it here to send it through.`;
+      const text = `Hi ${currentReceipt.customer?.full_name || "there"}, here's your receipt for ${currentReceipt.referenceLabel} from ${SHOP_NAME}. The receipt image just downloaded to this device — attach it here to send it through.`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
     } catch (err) {
       console.error("Failed to prepare receipt image:", err);
@@ -263,9 +324,9 @@ async function sendReceiptEmail() {
       const { error } = await supabase.functions.invoke("send-receipt-email", {
         body: {
           to: email,
-          subject: `Your receipt from ${SHOP_NAME} — Job #${String(currentReceipt.jobNumber).padStart(4, "0")}`,
+          subject: `Your receipt from ${SHOP_NAME} — ${currentReceipt.referenceLabel}`,
           imageBase64: base64,
-          jobNumber: currentReceipt.jobNumber,
+          jobNumber: currentReceipt.referenceLabel,
         },
       });
       if (error) throw error;
@@ -280,18 +341,16 @@ async function sendReceiptEmail() {
 if (receiptWhatsappBtn) receiptWhatsappBtn.addEventListener("click", sendReceiptWhatsApp);
 if (receiptEmailBtn) receiptEmailBtn.addEventListener("click", sendReceiptEmail);
 
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str ?? "";
-  return div.innerHTML;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   loadPendingReceipts();
   loadAllReceipts();
-  const requestedJob = new URLSearchParams(window.location.search).get("job");
+  const params = new URLSearchParams(window.location.search);
+  const requestedJob = params.get("job");
+  const requestedOrder = params.get("order");
   if (requestedJob) {
     setTimeout(() => generateReceipt(requestedJob), 250);
+  } else if (requestedOrder) {
+    setTimeout(() => openReceiptForOrder(requestedOrder), 250);
   }
 });
 document.getElementById("receipt-print")?.addEventListener("click", () => window.print());

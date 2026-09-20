@@ -96,6 +96,7 @@ function applyAccess(role) {
 }
 
 function hidePage() {
+  document.documentElement.style.visibility = "hidden";
   if (document.getElementById("auth-gate-style")) return;
   const style = document.createElement("style");
   style.id = "auth-gate-style";
@@ -104,6 +105,7 @@ function hidePage() {
 }
 
 function revealPage() {
+  document.documentElement.style.visibility = "";
   document.getElementById("auth-gate-style")?.remove();
 }
 

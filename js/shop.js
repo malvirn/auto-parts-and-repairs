@@ -664,7 +664,7 @@ document.getElementById("quick-sale-form")?.addEventListener("submit", async (e)
 
   document.getElementById("quick-sale-form").reset();
   document.getElementById("quick-sale-total").textContent = "";
-  message.textContent = `Sale complete — ${formatMoney(total)}${salespersonId ? " · commission will show after the next Generate Commissions scan" : ""}.`;
+  message.innerHTML = `Sale complete — ${formatMoney(total)}${salespersonId ? " · commission will show after the next Generate Commissions scan" : ""}. <a href="receipts.html?order=${encodeURIComponent(order.id)}" target="_blank" style="text-decoration:underline;">View / Print Receipt</a>`;
   message.dataset.tone = "success";
   await loadQuickSaleData();
   await loadParts();

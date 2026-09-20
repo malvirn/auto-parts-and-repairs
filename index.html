@@ -1,10 +1,12 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>document.documentElement.style.visibility = "hidden";</script>
+  
   <script src="js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS â€” Dashboard</title>
+  <title>AUTO PARTS &amp; REPAIRS — Dashboard</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,7 +38,7 @@
           <img src="assets/logo.png" alt="Auto Parts and Repairs" class="dashboard-hero__logo" />
           <div>
             <h1 id="dashboard-greeting">Welcome back</h1>
-            <p class="page-intro" id="dashboard-date">Loadingâ€¦</p>
+            <p class="page-intro" id="dashboard-date">Loading…</p>
           </div>
         </div>
         <a class="btn btn--primary" href="pages/repairs.html"><i data-lucide="plus"></i> New Repair Job</a>
@@ -58,7 +60,7 @@
             <p class="section-kicker">Right now</p>
             <h2>Today's Snapshot</h2>
           </div>
-          <span class="section-note" id="snapshot-date">â€”</span>
+          <span class="section-note" id="snapshot-date">—</span>
         </div>
         <div class="card-grid" id="today-cards">
           <div class="stat-card"><div class="stat-card__label">Jobs Created Today</div><div class="stat-card__value">&mdash;</div></div>
@@ -77,7 +79,7 @@
           <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
         </div>
         <div class="panel" style="padding:6px 20px;" id="attention-panel">
-          <div class="attention-empty">Loadingâ€¦</div>
+          <div class="attention-empty">Loading…</div>
         </div>
       </section>
 
@@ -100,7 +102,7 @@
             </tr>
           </thead>
           <tbody id="recent-jobs">
-            <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet â€” connect Supabase in js/app.js</td></tr>
+            <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js</td></tr>
           </tbody>
         </table>
       </section>
