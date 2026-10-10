@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  
+
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AUTO PARTS &amp; REPAIRS — Repair Jobs</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
@@ -21,55 +21,6 @@
     }
     .modal-overlay.hidden { display: none; }
     .hidden { display: none !important; }
-    .modal {
-      background: var(--surface);
-      border-radius: var(--radius);
-      width: 640px;
-      max-width: 100%;
-      max-height: 88vh;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal > h3 {
-      padding: 20px 24px 16px;
-      margin: 0;
-      font-size: 1.05rem;
-      border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
-      flex-shrink: 0;
-    }
-    .modal-body {
-      overflow-y: auto;
-      padding: 4px 24px 8px;
-      flex: 1;
-    }
-    .modal-section {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border, rgba(0,0,0,.06));
-    }
-    .modal-section:last-child { border-bottom: none; }
-    .modal-section-title {
-      font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
-      color: var(--text-muted); margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
-      font-weight: 700;
-    }
-    .modal-section-title i { width: 14px; height: 14px; }
-    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .modal-row .field { margin-bottom: 0; }
-    .modal-actions {
-      flex-shrink: 0; padding: 14px 24px; border-top: 1px solid var(--border, rgba(0,0,0,.08));
-      display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface);
-    }
-    .modal-actions-secondary { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border, rgba(0,0,0,.08)); }
-    .modal .field { margin-bottom: 14px; }
-    .modal textarea { resize: vertical; min-height: 60px; }
-    #pickup-countdown-block {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      background: var(--surface-2, transparent);
-    }
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
 </head>
@@ -83,7 +34,7 @@
       <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Receipts</a>
       <a class="nav-link" href="technicians.html"><i data-lucide="hard-hat"></i> Mechanics</a>
       <a class="nav-link" href="shop.html"><i data-lucide="store"></i> Shop</a>
-            <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+      <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
       <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
       <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
       <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -95,86 +46,185 @@
         <div>
           <p class="section-kicker">Workshop control</p>
           <h1>Repair Jobs</h1>
-          <p class="page-intro">Track each vehicle from intake through diagnosis, repair, and collection.</p>
+          <p class="page-intro">Open a job card with everything at intake, then track it through diagnosis, repair and collection.</p>
         </div>
       </div>
 
+      <!-- ===================== New job card (intake) ===================== -->
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Intake</p><h2><i class="section-heading-icon" data-lucide="clipboard-plus"></i>Create Repair Job</h2></div><span class="section-note">Vehicle and fault details</span></div>
-        <form id="job-form" class="panel" style="padding:20px; margin-bottom:24px;">
-        <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
-          <div class="field">
-            <label>Customer</label>
-            <select id="job-customer" required></select>
+        <div class="section-heading"><div><p class="section-kicker">Intake</p><h2><i class="section-heading-icon" data-lucide="clipboard-plus"></i>New Job Card</h2></div><span class="section-note">Only the starred fields are required</span></div>
+
+        <form id="job-form" class="jc-form" novalidate>
+
+          <!-- 1. Customer & vehicle -->
+          <div class="jc-step">
+            <header><span class="jc-num">1</span><div><h3>Customer &amp; vehicle</h3><p>Who owns the vehicle and which vehicle it is.</p></div></header>
+            <div class="jc-body">
+              <div class="jc-seg" role="radiogroup" aria-label="Vehicle owner">
+                <button type="button" class="on" data-owner="individual" role="radio" aria-checked="true"><i data-lucide="user"></i> Private customer</button>
+                <button type="button" data-owner="company" role="radio" aria-checked="false"><i data-lucide="building-2"></i> Company car</button>
+              </div>
+
+              <div class="jc-grid">
+                <div class="field jc-span2">
+                  <label for="job-customer" id="job-customer-label">Customer *</label>
+                  <select id="job-customer" required></select>
+                </div>
+                <div class="field">
+                  <label for="job-plate">Vehicle *</label>
+                  <select id="job-plate" required disabled>
+                    <option value="">Select a customer first…</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="new-customer-box" class="jc-sub hidden">
+                <p class="jc-subtitle"><i data-lucide="user-plus"></i> <span id="new-customer-title">New customer</span></p>
+                <div class="jc-grid">
+                  <div class="field"><label for="new-cust-name" id="new-cust-name-label">Full name *</label><input type="text" id="new-cust-name" maxlength="120" /></div>
+                  <div class="field"><label for="new-cust-phone">Phone *</label><input type="tel" id="new-cust-phone" maxlength="30" placeholder="e.g. 077 123 4567" /></div>
+                  <div class="field"><label for="new-cust-email">Email</label><input type="email" id="new-cust-email" maxlength="120" /></div>
+                </div>
+              </div>
+
+              <div id="driver-box" class="jc-sub hidden">
+                <p class="jc-subtitle"><i data-lucide="id-card"></i> Brought in by (company driver or staff member)</p>
+                <div class="jc-grid">
+                  <div class="field"><label for="job-driver-name">Driver name</label><input type="text" id="job-driver-name" maxlength="120" /></div>
+                  <div class="field"><label for="job-driver-phone">Driver phone</label><input type="tel" id="job-driver-phone" maxlength="30" /></div>
+                </div>
+              </div>
+
+              <div class="jc-grid">
+                <div class="field hidden" id="new-plate-field">
+                  <label for="job-new-plate">Number plate *</label>
+                  <input type="text" id="job-new-plate" maxlength="20" placeholder="e.g. AEZ 1234" style="text-transform:uppercase" />
+                </div>
+                <div class="field">
+                  <label for="job-body-type">Body type</label>
+                  <select id="job-body-type">
+                    <option>Sedan</option><option>SUV</option><option>Hatchback</option><option>Pickup</option><option>Van</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="field"><label for="job-make">Make *</label><input type="text" id="job-make" placeholder="e.g. Toyota" required /></div>
+                <div class="field"><label for="job-model">Model</label><input type="text" id="job-model" placeholder="e.g. Hilux" /></div>
+                <div class="field"><label for="job-year">Year</label><input type="number" id="job-year" placeholder="e.g. 2019" min="1970" max="2035" /></div>
+                <div class="field"><label for="job-chassis">Chassis number *</label><input type="text" id="job-chassis" placeholder="The plate alone isn't a reliable identifier" required /></div>
+                <div class="field"><label for="job-engine">Engine number *</label><input type="text" id="job-engine" required /></div>
+                <div class="field">
+                  <label for="job-fuel-in">Fuel level at drop-off</label>
+                  <select id="job-fuel-in">
+                    <option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option>
+                  </select>
+                </div>
+                <div class="field"><label for="job-odometer-in">Odometer at drop-off (km)</label><input type="number" id="job-odometer-in" placeholder="e.g. 82000" min="0" /></div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>Registered Vehicle</label>
-            <select id="job-plate" required disabled>
-              <option value="">Select a customer first…</option>
-            </select>
+
+          <!-- 2. Fault & diagnosis -->
+          <div class="jc-step">
+            <header><span class="jc-num">2</span><div><h3>Fault &amp; diagnosis</h3><p>What the customer reports, and the mechanic's findings if already known.</p></div></header>
+            <div class="jc-body">
+              <div class="field">
+                <label for="job-fault">Fault reported *</label>
+                <textarea id="job-fault" rows="3" placeholder="What the customer says is wrong" required></textarea>
+                <button type="button" id="voice-fault-btn" class="btn" style="margin-top:8px; display:none;"><i data-lucide="mic"></i> Speak Fault Description</button>
+              </div>
+              <div class="jc-grid">
+                <div class="field">
+                  <label for="job-status">Status</label>
+                  <select id="job-status"><option value="Received">Received</option><option value="Diagnosing">Diagnosing</option></select>
+                </div>
+                <div class="field jc-span2">
+                  <label for="job-diagnosis-eta">Expected diagnosis completion</label>
+                  <input type="datetime-local" id="job-diagnosis-eta" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="job-diagnosis">Diagnosis</label>
+                <textarea id="job-diagnosis" rows="2" placeholder="Mechanic's findings (optional at intake)"></textarea>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>Body Type</label>
-            <select id="job-body-type">
-              <option>Sedan</option>
-              <option>SUV</option>
-              <option>Hatchback</option>
-              <option>Pickup</option>
-              <option>Van</option>
-              <option>Other</option>
-            </select>
+
+          <!-- 3. Labour & mechanic -->
+          <div class="jc-step">
+            <header><span class="jc-num">3</span><div><h3>Labour &amp; mechanic</h3><p>Hourly charges come from <a href="settings.html#labour">Settings → Labour charges</a> and are picked from the make.</p></div></header>
+            <div class="jc-body">
+              <div class="jc-grid">
+                <div class="field jc-span2">
+                  <label for="job-rate-tier">Labour charge (per hour)</label>
+                  <select id="job-rate-tier"></select>
+                </div>
+                <div class="field">
+                  <label for="job-hours">Estimated hours</label>
+                  <input type="number" id="job-hours" step="0.25" min="0" placeholder="e.g. 2.5" />
+                </div>
+                <div class="field">
+                  <label for="job-labour">Labour cost ($)</label>
+                  <input type="number" id="job-labour" step="0.01" min="0" placeholder="Hours × rate" />
+                </div>
+                <div class="field jc-span2">
+                  <label for="job-technician">Mechanic</label>
+                  <select id="job-technician"></select>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>Make</label>
-            <input type="text" id="job-make" placeholder="e.g. Toyota" required />
+
+          <!-- 4. Parts & incidentals -->
+          <div class="jc-step">
+            <header><span class="jc-num">4</span><div><h3>Parts &amp; incidentals</h3><p>Parts are taken from Shop stock when the job is created.</p></div></header>
+            <div class="jc-body">
+              <div class="jc-two">
+                <div>
+                  <div class="field">
+                    <label for="new-part-select">Add part from Shop</label>
+                    <div class="jc-addrow">
+                      <select id="new-part-select"></select>
+                      <input type="number" id="new-part-qty" min="1" value="1" aria-label="Quantity" />
+                      <button id="new-part-add" type="button" class="btn" aria-label="Add part"><i data-lucide="plus"></i></button>
+                    </div>
+                  </div>
+                  <div id="new-parts-list" class="jc-lines"></div>
+                </div>
+                <div>
+                  <div class="field">
+                    <label for="new-inc-desc">Add incidental (oil, rags, consumables)</label>
+                    <div class="jc-addrow">
+                      <input type="text" id="new-inc-desc" placeholder="e.g. Degreaser" />
+                      <input type="number" id="new-inc-amount" step="0.01" min="0" placeholder="$" aria-label="Amount" />
+                      <button id="new-inc-add" type="button" class="btn" aria-label="Add incidental"><i data-lucide="plus"></i></button>
+                    </div>
+                  </div>
+                  <div id="new-inc-list" class="jc-lines"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>Model</label>
-            <input type="text" id="job-model" placeholder="e.g. Hilux" />
+
+          <!-- Totals + submit -->
+          <div class="jc-total">
+            <div class="jc-sums">
+              <div><span>Labour</span><b id="sum-labour">$0.00</b></div>
+              <div><span>Parts</span><b id="sum-parts">$0.00</b></div>
+              <div><span>Incidentals</span><b id="sum-inc">$0.00</b></div>
+              <div class="big"><span>Estimated total</span><b id="sum-total">$0.00</b><em id="sum-zig"></em></div>
+            </div>
+            <div class="jc-submit">
+              <p id="job-form-message" class="form-message" role="alert"></p>
+              <button type="submit" id="job-submit" class="btn btn--primary"><i data-lucide="plus"></i> Create Job Card</button>
+            </div>
           </div>
-          <div class="field">
-            <label>Year</label>
-            <input type="number" id="job-year" placeholder="e.g. 2019" min="1970" max="2030" />
-          </div>
-          <div class="field">
-            <label>Chassis Number</label>
-            <input type="text" id="job-chassis" placeholder="Required — plate alone isn't a reliable identifier" required />
-          </div>
-          <div class="field">
-            <label>Engine Number</label>
-            <input type="text" id="job-engine" placeholder="Required" required />
-          </div>
-          <div class="field">
-            <label>Fuel Level at Drop-off</label>
-            <select id="job-fuel-in">
-              <option value="">Not recorded</option>
-              <option>Empty</option>
-              <option>1/4</option>
-              <option>1/2</option>
-              <option>3/4</option>
-              <option>Full</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Odometer at Drop-off</label>
-            <input type="number" id="job-odometer-in" placeholder="e.g. 82000" min="0" />
-          </div>
-          <div class="field" style="grid-column: span 3;">
-            <label>Fault Reported</label>
-            <textarea id="job-fault" rows="2" placeholder="What the customer says is wrong" required></textarea>
-            <button type="button" id="voice-fault-btn" class="btn" style="margin-top:6px; display:none;"><i data-lucide="mic"></i> Speak Fault Description</button>
-          </div>
-        </div>
-        <div style="margin-top:14px;">
-          <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Create Repair Job</button>
-        </div>
         </form>
       </section>
 
+      <!-- ===================== Queue ===================== -->
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Status, mechanic, and cost</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Open a job card to update it</span></div>
         <div class="panel" style="padding:14px 16px; margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="jobs-search" placeholder="Search CRO, customer, engine number, make, model…" style="flex:1; min-width:220px;" />
+          <input type="text" id="jobs-search" placeholder="Search CRO, customer, company, plate, engine number, make, model…" style="flex:1; min-width:220px;" />
           <select id="jobs-filter-mechanic" style="min-width:160px;"><option value="">All Mechanics</option></select>
           <select id="jobs-filter-type" style="min-width:150px;">
             <option value="">Company + Personal</option>
@@ -188,7 +238,7 @@
             <tr>
               <th>CRO</th>
               <th>Customer</th>
-              <th>Device</th>
+              <th>Vehicle</th>
               <th>Fault</th>
               <th>Status</th>
               <th>Mechanic</th>
@@ -202,126 +252,121 @@
         </table>
         </div>
       </section>
-
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Pricing setup</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Vehicle Rate Tiers</h2></div><span class="section-note">Auto-detected from make, overridable per job</span></div>
-        <form id="tier-form" class="panel" style="padding:20px; margin-bottom:16px;">
-          <div class="form-grid" style="max-width:none; grid-template-columns: 2fr 1fr 2fr auto;">
-            <div class="field"><label>Tier Name</label><input type="text" id="tier-name" placeholder="e.g. Electric / Hybrid" required /></div>
-            <div class="field"><label>Rate ($/hr)</label><input type="number" id="tier-rate" step="0.01" min="0" required /></div>
-            <div class="field"><label>Makes (comma-separated)</label><input type="text" id="tier-makes" placeholder="e.g. Tesla, BYD" /></div>
-            <div class="field" style="display:flex; align-items:flex-end;"><label style="display:flex; align-items:center; gap:6px; font-weight:normal;"><input type="checkbox" id="tier-default" style="width:auto;" /> Default tier</label></div>
-          </div>
-          <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Add Tier</button>
-          <p id="tier-form-message" class="form-message"></p>
-        </form>
-        <div class="panel">
-          <table>
-            <thead><tr><th>Tier</th><th>Rate</th><th>Auto-matches</th><th>Default</th><th></th></tr></thead>
-            <tbody id="tiers-table"><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
-          </table>
-        </div>
-      </section>
     </main>
   </div>
 
-  <!-- Edit Job Modal -->
-  <div id="edit-modal" class="modal-overlay hidden">
-    <div class="modal">
-      <h3>Update CRO <span id="edit-job-number"></span></h3>
-      <div class="modal-body">
-
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="clipboard-list"></i> Status &amp; Diagnosis</h4>
-          <div class="field">
-            <label>Status</label>
-            <select id="edit-status"></select>
-          </div>
-          <div class="field">
-            <label>Diagnosis</label>
-            <textarea id="edit-diagnosis" placeholder="Mechanic's findings"></textarea>
-            <button type="button" id="ai-suggest-causes-btn" class="btn" style="margin-top:6px;"><i data-lucide="sparkles"></i> Suggest Possible Causes</button>
-            <div id="ai-suggest-causes-result" style="display:none; margin-top:8px; padding:10px 12px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.85rem; white-space:pre-wrap; line-height:1.5;"></div>
-          </div>
-          <div class="field">
-            <label>Expected Diagnosis Completion</label>
-            <input type="datetime-local" id="edit-diagnosis-eta" />
-          </div>
+  <!-- ===================== Job card (view / update) ===================== -->
+  <div id="edit-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="jc-title">
+    <div class="modal jc-modal">
+      <div class="jc-head">
+        <div class="jc-head-main">
+          <span class="jc-kicker">Job card</span>
+          <h3 id="jc-title"><span id="edit-job-number"></span></h3>
+          <div class="jc-tags" id="jc-tags"></div>
         </div>
-
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="gauge"></i> Labour &amp; Billing</h4>
-          <div class="modal-row" style="margin-bottom:14px;">
-            <div class="field"><label>Vehicle Rate Tier</label><select id="edit-rate-tier"></select></div>
-            <div class="field"><label>Hours Worked</label><input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" /></div>
-          </div>
-          <div class="modal-row" style="margin-bottom:14px;">
-            <div class="field"><label>Labour Cost <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(auto from hours × rate)</span></label><input type="number" id="edit-labour" step="0.01" min="0" /></div>
-            <div class="field"><label>Parts Cost</label><input type="number" id="edit-parts" step="0.01" min="0" /></div>
-          </div>
-          <div id="zig-total" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;"></div>
-          <div class="field">
-            <label>Mechanic</label>
-            <select id="edit-technician"></select>
-          </div>
+        <div class="jc-head-actions">
+          <button id="jc-print" class="btn" type="button"><i data-lucide="printer"></i> Print</button>
+          <button id="jc-close" class="btn jc-x" type="button" aria-label="Close"><i data-lucide="x"></i></button>
         </div>
+      </div>
 
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="package"></i> Parts &amp; Incidentals</h4>
-          <div class="field">
-            <label>Add Part from Shop</label>
-            <div style="display:flex; gap:8px;">
-              <select id="job-part-select" style="flex:1;"></select>
-              <input type="number" id="job-part-qty" min="1" value="1" style="width:70px;" />
-              <button id="job-part-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+      <div class="modal-body jc-mbody">
+        <div class="jc-info" id="jc-info"></div>
+        <div class="jc-fault" id="jc-fault"></div>
+
+        <div class="jc-cols">
+          <div class="modal-section jc-card">
+            <h4 class="modal-section-title"><i data-lucide="stethoscope"></i> Status &amp; diagnosis</h4>
+            <div class="field">
+              <label for="edit-status">Status</label>
+              <select id="edit-status"></select>
+            </div>
+            <div class="field">
+              <label for="edit-diagnosis">Diagnosis</label>
+              <textarea id="edit-diagnosis" rows="4" placeholder="Mechanic's findings"></textarea>
+              <button type="button" id="ai-suggest-causes-btn" class="btn" style="margin-top:8px;"><i data-lucide="sparkles"></i> Suggest Possible Causes</button>
+              <div id="ai-suggest-causes-result" class="jc-ai" style="display:none;"></div>
+            </div>
+            <div class="field">
+              <label for="edit-diagnosis-eta">Expected diagnosis completion</label>
+              <input type="datetime-local" id="edit-diagnosis-eta" />
             </div>
           </div>
-          <div class="field">
-            <label>Parts Used</label>
-            <div id="job-parts-list" style="font-size:0.85rem;"></div>
-          </div>
-          <div class="field">
-            <label>Add Incidental <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(oil, rags, misc consumables)</span></label>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="incidental-desc" placeholder="e.g. Engine cleaning degreaser" style="flex:1;" />
-              <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" style="width:90px;" />
-              <button id="incidental-add" type="button" class="btn"><i data-lucide="plus"></i></button>
+
+          <div class="modal-section jc-card">
+            <h4 class="modal-section-title"><i data-lucide="gauge"></i> Labour &amp; mechanic</h4>
+            <div class="field"><label for="edit-rate-tier">Labour charge (per hour)</label><select id="edit-rate-tier"></select></div>
+            <div class="modal-row">
+              <div class="field"><label for="edit-hours">Hours worked</label><input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" /></div>
+              <div class="field"><label for="edit-labour">Labour cost ($)</label><input type="number" id="edit-labour" step="0.01" min="0" /></div>
             </div>
+            <div class="field">
+              <label for="edit-technician">Mechanic</label>
+              <select id="edit-technician"></select>
+            </div>
+            <input type="hidden" id="edit-parts" />
           </div>
-          <div class="field">
-            <label>Incidentals</label>
-            <div id="incidentals-list" style="font-size:0.85rem;"></div>
+
+          <div class="modal-section jc-card">
+            <h4 class="modal-section-title"><i data-lucide="package"></i> Parts used</h4>
+            <div class="field">
+              <label for="job-part-select">Add part from Shop</label>
+              <div class="jc-addrow">
+                <select id="job-part-select"></select>
+                <input type="number" id="job-part-qty" min="1" value="1" aria-label="Quantity" />
+                <button id="job-part-add" type="button" class="btn" aria-label="Add part"><i data-lucide="plus"></i></button>
+              </div>
+            </div>
+            <div id="job-parts-list" class="jc-lines"></div>
+          </div>
+
+          <div class="modal-section jc-card">
+            <h4 class="modal-section-title"><i data-lucide="droplets"></i> Incidentals</h4>
+            <div class="field">
+              <label for="incidental-desc">Add incidental</label>
+              <div class="jc-addrow">
+                <input type="text" id="incidental-desc" placeholder="e.g. Engine degreaser" />
+                <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" aria-label="Amount" />
+                <button id="incidental-add" type="button" class="btn" aria-label="Add incidental"><i data-lucide="plus"></i></button>
+              </div>
+            </div>
+            <div id="incidentals-list" class="jc-lines"></div>
           </div>
         </div>
 
-        <!-- Live pickup countdown / parking fee — only shown once a job has
-             been marked Ready for Pickup and hasn't been collected yet -->
-        <div id="pickup-countdown-block" class="modal-section hidden">
-          <h4 class="modal-section-title"><i data-lucide="alarm-clock"></i> Pickup Window</h4>
-          <div id="pickup-countdown" style="font-size:0.9rem;"></div>
+        <!-- Live pickup countdown / parking fee -->
+        <div id="pickup-countdown-block" class="modal-section jc-card jc-alert hidden">
+          <h4 class="modal-section-title"><i data-lucide="alarm-clock"></i> Pickup window</h4>
+          <div id="pickup-countdown"></div>
           <button id="apply-parking-fee" type="button" class="btn hidden" style="margin-top:8px;">
             <i data-lucide="plus"></i> Add Parking Fee to Labour Cost
           </button>
         </div>
 
-        <div id="edit-collection-fields" class="modal-section hidden">
-          <h4 class="modal-section-title"><i data-lucide="check-check"></i> Collection Details</h4>
-          <div class="modal-row" style="margin-bottom:14px;">
+        <div id="edit-collection-fields" class="modal-section jc-card hidden">
+          <h4 class="modal-section-title"><i data-lucide="check-check"></i> Collection details</h4>
+          <div class="modal-row">
             <div class="field">
-              <label>Odometer at Collection</label>
+              <label for="edit-odometer">Odometer at collection (km)</label>
               <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
             </div>
             <div id="picked-up-by-field" class="field hidden">
-              <label>Picked Up By <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(company vehicle)</span></label>
+              <label for="edit-picked-up-by">Picked up by (company vehicle)</label>
               <input type="text" id="edit-picked-up-by" placeholder="Driver or staff member's name" />
             </div>
           </div>
           <div class="field">
-            <label>Collection Notes</label>
+            <label for="edit-collection-notes">Collection notes</label>
             <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
           </div>
         </div>
+      </div>
 
+      <div class="jc-totalbar">
+        <div><span>Labour</span><b id="jc-t-labour">$0.00</b></div>
+        <div><span>Parts</span><b id="jc-t-parts">$0.00</b></div>
+        <div><span>Incidentals</span><b id="jc-t-inc">$0.00</b></div>
+        <div class="big"><span>Total</span><b id="jc-t-total">$0.00</b><em id="zig-total"></em></div>
       </div>
 
       <div class="modal-actions">
@@ -341,9 +386,9 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
-<script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
-<script type="module" src="../js/repairs.js"></script>
-<script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repairs.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
 </body>
 </html>

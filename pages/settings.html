@@ -2,40 +2,22 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  
+
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS & REPAIRS — Settings</title>
+  <title>AUTO PARTS &amp; REPAIRS — Settings</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .settings-layout { display:flex; gap:24px; }
-    .settings-nav { width:200px; flex-shrink:0; }
-    .settings-nav button { display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:10px 14px; background:none; border:none; color:var(--text-dim,#7c9490); cursor:pointer; border-radius:4px; font-size:0.85rem; }
-    .settings-nav button.active { background:rgba(56,224,201,0.08); color:#38e0c9; }
-    .settings-panel { flex:1; }
-    .settings-section { display:none; }
-    .settings-section.active { display:block; }
-    .field { margin-bottom:14px; }
-    .field label { display:block; font-size:0.75rem; color:var(--text-dim,#7c9490); margin-bottom:5px; }
-    .field input, .field textarea, .field select { width:100%; padding:8px 10px; background:var(--panel,#10161c); border:1px solid rgba(56,224,201,0.2); border-radius:4px; color:inherit; }
-    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(56,224,201,0.1); }
-    .accordion-item { border:1px solid rgba(56,224,201,0.14); border-radius:4px; margin-bottom:8px; overflow:hidden; }
-    .accordion-header { padding:12px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:600; }
-    .accordion-body { padding:0 14px 14px; display:none; font-size:0.88rem; color:var(--text-dim,#9a8f82); line-height:1.5; }
-    .accordion-item.open .accordion-body { display:block; }
-    .danger-zone { border:1px solid #ff4d4d; border-radius:6px; padding:18px; background:rgba(255,77,77,0.05); }
-    .danger-zone h3 { color:#ff4d4d; margin-top:0; }
-  </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS & REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
       <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
@@ -45,75 +27,123 @@
       <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
       <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
       <a class="nav-link" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
+      <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
       <a class="nav-link active" href="settings.html"><i data-lucide="settings"></i> Settings</a>
-
     </aside>
 
     <main class="main">
-      <div class="main__header"><h1>Settings</h1></div>
-
-      <div class="settings-layout">
-        <div class="settings-nav">
-          <button class="settings-tab active" data-target="appearance"><i data-lucide="sun-moon"></i> Appearance</button>
-          <button class="settings-tab" data-target="about"><i data-lucide="building-2"></i> About Us</button>
-          <button class="settings-tab" data-target="notifications"><i data-lucide="bell"></i> Notifications</button>
-          <button class="settings-tab" data-target="guide"><i data-lucide="book-open"></i> User Guide</button>
-          <button class="settings-tab" data-target="currency"><i data-lucide="banknote"></i> Currency</button>
-          <button class="settings-tab" data-target="account"><i data-lucide="user"></i> Account</button>
-          <button class="settings-tab" data-target="access-control"><i data-lucide="shield"></i> Access Control</button>
+      <div class="main__header">
+        <div>
+          <p class="section-kicker">Preferences</p>
+          <h1>Settings</h1>
+          <p class="page-intro">Your account, how the app looks, business details, labour charges and access.</p>
         </div>
+      </div>
 
-        <div class="settings-panel">
-          <section id="appearance" class="settings-section active panel" style="padding:20px;">
-            <h2>Appearance</h2>
-            <div class="toggle-row">
-              <span>Dark mode</span>
-              <input type="checkbox" id="dark-mode-toggle" />
+      <nav class="sjump" aria-label="Settings sections">
+        <a href="#account">Account</a>
+        <a href="#appearance">Appearance</a>
+        <a href="#about">Business</a>
+        <a href="#labour">Labour charges</a>
+        <a href="#currency">Currency</a>
+        <a href="#notifications">Notifications</a>
+        <a href="#access-control">Access control</a>
+        <a href="#guide">User guide</a>
+      </nav>
+
+      <div class="sg-wrap">
+        <!-- Account -->
+        <section class="sg" id="account" aria-labelledby="h-acc">
+          <header><i data-lucide="user"></i><div><h3 id="h-acc">Account</h3><p>The login you are using on this device.</p></div></header>
+          <div class="sr"><div class="t"><b>Email</b><span id="account-email">—</span></div></div>
+          <div class="sr"><div class="t"><b>Role</b><span id="account-role">—</span></div></div>
+          <div class="sr">
+            <div class="t"><b>Password</b><span>We'll email you a link to set a new one.</span></div>
+            <button id="reset-password-btn" class="btn" type="button"><i data-lucide="key"></i> Send reset email</button>
+          </div>
+          <div class="sr">
+            <div class="t"><b>Sign out</b><span>End your session on this device.</span></div>
+            <button id="sign-out-btn" class="btn btn--danger" type="button"><i data-lucide="log-out"></i> Sign out</button>
+          </div>
+          <p class="smsg" id="m-account" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
+        </section>
+
+        <!-- Appearance -->
+        <section class="sg" id="appearance" aria-labelledby="h-app">
+          <header><i data-lucide="sun"></i><div><h3 id="h-app">Appearance</h3><p>Choose how the app looks. Changes apply straight away and are remembered on this device.</p></div></header>
+          <div class="mode" id="modes" role="radiogroup" aria-label="Theme">
+            <button type="button" role="radio" data-m="light" aria-checked="false"><i data-lucide="sun"></i><span>Light</span></button>
+            <button type="button" role="radio" data-m="dark" aria-checked="false"><i data-lucide="moon"></i><span>Dark</span></button>
+            <button type="button" role="radio" data-m="system" aria-checked="false"><i data-lucide="monitor"></i><span>System</span></button>
+          </div>
+          <p class="mu" id="mode-now" style="padding:0 16px 14px; margin:0; color:var(--text-muted); font-size:13.5px;"></p>
+        </section>
+
+        <!-- Business -->
+        <section class="sg" id="about" aria-labelledby="h-biz">
+          <header><i data-lucide="building-2"></i><div><h3 id="h-biz">Business details</h3><p>Shown on job cards, receipts and quotations.</p></div></header>
+          <div class="sx">
+            <div class="sgrid">
+              <div class="field"><label for="biz-name">Business name</label><input type="text" id="biz-name" maxlength="120" /></div>
+              <div class="field"><label for="biz-tagline">Tagline</label><input type="text" id="biz-tagline" maxlength="160" /></div>
+              <div class="field full"><label for="biz-address">Address</label><input type="text" id="biz-address" maxlength="240" /></div>
+              <div class="field"><label for="biz-phone">Phone</label><input type="text" id="biz-phone" maxlength="40" /></div>
+              <div class="field"><label for="biz-email">Email</label><input type="text" id="biz-email" maxlength="120" /></div>
+              <div class="field full"><label for="biz-hours">Opening hours</label><input type="text" id="biz-hours" maxlength="120" placeholder="e.g. Mon–Sat 8am–5pm" /></div>
             </div>
-          </section>
+            <div class="row"><button id="save-business-btn" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save business details</button></div>
+            <p class="smsg" id="m-biz" role="status" aria-live="polite"></p>
+          </div>
+        </section>
 
-          <section id="about" class="settings-section panel" style="padding:20px;">
-            <h2>About Us</h2>
-            <div class="field"><label>Business Name</label><input type="text" id="biz-name" /></div>
-            <div class="field"><label>Tagline</label><input type="text" id="biz-tagline" /></div>
-            <div class="field"><label>Address</label><input type="text" id="biz-address" /></div>
-            <div class="field"><label>Phone</label><input type="text" id="biz-phone" /></div>
-            <div class="field"><label>Email</label><input type="text" id="biz-email" /></div>
-            <div class="field"><label>Hours</label><input type="text" id="biz-hours" placeholder="e.g. Mon–Sat 8am–5pm" /></div>
-            <button id="save-business-btn" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
-          </section>
+        <!-- Labour charges -->
+        <section class="sg" id="labour" aria-labelledby="h-lab">
+          <header><i data-lucide="gauge"></i><div><h3 id="h-lab">Labour charges</h3><p>Charge per hour for each kind of vehicle. A new job card picks the charge from the vehicle's make; staff can still change it on the job.</p></div></header>
+          <p class="tier-head">Makes are comma-separated (for example: Toyota, Honda). Leave makes empty for a charge that is only picked by hand. One charge is the default for makes that don't match.</p>
+          <div class="tier-list" id="tiers-list"><div class="sx" style="color:var(--text-muted)">Loading…</div></div>
+          <div class="sx">
+            <p class="jc-subtitle" style="margin:0 0 10px; display:flex; align-items:center; gap:8px; font-weight:600;"><i data-lucide="plus"></i> Add a labour charge</p>
+            <form id="tier-form" class="tier-row" style="padding:0; border:0;" novalidate>
+              <div class="field"><label for="tier-name">Name</label><input type="text" id="tier-name" maxlength="60" placeholder="e.g. Electric / Hybrid" /></div>
+              <div class="field"><label for="tier-rate">Per hour ($)</label><input type="number" id="tier-rate" step="0.01" min="0" /></div>
+              <div class="field wide"><label for="tier-makes">Makes</label><input type="text" id="tier-makes" placeholder="e.g. Tesla, BYD" /></div>
+              <label class="def"><input type="checkbox" id="tier-default" /> Default</label>
+              <div class="acts"><button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add</button></div>
+            </form>
+            <p class="smsg" id="tier-form-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
 
-          <section id="notifications" class="settings-section panel" style="padding:20px;">
-            <h2>Notifications</h2>
-            <p style="color:var(--text-dim,#7c9490); font-size:.85rem; margin-bottom:16px;">The bell icon in the top-right corner of every page shows these live — overdue bills, low stock, expiring contracts, uncollected vehicles, low petty cash, and ledger integrity. This tab is for reference; there's nothing to configure here yet.</p>
-            <div id="notifications-list"><p style="color:var(--text-dim,#7c9490)">Loading…</p></div>
-          </section>
+        <!-- Currency -->
+        <section class="sg" id="currency" aria-labelledby="h-cur">
+          <header><i data-lucide="banknote"></i><div><h3 id="h-cur">Currency &amp; exchange rate</h3><p>Used to show ZiG amounts next to US dollar totals.</p></div></header>
+          <div class="sr">
+            <div class="t"><b>USD to ZiG rate</b><span id="rate-updated">How many ZiG one US dollar buys.</span></div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="number" step="0.0001" min="0" id="exchange-rate" style="width:140px" aria-label="USD to ZiG rate" />
+              <button id="save-rate-btn" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save</button>
+            </div>
+          </div>
+          <p class="smsg" id="m-rate" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
+        </section>
 
-          <section id="guide" class="settings-section panel" style="padding:20px;">
-            <h2>User Guide</h2>
-            <div id="guide-accordion"></div>
-          </section>
+        <!-- Notifications -->
+        <section class="sg" id="notifications" aria-labelledby="h-not">
+          <header><i data-lucide="bell"></i><div><h3 id="h-not">Notifications</h3><p>The bell at the top right shows these live: overdue bills, low stock, expiring contracts, uncollected vehicles, low petty cash and ledger checks.</p></div></header>
+          <div id="notifications-list"><div class="sx" style="color:var(--text-muted)">Loading…</div></div>
+        </section>
 
-          <section id="currency" class="settings-section panel" style="padding:20px;">
-            <h2>Currency &amp; Rates</h2>
-            <div class="field"><label>USD to ZWG Rate</label><input type="number" step="0.0001" id="exchange-rate" /></div>
-            <button id="save-rate-btn" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
-          </section>
+        <!-- Access control -->
+        <section class="sg" id="access-control" aria-labelledby="h-acl">
+          <header><i data-lucide="shield"></i><div><h3 id="h-acl">Access control</h3><p>Who can sign in and what each person can see.</p></div></header>
+          <div class="sx" id="access-control-content"><p style="color:var(--text-muted)">Loading…</p></div>
+        </section>
 
-          <section id="account" class="settings-section panel" style="padding:20px;">
-            <h2>Account</h2>
-            <div class="field"><label>Email</label><div id="account-email">—</div></div>
-            <div class="field"><label>Role</label><div id="account-role">—</div></div>
-            <button id="reset-password-btn" class="btn"><i data-lucide="key"></i> Send Password Reset Email</button>
-            <button id="sign-out-btn" class="btn" style="margin-left:8px; border-color:#ff4d4d; color:#ff4d4d;"><i data-lucide="log-out"></i> Sign Out</button>
-          </section>
-
-          <section id="access-control" class="settings-section panel" style="padding:20px;">
-            <h2>Access Control</h2>
-            <div id="access-control-content"><p style="color:var(--text-dim,#7c9490)">Loading…</p></div>
-          </section>
-
-        </div>
+        <!-- User guide -->
+        <section class="sg" id="guide" aria-labelledby="h-gd">
+          <header><i data-lucide="book-open"></i><div><h3 id="h-gd">User guide</h3><p>Quick answers to common tasks.</p></div></header>
+          <div class="sx"><div id="guide-accordion"></div></div>
+        </section>
       </div>
     </main>
   </div>
