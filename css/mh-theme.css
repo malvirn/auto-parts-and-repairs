@@ -1,0 +1,536 @@
+/* =====================================================================
+   MaternityHelp design system — applied to Auto Parts & Repairs.
+   Visual layer only: loaded last on every page so it overrides the old
+   "Instrument Cluster" look. No markup, logic or behaviour depends on it.
+   Tokens, radii, shadows, type and motion are copied from MaternityHelp
+   (index.html, "v4 professional hospital design" + v5 blocks).
+   ===================================================================== */
+
+/* ---------- 1. Tokens (dark = default, light via data-theme) ---------- */
+:root:not(#mh),
+:root:not(#mh) body {
+  --mh-bg:#0b1220; --mh-card:#111a2b; --mh-bd:#1e2a3e; --mh-in:#0d1626; --mh-tx:#e6ebf3; --mh-mu:#8d99ad;
+  --mh-ac:#4f8cf7; --mh-ah:#3b78e6; --mh-al:#8db4ff; --mh-glow:#13213a;
+  --mh-rs:#fb7185; --mh-gr:#34d399; --mh-tl:#2dd4bf; --mh-am:#fbbf24; --mh-vi:#a78bfa;
+  --mh-sh:0 1px 2px rgba(0,0,0,.3); --mh-sh2:0 12px 32px rgba(0,0,0,.45); --mh-r:16px;
+
+  /* the names this app's stylesheets and scripts already read */
+  --bg:var(--mh-bg); --surface:var(--mh-card); --surface-2:var(--mh-in); --surface-alt:var(--mh-in); --panel:var(--mh-in);
+  --border:var(--mh-bd); --text:var(--mh-tx); --text-muted:var(--mh-mu); --text-dim:var(--mh-mu);
+  --accent:var(--mh-ac); --accent-hover:var(--mh-ah); --accent-dim:var(--mh-bd); --primary:var(--mh-ac);
+  --success:var(--mh-gr); --warning:var(--mh-am); --danger:var(--mh-rs);
+  --radius:var(--mh-r);
+  --font-heading:'Inter', system-ui, sans-serif; --font-body:'Inter', system-ui, sans-serif;
+  color-scheme:dark;
+}
+:root[data-theme="light"]:not(#mh),
+:root[data-theme="light"]:not(#mh) body,
+:root:not(#mh) body[data-theme="light"] {
+  --mh-bg:#f3f6fb; --mh-card:#ffffff; --mh-bd:#e3e8f0; --mh-in:#f6f8fc; --mh-tx:#0f172a; --mh-mu:#64748b;
+  --mh-ac:#1f5fd6; --mh-ah:#174cb0; --mh-al:#1f5fd6; --mh-glow:#e9f0fd;
+  --mh-rs:#e11d48; --mh-gr:#059669; --mh-tl:#0d9488; --mh-am:#d97706; --mh-vi:#7c3aed;
+  --mh-sh:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06); --mh-sh2:0 18px 40px rgba(15,23,42,.14);
+  color-scheme:light;
+}
+
+/* ---------- 2. Base ---------- */
+html body {
+  font-family:'Inter', system-ui, sans-serif;
+  font-size:16px; line-height:1.45;
+  background:var(--mh-bg); background-image:none;
+  color:var(--mh-tx);
+  font-feature-settings:"cv11","ss01"; -webkit-font-smoothing:antialiased;
+}
+body h1, body h2, body h3, body h4 { font-family:'Inter', system-ui, sans-serif; text-transform:none; }
+body h1 { font-size:24px; font-weight:700; letter-spacing:-.02em; }
+body h2 { font-size:18px; font-weight:700; letter-spacing:-.01em; }
+body h3 { font-size:15px; font-weight:600; letter-spacing:0; }
+body a { color:var(--mh-al); }
+body :focus-visible { outline:2px solid var(--mh-ac); outline-offset:2px; }
+body ::selection { background:color-mix(in srgb,var(--mh-ac) 30%,transparent); }
+
+/* MaternityHelp watermark */
+body::after {
+  content:'MALVIRN GOMO'; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-28deg);
+  font:800 clamp(44px,9vw,130px)/1 'Inter',system-ui,sans-serif; letter-spacing:.14em; color:var(--mh-tx);
+  opacity:.03; pointer-events:none; user-select:none; -webkit-user-select:none; z-index:70; white-space:nowrap;
+}
+
+/* ---------- 3. Sidebar (MH .side / .nv) ---------- */
+body.dashboard-page .sidebar {
+  background:var(--mh-card); border-right:1px solid var(--mh-bd); box-shadow:var(--mh-sh);
+  padding:18px 12px; width:252px;
+}
+body.dashboard-page .sidebar__brand {
+  flex-direction:row; justify-content:flex-start; align-items:center; text-align:left; gap:10px;
+  padding:2px 6px 14px; margin:0 0 10px; border-bottom:1px solid var(--mh-bd);
+  font:700 15px/1.2 'Inter',system-ui,sans-serif; letter-spacing:0; text-transform:none; color:var(--mh-tx);
+}
+body.dashboard-page .sidebar__brand::after { content:'Auto Parts & Repairs'; }
+body.dashboard-page .brand-logo {
+  height:40px; width:auto; max-width:72px; margin:0; flex:none; object-fit:contain;
+  background:#fff; padding:3px 5px; border-radius:10px; box-shadow:var(--mh-sh);
+}
+body.dashboard-page .nav-link {
+  position:relative; display:flex; align-items:center; gap:10px;
+  padding:10px 12px; margin-bottom:3px; border-radius:11px; border-right:0;
+  color:var(--mh-mu); font:500 14.5px 'Inter',system-ui,sans-serif; text-decoration:none;
+  transition:background .15s,color .15s;
+}
+body.dashboard-page .nav-link svg { width:18px; height:18px; opacity:.9; flex:none; }
+body.dashboard-page .nav-link:hover { background:var(--mh-in); color:var(--mh-tx); }
+body.dashboard-page .nav-link.active {
+  background:color-mix(in srgb,var(--mh-ac) 13%,transparent); color:var(--mh-al); font-weight:600; border-right:0;
+}
+body.dashboard-page .nav-link.active::before {
+  content:''; position:absolute; left:-12px; top:9px; bottom:9px; width:3px; border-radius:0 3px 3px 0; background:var(--mh-tl);
+}
+@media (min-width:721px) {
+  body.dashboard-page .sidebar { width:252px; }
+  body.dashboard-page .app-shell { padding-left:252px; }
+  body.dashboard-page .main__header { padding-left:0; }
+}
+
+/* mobile menu button + scrim (MH .ib / .scrim) */
+body.dashboard-page .sidebar-toggle {
+  border-radius:11px; background:var(--mh-card); border:1px solid var(--mh-bd); color:var(--mh-tx); box-shadow:var(--mh-sh);
+}
+body.dashboard-page .sidebar-backdrop { background:rgba(0,0,0,.6); }
+body.dashboard-page .sidebar { transition:transform .2s; }
+
+/* ---------- 4. Main area & page header (MH .mainc / .pghd) ---------- */
+body.dashboard-page .main { padding:22px 26px 60px; max-width:1240px; min-width:0; }
+body.dashboard-page .main__header {
+  align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:16px; padding-bottom:0; border-bottom:0;
+}
+body.dashboard-page .main__header h1 { font:700 24px/1.2 'Inter',system-ui,sans-serif; letter-spacing:-.02em; color:var(--mh-tx); }
+body.dashboard-page .page-intro { color:var(--mh-mu); font-size:13.5px; margin-top:2px; }
+body.dashboard-page .page-section,
+body.dashboard-page .dashboard-section { margin-bottom:16px; }
+
+/* dashboard hero (MH admin .hero) */
+body.dashboard-page .main__header.dashboard-hero {
+  position:relative; overflow:hidden; align-items:flex-end; gap:18px;
+  padding:22px; margin-bottom:16px; border-radius:20px; color:#fff;
+  background:linear-gradient(120deg,#1d4ed8 0%,#2563eb 40%,#0d9488 100%);
+  box-shadow:0 14px 34px rgba(29,78,216,.25);
+}
+body.dashboard-page .dashboard-hero::before {
+  content:''; position:absolute; right:-60px; top:-80px; width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%); pointer-events:none;
+}
+body.dashboard-page .dashboard-hero > * { position:relative; }
+body.dashboard-page .dashboard-hero h1 { color:#fff; font-size:28px; margin:4px 0; }
+body.dashboard-page .dashboard-hero .page-intro { color:#fff; opacity:.92; font-size:14.5px; }
+body.dashboard-page .dashboard-hero__logo { height:52px; background:#fff; padding:4px 6px; border-radius:14px; box-shadow:0 8px 28px rgba(15,23,42,.22); }
+body.dashboard-page .dashboard-hero .btn--primary { background:#fff; color:#1d4ed8; border-color:#fff; }
+body.dashboard-page .dashboard-hero .btn--primary:hover { background:#eff6ff; box-shadow:none; }
+
+/* ---------- 5. Section headings ---------- */
+body.dashboard-page .section-heading { margin-bottom:10px; align-items:flex-end; }
+body.dashboard-page .section-heading h2,
+body.dashboard-page .section-inline-heading h2 {
+  font:700 18px 'Inter',system-ui,sans-serif; letter-spacing:-.01em; text-transform:none; color:var(--mh-tx);
+}
+body.dashboard-page .section-kicker {
+  color:var(--mh-mu); font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; margin-bottom:3px;
+}
+body.dashboard-page .section-note { color:var(--mh-mu); font-size:13px; }
+body.dashboard-page .section-heading-icon,
+body.dashboard-page .chart-heading-icon { color:var(--mh-al); }
+body.dashboard-page .section-inline-heading { padding:14px 16px; border-bottom:1px solid var(--mh-bd); }
+
+/* ---------- 6. KPI cards (MH .kpi) ---------- */
+body.dashboard-page .card-grid {
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px;
+}
+body.dashboard-page .stat-card,
+body.dashboard-page .stat-card:nth-child(1) {
+  min-height:0; padding:14px 16px; border:1px solid var(--mh-bd); border-radius:var(--mh-r);
+  background:var(--mh-card); box-shadow:var(--mh-sh); position:relative; overflow:hidden;
+  transition:border-color .15s,transform .15s;
+}
+body.dashboard-page .stat-card__label {
+  margin-bottom:4px; color:var(--mh-mu); font-size:13px; font-weight:500; letter-spacing:0; text-transform:none; line-height:1.3;
+}
+body.dashboard-page .stat-card__value {
+  font:700 24px/1.1 'Inter',system-ui,sans-serif; letter-spacing:-.02em; color:var(--mh-tx); font-variant-numeric:tabular-nums;
+}
+body.dashboard-page .stat-card.is-actionable { cursor:pointer; }
+body.dashboard-page .stat-card.is-actionable:hover,
+body.dashboard-page .stat-card.is-actionable:focus-visible {
+  background:var(--mh-card); border-color:var(--mh-ac); box-shadow:var(--mh-sh); transform:translateY(-1px);
+}
+body.dashboard-page .stat-card.is-actionable:active { transform:none; }
+body.dashboard-page .stat-card.is-actionable::after { color:var(--mh-al); font-size:12px; }
+body.dashboard-page .mini-trend--steady polyline { stroke:var(--mh-ac); }
+body.dashboard-page .gauge-card { border-radius:var(--mh-r); background:var(--mh-card); border-color:var(--mh-bd); box-shadow:var(--mh-sh); }
+body.dashboard-page .gauge-num,
+body.dashboard-page .gauge-info .value { font-family:'Inter',system-ui,sans-serif; letter-spacing:-.02em; }
+body.dashboard-page .gauge-info .label { text-transform:none; letter-spacing:0; font-size:13px; }
+
+/* ---------- 7. Panels / cards (MH .pnl / .tcard) ---------- */
+body.dashboard-page .panel,
+body.dashboard-page .dashboard-table-panel,
+body.dashboard-page .chart-card,
+body.dashboard-page .alert-card,
+body.dashboard-page .dept-card,
+body.dashboard-page .payroll-banner,
+body.dashboard-page .module-card,
+body.dashboard-page .form-grid.panel,
+body.dashboard-page form.panel {
+  background:var(--mh-card); border:1px solid var(--mh-bd); border-radius:var(--mh-r); box-shadow:var(--mh-sh);
+}
+body.dashboard-page .panel { margin-bottom:16px; }
+body.dashboard-page .chart-card { padding:14px 16px; }
+body.dashboard-page .chart-card h3,
+body.dashboard-page .alert-card h4 {
+  color:var(--mh-mu); font:700 12px 'Inter',system-ui,sans-serif; letter-spacing:.09em; text-transform:uppercase; margin-bottom:12px;
+}
+body.dashboard-page .payroll-banner.processed { border-color:var(--mh-gr); }
+body.dashboard-page .analytics-grid { gap:16px; }
+
+/* accounting module tiles (MH .kpi.click + .kic) */
+body.dashboard-page .module-card { transition:border-color .15s,transform .15s; }
+body.dashboard-page .module-card:hover { border-color:var(--mh-ac); transform:translateY(-1px); box-shadow:var(--mh-sh); }
+body.dashboard-page .module-card__icon {
+  width:42px; height:42px; border-radius:12px; background:color-mix(in srgb,var(--mh-ac) 14%,transparent); color:var(--mh-ac);
+}
+body.dashboard-page .module-card__title { font-size:15px; font-weight:700; letter-spacing:-.01em; }
+body.dashboard-page .module-card__desc { color:var(--mh-mu); font-size:13.5px; }
+
+/* quick actions (MH .qa) */
+body.dashboard-page .quick-actions { gap:8px; }
+body.dashboard-page .quick-action {
+  align-items:flex-start; gap:8px; padding:12px; border:1px solid var(--mh-bd); border-radius:12px; background:var(--mh-in);
+  color:var(--mh-tx); box-shadow:none; transition:border-color .15s,background .15s;
+}
+body.dashboard-page .quick-action:hover {
+  transform:none; box-shadow:none; border-color:var(--mh-ac); background:color-mix(in srgb,var(--mh-ac) 7%,var(--mh-in));
+}
+body.dashboard-page .quick-action i,
+body.dashboard-page .quick-action svg { width:20px; height:20px; color:var(--mh-al); }
+body.dashboard-page .quick-action span { font-size:13.5px; font-weight:600; text-align:left; }
+
+/* needs-attention rows (MH .arow) */
+body.dashboard-page #attention-panel { padding:14px 16px !important; display:flex; flex-direction:column; gap:6px; }
+body.dashboard-page .attention-item {
+  padding:10px 12px; border:1px solid var(--mh-bd); border-radius:12px; background:var(--mh-in); color:var(--mh-tx);
+  transition:border-color .15s;
+}
+body.dashboard-page .attention-item:last-child { border-bottom:1px solid var(--mh-bd); }
+body.dashboard-page .attention-item:hover { background:var(--mh-in); border-color:var(--mh-ac); }
+body.dashboard-page .attention-item__label { font-size:14.5px; gap:12px; }
+body.dashboard-page .attention-item__icon {
+  width:32px; height:32px; padding:8px; border-radius:10px; box-sizing:border-box; background:var(--mh-card); color:var(--mh-mu);
+}
+body.dashboard-page .attention-item.urgent .attention-item__icon { background:color-mix(in srgb,var(--mh-rs) 16%,transparent); color:var(--mh-rs); }
+body.dashboard-page .attention-item.warning .attention-item__icon { background:color-mix(in srgb,var(--mh-am) 16%,transparent); color:var(--mh-am); }
+body.dashboard-page .attention-empty { color:var(--mh-mu); font-size:14px; }
+
+/* ---------- 8. Tables (MH .itbl) ---------- */
+body.dashboard-page table { border-collapse:collapse; font-size:14px; }
+body.dashboard-page th,
+body.dashboard-page td { border-bottom:1px solid var(--mh-bd); color:var(--mh-tx); font-size:14px; }
+body.dashboard-page td { padding:12px; vertical-align:middle; }
+body.dashboard-page th {
+  padding:10px 12px; background:var(--mh-in); color:var(--mh-mu);
+  font:600 11.5px 'Inter',system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+  border-bottom:1px solid var(--mh-bd);
+}
+body.dashboard-page tbody tr:nth-child(even) { background:transparent; }
+body.dashboard-page tbody tr:hover,
+body.dashboard-page tbody tr:hover td { background:var(--mh-in); }
+body.dashboard-page .statement-section-label { background:var(--mh-in); }
+body.dashboard-page .leaderboard-row { border-bottom-color:var(--mh-bd); padding:10px 0; }
+body.dashboard-page .rank-badge {
+  border-radius:9px; background:color-mix(in srgb,var(--mh-ac) 14%,transparent); color:var(--mh-al); font-weight:700;
+}
+
+/* ---------- 9. Pills / badges (MH .pill) ---------- */
+body .badge,
+body .status-badge,
+body .type-badge,
+body .contract-warning,
+body .supplier-chip,
+body .off-day-chip {
+  font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; border:1px solid var(--mh-bd);
+  background:var(--mh-in); color:var(--mh-mu); white-space:nowrap;
+}
+body .badge--received, body .badge--awaiting, body .badge--completed,
+body .status-badge.disposed, body .type-badge { background:var(--mh-in); border-color:var(--mh-bd); color:var(--mh-mu); }
+body .badge--diagnosing, body .status-badge.partially_paid {
+  background:color-mix(in srgb,var(--mh-am) 14%,transparent); border-color:color-mix(in srgb,var(--mh-am) 45%,transparent); color:var(--mh-am);
+}
+body .badge--in-repair, body .supplier-chip.preferred {
+  background:color-mix(in srgb,var(--mh-ac) 14%,transparent); border-color:color-mix(in srgb,var(--mh-ac) 45%,transparent); color:var(--mh-al);
+}
+body .badge--ready, body .badge--collected, body .status-badge.paid, body .status-badge.active {
+  background:color-mix(in srgb,var(--mh-gr) 14%,transparent); border-color:color-mix(in srgb,var(--mh-gr) 45%,transparent); color:var(--mh-gr);
+}
+body .badge--unclaimed, body .status-badge.unpaid, body .contract-warning {
+  background:color-mix(in srgb,var(--mh-rs) 14%,transparent); border-color:color-mix(in srgb,var(--mh-rs) 45%,transparent); color:var(--mh-rs);
+}
+body.dashboard-page .stock-low { color:var(--mh-rs); }
+body.dashboard-page .margin-badge { color:var(--mh-gr); }
+
+/* ---------- 10. Buttons (MH .btn / .btn.g / .chip) ---------- */
+body.dashboard-page .btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:10px 16px; border-radius:11px; border:1px solid var(--mh-bd);
+  background:transparent; color:var(--mh-tx); box-shadow:none;
+  font:600 14.5px 'Inter',system-ui,sans-serif; text-decoration:none; cursor:pointer;
+  transition:background .15s,border-color .15s,transform .1s,box-shadow .15s;
+}
+body.dashboard-page .btn:hover { background:var(--mh-in); border-color:var(--mh-mu); }
+body.dashboard-page .btn:active { transform:translateY(1px); }
+body.dashboard-page .btn svg { width:16px; height:16px; }
+body.dashboard-page .btn--primary { background:var(--mh-ac); border-color:var(--mh-ac); color:#fff; }
+body.dashboard-page .btn--primary:hover {
+  background:var(--mh-ah); border-color:var(--mh-ah); box-shadow:0 4px 14px color-mix(in srgb,var(--mh-ac) 35%,transparent);
+}
+body.dashboard-page .btn--danger { color:var(--mh-rs); border-color:color-mix(in srgb,var(--mh-rs) 45%,transparent); }
+body.dashboard-page .btn--danger:hover { background:color-mix(in srgb,var(--mh-rs) 10%,transparent); border-color:var(--mh-rs); }
+body.dashboard-page .btn:disabled,
+body.dashboard-page .btn[disabled] { opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+body.dashboard-page .preset-btns button { padding:6px 11px; font-size:13px; border-radius:9px; }
+
+/* accounting module switcher → MH chips */
+body.dashboard-page .module-tabs { gap:6px !important; }
+body.dashboard-page .module-tabs .btn {
+  border-radius:99px; padding:6px 12px; font-size:13px; background:var(--mh-card); border-color:var(--mh-bd); color:var(--mh-mu);
+}
+body.dashboard-page .module-tabs .btn:hover { color:var(--mh-tx); border-color:var(--mh-mu); background:var(--mh-card); }
+body.dashboard-page .module-tabs .btn--primary { background:var(--mh-ac); border-color:var(--mh-ac); color:#fff; }
+body.dashboard-page .module-tabs .btn--primary:hover { background:var(--mh-ac); color:#fff; box-shadow:none; }
+body.dashboard-page .module-tabs .btn svg { width:15px; height:15px; }
+
+/* ---------- 11. Forms (MH inputs + label.l) ---------- */
+body.dashboard-page input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]),
+body.dashboard-page select,
+body.dashboard-page textarea {
+  font-family:inherit; color:var(--mh-tx); background:var(--mh-in);
+  border:1px solid var(--mh-bd); border-radius:11px; outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+body.dashboard-page input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]):focus,
+body.dashboard-page select:focus,
+body.dashboard-page textarea:focus {
+  border-color:var(--mh-ac); outline:none; box-shadow:0 0 0 3px color-mix(in srgb,var(--mh-ac) 18%,transparent);
+}
+body.dashboard-page input:disabled,
+body.dashboard-page select:disabled,
+body.dashboard-page textarea:disabled { opacity:.65; cursor:not-allowed; background:color-mix(in srgb,var(--mh-bd) 35%,var(--mh-in)); }
+body.dashboard-page input::placeholder,
+body.dashboard-page textarea::placeholder { color:var(--mh-mu); opacity:.8; }
+body.dashboard-page input[type=checkbox],
+body.dashboard-page input[type=radio] { accent-color:var(--mh-ac); }
+
+body.dashboard-page .field input,
+body.dashboard-page .field select,
+body.dashboard-page .field textarea { min-height:42px; padding:10px 12px; font-size:15px; }
+body.dashboard-page .field textarea { min-height:76px; resize:vertical; line-height:1.5; }
+body.dashboard-page .field label {
+  color:var(--mh-mu); font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; margin-bottom:0;
+}
+body.dashboard-page .form-message { color:var(--mh-rs); font-size:13.5px; }
+body.dashboard-page .quotation-total { border-top:1px dashed var(--mh-bd); }
+body.dashboard-page .quotation-total strong { font-family:'Inter',system-ui,sans-serif; color:var(--mh-tx); font-size:20px; letter-spacing:-.02em; }
+body.dashboard-page .quotation-line { background:var(--mh-in); border:1px solid var(--mh-bd); border-radius:12px; }
+body.dashboard-page .landed-summary,
+body.dashboard-page .quote-detail-block,
+body.dashboard-page .online-result,
+body.dashboard-page #pickup-countdown-block {
+  background:var(--mh-in); border:1px solid var(--mh-bd); border-radius:12px;
+}
+body.dashboard-page .suppliers-checklist { border-color:var(--mh-bd); border-radius:12px; background:var(--mh-in); }
+body.dashboard-page .part-thumb,
+body.dashboard-page .part-image-preview { border-color:var(--mh-bd); border-radius:12px; }
+
+/* status boxes (MH .okn / .lockn) */
+body.dashboard-page .balance-status,
+body.dashboard-page .balance-check { border-radius:12px; font-size:14px; }
+body.dashboard-page .balance-status.ok,
+body.dashboard-page .balance-check.balanced {
+  background:color-mix(in srgb,var(--mh-gr) 10%,transparent); color:var(--mh-gr); border:1px solid color-mix(in srgb,var(--mh-gr) 30%,transparent);
+}
+body.dashboard-page .balance-status.off,
+body.dashboard-page .balance-check.unbalanced {
+  background:color-mix(in srgb,var(--mh-rs) 10%,transparent); color:var(--mh-rs); border:1px solid color-mix(in srgb,var(--mh-rs) 30%,transparent);
+}
+body.dashboard-page .cash-in, body.dashboard-page .float-status.ok, body.dashboard-page .aging-current { color:var(--mh-gr); }
+body.dashboard-page .cash-out, body.dashboard-page .float-status.low, body.dashboard-page .aging-danger { color:var(--mh-rs); }
+body.dashboard-page .aging-warn { color:var(--mh-am); }
+
+/* ---------- 12. Modals (MH .ov / .md) ---------- */
+body.dashboard-page .modal-overlay {
+  background:rgba(6,10,20,.62); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); animation:mhOvIn .15s ease-out;
+}
+body.dashboard-page .modal {
+  background:var(--mh-card) !important; color:var(--mh-tx);
+  border:1px solid var(--mh-bd); border-radius:20px !important; box-shadow:var(--mh-sh2) !important;
+  animation:mhMdIn .2s ease-out;
+}
+body.dashboard-page .modal h3,
+body.dashboard-page .modal > h3 { font:700 18px 'Inter',system-ui,sans-serif; letter-spacing:-.01em; color:var(--mh-tx); border-bottom-color:var(--mh-bd); }
+body.dashboard-page .modal-actions { background:var(--mh-card); border-top-color:var(--mh-bd); }
+body.dashboard-page .modal-actions-secondary { border-top-color:var(--mh-bd); }
+body.dashboard-page .modal-section { border-bottom-color:var(--mh-bd); }
+body.dashboard-page .modal-section-title { color:var(--mh-mu); font-size:11.5px; font-weight:700; letter-spacing:.08em; }
+body.dashboard-page .modal-section-title i,
+body.dashboard-page .modal-section-title svg { color:var(--mh-al); }
+@keyframes mhOvIn { from { opacity:0 } to { opacity:1 } }
+@keyframes mhMdIn { from { transform:translateY(16px); opacity:.6 } to { transform:none; opacity:1 } }
+
+/* ---------- 13. Settings (MH settings groups, nav and switch) ---------- */
+body.dashboard-page .settings-nav { width:220px; display:flex; flex-direction:column; gap:3px; }
+body.dashboard-page .settings-nav button {
+  position:relative; padding:10px 12px; border-radius:11px; color:var(--mh-mu); font:500 14.5px 'Inter',system-ui,sans-serif;
+}
+body.dashboard-page .settings-nav button svg { width:18px; height:18px; }
+body.dashboard-page .settings-nav button:hover { background:var(--mh-in); color:var(--mh-tx); }
+body.dashboard-page .settings-nav button.active {
+  background:color-mix(in srgb,var(--mh-ac) 13%,transparent); color:var(--mh-al); font-weight:600;
+}
+body.dashboard-page .settings-section h2 { margin-bottom:6px; }
+body.dashboard-page .toggle-row { border-bottom:1px solid var(--mh-bd); padding:14px 0; gap:14px; }
+body.dashboard-page .toggle-row input[type=checkbox] {
+  -webkit-appearance:none; appearance:none; position:relative; flex:none; margin:0;
+  width:46px; height:26px; border-radius:99px; background:var(--mh-bd); cursor:pointer; transition:background .15s;
+}
+body.dashboard-page .toggle-row input[type=checkbox]::before {
+  content:''; position:absolute; left:3px; top:3px; width:20px; height:20px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .15s;
+}
+body.dashboard-page .toggle-row input[type=checkbox]:checked { background:var(--mh-gr); }
+body.dashboard-page .toggle-row input[type=checkbox]:checked::before { transform:translateX(20px); }
+body.dashboard-page .accordion-item { border:1px solid var(--mh-bd); border-radius:14px; background:var(--mh-card); }
+body.dashboard-page .accordion-header { padding:14px 16px; }
+body.dashboard-page .accordion-body { color:var(--mh-mu); padding:0 16px 14px; }
+body.dashboard-page .danger-zone {
+  border:1px solid color-mix(in srgb,var(--mh-rs) 45%,transparent); border-radius:14px; background:color-mix(in srgb,var(--mh-rs) 6%,transparent);
+}
+body.dashboard-page .danger-zone h3 { color:var(--mh-rs); }
+
+/* staff hierarchy */
+body.dashboard-page .rank-tier__label { color:var(--mh-mu); border-bottom-color:var(--mh-bd); letter-spacing:.08em; }
+body.dashboard-page .hierarchy-person { border-radius:10px; }
+body.dashboard-page .hierarchy-person:hover { background:var(--mh-in); }
+body.dashboard-page .alert-row { border-bottom-color:var(--mh-bd); }
+
+/* ---------- 14. Notification bell (injected by notifications.js) ---------- */
+html body #global-notif-bell {
+  border-radius:11px; background:var(--mh-card); border:1px solid var(--mh-bd); color:var(--mh-tx); box-shadow:var(--mh-sh);
+}
+html body #global-notif-bell:hover { border-color:var(--mh-ac); }
+html body #global-notif-badge { background:var(--mh-rs); border:2px solid var(--mh-bg); min-width:20px; height:20px; font-size:11px; }
+html body #global-notif-panel {
+  background:var(--mh-card); border:1px solid var(--mh-bd); border-radius:var(--mh-r); box-shadow:var(--mh-sh2); animation:mhMdIn .2s ease-out;
+}
+html body #global-notif-panel h4 { color:var(--mh-mu); font-size:11.5px; font-weight:600; letter-spacing:.08em; }
+html body .global-notif-item { border-radius:10px; }
+html body .global-notif-item:hover { background:var(--mh-in); }
+
+/* ---------- 15. Sign-in page (MH animated auth, card view) ---------- */
+html body.login-page {
+  position:relative; overflow-x:hidden; padding:24px 16px;
+  background:linear-gradient(150deg,#0f2b6b 0%,#1d4ed8 45%,#0f766e 100%);
+}
+html body.login-page::before {
+  content:''; position:fixed; inset:-20%; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(380px 380px at 15% 15%,rgba(56,189,248,.55),transparent 70%),
+    radial-gradient(320px 320px at 85% 80%,rgba(45,212,191,.55),transparent 70%),
+    radial-gradient(260px 260px at 55% 50%,rgba(129,140,248,.35),transparent 70%);
+  filter:blur(40px); animation:mhOrb 16s ease-in-out infinite;
+}
+html body.login-page::after { color:#fff; opacity:.05; }
+@keyframes mhOrb {
+  0%,100% { transform:translate(0,0) scale(1); }
+  33% { transform:translate(40px,30px) scale(1.08); }
+  66% { transform:translate(-30px,20px) scale(.95); }
+}
+body.login-page .login-card {
+  position:relative; z-index:1; max-width:430px; padding:28px 24px;
+  background:var(--mh-card); border:1px solid var(--mh-bd); border-radius:22px; box-shadow:var(--mh-sh2);
+  animation:mhRise .6s ease-out both;
+}
+body.login-page .login-card::before { display:none; }
+@keyframes mhRise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+body.login-page .login-logo img { height:64px; background:#fff; padding:6px 8px; border-radius:18px; box-shadow:0 8px 28px rgba(38,70,127,.22); }
+body.login-page .login-title {
+  font:700 28px/1.15 'Inter',system-ui,sans-serif; letter-spacing:-.03em; text-transform:none; color:var(--mh-tx);
+}
+body.login-page .login-subtitle { color:var(--mh-mu); font-size:15px; margin-bottom:18px; }
+body.login-page .login-field label { color:var(--mh-mu); font-size:11.5px; font-weight:600; letter-spacing:.08em; }
+body.login-page .login-input-wrap input {
+  font:15px 'Inter',system-ui,sans-serif; color:var(--mh-tx); background:var(--mh-card);
+  border:1px solid var(--mh-bd); border-radius:12px; padding-top:13px; padding-bottom:13px;
+}
+body.login-page .login-input-wrap input:focus {
+  border-color:var(--mh-ac); box-shadow:0 0 0 3px color-mix(in srgb,var(--mh-ac) 18%,transparent);
+}
+body.login-page .login-input-wrap .field-icon {
+  position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; z-index:1; pointer-events:none; color:var(--mh-mu);
+}
+body.login-page .login-input-wrap .toggle-password { color:var(--mh-mu); z-index:1; }
+body.login-page .login-input-wrap .toggle-password:hover { color:var(--mh-tx); background:var(--mh-in); }
+body.login-page .login-submit {
+  padding:14px; border-radius:12px; color:#fff; font:600 15.5px 'Inter',system-ui,sans-serif;
+  background:linear-gradient(120deg,var(--mh-ac),#0d9488);
+}
+body.login-page .login-submit:hover { filter:none; box-shadow:0 4px 14px color-mix(in srgb,var(--mh-ac) 35%,transparent); }
+body.login-page .login-message[data-tone="error"] { color:var(--mh-rs); }
+body.login-page .login-message[data-tone="info"],
+body.login-page .login-footer { color:var(--mh-mu); }
+
+/* ---------- 16. Responsive (MH mobile spacing) ---------- */
+@media (max-width:720px) {
+  body.dashboard-page .main { padding:14px 14px 90px; }
+  body.dashboard-page .main__header { padding-left:52px; }
+  body.dashboard-page .main__header.dashboard-hero { padding:18px; margin-top:52px; }
+  body.dashboard-page .sidebar { width:270px; }
+  body.dashboard-page .card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  body.dashboard-page .settings-layout { flex-direction:column; }
+  body.dashboard-page .settings-nav { width:auto; }
+}
+@media (max-width:420px) {
+  body.dashboard-page .card-grid { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.dashboard-page .modal, body.dashboard-page .modal-overlay, html body #global-notif-panel,
+  html body.login-page::before, body.login-page .login-card { animation:none !important; }
+}
+
+/* ---------- 17. Receipts keep their own white paper styling ---------- */
+body.dashboard-page .receipt-document th,
+body.dashboard-page .receipt-document td {
+  padding:9px 0; border-bottom:1px solid #d7d7d7; color:#111; background:transparent;
+  font-size:inherit; font-family:inherit; font-weight:inherit; letter-spacing:normal; text-transform:none; vertical-align:top;
+}
+body.dashboard-page .receipt-document th { font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+body.dashboard-page .receipt-document tbody tr:hover,
+body.dashboard-page .receipt-document tbody tr:hover td { background:transparent; }
+body.dashboard-page .receipt-document a { color:#111; }
+body.dashboard-page .receipt-toolbar .btn:not(.btn--primary) { background:#fff; color:#0f172a; border-color:#e3e8f0; }
+body.dashboard-page .receipt-toolbar .btn:not(.btn--primary):hover { background:#f6f8fc; border-color:#64748b; }
+
+/* print */
+@media print {
+  body::after { display:none; }
+}
+
+/* keep page-header actions clear of the fixed notification bell */
+@media (min-width:721px) {
+  body.dashboard-page .main__header:not(.dashboard-hero) { padding-right:56px; }
+}
+
+/* MH modals sit above the whole app, sidebar included (these two pages used z-index 50) */
+body.dashboard-page #edit-modal.modal-overlay,
+body.dashboard-page #employee-modal.modal-overlay { z-index:150; }
+
+/* phone: leave room for the menu button above the brand when the drawer is open */
+@media (max-width:720px) {
+  body.dashboard-page .sidebar { padding-top:68px; }
+}
+

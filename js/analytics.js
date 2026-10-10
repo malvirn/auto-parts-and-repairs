@@ -162,8 +162,8 @@ function renderRevenueChart(jobs) {
       datasets: [{
         label: "Revenue ($)",
         data: revenueByMonth,
-        borderColor: "#c0522d",
-        backgroundColor: "rgba(192,82,45,0.1)",
+        borderColor: "#4f8cf7",
+        backgroundColor: "rgba(79,140,247,0.12)",
         fill: true,
         tension: 0.3,
       }],
@@ -365,7 +365,7 @@ function renderPayrollChart(payrollRuns) {
   if (payrollChart) payrollChart.destroy();
   payrollChart = new Chart(ctx, {
     type: "bar",
-    data: { labels, datasets: [{ label: "Payroll ($)", data, backgroundColor: "#c0522d" }] },
+    data: { labels, datasets: [{ label: "Payroll ($)", data, backgroundColor: "#4f8cf7" }] },
     options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
   });
 }
