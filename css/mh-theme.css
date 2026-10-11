@@ -1072,7 +1072,8 @@ body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px so
   animation:bootPop .35s calc(.25s + var(--i) * 45ms) ease-out both;
 }
 .boot-open { margin:16px 0 0; font-size:13px; opacity:.8; display:inline-flex; align-items:center; gap:6px; }
-.boot-open svg { width:15px; height:15px; animation:spin .8s linear infinite; }
+.boot-open svg { width:15px; height:15px; }
+.boot-open svg.boot-spin { animation:spin .8s linear infinite; }
 
 @keyframes bootFade { from { opacity:0; } to { opacity:1; } }
 @keyframes bootFlow { to { background-position:-200% 0; } }
@@ -1129,4 +1130,57 @@ body.login-page .login-logo img { animation:sysFloat 4.5s ease-in-out infinite; 
 @media (prefers-reduced-motion:reduce) {
   .sys-name span, .sys-tag, body.login-page .login-logo img, .boot-logo::after { animation-duration:.01ms !important; animation-delay:0s !important; animation-iteration-count:1 !important; }
   .boot-tick-p { stroke-dashoffset:0; animation:none; }
+}
+
+/* ---------- Workshop animation: gears, spanner, engine, floating tools ---------- */
+.mech { display:flex; justify-content:center; align-items:flex-end; gap:22px; margin:16px 0 4px; color:#e0f2fe; }
+.mech svg { height:62px; width:auto; overflow:visible; }
+.mech .hole { fill:#1e3a8a; }
+.mech-gears { color:#7dd3fc; }
+.gear-a { animation:gearCW 3s linear infinite; }
+.gear-b { animation:gearCCW 2s linear infinite; color:#5eead4; }
+.mech-spanner .bolt { fill:#94a3b8; stroke:#e2e8f0; stroke-width:1.2; }
+.spanner { color:#fbbf24; animation:spannerTurn 1.6s ease-in-out infinite; }
+.mech-engine { color:#cbd5e1; }
+.mech-engine .cyl { fill:none; stroke:#cbd5e1; stroke-width:2.2; }
+.mech-engine .piston { fill:#f97316; }
+.piston-a { animation:piston .7s ease-in-out infinite; }
+.piston-b { animation:piston .7s ease-in-out infinite -.35s; }
+.mech-engine .puff { fill:#e2e8f0; opacity:0; }
+.puff-a { animation:puff 1.4s ease-out infinite; }
+.puff-b { animation:puff 1.4s ease-out infinite .7s; }
+@keyframes gearCW { to { transform:rotate(360deg); } }
+@keyframes gearCCW { to { transform:rotate(-360deg); } }
+@keyframes spannerTurn { 0%,100% { transform:rotate(-38deg); } 50% { transform:rotate(38deg); } }
+@keyframes piston { 0%,100% { transform:translateY(0); } 50% { transform:translateY(9px); } }
+@keyframes puff { 0% { opacity:.8; transform:translate(0,0) scale(.6); } 100% { opacity:0; transform:translate(8px,-14px) scale(1.8); } }
+
+.boot-floats { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+.boot-card { position:relative; z-index:1; }
+.boot-float {
+  position:absolute; left:var(--x); bottom:-60px; width:var(--s); height:var(--s); color:rgba(255,255,255,.22);
+  animation:toolRise var(--t) linear var(--d) infinite;
+}
+@keyframes toolRise {
+  0% { transform:translateY(0) rotate(0); opacity:0; }
+  10% { opacity:1; }
+  90% { opacity:1; }
+  100% { transform:translateY(calc(-100vh - 120px)) rotate(300deg); opacity:0; }
+}
+
+/* ---------- Access denied ---------- */
+.boot.denied .boot-card { border-color:rgba(248,113,113,.6); box-shadow:0 30px 80px rgba(2,10,30,.45), 0 0 0 1px rgba(248,113,113,.35), 0 0 40px rgba(239,68,68,.35); animation:bootShake .5s ease-in-out both; }
+.boot.denied .boot-floats { opacity:.35; }
+.boot-cross { width:84px; height:84px; margin:16px auto 6px; filter:drop-shadow(0 10px 26px rgba(239,68,68,.55)); animation:bootPop .5s cubic-bezier(.2,.8,.2,1.4) both; }
+.boot-cross svg { width:100%; height:100%; }
+.boot-cross-c { fill:#ef4444; stroke:#fecaca; stroke-width:2; }
+.boot-cross-p { fill:none; stroke:#fff; stroke-width:5; stroke-linecap:round; stroke-dasharray:24; stroke-dashoffset:24; animation:bootDraw .3s .35s ease-out forwards; }
+.boot-cross-p.p2 { animation-delay:.6s; }
+.boot-denied { margin:4px 0 4px; font-size:16px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#fca5a5; }
+.boot-reason { margin:0 0 6px; font-size:14px; color:#fee2e2; }
+@keyframes bootShake { 0%,100% { transform:none; } 20% { transform:translateX(-10px); } 40% { transform:translateX(9px); } 60% { transform:translateX(-6px); } 80% { transform:translateX(4px); } }
+@media (prefers-reduced-motion:reduce) {
+  .gear-a, .gear-b, .spanner, .piston-a, .piston-b, .puff-a, .puff-b, .boot-float { animation:none !important; }
+  .boot-float { display:none; }
+  .boot-cross-p { stroke-dashoffset:0; animation:none; }
 }

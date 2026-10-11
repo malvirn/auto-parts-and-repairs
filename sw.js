@@ -2,7 +2,7 @@
 // the screens loading on a poor connection. Network first, so staff always
 // get the latest version when online; cached copies are only a fallback.
 // Data from Supabase is never cached here.
-const CACHE = "apr-v3";
+const CACHE = "apr-v4";
 const SHELL = ["/", "/index.html", "/login.html", "/css/style.css", "/css/mh-theme.css", "/assets/logo.png", "/icons/icon-192.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {

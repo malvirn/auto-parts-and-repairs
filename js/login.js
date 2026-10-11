@@ -1,6 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { fingerprintSupported, deviceHasFingerprint, signInWithFingerprint } from "./passkey.js";
-import { bootStart, bootCancel, bootFinish, splitLetters } from "./boot.js";
+import { bootStart, bootCancel, bootDeny, bootFinish, splitLetters } from "./boot.js";
 
 const form = document.getElementById("login-form");
 const messageEl = document.getElementById("login-message");
@@ -73,15 +73,16 @@ form.addEventListener("submit", async (e) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
-    bootCancel();
-    showMessage(error ? (error.message || "Sign in failed. Check your email and password.") : "Sign in didn't return a session. Please try again.", "error");
+    const reason = error ? (error.message || "Sign in failed. Check your email and password.") : "Sign in didn't return a session. Please try again.";
+    await bootDeny(reason);
+    showMessage(reason, "error");
     resetButton();
     return;
   }
 
   const problem = await completeSignIn(email);
   if (problem) {
-    bootCancel();
+    await bootDeny(problem);
     showMessage(problem, "error");
     resetButton();
   }
@@ -103,7 +104,10 @@ async function doFingerprint() {
     fpMsg.textContent = "Signed in.";
     bootStart();
     const problem = await completeSignIn("");
-    if (problem) throw new Error(problem);
+    if (problem) {
+      await bootDeny(problem);
+      throw new Error(problem);
+    }
   } catch (err) {
     bootCancel();
     fpMsg.textContent = err.message || String(err);
