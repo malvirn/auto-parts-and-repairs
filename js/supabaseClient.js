@@ -3,8 +3,8 @@
 // 2. For plain HTML/JS, we load Supabase from CDN in each page's <script> tag
 //    and initialise it here.
 
-const SUPABASE_URL = "https://pztwmmkmkyotszylbhsr.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_pi3_GxiETMzWNI-6U7Myhg_SqeHqK00"; // paste your FULL copied key here
+export const SUPABASE_URL = "https://pztwmmkmkyotszylbhsr.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_pi3_GxiETMzWNI-6U7Myhg_SqeHqK00"; // paste your FULL copied key here
 
 // storage: sessionStorage (not the default localStorage) means the
 // session is tied to this specific tab/browser session — closing the

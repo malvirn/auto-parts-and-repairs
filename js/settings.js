@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { fingerprintSupported, registerFingerprint, listFingerprints, removeFingerprint, MAX_FINGERPRINTS } from "./passkey.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -40,6 +41,71 @@ document.querySelectorAll("#modes button").forEach(b => b.addEventListener("clic
 }));
 mq?.addEventListener?.("change", () => { if (currentMode() === "system") applyMode("system"); });
 applyMode(currentMode());
+
+// ---- Fingerprint sign-in ----
+async function loadFingerprints() {
+  const list = $("fp-list");
+  if (!list) return;
+  const supported = await fingerprintSupported();
+  let items = [];
+  try { items = await listFingerprints(); }
+  catch (e) { list.innerHTML = `<div class="sx" style="color:var(--danger)">Couldn't load fingerprints: ${escapeHtml(e.message)}</div>`; return; }
+
+  list.innerHTML = items.length ? items.map(f => `
+    <div class="sr">
+      <div class="t"><b><i data-lucide="fingerprint" class="fp-row-ic"></i> ${escapeHtml(f.label)}</b>
+        <span>Added ${new Date(f.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}${f.last_used_at ? ` · last used ${new Date(f.last_used_at).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : " · not used yet"}</span></div>
+      <button type="button" class="btn btn--danger fp-del" data-id="${f.id}" data-label="${escapeHtml(f.label)}"><i data-lucide="trash-2"></i> Remove</button>
+    </div>`).join("")
+    : `<div class="sr"><div class="t"><b>No fingerprints yet</b><span>Add one below to sign in with your finger.</span></div></div>`;
+
+  const full = items.length >= MAX_FINGERPRINTS;
+  const addBtn = $("fp-add");
+  const label = $("fp-label");
+  if (addBtn) addBtn.disabled = full || !supported;
+  if (label) label.disabled = full || !supported;
+  if (!supported) say("m-fp", "This device or browser doesn't offer fingerprint sign-in. Open the app on a phone or computer with a fingerprint sensor (over https).", false);
+  else if (full) say("m-fp", `This account has ${MAX_FINGERPRINTS} fingerprints, the most allowed. Remove one to add another.`, true);
+  if (window.lucide) lucide.createIcons();
+
+  list.querySelectorAll(".fp-del").forEach(b => b.addEventListener("click", async () => {
+    if (!confirm(`Remove "${b.dataset.label}"? You won't be able to sign in with it any more.`)) return;
+    try { await removeFingerprint(b.dataset.id); say("m-fp", "Fingerprint removed."); }
+    catch (e) { say("m-fp", "Couldn't remove: " + e.message, false); }
+    loadFingerprints();
+  }));
+}
+
+$("fp-add")?.addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  const label = ($("fp-label")?.value || "").trim() || "Fingerprint";
+  busy(btn, true, "Touch the sensor…");
+  say("m-fp", "");
+  try {
+    await registerFingerprint(label);
+    $("fp-label").value = "";
+    say("m-fp", `"${label}" added. Next time, tap "Sign in with fingerprint".`);
+  } catch (err) {
+    say("m-fp", err.message || String(err), false);
+  } finally {
+    busy(btn, false);
+    loadFingerprints();
+  }
+});
+
+// ---- Install app ----
+function refreshInstall() {
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const btn = $("inst-btn");
+  if (!btn) return;
+  if (standalone) {
+    $("inst-state").textContent = "Installed";
+    $("inst-hint").textContent = "You're using the installed app.";
+    btn.hidden = true;
+  }
+}
+$("inst-btn")?.addEventListener("click", () => window.aprInstall ? window.aprInstall() : alert("To install: open the browser menu and tap Install app or Add to Home screen."));
+window.addEventListener("appinstalled", refreshInstall);
 
 // ---- Business details ----
 async function loadBusinessSettings() {
@@ -237,6 +303,8 @@ $("sign-out-btn")?.addEventListener("click", async () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadBusinessSettings();
+  loadFingerprints();
+  refreshInstall();
   loadTiers();
   loadNotifications();
   loadRate();

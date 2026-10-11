@@ -828,3 +828,34 @@ body.dashboard-page .wl-cro { font-weight:700; font-size:13px; font-variant-nume
 body.dashboard-page .wl-veh { min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 body.dashboard-page .wl-veh small { display:block; color:var(--mh-mu); font-size:12px; overflow:hidden; text-overflow:ellipsis; }
 body.dashboard-page .wl-job .badge { font-size:11px; }
+
+/* ---------- Sign-in: fingerprint ---------- */
+body.login-page .fp-box { margin:4px 0 6px; }
+body.login-page .fp-box[hidden] { display:none; }
+body.login-page .fp-btn {
+  width:100%; display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer; text-align:left;
+  border:1.5px solid color-mix(in srgb,var(--mh-ac) 45%,var(--mh-bd)); border-radius:14px;
+  background:color-mix(in srgb,var(--mh-ac) 10%,var(--mh-card)); color:var(--mh-tx); font:inherit;
+  transition:border-color .15s, background .15s, transform .1s;
+}
+body.login-page .fp-btn:hover { border-color:var(--mh-ac); background:color-mix(in srgb,var(--mh-ac) 16%,var(--mh-card)); }
+body.login-page .fp-btn:active { transform:translateY(1px); }
+body.login-page .fp-btn:disabled { opacity:.7; cursor:progress; }
+body.login-page .fp-ic {
+  width:46px; height:46px; flex:none; border-radius:14px; display:grid; place-items:center; color:#fff;
+  background:linear-gradient(120deg,var(--mh-ac),#0d9488); box-shadow:0 6px 18px color-mix(in srgb,var(--mh-ac) 35%,transparent);
+}
+body.login-page .fp-ic svg { width:26px; height:26px; }
+body.login-page .fp-tx b { display:block; font-size:15.5px; }
+body.login-page .fp-tx small { display:block; color:var(--mh-mu); font-size:13px; margin-top:1px; }
+body.login-page .fp-or { display:flex; align-items:center; gap:10px; color:var(--mh-mu); font-size:12.5px; margin:14px 0 4px; }
+body.login-page .fp-or::before, body.login-page .fp-or::after { content:""; flex:1; height:1px; background:var(--mh-bd); }
+body.login-page #fp-message { margin:8px 0 0; }
+body.login-page #fp-message:empty { display:none; }
+body.dashboard-page .fp-add { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+body.dashboard-page .fp-add .field { flex:1; min-width:220px; margin:0; }
+body.dashboard-page .fp-add .btn { height:42px; }
+body.dashboard-page .fp-note { margin:10px 0 0; color:var(--mh-mu); font-size:13.5px; line-height:1.5; }
+body.dashboard-page .fp-row-ic { width:16px; height:16px; vertical-align:-3px; color:var(--mh-al); margin-right:4px; }
+body.dashboard-page .nav-install { margin-top:10px; border:1px dashed var(--mh-bd); }
+body.dashboard-page .nav-install[hidden] { display:none; }

@@ -13,6 +13,13 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Auto Parts">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <script src="../js/pwa.js" defer></script>
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
@@ -74,6 +81,8 @@
 
       <nav class="sjump" aria-label="Settings sections">
         <a href="#account">Account</a>
+        <a href="#fingerprint">Fingerprint</a>
+        <a href="#app">App</a>
         <a href="#appearance">Appearance</a>
         <a href="#about">Business</a>
         <a href="#labour">Labour charges</a>
@@ -98,6 +107,29 @@
             <button id="sign-out-btn" class="btn btn--danger" type="button"><i data-lucide="log-out"></i> Sign out</button>
           </div>
           <p class="smsg" id="m-account" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
+        </section>
+
+        <!-- Fingerprint sign-in -->
+        <section class="sg" id="fingerprint" aria-labelledby="h-fp">
+          <header><i data-lucide="fingerprint"></i><div><h3 id="h-fp">Fingerprint sign-in</h3><p>Sign in by touching the fingerprint sensor instead of typing your password. Each account can have up to 3.</p></div></header>
+          <div id="fp-list"><div class="sx" style="color:var(--text-muted)">Loading…</div></div>
+          <div class="sx" id="fp-add-box">
+            <div class="fp-add">
+              <div class="field"><label for="fp-label">Name this fingerprint</label><input type="text" id="fp-label" maxlength="40" placeholder="e.g. Right thumb, Office laptop" /></div>
+              <button id="fp-add" class="btn btn--primary" type="button"><i data-lucide="fingerprint"></i> Add fingerprint</button>
+            </div>
+            <p class="fp-note">Your device checks the fingerprint itself; it never leaves the device. Any fingerprint saved in this phone's or computer's own settings can unlock it, so name each one to remember where you added it. Your password always keeps working too.</p>
+            <p class="smsg" id="m-fp" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- Install app -->
+        <section class="sg" id="app" aria-labelledby="h-inst">
+          <header><i data-lucide="smartphone"></i><div><h3 id="h-inst">Install the app</h3><p>Put Auto Parts &amp; Repairs on your home screen or desktop. It opens in its own window, like any other app.</p></div></header>
+          <div class="sr">
+            <div class="t"><b id="inst-state">Install on this device</b><span id="inst-hint">Tap Install, or use your browser menu: Install app / Add to Home screen.</span></div>
+            <button id="inst-btn" class="btn btn--primary" type="button"><i data-lucide="download"></i> Install</button>
+          </div>
         </section>
 
         <!-- Appearance -->
