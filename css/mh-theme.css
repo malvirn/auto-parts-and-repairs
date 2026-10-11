@@ -798,3 +798,33 @@ body.dashboard-page .qjs-grid { display:grid; grid-template-columns:repeat(auto-
 body.dashboard-page .qjs-grid span, body.dashboard-page .qjs-text span { display:block; font-size:12px; color:var(--mh-mu); }
 body.dashboard-page .qjs-grid b { display:block; font-size:14px; font-weight:600; word-break:break-word; }
 body.dashboard-page .qjs-text p { margin:2px 0 0; white-space:pre-wrap; font-size:14.5px; }
+
+/* Mechanics' workload board (Job Cards page) */
+body.dashboard-page .wl-board { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; align-items:start; }
+body.dashboard-page .wl-card { background:var(--mh-card); border:1px solid var(--mh-bd); border-radius:var(--mh-r); box-shadow:var(--mh-sh); overflow:hidden; }
+body.dashboard-page .wl-card.wl-none { border-style:dashed; }
+body.dashboard-page .wl-card > header { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+body.dashboard-page .wl-av {
+  width:38px; height:38px; flex:none; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px;
+  background:color-mix(in srgb,var(--mh-ac) 14%,var(--mh-in)); color:var(--mh-al); border:1px solid var(--mh-bd);
+}
+body.dashboard-page .wl-none .wl-av { background:color-mix(in srgb,var(--mh-am) 16%,var(--mh-in)); color:var(--mh-am); }
+body.dashboard-page .wl-name { flex:1; min-width:0; }
+body.dashboard-page .wl-name b { display:block; font-size:15px; }
+body.dashboard-page .wl-name span { font-size:13px; color:var(--mh-mu); }
+body.dashboard-page .wl-n {
+  min-width:30px; height:30px; padding:0 8px; border-radius:99px; display:grid; place-items:center; font-weight:700; font-size:14px;
+  background:var(--mh-ac); color:#fff;
+}
+body.dashboard-page .wl-n.zero { background:color-mix(in srgb,var(--mh-gr) 16%,transparent); color:var(--mh-gr); }
+body.dashboard-page .wl-jobs { display:flex; flex-direction:column; gap:6px; padding:0 10px 10px; }
+body.dashboard-page .wl-job {
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  padding:9px 10px; border:1px solid var(--mh-bd); border-radius:12px; background:var(--mh-in); color:var(--mh-tx); font:inherit;
+  transition:border-color .15s;
+}
+body.dashboard-page .wl-job:hover { border-color:var(--mh-ac); }
+body.dashboard-page .wl-cro { font-weight:700; font-size:13px; font-variant-numeric:tabular-nums; }
+body.dashboard-page .wl-veh { min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body.dashboard-page .wl-veh small { display:block; color:var(--mh-mu); font-size:12px; overflow:hidden; text-overflow:ellipsis; }
+body.dashboard-page .wl-job .badge { font-size:11px; }

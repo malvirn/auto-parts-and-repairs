@@ -169,7 +169,7 @@ async function loadNotifications() {
 
 // ---- User guide ----
 const GUIDE_TOPICS = [
-  { title: "Opening a job card", body: "Go to Repair Jobs. Choose Private customer or Company car, pick the customer or company (or add a new one), pick or register the vehicle, describe the fault, then fill in anything else you already know: diagnosis, mechanic, hours, parts and incidentals. Click Create Job Card." },
+  { title: "Opening a job card", body: "Go to Job Cards. Choose Private customer or Company car, pick the customer or company (or add a new one), pick or register the vehicle, describe the fault, then fill in anything else you already know: diagnosis, mechanic, hours, parts and incidentals. Click Create Job Card." },
   { title: "Company cars", body: "Choose Company car, then pick the company or add it right there. Record who brought the car in. Company jobs get an ICRO number; private jobs get an ECRO number." },
   { title: "Labour charges", body: "Charges per hour live in Settings → Labour charges. Each charge lists the makes it applies to, so the job card picks it automatically from the vehicle's make. One charge is the default for makes that don't match." },
   { title: "Adding parts to a job", body: "On the new job card or an open job card, pick a part from the Shop list, set the quantity and click +. Stock is taken from the Shop automatically." },

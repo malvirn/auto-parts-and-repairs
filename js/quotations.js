@@ -62,7 +62,7 @@ async function loadBaseData() {
   if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
   jobs = jobsResult.data || [];
   parts = partsResult.data || [];
-  jobSelect.innerHTML = `<option value="">No repair job — walk-in customer</option>` + jobs.map(job => {
+  jobSelect.innerHTML = `<option value="">No job card — walk-in customer</option>` + jobs.map(job => {
     const vehicle = vehicleLabel(job.vehicles);
     const plate = job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
     return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
@@ -194,7 +194,7 @@ quoteForm.addEventListener("submit", async event => {
     customer_id = job.customer_id;
   } else {
     walk_in_name = document.getElementById("quote-walkin-name").value.trim();
-    if (!walk_in_name) { alert("Enter the customer's name, or select a repair job."); return; }
+    if (!walk_in_name) { alert("Enter the customer's name, or select a job card."); return; }
     walk_in_phone = document.getElementById("quote-walkin-phone").value.trim() || null;
     walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
   }
@@ -513,7 +513,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (err) {
     console.error("Failed to load jobs/parts:", err);
-    if (jobSelect) jobSelect.innerHTML = `<option value="">Couldn't load repair jobs — check the console</option>`;
+    if (jobSelect) jobSelect.innerHTML = `<option value="">Couldn't load job cards — check the console</option>`;
   }
 
   try {

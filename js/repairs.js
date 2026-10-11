@@ -1,4 +1,4 @@
-// ========= Repair Jobs module =========
+// ========= Job Cards module =========
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 
@@ -57,7 +57,7 @@ let customersList = [];          // [{ id, full_name, phone, email, customer_typ
 let pendingCollection = false;
 let countdownInterval = null;
 let rateTiers = [];
-let mechanicsList = [];          // [{ id, full_name, busyWith: label | null }]
+let mechanicsList = [];          // [{ id, full_name, openJobs: number }]
 let partsCatalog = [];           // [{ id, name, selling_price, quantity_in_stock }]
 let jobsById = new Map();
 let techNamesById = {};
@@ -368,17 +368,20 @@ function showFormMessage(text, tone = "error") {
 // =====================================================================
 // Mechanics
 // =====================================================================
+// A mechanic can work on several job cards at once; this just counts how
+// many open ones each has so the dropdown can show it.
 async function refreshBusyMechanics() {
-  const { data: busyJobs } = await supabase.from("repair_jobs").select("technician_id, cro_number, job_number").not("technician_id", "is", null).not("status", "in", '("Ready for Pickup","Unclaimed","Collected")');
-  const busyMap = Object.fromEntries((busyJobs || []).map(j => [j.technician_id, j.cro_number || `Job #${String(j.job_number).padStart(4, "0")}`]));
-  mechanicsList = mechanicsList.map(m => ({ ...m, busyWith: busyMap[m.id] || null }));
+  const { data: openJobs } = await supabase.from("repair_jobs").select("technician_id").not("technician_id", "is", null).not("status", "in", '("Ready for Pickup","Unclaimed","Collected")');
+  const counts = {};
+  (openJobs || []).forEach(j => { counts[j.technician_id] = (counts[j.technician_id] || 0) + 1; });
+  mechanicsList = mechanicsList.map(m => ({ ...m, openJobs: counts[m.id] || 0 }));
 }
 
 async function loadTechniciansIntoSelect() {
   // Only mechanics, read through technician_directory (the safe, name-only view).
   const { data: mechanics, error } = await supabase.from("technician_directory").select("id, full_name").eq("department", "Mechanics").eq("is_active", true).order("full_name");
   if (error) { console.error("Error loading technicians:", error); return; }
-  mechanicsList = (mechanics || []).map(m => ({ ...m, busyWith: null }));
+  mechanicsList = (mechanics || []).map(m => ({ ...m, openJobs: 0 }));
   await refreshBusyMechanics();
   refreshTechnicianOptions(editTechnician, null);
   refreshTechnicianOptions(newTechnician, null);
@@ -388,19 +391,20 @@ async function loadTechniciansIntoSelect() {
   }
 }
 
-// A mechanic busy with THIS job isn't unavailable — they're already on it.
+// Every mechanic can be picked; the label shows how many open job cards
+// they already have so work can be spread sensibly.
 function refreshTechnicianOptions(select, currentJobTechnicianId) {
   if (!select) return;
   const keep = select === newTechnician ? select.value : null;
   select.innerHTML =
     `<option value="">Unassigned</option>` +
     mechanicsList.map(m => {
-      const isBusyElsewhere = m.busyWith && m.id !== currentJobTechnicianId;
-      const label = isBusyElsewhere ? `${m.full_name} — Busy (${m.busyWith})` : m.full_name;
-      return `<option value="${m.id}" ${isBusyElsewhere ? "disabled" : ""}>${escapeHtml(label)}</option>`;
+      const n = m.openJobs || 0;
+      const label = n ? `${m.full_name} — ${n} open job${n === 1 ? "" : "s"}` : `${m.full_name} — free`;
+      return `<option value="${m.id}">${escapeHtml(label)}</option>`;
     }).join("");
   if (currentJobTechnicianId) select.value = currentJobTechnicianId;
-  else if (keep && mechanicsList.some(m => m.id === keep && !m.busyWith)) select.value = keep;
+  else if (keep && mechanicsList.some(m => m.id === keep)) select.value = keep;
 }
 
 // =====================================================================
@@ -554,7 +558,7 @@ async function loadJobs() {
   jobsById = new Map((data || []).map(j => [j.id, j]));
 
   if (!data || data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No repair jobs yet</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No job cards yet</td></tr>`;
     return;
   }
 
@@ -585,7 +589,56 @@ async function loadJobs() {
     });
   });
   applyJobFilters();
+  renderWorkload();
 }
+
+// =====================================================================
+// Mechanics' workload board — every job card each mechanic is on
+// =====================================================================
+const FINISHED = ["Ready for Pickup", "Unclaimed", "Collected"];
+function renderWorkload() {
+  const board = $("workload-board");
+  if (!board) return;
+  const showAll = $("workload-scope")?.value === "all";
+  const jobs = [...jobsById.values()].filter(j => showAll ? j.status !== "Collected" : !FINISHED.includes(j.status));
+  const byMech = new Map();
+  jobs.forEach(j => {
+    const key = j.technician_id || "";
+    if (!byMech.has(key)) byMech.set(key, []);
+    byMech.get(key).push(j);
+  });
+  const known = new Map(mechanicsList.map(m => [m.id, m.full_name]));
+  Object.entries(techNamesById).forEach(([id, name]) => { if (!known.has(id) && byMech.has(id)) known.set(id, name); });
+  const cards = [...known.entries()].map(([id, name]) => ({ id, name, jobs: byMech.get(id) || [] }))
+    .sort((a, b) => b.jobs.length - a.jobs.length || a.name.localeCompare(b.name));
+  if ((byMech.get("") || []).length) cards.push({ id: "", name: "Not assigned yet", jobs: byMech.get("") });
+
+  const total = jobs.length;
+  setText("workload-count", `${total} ${showAll ? "unfinished or waiting" : "open"} job card${total === 1 ? "" : "s"}`);
+  if (!cards.length) { board.innerHTML = `<div class="jc-empty">No mechanics found. Add them under Mechanics.</div>`; return; }
+
+  board.innerHTML = cards.map(c => `
+    <div class="wl-card${c.id ? "" : " wl-none"}">
+      <header>
+        <span class="wl-av">${escapeHtml((c.name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase())}</span>
+        <div class="wl-name"><b>${escapeHtml(c.name)}</b><span>${c.jobs.length ? `${c.jobs.length} job card${c.jobs.length === 1 ? "" : "s"}` : "Free — no open job cards"}</span></div>
+        <span class="wl-n ${c.jobs.length ? "" : "zero"}">${c.jobs.length}</span>
+      </header>
+      ${c.jobs.length ? `<div class="wl-jobs">${c.jobs.map(j => {
+        const meta = STATUS_META[j.status] || { cls: "", icon: "circle" };
+        return `<button type="button" class="wl-job" data-job-id="${j.id}">
+          <span class="wl-cro">${escapeHtml(jobLabel(j))}</span>
+          <span class="wl-veh">${escapeHtml(vehicleName(j.vehicles) || "Vehicle")}${j.vehicles?.license_plate ? ` · ${escapeHtml(j.vehicles.license_plate)}` : ""}<small>${escapeHtml(j.customers?.full_name || "")}</small></span>
+          <span class="badge ${meta.cls}">${escapeHtml(j.status)}</span>
+        </button>`;
+      }).join("")}</div>` : ""}
+    </div>`).join("");
+  board.querySelectorAll(".wl-job").forEach(b => b.addEventListener("click", () => {
+    const job = jobsById.get(b.dataset.jobId);
+    if (job) openEditModal(job);
+  }));
+}
+$("workload-scope")?.addEventListener("change", renderWorkload);
 
 // =====================================================================
 // Pickup countdown / parking fee

@@ -6,7 +6,7 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Repair Jobs</title>
+  <title>AUTO PARTS &amp; REPAIRS — Job Cards</title>
   <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
       <div class="nav-group open" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Repair Jobs</a>
+          <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
           <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
         </div>
@@ -46,10 +46,22 @@
           <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
-      <div class="nav-group" data-group="finance">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Finance</span><span class="nav-chev" aria-hidden="true"></span></button>
+      <div class="nav-group" data-group="accounting">
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Accounting</a>
+          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
+          <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
+          <a class="nav-link" href="payables.html"><i data-lucide="banknote"></i> Payables</a>
+          <a class="nav-link" href="cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
+          <a class="nav-link" href="commissions.html"><i data-lucide="percent"></i> Commissions</a>
+          <a class="nav-link" href="landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
+          <a class="nav-link" href="fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
+          <a class="nav-link" href="financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
+        </div>
+      </div>
+      <div class="nav-group" data-group="insights">
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
@@ -65,7 +77,7 @@
       <div class="main__header">
         <div>
           <p class="section-kicker">Workshop control</p>
-          <h1>Repair Jobs</h1>
+          <h1>Job Cards</h1>
           <p class="page-intro">Open a job card with everything at intake, then track it through diagnosis, repair and collection.</p>
         </div>
       </div>
@@ -240,9 +252,18 @@
         </form>
       </section>
 
+      <!-- ===================== Mechanics' workload ===================== -->
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Who is working on what</p><h2><i class="section-heading-icon" data-lucide="hard-hat"></i>Mechanics &amp; their job cards</h2></div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><span class="section-note" id="workload-count"></span>
+            <select id="workload-scope" aria-label="Which job cards to show" style="width:auto; min-width:190px;"><option value="open">Open job cards</option><option value="all">Include ready &amp; unclaimed</option></select></div>
+        </div>
+        <div id="workload-board" class="wl-board"><div class="jc-empty">Loading…</div></div>
+      </section>
+
       <!-- ===================== Queue ===================== -->
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Open a job card to update it</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Job Cards</h2></div><span class="section-note">Open a job card to update it</span></div>
         <div class="panel" style="padding:14px 16px; margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <input type="text" id="jobs-search" placeholder="Search CRO, customer, company, plate, engine number, make, model…" style="flex:1; min-width:220px;" />
           <select id="jobs-filter-mechanic" style="min-width:160px;"><option value="">All Mechanics</option></select>

@@ -120,7 +120,7 @@ async function loadCommissions() {
   commissionsTableBody.innerHTML = (commissions || []).length ? commissions.map(c => `
     <tr>
       <td>${escapeHtml(names[c.employee_id] || "—")}</td>
-      <td>${c.source_type === "repair_job" ? "Repair Job" : "Sale"}</td>
+      <td>${c.source_type === "repair_job" ? "Job Card" : "Sale"}</td>
       <td>${c.rate_pct}%</td>
       <td>${money(c.base_amount)}</td>
       <td>${money(c.commission_amount)}</td>

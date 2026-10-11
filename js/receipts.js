@@ -74,7 +74,7 @@ function normalizeReceiptSource(receipt) {
 function renderReceipt(receipt) {
   const source = normalizeReceiptSource(receipt);
   if (!source) {
-    alert("This receipt isn't linked to a repair job or sales order anymore — the underlying record was likely deleted after the receipt was issued.");
+    alert("This receipt isn't linked to a job card or sales order anymore — the underlying record was likely deleted after the receipt was issued.");
     return;
   }
 
@@ -121,7 +121,7 @@ const RECEIPT_SELECT = `id, receipt_number, amount, issued_at,
 // gives a real explanation instead of a raw database error.
 async function openReceiptForJob(jobId) {
   if (!jobId) {
-    alert("This receipt isn't linked to a repair job record anymore, so it can't be opened. This usually means the underlying job was deleted after the receipt was issued.");
+    alert("This receipt isn't linked to a job card anymore, so it can't be opened. This usually means the underlying job was deleted after the receipt was issued.");
     return;
   }
   const { data, error } = await supabase.from("receipts").select(RECEIPT_SELECT).eq("repair_job_id", jobId).order("issued_at", { ascending: false }).limit(1).maybeSingle();
@@ -147,7 +147,7 @@ async function openReceiptForOrder(orderId) {
 async function generateReceipt(jobId, amount) {
   if (!jobId) return; // guards the DOMContentLoaded ?job= path the same way
   const { data: job, error: jobError } = await supabase.from("repair_jobs").select("id, status, total_cost").eq("id", jobId).single();
-  if (jobError || !job) { alert("Unable to load repair job."); return; }
+  if (jobError || !job) { alert("Unable to load job card."); return; }
   if (!["Ready for Pickup", "Unclaimed"].includes(job.status)) { alert("A receipt can only be generated once the job is marked Ready for Pickup."); return; }
 
   const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);

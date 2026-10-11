@@ -102,7 +102,7 @@ async function renderRoster(myId) {
   content.innerHTML = `
     <p style="color:var(--text-dim,#7c9490); font-size:.85rem; margin-bottom:14px;">
       <strong>Super Admin</strong> — full access, including this page and individual salaries.
-      <strong>Accounting</strong> — Ledger, Payables, Cash Book, Commissions, Landed Cost, Fixed Assets, Statements. No payroll/salary access, no customer or vehicle data, and repair jobs / sales orders are read-only.
+      <strong>Accounting</strong> — Ledger, Payables, Cash Book, Commissions, Landed Cost, Fixed Assets, Statements. No payroll/salary access, no customer or vehicle data, and job cards / sales orders are read-only.
       <strong>Staff</strong> — day-to-day operations (Repairs, Customers, Shop, Receipts) — no financial data at all.
     </p>
     <p style="color:var(--text-dim,#7c9490); font-size:.82rem; margin-bottom:14px;">
