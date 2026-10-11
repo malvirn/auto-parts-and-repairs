@@ -1,6 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { fingerprintSupported, deviceHasFingerprint, signInWithFingerprint } from "./passkey.js";
-import { bootStart, bootProgress, bootCancel, bootFinish } from "./boot.js";
+import { bootStart, bootCancel, bootFinish, splitLetters } from "./boot.js";
 
 const form = document.getElementById("login-form");
 const messageEl = document.getElementById("login-message");
@@ -17,15 +17,20 @@ function showMessage(text, tone) {
   messageEl.dataset.tone = tone;
 }
 
+// Animated system name on the sign-in card.
+const sysName = document.getElementById("sys-name");
+if (sysName) {
+  sysName.innerHTML = splitLetters(sysName.textContent);
+  sysName.classList.add("split");
+}
+
 // After a successful sign-in: confirm the session with the server, load the
 // person's role, then show their access level and open the app. Returns
 // an error message instead of opening the app if something is wrong.
 async function completeSignIn(fallbackEmail) {
-  bootProgress(40, "Verifying your session…");
   const { data: { user: confirmed } } = await supabase.auth.getUser();
   if (!confirmed) return "Session didn't save properly — please try again.";
 
-  bootProgress(65, "Loading your access level…");
   const { data: profile, error } = await supabase.from("profiles")
     .select("role, is_active, full_name").eq("id", confirmed.id).maybeSingle();
   if (error) console.error("Unable to load profile:", error);
@@ -49,7 +54,7 @@ async function completeSignIn(fallbackEmail) {
   }
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return;
-  bootStart("Restoring your session…");
+  bootStart();
   const problem = await completeSignIn("");
   if (problem) {
     bootCancel();
@@ -64,7 +69,7 @@ form.addEventListener("submit", async (e) => {
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
 
-  bootStart("Checking your details…");
+  bootStart();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
@@ -96,7 +101,7 @@ async function doFingerprint() {
   try {
     await signInWithFingerprint();
     fpMsg.textContent = "Signed in.";
-    bootStart("Fingerprint accepted…");
+    bootStart();
     const problem = await completeSignIn("");
     if (problem) throw new Error(problem);
   } catch (err) {
