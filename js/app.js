@@ -203,7 +203,34 @@ function initSidebarToggle() {
   if (window.lucide) lucide.createIcons();
 }
 
+// ---- Sidebar categories (collapsible, remembered per browser) ----
+const NAV_STATE_KEY = "apr-nav-open";
+function readNavState() {
+  try { return JSON.parse(localStorage.getItem(NAV_STATE_KEY) || "{}") || {}; } catch (e) { return {}; }
+}
+function initNavGroups() {
+  const state = readNavState();
+  document.querySelectorAll(".sidebar .nav-group").forEach(group => {
+    const key = group.dataset.group;
+    const button = group.querySelector(".nav-grp");
+    const hasActive = !!group.querySelector("a.nav-link.active");
+    const setOpen = (open) => {
+      group.classList.toggle("open", open);
+      button?.setAttribute("aria-expanded", String(open));
+    };
+    setOpen(key in state ? !!state[key] : hasActive);
+    button?.addEventListener("click", () => {
+      const open = !group.classList.contains("open");
+      setOpen(open);
+      const next = readNavState();
+      next[key] = open;
+      try { localStorage.setItem(NAV_STATE_KEY, JSON.stringify(next)); } catch (e) {}
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initNavGroups();
   initSidebarToggle();
   if (recentJobsBody) loadDashboard();
 });

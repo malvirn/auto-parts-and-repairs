@@ -55,7 +55,7 @@ function resolveCustomer(record) {
 async function loadBaseData() {
   exchangeRate = await getRate();
   const [jobsResult, partsResult] = await Promise.all([
-    supabase.from("repair_jobs").select("id, job_number, customer_id, customers(full_name), vehicles(make, model, year, license_plate)").order("created_at", { ascending: false }),
+    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, status, fault_reported, diagnosis, labour_cost, labour_hours, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
@@ -64,9 +64,15 @@ async function loadBaseData() {
   parts = partsResult.data || [];
   jobSelect.innerHTML = `<option value="">No repair job — walk-in customer</option>` + jobs.map(job => {
     const vehicle = vehicleLabel(job.vehicles);
-    return `<option value="${job.id}">#${String(job.job_number).padStart(4, "0")} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml(vehicle || "Vehicle")}</option>`;
+    const plate = job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
+    return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
   }).join("");
   partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${part.quantity_in_stock} in shop</option>`).join("");
+}
+
+function jobRef(job) {
+  if (!job) return "";
+  return job.cro_number || `#${String(job.job_number).padStart(4, "0")}`;
 }
 
 function toggleWalkinFields() {
@@ -74,19 +80,76 @@ function toggleWalkinFields() {
 }
 jobSelect.addEventListener("change", () => {
   toggleWalkinFields();
-  loadRepairParts(jobSelect.value);
+  loadFromJob(jobSelect.value);
 });
 
-async function loadRepairParts(jobId) {
-  if (!jobId) { draftItems = []; renderDraft(); return; }
-  const { data, error } = await supabase.from("job_parts").select("part_id, part_name, quantity").eq("job_id", jobId);
-  if (error) { console.error("Repair parts load failed:", error); return; }
-  draftItems = (data || []).map(item => {
+// Everything on the job card comes across to the quotation except the
+// assigned mechanic: customer, vehicle, fault, diagnosis, labour, parts and
+// incidentals, at the same prices as on the job card.
+function renderJobSummary(job) {
+  const box = document.getElementById("quote-job-summary");
+  if (!box) return;
+  if (!job) { box.innerHTML = ""; box.classList.add("hidden"); return; }
+  const c = job.customers || {};
+  const v = job.vehicles || {};
+  const cell = (label, value) => `<div><span>${label}</span><b>${value ? escapeHtml(String(value)) : "—"}</b></div>`;
+  box.innerHTML = `
+    <p class="qjs-title">From job card ${escapeHtml(jobRef(job))}</p>
+    <div class="qjs-grid">
+      ${cell(c.customer_type === "company" ? "Company" : "Customer", c.full_name)}
+      ${cell("Phone", c.phone)}
+      ${cell("Email", c.email)}
+      ${c.customer_type === "company" ? cell("Brought in by", [job.driver_name, job.driver_phone].filter(Boolean).join(" · ")) : ""}
+      ${cell("Vehicle", vehicleLabel(v))}
+      ${cell("Number plate", v.license_plate)}
+      ${cell("Chassis no.", v.chassis_number)}
+      ${cell("Engine no.", v.engine_number)}
+      ${cell("Fuel in", job.fuel_level_in)}
+      ${cell("Odometer in", job.odometer_in != null ? Number(job.odometer_in).toLocaleString() + " km" : "")}
+    </div>
+    <div class="qjs-text"><span>Fault reported</span><p>${escapeHtml(job.fault_reported || "—")}</p></div>
+    <div class="qjs-text"><span>Diagnosis</span><p>${escapeHtml(job.diagnosis || "Not diagnosed yet")}</p></div>`;
+  box.classList.remove("hidden");
+}
+
+function labourLabel(job) {
+  const tier = job.vehicle_rate_tiers;
+  const hours = Number(job.labour_hours) || 0;
+  return "Labour" + (tier ? ` — ${tier.tier_name} @ ${money(tier.hourly_rate)}/hr` : "") + (hours ? ` × ${hours} h` : "");
+}
+
+async function loadFromJob(jobId) {
+  const job = jobs.find(candidate => candidate.id === jobId) || null;
+  renderJobSummary(job);
+  if (!job) { draftItems = []; renderDraft(); return; }
+  const [partsRes, incRes] = await Promise.all([
+    supabase.from("job_parts").select("part_id, part_name, quantity, price_at_time").eq("job_id", jobId),
+    supabase.from("job_incidentals").select("description, amount").eq("job_id", jobId).order("created_at"),
+  ]);
+  if (partsRes.error) console.error("Repair parts load failed:", partsRes.error);
+  if (incRes.error) console.error("Incidentals load failed:", incRes.error);
+  if (jobSelect.value !== jobId) return; // selection changed while loading
+
+  const items = (partsRes.data || []).map(item => {
     const part = parts.find(candidate => candidate.id === item.part_id);
-    const cost = part?.cost_price ?? 0;
-    return { part_id: item.part_id, part_name: item.part_name, quantity: item.quantity, cost_price_usd: cost, unit_price_usd: priceForCost(cost) };
+    const cost = Number(part?.cost_price ?? 0);
+    const unit = item.price_at_time != null ? Number(item.price_at_time) : priceForCost(cost);
+    return { kind: "part", part_id: item.part_id, part_name: item.part_name, quantity: item.quantity, cost_price_usd: cost, unit_price_usd: unit };
   });
+  if (Number(job.labour_cost) > 0) {
+    items.push({ kind: "labour", part_id: null, part_name: labourLabel(job), quantity: 1, cost_price_usd: 0, unit_price_usd: Number(job.labour_cost) });
+  }
+  (incRes.data || []).forEach(inc => {
+    items.push({ kind: "incidental", part_id: null, part_name: `${inc.description} (incidental)`, quantity: 1, cost_price_usd: 0, unit_price_usd: Number(inc.amount) });
+  });
+  draftItems = items;
   renderDraft();
+}
+
+function markupPctFor(item) {
+  const cost = Number(item.cost_price_usd) || 0;
+  if (!item.part_id || cost <= 0) return 0;
+  return Number(((Number(item.unit_price_usd) / cost - 1) * 100).toFixed(2));
 }
 
 function renderDraft() {
@@ -94,7 +157,7 @@ function renderDraft() {
     draftList.innerHTML = `<div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div>`;
   } else {
     draftList.innerHTML = draftItems.map((item, index) => `
-      <div class="quotation-line"><span><strong>${escapeHtml(item.part_name)}</strong><small>${item.quantity} × ${money(item.unit_price_usd)}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
+      <div class="quotation-line"><span><strong>${escapeHtml(item.part_name)}</strong><small>${item.kind === "labour" ? "Labour" : item.kind === "incidental" ? "Incidental" : "Part"} · ${item.quantity} × ${money(item.unit_price_usd)}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
     `).join("");
     draftList.querySelectorAll(".remove-quote-line").forEach(button => button.addEventListener("click", () => { draftItems.splice(Number(button.dataset.index), 1); renderDraft(); }));
   }
@@ -116,14 +179,14 @@ document.getElementById("quote-add-part").addEventListener("click", () => {
   }
 
   if (existing) existing.quantity += quantity;
-  else draftItems.push({ part_id: part.id, part_name: part.name, quantity, cost_price_usd: part.cost_price, unit_price_usd: priceForCost(part.cost_price) });
+  else draftItems.push({ kind: "part", part_id: part.id, part_name: part.name, quantity, cost_price_usd: part.cost_price, unit_price_usd: priceForCost(part.cost_price) });
   qtyInput.value = 1;
   renderDraft();
 });
 
 quoteForm.addEventListener("submit", async event => {
   event.preventDefault();
-  if (!draftItems.length) { alert("Add at least one part to the quotation."); return; }
+  if (!draftItems.length) { alert("Add at least one line to the quotation."); return; }
 
   const job = jobs.find(candidate => candidate.id === jobSelect.value) || null;
   let customer_id = null, walk_in_name = null, walk_in_phone = null, walk_in_email = null;
@@ -138,35 +201,36 @@ quoteForm.addEventListener("submit", async event => {
 
   const rate = await getRate();
   const totalUsd = totalOf(draftItems);
+  const notes = job ? [`Fault reported: ${job.fault_reported || "—"}`, `Diagnosis: ${job.diagnosis || "Not diagnosed yet"}`].join("\n") : null;
   const { data: quote, error } = await supabase.from("quotations").insert([{
     customer_id, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
     total_usd: totalUsd, total_zig: totalUsd * rate,
-    walk_in_name, walk_in_phone, walk_in_email,
+    walk_in_name, walk_in_phone, walk_in_email, notes,
   }]).select().single();
   if (error) { alert("Failed to save quotation: " + error.message); return; }
   const { error: itemsError } = await supabase.from("quotation_items").insert(draftItems.map(item => ({
     quotation_id: quote.id, part_id: item.part_id, part_name: item.part_name, quantity: item.quantity,
-    cost_price_usd: item.cost_price_usd, markup_pct: 25, unit_price_usd: item.unit_price_usd,
+    cost_price_usd: Number(item.cost_price_usd) || 0, markup_pct: markupPctFor(item), unit_price_usd: item.unit_price_usd,
     total_usd: item.quantity * item.unit_price_usd, unit_price_zig: item.unit_price_usd * rate, total_zig: item.quantity * item.unit_price_usd * rate,
   })));
   if (itemsError) { alert("Quotation header saved, but items failed: " + itemsError.message); return; }
-  quoteForm.reset(); draftItems = []; renderDraft(); toggleWalkinFields(); await loadDocuments();
+  quoteForm.reset(); draftItems = []; renderDraft(); renderJobSummary(null); toggleWalkinFields(); await loadDocuments();
 });
 
 async function loadDocuments() {
   const [quotes, orders] = await Promise.all([
-    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, customer_id, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number)").order("created_at", { ascending: false }),
+    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, customer_id, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
     supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
   ]);
-  quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs?.job_number ? `#${quote.repair_jobs.job_number}` : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
-  orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
+  quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
+  orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Edit</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
   document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
   document.querySelectorAll(".edit-order").forEach(button => button.addEventListener("click", () => openOrderEditor(button.dataset.id)));
   if (window.lucide) lucide.createIcons();
 }
 
 async function fetchQuote(id) {
-  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), repair_jobs(job_number, vehicles(make, model, year, license_plate))";
+  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
   let { data, error } = await supabase.from("quotations").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full quotation lookup failed, retrying with fewer fields:", error.message);
@@ -176,7 +240,7 @@ async function fetchQuote(id) {
   return { data, error };
 }
 async function fetchOrder(id) {
-  const richSelect = "*, sales_order_items(*), customers(full_name, phone, email), repair_jobs(job_number, vehicles(make, model, year, license_plate))";
+  const richSelect = "*, sales_order_items(*), customers(full_name, phone, email), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
   let { data, error } = await supabase.from("sales_orders").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full sales order lookup failed, retrying with fewer fields:", error.message);
@@ -217,8 +281,13 @@ function buildDetailText(record, kind, items) {
     `Phone: ${customer.phone}`,
     `Email: ${customer.email}`,
     ``,
-    job.job_number ? `Repair Job: #${String(job.job_number).padStart(4, "0")}` : null,
+    job.job_number ? `Job card: ${jobRef(job)}` : null,
     job.job_number ? `Vehicle: ${vehicleLabel(vehicle) || "—"}${vehicle.license_plate ? ` (${vehicle.license_plate})` : ""}` : null,
+    job.job_number && vehicle.chassis_number ? `Chassis: ${vehicle.chassis_number}` : null,
+    job.job_number && vehicle.engine_number ? `Engine: ${vehicle.engine_number}` : null,
+    job.job_number && job.odometer_in != null ? `Odometer in: ${Number(job.odometer_in).toLocaleString()} km` : null,
+    job.job_number ? `Fault reported: ${job.fault_reported || "—"}` : null,
+    job.job_number ? `Diagnosis: ${job.diagnosis || "Not diagnosed yet"}` : null,
     job.job_number ? `` : null,
     `Items:`,
     lines || "  (no line items)",
@@ -249,7 +318,9 @@ function buildDetailHtml(record, kind, items) {
     </header>
     <h3>Customer</h3>
     <div class="receipt-customer">${escapeHtml(customer.full_name)}<br>${escapeHtml(customer.phone)}</div>
-    ${job.job_number ? `<h3>Repair Job</h3><div class="receipt-customer">#${String(job.job_number).padStart(4, "0")} · ${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}</div>` : ""}
+    ${job.job_number ? `<h3>Vehicle &amp; job card</h3><div class="receipt-customer">${escapeHtml(jobRef(job))} · ${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}${vehicle.chassis_number ? `<br>Chassis ${escapeHtml(vehicle.chassis_number)}` : ""}${vehicle.engine_number ? ` · Engine ${escapeHtml(vehicle.engine_number)}` : ""}${job.odometer_in != null ? `<br>Odometer in ${Number(job.odometer_in).toLocaleString()} km` : ""}</div>
+    <h3>Fault reported</h3><div class="receipt-customer">${escapeHtml(job.fault_reported || "—")}</div>
+    <h3>Diagnosis</h3><div class="receipt-customer">${escapeHtml(job.diagnosis || "Not diagnosed yet")}</div>` : ""}
     <h3>Items</h3>
     <table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toFixed(2)}</strong></div>
@@ -356,10 +427,20 @@ async function saveOrderChanges() {
   // first time this order was confirmed. This was the gap Quick Sale
   // didn't have but this flow did.
   if (!wasAlreadyConfirmed) {
+    // Parts already on the order's job card were taken from stock when they
+    // were added to the job, so only the extra quantity is deducted here.
+    const onJob = {};
+    if (editingOrder.repair_job_id) {
+      const { data: jobParts } = await supabase.from("job_parts").select("part_id, quantity").eq("job_id", editingOrder.repair_job_id);
+      (jobParts || []).forEach(jp => { if (jp.part_id) onJob[jp.part_id] = (onJob[jp.part_id] || 0) + Number(jp.quantity || 0); });
+    }
     for (let i = 0; i < editingOrder.sales_order_items.length; i++) {
       const item = editingOrder.sales_order_items[i];
-      const quantity = Number(inputs[i].value);
       if (!item.part_id) continue;
+      const fromJob = Math.min(onJob[item.part_id] || 0, Number(inputs[i].value));
+      onJob[item.part_id] = (onJob[item.part_id] || 0) - fromJob;
+      const quantity = Number(inputs[i].value) - fromJob;
+      if (quantity <= 0) continue;
       const { data: part } = await supabase.from("parts").select("quantity_in_stock").eq("id", item.part_id).single();
       if (part) {
         await supabase.from("parts").update({ quantity_in_stock: Math.max(0, Number(part.quantity_in_stock) - quantity) }).eq("id", item.part_id);
@@ -428,7 +509,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (requestedJob && jobs.some(job => job.id === requestedJob)) {
       jobSelect.value = requestedJob;
       toggleWalkinFields();
-      await loadRepairParts(requestedJob);
+      await loadFromJob(requestedJob);
     }
   } catch (err) {
     console.error("Failed to load jobs/parts:", err);

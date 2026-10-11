@@ -1130,51 +1130,94 @@ function toDatetimeLocalValue(isoString) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// ---- AI-generated diagnosis update (WhatsApp / Email) ----
-async function generateDiagnosisMessage(job, diagnosisText, eta) {
-  const { data, error } = await supabase.functions.invoke("generate-diagnosis-update", {
-    body: {
-      customerName: job.customers?.full_name || "there",
-      jobNumber: job.job_number,
-      vehicle: vehicleName(job.vehicles),
-      diagnosis: diagnosisText,
-      eta: eta || null,
-    },
-  });
-  if (error) throw error;
-  if (!data?.message) throw new Error(data?.error || "No message returned.");
-  return data.message;
+// ---- Diagnosis / progress update (WhatsApp / Email) ----
+// Always works: a clear message is built from the job card itself. If the
+// AI helper (ai-assist edge function) is reachable it polishes the wording;
+// if it's slow or unavailable the built message is used as-is.
+function buildUpdateMessage(job, diagnosisText, etaIso) {
+  const c = job.customers || {};
+  const v = job.vehicles || {};
+  const biz = businessInfo?.business_name || "Auto Parts & Repairs";
+  const vehicle = [vehicleName(v), v.license_plate ? `(${v.license_plate})` : ""].filter(Boolean).join(" ") || "your vehicle";
+  const labour = parseFloat(editLabour?.value) || 0;
+  const parts = parseFloat(editParts?.value) || 0;
+  const total = labour + parts + cardIncidentalsTotal;
+  const status = editStatus?.value || job.status;
+  const lines = [
+    `Hello ${c.full_name || "there"},`,
+    ``,
+    `This is ${biz} with an update on ${vehicle}, job card ${jobLabel(job)}.`,
+    ``,
+    `Status: ${status}`,
+    diagnosisText ? `Diagnosis: ${diagnosisText}` : `Our mechanic is still diagnosing the fault you reported: ${job.fault_reported || "—"}.`,
+    etaIso ? `Expected diagnosis by: ${new Date(etaIso).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : null,
+    total > 0 ? `Estimated cost so far: ${money(total)}` : null,
+    ``,
+    `Reply to this message${businessInfo?.phone ? ` or call us on ${businessInfo.phone}` : ""} if you have any questions.`,
+  ];
+  return lines.filter(l => l !== null).join("\n");
+}
+
+async function polishWithAi(baseMessage) {
+  try {
+    const call = supabase.functions.invoke("ai-assist", {
+      body: {
+        provider: "groq",
+        systemPrompt: "You tidy up short customer update messages for a car repair workshop in Zimbabwe. Keep every fact, number, date, name, job number and vehicle exactly as given. Keep it friendly, professional and brief, plain text with no markdown and no emojis. Output only the message.",
+        prompt: baseMessage,
+      },
+    });
+    const timeout = new Promise(resolve => setTimeout(() => resolve({ data: null, error: new Error("timeout") }), 8000));
+    const { data, error } = await Promise.race([call, timeout]);
+    if (error || !data?.text?.trim()) return baseMessage;
+    return data.text.trim();
+  } catch (e) {
+    return baseMessage;
+  }
 }
 
 async function sendDiagnosisUpdate(channel) {
   if (!currentEditJob) return;
+  const job = currentEditJob;
   const diagnosisText = editDiagnosis.value.trim();
-  if (!diagnosisText) {
-    alert("Add diagnosis notes first — the update message is generated from them.");
-    return;
+  const etaIso = editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null;
+
+  let phone = null, email = null;
+  if (channel === "whatsapp") {
+    phone = formatPhoneForWhatsApp(job.customers?.phone)
+      || formatPhoneForWhatsApp(prompt("WhatsApp number for this customer (e.g. 0771234567):") || "");
+    if (!phone) return;
+  } else {
+    email = (job.customers?.email || "").trim() || (prompt("Customer email address:") || "").trim();
+    if (!email) return;
   }
+
+  // Open the WhatsApp tab straight away, inside the click, so the browser
+  // doesn't treat it as a pop-up; it is pointed at the message once ready.
+  const tab = channel === "whatsapp" ? window.open("", "_blank") : null;
+  if (tab) tab.document.write("<p style='font:16px system-ui;padding:24px'>Preparing the WhatsApp message…</p>");
+
   const btn = channel === "whatsapp" ? editDiagnosisWhatsappBtn : editDiagnosisEmailBtn;
   const originalHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = `<i data-lucide="loader-circle"></i> Generating…`;
+  btn.innerHTML = `<i data-lucide="loader-circle"></i> Preparing…`;
   if (window.lucide) lucide.createIcons();
 
   try {
-    const etaIso = editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null;
-    const message = await generateDiagnosisMessage(currentEditJob, diagnosisText, etaIso);
+    await loadBusinessInfo();
+    const message = await polishWithAi(buildUpdateMessage(job, diagnosisText, etaIso));
     if (channel === "whatsapp") {
-      const phone = formatPhoneForWhatsApp(currentEditJob.customers?.phone);
-      if (!phone) { alert("No phone number on file for this customer."); return; }
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      if (tab && !tab.closed) tab.location.href = url;
+      else window.location.href = url;
     } else {
-      const email = (currentEditJob.customers?.email || "").trim() || prompt("Customer email address:");
-      if (!email) return;
-      const subject = encodeURIComponent(`Update on your repair — Job #${String(currentEditJob.job_number).padStart(4, "0")}`);
-      window.open(`mailto:${email}?subject=${subject}&body=${encodeURIComponent(message)}`, "_blank");
+      const subject = encodeURIComponent(`Update on your vehicle — ${jobLabel(job)}`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(message)}`;
     }
   } catch (err) {
-    console.error("Failed to generate diagnosis update:", err);
-    alert("Couldn't generate the update message: " + err.message);
+    console.error("Failed to prepare update:", err);
+    if (tab && !tab.closed) tab.close();
+    alert("Couldn't prepare the update message: " + (err.message || err));
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHtml;

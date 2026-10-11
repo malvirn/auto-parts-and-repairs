@@ -772,3 +772,29 @@ body.dashboard-page .modal-section-title svg { width:16px; height:16px; flex:non
 body.dashboard-page .jc-card .modal-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
 body.dashboard-page .jc-card input, body.dashboard-page .jc-card textarea, body.dashboard-page .jc-addrow input, body.dashboard-page .jc-addrow select { min-width:0; width:100%; }
 body.dashboard-page .sr input:not([type=checkbox]):not([type=radio]) { padding:10px 12px; min-height:42px; font-size:15px; }
+
+/* ---------- Sidebar categories (MaternityHelp grouped nav) ---------- */
+body.dashboard-page .nav-group { margin-top:2px; }
+body.dashboard-page .nav-group:not(:has(a.nav-link)) { display:none; }
+body.dashboard-page .nav-grp {
+  display:flex; align-items:center; gap:8px; width:100%; background:none; border:0; cursor:pointer; text-align:left;
+  padding:14px 12px 6px; border-radius:11px; color:var(--mh-mu); font:700 12px 'Inter',system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+}
+body.dashboard-page .nav-grp:hover, body.dashboard-page .nav-group:has(a.nav-link.active) > .nav-grp { color:var(--mh-tx); }
+body.dashboard-page .nav-chev { margin-left:auto; font-size:11px; opacity:.7; }
+body.dashboard-page .nav-chev::before { content:'\25b8'; }
+body.dashboard-page .nav-group.open .nav-chev::before { content:'\25be'; }
+body.dashboard-page .nav-grpwrap { display:none; flex-direction:column; }
+body.dashboard-page .nav-group.open .nav-grpwrap { display:flex; }
+
+/* quotation: summary carried over from the job card */
+body.dashboard-page .quote-job-summary {
+  border:1px solid color-mix(in srgb,var(--mh-ac) 30%,var(--mh-bd)); border-radius:14px; padding:12px 14px;
+  background:color-mix(in srgb,var(--mh-ac) 6%,var(--mh-card)); display:flex; flex-direction:column; gap:10px;
+}
+body.dashboard-page .quote-job-summary.hidden { display:none !important; }
+body.dashboard-page .qjs-title { margin:0; font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--mh-al); }
+body.dashboard-page .qjs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px 14px; }
+body.dashboard-page .qjs-grid span, body.dashboard-page .qjs-text span { display:block; font-size:12px; color:var(--mh-mu); }
+body.dashboard-page .qjs-grid b { display:block; font-size:14px; font-weight:600; word-break:break-word; }
+body.dashboard-page .qjs-text p { margin:2px 0 0; white-space:pre-wrap; font-size:14.5px; }
