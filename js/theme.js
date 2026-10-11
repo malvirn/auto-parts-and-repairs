@@ -5,7 +5,12 @@
   var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
   function apply() {
     var theme = mode === "system" ? (mq && mq.matches ? "dark" : "light") : mode;
-    document.documentElement.setAttribute("data-theme", theme);
+    var root = document.documentElement;
+    root.setAttribute("data-theme", theme);
+    // Paint the app's background colour straight away so a page never
+    // flashes white while it loads or while sign-in is being checked.
+    root.style.backgroundColor = theme === "dark" ? "#0b1220" : "#eef3fb";
+    root.style.colorScheme = theme;
   }
   apply();
   if (mq && mode === "system") {

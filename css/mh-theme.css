@@ -859,3 +859,153 @@ body.dashboard-page .fp-note { margin:10px 0 0; color:var(--mh-mu); font-size:13
 body.dashboard-page .fp-row-ic { width:16px; height:16px; vertical-align:-3px; color:var(--mh-al); margin-right:4px; }
 body.dashboard-page .nav-install { margin-top:10px; border:1px dashed var(--mh-bd); }
 body.dashboard-page .nav-install[hidden] { display:none; }
+
+/* =====================================================================
+   Glass look: soft colour glow behind frosted panels, smooth page changes
+   ===================================================================== */
+html { background-color: var(--mh-bg); }
+:root:not(#mh) body.dashboard-page {
+  --mh-glass: color-mix(in srgb, var(--mh-card) 62%, transparent);
+  --mh-glass-strong: color-mix(in srgb, var(--mh-card) 82%, transparent);
+  --mh-glass-in: color-mix(in srgb, var(--mh-in) 72%, transparent);
+  --mh-glass-bd: color-mix(in srgb, var(--mh-bd) 70%, rgba(255,255,255,.10));
+  --mh-blur: blur(18px) saturate(160%);
+}
+:root[data-theme="light"]:not(#mh) body.dashboard-page {
+  --mh-glass: rgba(255,255,255,.62);
+  --mh-glass-strong: rgba(255,255,255,.84);
+  --mh-glass-in: rgba(255,255,255,.70);
+  --mh-glass-bd: rgba(255,255,255,.75);
+}
+:root[data-theme="light"]:not(#mh) body, :root[data-theme="light"]:not(#mh) { --mh-bg:#eef3fb; }
+
+/* the colour glow behind everything (fixed, so it doesn't move while scrolling) */
+body.dashboard-page .app-shell::before {
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(900px 620px at -5% -10%, color-mix(in srgb, var(--mh-ac) 26%, transparent), transparent 62%),
+    radial-gradient(760px 560px at 105% 5%, color-mix(in srgb, var(--mh-tl) 20%, transparent), transparent 60%),
+    radial-gradient(900px 700px at 55% 115%, color-mix(in srgb, var(--mh-vi) 18%, transparent), transparent 62%),
+    var(--mh-bg);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body.dashboard-page .sidebar,
+  body.dashboard-page .panel,
+  body.dashboard-page .stat-card,
+  body.dashboard-page .stat-card:nth-child(1),
+  body.dashboard-page .gauge-card,
+  body.dashboard-page .chart-card,
+  body.dashboard-page .alert-card,
+  body.dashboard-page .dept-card,
+  body.dashboard-page .payroll-banner,
+  body.dashboard-page .module-card,
+  body.dashboard-page .sg,
+  body.dashboard-page .jc-step,
+  body.dashboard-page .wl-card,
+  body.dashboard-page .quote-job-summary,
+  body.dashboard-page .accordion-item,
+  body.dashboard-page .form-grid.panel,
+  body.dashboard-page form.panel,
+  body.dashboard-page #global-notif-bell {
+    background: var(--mh-glass);
+    border-color: var(--mh-glass-bd);
+    -webkit-backdrop-filter: var(--mh-blur);
+    backdrop-filter: var(--mh-blur);
+  }
+  body.dashboard-page .sidebar { background: var(--mh-glass-strong); }
+  body.dashboard-page .quick-action,
+  body.dashboard-page .attention-item,
+  body.dashboard-page .wl-job,
+  body.dashboard-page .jc-line,
+  body.dashboard-page .jc-sub,
+  body.dashboard-page th {
+    background: var(--mh-glass-in);
+  }
+  body.dashboard-page input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]),
+  body.dashboard-page select,
+  body.dashboard-page textarea { background: var(--mh-glass-in); }
+  body.dashboard-page .modal { background: var(--mh-glass-strong) !important; -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); }
+  body.dashboard-page .modal .jc-card, body.dashboard-page .modal .jc-infocard { background: var(--mh-glass); }
+  body.dashboard-page .jc-totalbar { background: color-mix(in srgb, var(--mh-ac) 8%, var(--mh-glass-strong)); }
+  body.dashboard-page .jc-total { -webkit-backdrop-filter: var(--mh-blur); backdrop-filter: var(--mh-blur); }
+  html body #global-notif-panel { background: var(--mh-glass-strong); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); }
+  body.dashboard-page .sidebar-toggle { background: var(--mh-glass-strong); -webkit-backdrop-filter: var(--mh-blur); backdrop-filter: var(--mh-blur); }
+}
+/* receipts / printed documents always stay plain white paper */
+body.dashboard-page .receipt-modal-card, body.dashboard-page .receipt-document { -webkit-backdrop-filter:none; backdrop-filter:none; }
+
+/* smooth page changes: cross-fade between pages (supported browsers) and a soft rise-in */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .24s; animation-timing-function: ease; }
+body.dashboard-page .main { animation: mhPageIn .32s ease-out both; }
+@keyframes mhPageIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page .main { animation:none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation:none; }
+}
+
+/* ---------- Confirmation toasts ---------- */
+.apr-toasts {
+  position:fixed; left:50%; top:calc(14px + env(safe-area-inset-top, 0px)); transform:translateX(-50%); z-index:5000;
+  display:flex; flex-direction:column; gap:8px; width:min(460px, calc(100vw - 24px)); pointer-events:none;
+}
+.apr-toast {
+  pointer-events:auto; display:flex; align-items:center; gap:12px; padding:12px 12px 12px 14px; border-radius:16px;
+  font-family:'Inter',system-ui,sans-serif; color:#0f172a; background:rgba(255,255,255,.86);
+  border:1px solid rgba(255,255,255,.8); box-shadow:0 14px 40px rgba(15,23,42,.22);
+  -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%);
+  animation:aprToastIn .28s cubic-bezier(.2,.9,.3,1.2) both;
+}
+:root:not([data-theme="light"]) .apr-toast { color:#e6ebf3; background:rgba(17,26,43,.82); border-color:rgba(255,255,255,.12); box-shadow:0 14px 40px rgba(0,0,0,.5); }
+.apr-toast.out { animation:aprToastOut .25s ease-in both; }
+.apr-toast-ic { width:34px; height:34px; flex:none; border-radius:11px; display:grid; place-items:center; color:#fff; }
+.apr-toast-ic svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.apr-toast.success .apr-toast-ic { background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 6px 16px rgba(16,185,129,.4); }
+.apr-toast.error .apr-toast-ic { background:linear-gradient(135deg,#fb7185,#e11d48); box-shadow:0 6px 16px rgba(225,29,72,.4); }
+.apr-toast.info .apr-toast-ic { background:linear-gradient(135deg,#4f8cf7,#1f5fd6); box-shadow:0 6px 16px rgba(31,95,214,.4); }
+.apr-toast-tx { flex:1; min-width:0; }
+.apr-toast-tx b { display:block; font-size:15px; font-weight:700; }
+.apr-toast-tx small { display:block; font-size:13px; opacity:.75; margin-top:1px; }
+.apr-toast-tx small:empty { display:none; }
+.apr-toast-x { background:none; border:0; color:inherit; opacity:.55; font-size:22px; line-height:1; cursor:pointer; padding:2px 6px; border-radius:8px; }
+.apr-toast-x:hover { opacity:1; }
+@keyframes aprToastIn { from { opacity:0; transform:translateY(-14px) scale(.96); } to { opacity:1; transform:none; } }
+@keyframes aprToastOut { to { opacity:0; transform:translateY(-10px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) { .apr-toast, .apr-toast.out { animation:none; } }
+/* the glow layer sits behind the body, so the body itself must be see-through */
+html body.dashboard-page { background: transparent; }
+
+/* ---------- Quotation / sales order document: always dark ink on white paper ---------- */
+body.dashboard-page .receipt-document h2,
+body.dashboard-page .receipt-document h3,
+body.dashboard-page .receipt-document strong,
+body.dashboard-page .receipt-document .receipt-customer,
+body.dashboard-page .receipt-document .receipt-address,
+body.dashboard-page .receipt-document .receipt-meta { color:#111 !important; opacity:1; }
+body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px solid #d7d7d7; padding-bottom:4px; }
+
+/* off-screen copy used to save the document as an image */
+#doc-capture {
+  position:absolute; left:-10000px; top:0; z-index:-1;
+  box-sizing:border-box; width:760px; padding:44px 48px; margin:0;
+  background:#fff !important; color:#111 !important;
+  font-family:Georgia, "Times New Roman", serif;
+  -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; border:0;
+}
+#doc-capture * { color:#111 !important; opacity:1 !important; text-shadow:none !important; }
+#doc-capture h3 { margin:24px 0 8px; font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border-bottom:1px solid #d7d7d7; padding-bottom:4px; }
+#doc-capture .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:24px; padding-bottom:20px; border-bottom:2px solid #111; }
+#doc-capture .receipt-brand { display:flex; align-items:center; gap:14px; }
+#doc-capture .receipt-logo { height:56px; width:auto; }
+#doc-capture .receipt-meta { text-align:right; font:12.5px/1.7 Arial, sans-serif; }
+#doc-capture .receipt-meta strong { display:block; font-size:15px; }
+#doc-capture .receipt-address, #doc-capture .receipt-customer { font:13px/1.55 Arial, sans-serif; }
+#doc-capture table { width:100%; table-layout:auto; margin-top:10px; border-collapse:collapse; font:13px Arial, sans-serif; }
+#doc-capture th, #doc-capture td { padding:9px 6px; border-bottom:1px solid #d7d7d7; background:#fff !important; white-space:normal; }
+#doc-capture th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid #111; }
+#doc-capture th:first-child, #doc-capture td:first-child { padding-left:0; text-align:left; }
+#doc-capture th:not(:first-child), #doc-capture td:not(:first-child) { text-align:right; white-space:nowrap; }
+#doc-capture th:last-child, #doc-capture td:last-child { padding-right:0; }
+#doc-capture .receipt-total { display:flex; justify-content:flex-end; gap:34px; padding-top:16px; font:700 16px Arial, sans-serif; }
+#doc-capture .receipt-note { margin-top:30px; font:12.5px/1.5 Arial, sans-serif; text-align:center; color:#444 !important; }

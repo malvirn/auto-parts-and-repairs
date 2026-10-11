@@ -1,3 +1,4 @@
+import { noteWrite } from "./toast.js";
 // ========= Supabase Client =========
 // 1. npm install @supabase/supabase-js  (if you move to a bundler later)
 // 2. For plain HTML/JS, we load Supabase from CDN in each page's <script> tag
@@ -19,5 +20,33 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
   },
 });
+
+// Every successful insert / update / delete shows a short confirmation
+// message (see toast.js). Reads are untouched.
+const originalFrom = supabase.from.bind(supabase);
+supabase.from = (table) => {
+  const builder = originalFrom(table);
+  for (const op of ["insert", "update", "upsert", "delete"]) {
+    const original = builder[op];
+    if (typeof original !== "function") continue;
+    builder[op] = function (...args) {
+      const query = original.apply(this, args);
+      const payload = args[0];
+      const kind = op === "upsert" ? "update" : op;
+      const then = query.then;
+      query.then = function (onFulfilled, onRejected) {
+        return then.call(this, (result) => {
+          try {
+            const rows = Array.isArray(result?.data) ? result.data.length : null;
+            if (!result?.error && rows !== 0) noteWrite(table, kind, payload);
+          } catch (e) {}
+          return result;
+        }).then(onFulfilled, onRejected);
+      };
+      return query;
+    };
+  }
+  return builder;
+};
 
 export default supabase;

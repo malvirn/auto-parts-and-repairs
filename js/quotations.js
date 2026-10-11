@@ -22,8 +22,6 @@ let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 
 const markup = 0.25;
-const SHOP_NAME = "Auto Parts and Repairs";
-const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
 const SHOP_LOGO_PATH = "../assets/logo.png"; // same file already used sitewide
 
 function escapeHtml(value) {
@@ -257,92 +255,183 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate) {
   recalc();
 }
 
-// ---------- Customer-facing text (for copy / email / WhatsApp) ----------
-// Cost price and markup % are deliberately left out — showing the markup
-// to the customer makes the price look inflated, even though it's the
-// same math either way. Just the final unit price and total.
+// ---------- Business details (for the document and the message) ----------
+let biz = { business_name: "Auto Parts & Repairs", tagline: "Vehicle Sales, Parts & Repairs", address: "", phone: "", email: "" };
+async function loadBusiness() {
+  const { data } = await supabase.from("business_settings").select("business_name, tagline, address, phone, email").eq("id", 1).maybeSingle();
+  if (data) biz = { ...biz, ...Object.fromEntries(Object.entries(data).filter(([, v]) => v)) };
+}
 
+function docNumber(record, kind) {
+  return kind === "Quotation" ? record.quotation_number : record.order_number;
+}
+function longDate(value) {
+  const d = value ? new Date(value) : new Date();
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+function usd(value) {
+  return "USD " + Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function zig(value) {
+  return "ZiG " + Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ---------- Customer-facing message (formal) ----------
+// Cost price and markup are never shown to the customer — only final prices.
 function buildDetailText(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
   const vehicle = job.vehicles || {};
-  const lines = (items || []).map(item =>
-    `  • ${item.quantity} × ${item.part_name} — ${money(item.unit_price_usd)} each = ${money(item.total_usd)} / ZiG ${Number(item.total_zig).toFixed(2)}`
+  const number = docNumber(record, kind);
+  const isQuote = kind === "Quotation";
+  const vehicleText = job.job_number ? `${vehicleLabel(vehicle) || "vehicle"}${vehicle.license_plate ? ` (registration ${vehicle.license_plate})` : ""}` : "";
+  const lines = (items || []).map((item, i) =>
+    `${i + 1}. ${item.part_name} — ${item.quantity} × ${usd(item.unit_price_usd)} = ${usd(Number(item.quantity) * Number(item.unit_price_usd))}`
   ).join("\n");
-  const number = kind === "Quotation" ? record.quotation_number : record.order_number;
+  const contact = [biz.phone && `Tel: ${biz.phone}`, biz.email && `Email: ${biz.email}`].filter(Boolean).join(" | ");
 
   return [
-    `${SHOP_NAME}`,
-    `${kind} #${number}`,
-    `Status: ${record.status}`,
-    `Date: ${record.created_at ? new Date(record.created_at).toLocaleString() : "—"}`,
+    `Dear ${customer.full_name},`,
     ``,
-    `Customer: ${customer.full_name}`,
-    `Phone: ${customer.phone}`,
-    `Email: ${customer.email}`,
+    isQuote
+      ? `Thank you for choosing ${biz.business_name}. Please find below our Quotation No. ${number}, dated ${longDate(record.created_at)}${vehicleText ? `, for your ${vehicleText}` : ""}.`
+      : `Thank you for your business. Please find below Sales Order No. ${number}, dated ${longDate(record.created_at)}${vehicleText ? `, for your ${vehicleText}` : ""}.`,
     ``,
     job.job_number ? `Job card: ${jobRef(job)}` : null,
-    job.job_number ? `Vehicle: ${vehicleLabel(vehicle) || "—"}${vehicle.license_plate ? ` (${vehicle.license_plate})` : ""}` : null,
-    job.job_number && vehicle.chassis_number ? `Chassis: ${vehicle.chassis_number}` : null,
-    job.job_number && vehicle.engine_number ? `Engine: ${vehicle.engine_number}` : null,
-    job.job_number && job.odometer_in != null ? `Odometer in: ${Number(job.odometer_in).toLocaleString()} km` : null,
-    job.job_number ? `Fault reported: ${job.fault_reported || "—"}` : null,
-    job.job_number ? `Diagnosis: ${job.diagnosis || "Not diagnosed yet"}` : null,
+    job.job_number ? `Fault reported: ${job.fault_reported || "Not recorded"}` : null,
+    job.job_number ? `Diagnosis: ${job.diagnosis || "Diagnosis in progress"}` : null,
     job.job_number ? `` : null,
-    `Items:`,
-    lines || "  (no line items)",
+    isQuote ? `Quoted items:` : `Order items:`,
+    lines || "(No items)",
     ``,
-    `Exchange rate: 1 USD = ${Number(record.usd_to_zig_rate).toFixed(4)} ZiG`,
-    `Total: ${money(record.total_usd)} / ZiG ${Number(record.total_zig).toFixed(2)}`,
+    `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
+    ``,
+    isQuote
+      ? `This quotation is valid for seven (7) days from the date above, and prices are subject to the availability of parts. To proceed, kindly reply to confirm and we will schedule the work.`
+      : `Kindly keep this sales order for your records. Should you have any questions, please do not hesitate to contact us.`,
+    ``,
+    `The ${isQuote ? "quotation" : "sales order"} document is attached as an image for your reference.`,
+    ``,
+    `Yours faithfully,`,
+    biz.business_name,
+    contact || null,
+    biz.address || null,
   ].filter(line => line !== null).join("\n");
 }
 
-// ---------- Branded visual preview (with logo, no markup shown) ----------
-
+// ---------- Branded document (preview + downloadable image) ----------
 function buildDetailHtml(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
   const vehicle = job.vehicles || {};
-  const number = kind === "Quotation" ? record.quotation_number : record.order_number;
+  const number = docNumber(record, kind);
   const rows = (items || []).map(item => `
     <tr><td>${escapeHtml(item.part_name)}</td><td>${item.quantity}</td><td>${money(item.unit_price_usd)}</td><td>${money(item.quantity * item.unit_price_usd)}</td></tr>
   `).join("") || `<tr><td colspan="4">No line items</td></tr>`;
+  const contact = [biz.phone, biz.email].filter(Boolean).map(escapeHtml).join(" · ");
 
   return `
     <header class="receipt-header">
       <div class="receipt-brand">
-        <img src="${SHOP_LOGO_PATH}" alt="${SHOP_NAME}" class="receipt-logo" />
-        <div class="receipt-address">${SHOP_NAME}<br>${SHOP_TAGLINE}</div>
+        <img src="${SHOP_LOGO_PATH}" alt="${escapeHtml(biz.business_name)}" class="receipt-logo" />
+        <div class="receipt-address"><strong>${escapeHtml(biz.business_name)}</strong><br>${escapeHtml(biz.tagline || "")}${biz.address ? `<br>${escapeHtml(biz.address)}` : ""}${contact ? `<br>${contact}` : ""}</div>
       </div>
-      <div class="receipt-meta"><strong>${kind.toUpperCase()} #${number}</strong>${record.created_at ? new Date(record.created_at).toLocaleString() : ""}</div>
+      <div class="receipt-meta"><strong>${kind.toUpperCase()} No. ${number}</strong>${longDate(record.created_at)}</div>
     </header>
-    <h3>Customer</h3>
-    <div class="receipt-customer">${escapeHtml(customer.full_name)}<br>${escapeHtml(customer.phone)}</div>
+    <h3>${kind === "Quotation" ? "Prepared for" : "Customer"}</h3>
+    <div class="receipt-customer">${escapeHtml(customer.full_name)}<br>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? `<br>${escapeHtml(customer.email)}` : ""}</div>
     ${job.job_number ? `<h3>Vehicle &amp; job card</h3><div class="receipt-customer">${escapeHtml(jobRef(job))} · ${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}${vehicle.chassis_number ? `<br>Chassis ${escapeHtml(vehicle.chassis_number)}` : ""}${vehicle.engine_number ? ` · Engine ${escapeHtml(vehicle.engine_number)}` : ""}${job.odometer_in != null ? `<br>Odometer in ${Number(job.odometer_in).toLocaleString()} km` : ""}</div>
     <h3>Fault reported</h3><div class="receipt-customer">${escapeHtml(job.fault_reported || "—")}</div>
-    <h3>Diagnosis</h3><div class="receipt-customer">${escapeHtml(job.diagnosis || "Not diagnosed yet")}</div>` : ""}
-    <h3>Items</h3>
+    <h3>Diagnosis</h3><div class="receipt-customer">${escapeHtml(job.diagnosis || "Diagnosis in progress")}</div>` : ""}
+    <h3>${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
     <table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toFixed(2)}</strong></div>
-    <p class="receipt-note">${kind === "Quotation" ? "This quotation is valid for 7 days." : `Thank you for choosing ${SHOP_NAME}.`}</p>`;
+    <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+    <p class="receipt-note">${kind === "Quotation" ? "This quotation is valid for seven (7) days from the date above. Prices are subject to the availability of parts." : `Thank you for choosing ${escapeHtml(biz.business_name)}.`}</p>`;
 }
 
-// ---------- Send actions (email / WhatsApp) ----------
-
-function sendByEmail(detailText, customer, subjectPrefix) {
-  const email = (customer?.email && customer.email !== "—" ? customer.email : "").trim() || prompt("Customer email address:");
-  if (!email) return;
-  const subject = encodeURIComponent(subjectPrefix);
-  const body = encodeURIComponent(detailText);
-  window.open(`mailto:${email}?subject=${subject}&body=${body}`, "_blank");
+// ---------- Send: download the document image first, then open the message ----------
+async function downloadDocumentImage(kind, record) {
+  const node = document.getElementById(kind === "Quotation" ? "quote-detail-text" : "order-detail-text");
+  if (!node) throw new Error("The document preview isn't on this page.");
+  if (typeof window.html2canvas !== "function") throw new Error("The image tool didn't load. Check your internet connection and reload the page.");
+  // Capture a clean copy on a fixed-width white "paper", away from the
+  // modal, so nothing is cropped and the theme colours don't fade it.
+  const paper = document.createElement("div");
+  paper.id = "doc-capture";
+  paper.innerHTML = node.innerHTML;
+  document.body.appendChild(paper);
+  let canvas;
+  try {
+    const imgs = [...paper.querySelectorAll("img")];
+    await Promise.all(imgs.map(img => img.complete ? null : new Promise(r => { img.onload = img.onerror = r; })));
+    const width = paper.offsetWidth, height = paper.offsetHeight;
+    canvas = await window.html2canvas(paper, {
+      backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false,
+      width, height, windowWidth: Math.max(width + 40, document.documentElement.clientWidth),
+      scrollX: 0, scrollY: 0,
+    });
+  } finally {
+    paper.remove();
+  }
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("Couldn't create the image.");
+  const name = `${kind === "Quotation" ? "Quotation" : "Sales-Order"}-${docNumber(record, kind)}.png`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return name;
 }
 
-function sendByWhatsApp(detailText, customer) {
-  let phone = (customer?.phone && customer.phone !== "—" ? customer.phone : "").trim() || prompt("Customer WhatsApp number (include country code, e.g. +263771234567):");
+function whatsappNumber(raw) {
+  let digits = String(raw || "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("0")) digits = "263" + digits.slice(1);
+  return digits.length >= 9 ? digits : "";
+}
+
+async function withBusy(button, label, fn) {
+  const html = button?.innerHTML;
+  if (button) { button.disabled = true; button.innerHTML = `<i data-lucide="loader-circle"></i> ${label}`; if (window.lucide) lucide.createIcons(); }
+  try { return await fn(); }
+  finally { if (button) { button.disabled = false; button.innerHTML = html; if (window.lucide) lucide.createIcons(); } }
+}
+
+async function sendByWhatsApp(kind, record, button) {
+  const customer = resolveCustomer(record);
+  const phone = whatsappNumber(customer.phone !== "—" ? customer.phone : "") ||
+    whatsappNumber(prompt("Customer's WhatsApp number (e.g. 0771234567):") || "");
   if (!phone) return;
-  phone = phone.replace(/[^\d]/g, "");
-  const text = encodeURIComponent(detailText);
-  window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+  // Open the WhatsApp tab inside the click so it isn't blocked as a pop-up.
+  const tab = window.open("", "_blank");
+  if (tab) tab.document.write("<p style='font:16px system-ui;padding:24px'>Preparing the message…</p>");
+  try {
+    const file = await withBusy(button, "Saving image…", () => downloadDocumentImage(kind, record));
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(buildDetailText(record, kind, itemsOf(record, kind)))}`;
+    if (tab && !tab.closed) tab.location.href = url; else window.location.href = url;
+    window.aprToast?.(`${file} downloaded`, "success", "Attach it in WhatsApp with the paperclip, then send.");
+  } catch (err) {
+    if (tab && !tab.closed) tab.close();
+    window.aprToast?.("Couldn't prepare the message", "error", err.message || String(err));
+  }
+}
+
+async function sendByEmail(kind, record, button) {
+  const customer = resolveCustomer(record);
+  const email = (customer.email && customer.email !== "—" ? customer.email : "").trim() || (prompt("Customer email address:") || "").trim();
+  if (!email) return;
+  try {
+    const file = await withBusy(button, "Saving image…", () => downloadDocumentImage(kind, record));
+    const subject = `${kind === "Quotation" ? "Quotation" : "Sales Order"} No. ${docNumber(record, kind)} — ${biz.business_name}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildDetailText(record, kind, itemsOf(record, kind)))}`;
+    window.aprToast?.(`${file} downloaded`, "success", "Attach it to the email before sending.");
+  } catch (err) {
+    window.aprToast?.("Couldn't prepare the email", "error", err.message || String(err));
+  }
+}
+
+function itemsOf(record, kind) {
+  return kind === "Quotation" ? record.quotation_items : record.sales_order_items;
 }
 
 function copyDetailText(text, statusNode) {
@@ -494,15 +583,16 @@ on("edit-order-save", saveOrderChanges);
 on("edit-order-cancel", () => closeModal(orderModal));
 
 on("quote-detail-copy", () => copyDetailText(editingQuoteDetailText, document.getElementById("quote-detail-copy-status")));
-on("quote-detail-email", () => editingQuote && sendByEmail(editingQuoteDetailText, resolveCustomer(editingQuote), `Quotation #${editingQuote.quotation_number} — ${SHOP_NAME}`));
-on("quote-detail-whatsapp", () => editingQuote && sendByWhatsApp(editingQuoteDetailText, resolveCustomer(editingQuote)));
+on("quote-detail-email", (e) => editingQuote && sendByEmail("Quotation", editingQuote, e.currentTarget));
+on("quote-detail-whatsapp", (e) => editingQuote && sendByWhatsApp("Quotation", editingQuote, e.currentTarget));
 
 on("order-detail-copy", () => copyDetailText(editingOrderDetailText, document.getElementById("order-detail-copy-status")));
-on("order-detail-email", () => editingOrder && sendByEmail(editingOrderDetailText, resolveCustomer(editingOrder), `Sales Order #${editingOrder.order_number} — ${SHOP_NAME}`));
-on("order-detail-whatsapp", () => editingOrder && sendByWhatsApp(editingOrderDetailText, resolveCustomer(editingOrder)));
+on("order-detail-email", (e) => editingOrder && sendByEmail("Sales Order", editingOrder, e.currentTarget));
+on("order-detail-whatsapp", (e) => editingOrder && sendByWhatsApp("Sales Order", editingOrder, e.currentTarget));
 
 document.addEventListener("DOMContentLoaded", async () => {
   toggleWalkinFields();
+  loadBusiness().catch(() => {});
   try {
     await loadBaseData();
     const requestedJob = new URLSearchParams(window.location.search).get("job");
