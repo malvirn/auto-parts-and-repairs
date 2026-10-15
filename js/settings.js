@@ -263,6 +263,27 @@ if (guideAccordion) {
 }
 
 // ---- Currency ----
+// ---- Daily Goals ----
+async function loadGoals() {
+  const jobsInput = $("goal-jobs");
+  if (!jobsInput) return;
+  const { data } = await supabase.from("settings").select("daily_jobs_target, daily_revenue_target").maybeSingle();
+  if (!data) return;
+  jobsInput.value = data.daily_jobs_target;
+  $("goal-revenue").value = data.daily_revenue_target;
+}
+$("save-goals-btn")?.addEventListener("click", async (e) => {
+  const jobs = parseInt($("goal-jobs")?.value, 10);
+  const revenue = parseFloat($("goal-revenue")?.value);
+  if (!Number.isFinite(jobs) || jobs < 1) { say("m-goals", "Enter a job cards target of at least 1.", false); return; }
+  if (!Number.isFinite(revenue) || revenue < 0) { say("m-goals", "Enter a revenue target of 0 or more.", false); return; }
+  busy(e.currentTarget, true);
+  const { error } = await supabase.from("settings").update({ daily_jobs_target: jobs, daily_revenue_target: revenue }).eq("id", true);
+  busy(e.currentTarget, false);
+  say("m-goals", error ? "Couldn't save: " + error.message : "Daily goals saved.", !error);
+  if (!error) loadGoals();
+});
+
 async function loadRate() {
   const rateInput = $("exchange-rate");
   if (!rateInput) return;
@@ -305,6 +326,7 @@ $("sign-out-btn")?.addEventListener("click", async () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadBusinessSettings();
+  loadGoals();
   loadFingerprints();
   refreshInstall();
   loadTiers();

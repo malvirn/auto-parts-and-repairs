@@ -23,7 +23,7 @@ async function loadCustomers() {
   }
 
   tableBody.innerHTML = data.map(c => `
-    <tr>
+    <tr data-customer-id="${c.id}">
       <td>${escapeHtml(c.full_name)}</td>
       <td>${c.customer_type === "company" ? "Company" : "Individual"}</td>
       <td>${escapeHtml(c.phone)}</td>
@@ -157,5 +157,18 @@ function vehiclePlates(vehicles = []) {
   return plates.length ? plates.map(escapeHtml).join(", ") : "—";
 }
 
+// ---- Highlight a row reached via the dashboard's global search ----
+function highlightFromUrl() {
+  const id = new URLSearchParams(window.location.search).get("highlight");
+  if (!id) return;
+  const row = document.querySelector(`#customers-table tr[data-customer-id="${id}"]`);
+  if (!row) return;
+  row.scrollIntoView({ behavior: "smooth", block: "center" });
+  row.classList.add("highlight-flash");
+}
+
 // ---- Init ----
-document.addEventListener("DOMContentLoaded", loadCustomers);
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCustomers();
+  highlightFromUrl();
+});

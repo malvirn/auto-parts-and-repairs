@@ -86,6 +86,7 @@
         <a href="#appearance">Appearance</a>
         <a href="#about">Business</a>
         <a href="#labour">Labour charges</a>
+        <a href="#daily-goals">Daily goals</a>
         <a href="#currency">Currency</a>
         <a href="#notifications">Notifications</a>
         <a href="#access-control">Access control</a>
@@ -176,6 +177,21 @@
             </form>
             <p class="smsg" id="tier-form-message" role="status" aria-live="polite"></p>
           </div>
+        </section>
+
+        <!-- Daily Goals -->
+        <section class="sg" id="daily-goals" aria-labelledby="h-goals">
+          <header><i data-lucide="target"></i><div><h3 id="h-goals">Daily goals</h3><p>The S.M.A.R.T. targets shown on the dashboard's Today's Objectives card. Specific and Measurable are set here; Achievable and Relevant are judged against your own pace through the day; Time-bound is always by close of business.</p></div></header>
+          <div class="sr">
+            <div class="t"><b>Job cards to open today</b><span>Specific &amp; Measurable target.</span></div>
+            <input type="number" min="1" step="1" id="goal-jobs" style="width:100px" aria-label="Daily job cards target" />
+          </div>
+          <div class="sr">
+            <div class="t"><b>Revenue target today ($)</b><span>Billed across today's receipts.</span></div>
+            <input type="number" min="0" step="1" id="goal-revenue" style="width:140px" aria-label="Daily revenue target" />
+          </div>
+          <div class="acts" style="padding:0 16px 14px"><button id="save-goals-btn" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save</button></div>
+          <p class="smsg" id="m-goals" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
         </section>
 
         <!-- Currency -->

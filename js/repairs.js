@@ -1445,6 +1445,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const editId = params.get("edit");
   const statusFilter = params.get("status");
+  const highlightId = params.get("highlight");
   if (editId && jobsById.has(editId)) openEditModal(jobsById.get(editId));
   else if (statusFilter) filterTableByStatus(statusFilter);
+  else if (highlightId) {
+    const row = document.querySelector(`#repairs-table tr[data-job-id="${highlightId}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("highlight-flash");
+    }
+  }
 });

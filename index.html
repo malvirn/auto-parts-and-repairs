@@ -83,12 +83,20 @@
       </div>
 
       <section class="page-section">
+        <div class="global-search">
+          <i data-lucide="search" class="global-search__icon"></i>
+          <input type="text" id="global-search-input" placeholder="Search customers, job cards, quotations, suppliers..." autocomplete="off" />
+          <div class="global-search__results" id="global-search-results" hidden></div>
+        </div>
+      </section>
+
+      <section class="page-section">
         <div class="quick-actions">
-          <a class="quick-action" href="pages/repairs.html"><i data-lucide="clipboard-plus"></i><span>New Job Card</span></a>
-          <a class="quick-action" href="pages/customers.html"><i data-lucide="user-plus"></i><span>Add Customer</span></a>
-          <a class="quick-action" href="pages/quotations.html"><i data-lucide="file-plus-2"></i><span>New Quotation</span></a>
-          <a class="quick-action" href="pages/receipts.html"><i data-lucide="receipt"></i><span>Receipts</span></a>
-          <a class="quick-action" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i><span>Full Analytics</span></a>
+          <a class="quick-action quick-action--job" href="pages/repairs.html"><i data-lucide="clipboard-plus"></i><span>New Job Card</span></a>
+          <a class="quick-action quick-action--customer" href="pages/customers.html"><i data-lucide="user-plus"></i><span>Add Customer</span></a>
+          <a class="quick-action quick-action--quote" href="pages/quotations.html"><i data-lucide="file-plus-2"></i><span>New Quotation</span></a>
+          <a class="quick-action quick-action--receipt" href="pages/receipts.html"><i data-lucide="receipt"></i><span>Receipts</span></a>
+          <a class="quick-action quick-action--analytics" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i><span>Full Analytics</span></a>
         </div>
       </section>
 
@@ -105,6 +113,19 @@
           <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">&mdash;</div></div>
           <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">&mdash;</div></div>
           <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
+        </div>
+      </section>
+
+      <section class="dashboard-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">S.M.A.R.T.</p>
+            <h2>Today's Objectives</h2>
+          </div>
+          <a class="section-note" href="pages/settings.html">Edit targets</a>
+        </div>
+        <div class="objectives-grid" id="objectives-grid">
+          <div class="objective-card">Loading...</div>
         </div>
       </section>
 
