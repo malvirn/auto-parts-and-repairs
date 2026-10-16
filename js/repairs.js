@@ -1,6 +1,7 @@
 // ========= Job Cards module =========
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
+import { hydrate } from "./data-cache.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -539,7 +540,7 @@ function vehicleName(v) {
   return [v?.year, v?.make, v?.model].filter(Boolean).join(" ");
 }
 
-async function loadJobs() {
+async function fetchJobsBundle() {
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
       id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
@@ -548,17 +549,20 @@ async function loadJobs() {
     `).order("created_at", { ascending: false }),
     supabase.from("technician_directory").select("id, full_name"),
   ]);
-  techNamesById = Object.fromEntries((techs || []).map(t => [t.id, t.full_name]));
+  if (error) throw error;
+  return { jobs: data || [], techs: techs || [] };
+}
 
-  if (error) {
-    console.error("Error loading repair jobs:", error);
-    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Failed to load jobs: ${escapeHtml(error.message)}</td></tr>`;
-    return;
-  }
-  jobsById = new Map((data || []).map(j => [j.id, j]));
+function renderJobsBundle(bundle) {
+  const { jobs: data, techs } = bundle;
+  techNamesById = Object.fromEntries(techs.map(t => [t.id, t.full_name]));
+  jobsById = new Map(data.map(j => [j.id, j]));
 
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No job cards yet</td></tr>`;
+    if (window.lucide) lucide.createIcons();
+    applyJobFilters();
+    renderWorkload();
     return;
   }
 
@@ -590,6 +594,19 @@ async function loadJobs() {
   });
   applyJobFilters();
   renderWorkload();
+}
+
+// Renders instantly from cache (prefetched at sign-in, or left over from an
+// earlier visit this session) and refreshes from the network in the
+// background, so opening Job Cards never sits on a blank table while the
+// query runs.
+async function loadJobs() {
+  try {
+    await hydrate("repairs:jobs", fetchJobsBundle, renderJobsBundle);
+  } catch (error) {
+    console.error("Error loading repair jobs:", error);
+    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Failed to load jobs: ${escapeHtml(error.message)}</td></tr>`;
+  }
 }
 
 // =====================================================================

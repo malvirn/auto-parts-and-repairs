@@ -1,8 +1,8 @@
-// Sign-in loading screen: a 20-second progress bar through the sign-in
+// Sign-in loading screen: a 5-second progress bar through the sign-in
 // steps with workshop animations (gears, spanner, engine), the system name
 // and developer credit. Then either a green tick with the person's access
 // level before the app opens, or — for wrong details — "Access denied"
-// after 15 seconds.
+// after 4 seconds.
 
 const SYSTEM = { name: "Auto Parts & Repairs", tagline: "Workshop Management System" };
 
@@ -32,8 +32,8 @@ const ROLE_INFO = {
   },
 };
 
-const DURATION_MS = 20000;     // the progress bar runs for 20 seconds
-const DENY_AT_MS = 15000;      // wrong details are refused at 15 seconds
+const DURATION_MS = 5000;      // the progress bar runs for 5 seconds
+const DENY_AT_MS = 4000;       // wrong details are refused at 4 seconds
 const DENY_SHOW_MS = 3500;     // the red "Access denied" stays this long
 const ACCESS_SHOW_MS = 3000;   // the green tick + access level stays this long
 const HOLD_AT = 92;            // the bar waits here if the real sign-in is still busy
@@ -176,7 +176,7 @@ export function bootCancel() {
 }
 
 // Sign-in refused (wrong email/password, deactivated account, …): keep
-// the loading screen running until 15 seconds, then show "Access denied"
+// the loading screen running until 4 seconds, then show "Access denied"
 // with the reason, and finally return to the sign-in form.
 export async function bootDeny(reason) {
   if (!el || el.hidden) return;

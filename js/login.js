@@ -1,6 +1,7 @@
 import supabase from "./supabaseClient.js";
 import { fingerprintSupported, deviceHasFingerprint, signInWithFingerprint } from "./passkey.js";
 import { bootStart, bootCancel, bootDeny, bootFinish, splitLetters } from "./boot.js";
+import { prefetchCoreData } from "./prefetch.js";
 
 const form = document.getElementById("login-form");
 const messageEl = document.getElementById("login-message");
@@ -39,6 +40,7 @@ async function completeSignIn(fallbackEmail) {
     return "This account has been deactivated. Contact your Super Admin.";
   }
 
+  prefetchCoreData(); // fire-and-forget — overlaps with the loading screen below
   await bootFinish(profile || { role: "staff" }, confirmed.email || fallbackEmail);
   return null;
 }

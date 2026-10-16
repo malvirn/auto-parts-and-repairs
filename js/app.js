@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { hydrate } from "./data-cache.js";
 
 const recentJobsBody = document.getElementById("recent-jobs");
 
@@ -24,10 +25,7 @@ async function getData(label, query) {
   return data || [];
 }
 
-async function loadDashboard() {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-
+async function fetchDashboardBundle() {
   const [jobs, customers, parts, receipts, payrollRuns, settingsRows] = await Promise.all([
     getData("repair jobs", supabase.from("repair_jobs").select(`
       id, job_number, status, total_cost, created_at, completed_at, ready_at, collected_at,
@@ -40,15 +38,26 @@ async function loadDashboard() {
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
     getData("settings", supabase.from("settings").select("daily_jobs_target, daily_revenue_target").limit(1)),
   ]);
+  return { jobs, customers, parts, receipts, payrollRuns, settings: settingsRows[0] };
+}
+
+async function loadDashboard() {
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   renderGreeting();
-  const snapshot = renderTodaySnapshot(jobs, customers, receipts, todayStr);
-  renderObjectives(snapshot, settingsRows[0]);
-  renderNeedsAttention(jobs, parts, receipts, payrollRuns);
-  renderRecentJobs(jobs.slice(0, 10));
   initGlobalSearch();
 
-  if (window.lucide) lucide.createIcons();
+  // Renders instantly from whatever's cached (from sign-in's prefetch, or a
+  // previous visit this session), then refreshes from the network in the
+  // background — so arriving here never shows a blank screen if the data
+  // was already loaded moments ago.
+  await hydrate("dash:bundle", fetchDashboardBundle, (bundle) => {
+    const snapshot = renderTodaySnapshot(bundle.jobs, bundle.customers, bundle.receipts, todayStr);
+    renderObjectives(snapshot, bundle.settings);
+    renderNeedsAttention(bundle.jobs, bundle.parts, bundle.receipts, bundle.payrollRuns);
+    renderRecentJobs(bundle.jobs.slice(0, 10));
+    if (window.lucide) lucide.createIcons();
+  });
 }
 
 function renderGreeting() {

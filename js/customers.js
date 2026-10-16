@@ -1,27 +1,25 @@
 // ========= Customers module =========
 import supabase from "./supabaseClient.js";
+import { hydrate } from "./data-cache.js";
 
 const tableBody = document.getElementById("customers-table");
 const form = document.getElementById("customer-form");
 
 // ---- Load and render all customers ----
-async function loadCustomers() {
+async function fetchCustomersList() {
   const { data, error } = await supabase
     .from("customers")
     .select("id, full_name, phone, customer_type, is_repeat_customer, vehicles(license_plate)")
     .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
 
-  if (error) {
-    console.error("Error loading customers:", error);
-    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Failed to load customers: ${error.message}</td></tr>`;
-    return;
-  }
-
-  if (!data || data.length === 0) {
+function renderCustomersList(data) {
+  if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted)">No customers yet — add one above</td></tr>`;
     return;
   }
-
   tableBody.innerHTML = data.map(c => `
     <tr data-customer-id="${c.id}">
       <td>${escapeHtml(c.full_name)}</td>
@@ -31,6 +29,18 @@ async function loadCustomers() {
       <td>${c.is_repeat_customer ? "Yes" : "No"}</td>
     </tr>
   `).join("");
+}
+
+// Renders instantly from cache (set at sign-in or on an earlier visit this
+// session) and refreshes in the background, so arriving on this page never
+// shows a blank table while the network replies.
+async function loadCustomers() {
+  try {
+    await hydrate("customers:list", fetchCustomersList, renderCustomersList);
+  } catch (error) {
+    console.error("Error loading customers:", error);
+    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Failed to load customers: ${error.message}</td></tr>`;
+  }
 }
 
 // ---- Find an existing customer by phone or email ----
