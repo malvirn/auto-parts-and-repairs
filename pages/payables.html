@@ -6,7 +6,7 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Payables</title>
+  <title>Centric Auto Mobile | Supplier Payables</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,10 +42,10 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -107,12 +107,13 @@
         <div>
           <p class="section-kicker">Creditors</p>
           <h1>Accounts Payable</h1>
-          <p class="page-intro">What you owe each supplier, when it's due, and what's been paid. Every bill and payment posts a real entry to the Ledger automatically.</p>
+          <p class="page-intro">Track supplier bills, payments already made, remaining balances and due dates. Recording a bill or payment also updates the shared ledger.</p>
         </div>
       </div>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Who's owed what</p><h2><i class="section-heading-icon" data-lucide="alarm-clock"></i>Aging Summary</h2></div></div>
+        <div class="section-heading"><div><p class="section-kicker">Supplier balances by due date</p><h2><i class="section-heading-icon" data-lucide="alarm-clock"></i>Unpaid Supplier Bills</h2></div></div>
+        <p class="page-intro" style="margin:0 0 12px;">Each total is the amount still owed on supplier bills in that due-date range. Paid bills are not included.</p>
         <div class="card-grid" id="aging-cards"></div>
       </section>
 
@@ -125,8 +126,8 @@
             <div class="field"><label>Amount ($)</label><input type="number" id="pay-amount" step="0.01" min="0.01" required /></div>
             <div class="field"><label>Bill Date</label><input type="date" id="pay-bill-date" required /></div>
             <div class="field"><label>Due Date</label><input type="date" id="pay-due-date" required /></div>
-            <div class="field"><label>What was this for</label><select id="pay-debit-account" required></select></div>
-            <div class="field" style="grid-column: span 3;"><label>Description</label><input type="text" id="pay-description" placeholder="e.g. Brake pads restock" /></div>
+            <div class="field"><label>Expense or purchase category</label><select id="pay-debit-account" required></select></div>
+            <div class="field" style="grid-column: span 3;"><label>Bill details</label><input type="text" id="pay-description" placeholder="e.g. Brake pads restock" /></div>
           </div>
           <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Payable</button>
           <p id="payable-form-message" class="form-message"></p>
@@ -137,7 +138,7 @@
         <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="list"></i>Open &amp; Recent Payables</h2></div></div>
         <div class="panel">
           <table>
-            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due Date</th><th>Bill Total</th><th>Paid So Far</th><th>Still Owed</th><th>Status</th><th></th></tr></thead>
             <tbody id="payables-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
           </table>
         </div>

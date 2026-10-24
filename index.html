@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  
   <script src="js/theme.js"></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f78a1d">
+  <meta name="color-scheme" content="dark light">
+  <title>Centric Auto Mobile | Workshop Dashboard</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+<<<<<<< HEAD
   <link rel="stylesheet" href="css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
@@ -20,9 +23,219 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="js/pwa.js" defer></script>
+=======
+
+  <style>
+    /* ===== Theme tokens: dark is default, light follows the device or theme.js ===== */
+    :root {
+      --bg: #1c1c1c; --surface: #2b2b2b; --surface-2: #333; --line: #414141;
+      --text: #f2f2f2; --muted: #a8a8a8; --nav-bg: rgba(30,30,30,.96); --shadow: 0 14px 34px rgba(0,0,0,.5);
+      --accent: #f78a1d; --on-accent: #181818;
+      --ok: #4cc38a; --info: #5aa9f0; --warn: #f2c14e; --bad: #ef6a5e;
+      --head: "Space Grotesk", system-ui, sans-serif;
+      --body: "Manrope", system-ui, sans-serif;
+      --pad: clamp(14px, 4vw, 28px);
+      --maxw: 1080px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]):not(.dark):not(.dark-mode) {
+        --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8;
+        --text: #1d1d1d; --muted: #66625d; --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
+        --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a; color-scheme: light;
+      }
+    }
+    :root[data-theme="light"], :root.light, :root.light-mode, body.light, body.light-mode {
+      --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8;
+      --text: #1d1d1d; --muted: #66625d; --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
+      --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a; color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+    body.dashboard-page {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+      font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .app-shell { display: block !important; }
+    .sidebar { display: none !important; }
+    .main {
+      width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0;
+      padding: 0 0 calc(130px + var(--safe-b)) !important; background: transparent !important; color: var(--text);
+    }
+    /* Everything except the header is centred and padded */
+    .main > :not(.dashboard-hero) { width: min(var(--maxw), 100% - 2 * var(--pad)); margin-inline: auto; }
+
+    /* ===== Coloured top header ===== */
+    .dashboard-hero {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      margin: 0 0 24px !important; border: 0; border-radius: 0 0 28px 28px;
+      padding: calc(env(safe-area-inset-top, 0px) + clamp(18px, 4vw, 30px)) max(var(--pad), calc((100% - var(--maxw)) / 2)) clamp(22px, 4vw, 34px);
+      background: linear-gradient(135deg, #ffa43a 0%, #f78a1d 55%, #e5700b 100%) !important; color: #1a1209;
+    }
+    .dashboard-hero__brand { display: flex; align-items: center; gap: clamp(10px, 3vw, 16px); min-width: 0; flex: 1 1 auto; }
+    .dashboard-hero__logo {
+      width: clamp(46px, 11vw, 68px); height: clamp(46px, 11vw, 68px); object-fit: contain; flex: 0 0 auto;
+      padding: 7px; border-radius: 16px; background: #fff; box-shadow: 0 6px 16px rgba(80,35,0,.25);
+    }
+    .dashboard-hero__brand > div { min-width: 0; }
+    #dashboard-greeting { margin: 0; color: #1a1209; font: 700 clamp(22px, 5.5vw, 36px)/1.1 var(--head); letter-spacing: -.5px; overflow-wrap: anywhere; }
+    .page-intro { margin: 4px 0 0; color: rgba(26,18,9,.78); font-size: clamp(12.5px, 3vw, 15px); font-weight: 500; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px;
+      border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text);
+      text-decoration: none; font: 600 14px var(--body); white-space: nowrap; transition: background .15s, border-color .15s;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .dashboard-hero > .btn--primary { border-color: #1a1209; background: #1a1209; color: #fff; flex: 0 0 auto; }
+    .dashboard-hero > .btn--primary:hover { background: #33230f; }
+
+    /* ===== Quick actions ===== */
+    .page-section { margin-bottom: 26px; }
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 10px 6px; }
+    .quick-action {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; padding: 2px;
+      color: var(--text); text-decoration: none; text-align: center; font: 600 12.5px/1.25 var(--body);
+    }
+    .quick-action svg {
+      box-sizing: content-box; width: 24px; height: 24px; padding: clamp(13px, 3vw, 17px); border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--line); color: var(--accent); transition: background .15s, color .15s, transform .15s;
+    }
+    .quick-action:hover svg { background: var(--accent); color: var(--on-accent); transform: translateY(-2px); }
+
+    /* ===== Sections ===== */
+    .dashboard-section { margin-bottom: 28px; }
+    .section-heading, .section-inline-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .section-kicker { display: none; }
+    .section-heading h2, .section-inline-heading h2 { margin: 0; font: 700 clamp(19px, 4.5vw, 24px)/1.15 var(--head); letter-spacing: -.2px; }
+    .section-note { color: var(--muted); font-size: 13px; }
+
+    /* ===== Stat tiles ===== */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+    .stat-card {
+      --c: var(--accent); position: relative; min-width: 0; min-height: 116px; padding: 16px; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); border-radius: 18px;
+      background: color-mix(in srgb, var(--c) 12%, var(--surface)); box-shadow: none;
+    }
+    .stat-card:nth-child(2) { --c: var(--ok); }
+    .stat-card:nth-child(3) { --c: var(--info); }
+    .stat-card:nth-child(4) { --c: var(--warn); }
+    .stat-card::after {
+      content: ""; position: absolute; right: 14px; top: 14px; width: 26px; height: 26px; background: var(--c);
+      -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+    }
+    .stat-card:nth-child(1) { --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='8' y='2' width='8' height='4' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/></svg>"); }
+    .stat-card:nth-child(2) { --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m9 12 2 2 4-4'/></svg>"); }
+    .stat-card:nth-child(3) { --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><line x1='12' x2='12' y1='2' y2='22'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg>"); }
+    .stat-card:nth-child(4) { --icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8' r='4'/><path d='M4 21a8 8 0 0 1 16 0'/></svg>"); }
+    .stat-card__label { order: 2; margin-top: 12px; padding-right: 4px; color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.25; }
+    .stat-card__value { order: 1; margin: 0; padding-top: 30px; color: var(--text); font: 700 clamp(26px, 6vw, 38px)/1 var(--head); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+    /* ===== Panels ===== */
+    .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface) !important; color: var(--text); box-shadow: none !important; }
+    #attention-panel { padding: 4px 16px !important; border-left: 5px solid var(--bad); }
+    #attention-panel > *:not(:last-child) { border-bottom: 1px solid var(--line); }
+    #attention-panel > * { padding-top: 12px; padding-bottom: 12px; overflow-wrap: anywhere; }
+    .attention-empty { display: flex; align-items: center; gap: 10px; padding: 16px 0 !important; color: var(--muted); }
+    .attention-empty::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 25%, transparent); flex: 0 0 auto; }
+
+    /* Work order log: every order is a row-card */
+    .recent-panel { background: transparent !important; border: 0; overflow: visible; }
+    .section-inline-heading { padding: 0; }
+    .recent-panel table, .recent-panel thead, .recent-panel tbody { display: block; width: 100%; }
+    .recent-panel tr { display: grid; grid-template-columns: minmax(70px, .7fr) minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(96px, .9fr) minmax(80px, .8fr); align-items: center; gap: 12px; }
+    .recent-panel thead tr { padding: 0 18px 8px; }
+    .recent-panel th { padding: 0; border: 0; background: none; color: var(--muted); font: 700 12px var(--body); text-align: left; }
+    .recent-panel th:last-child, #recent-jobs td:nth-child(5) { text-align: right; }
+    #recent-jobs { display: grid; gap: 8px; }
+    #recent-jobs tr { padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color .15s; }
+    #recent-jobs tr:hover { border-color: var(--accent); }
+    #recent-jobs td { padding: 0; border: 0; min-width: 0; color: var(--text); font-size: 14.5px; overflow-wrap: anywhere; }
+    #recent-jobs td:nth-child(1) { color: var(--accent); font: 700 15px var(--head); }
+    #recent-jobs td:nth-child(2) { font-weight: 700; }
+    #recent-jobs td:nth-child(3) { color: var(--muted); }
+    #recent-jobs td:nth-child(5) { font: 700 15.5px var(--head); font-variant-numeric: tabular-nums; }
+    #recent-jobs tr:has(td[colspan]) { display: block; }
+    #recent-jobs td[colspan] { color: var(--muted); font: 400 14.5px var(--body); text-align: left; }
+
+    /* Status chips */
+    #recent-jobs td:nth-child(4) :is(span, b, strong, div, small), .badge, .status, .pill, [class*="badge"], [class*="status"] {
+      display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px;
+      background: var(--surface-2); color: var(--text); font: 700 12px/1.4 var(--body); white-space: nowrap;
+    }
+    #recent-jobs td:nth-child(4) :is(span, b, strong, div, small)::before, .badge::before, .status::before, .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    [class*="complete"], [class*="done"], [class*="paid"], [class*="ready"] { background: color-mix(in srgb, var(--ok) 18%, transparent) !important; color: var(--ok) !important; }
+    [class*="progress"], [class*="working"] { background: color-mix(in srgb, var(--info) 18%, transparent) !important; color: var(--info) !important; }
+    [class*="pending"], [class*="waiting"] { background: color-mix(in srgb, var(--warn) 20%, transparent) !important; color: var(--warn) !important; }
+    [class*="cancel"], [class*="overdue"], [class*="unpaid"] { background: color-mix(in srgb, var(--bad) 18%, transparent) !important; color: var(--bad) !important; }
+
+    /* ===== Floating bottom nav ===== */
+    .bottom-nav {
+      position: fixed; z-index: 1000; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%);
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end;
+      width: min(540px, 100% - 16px); height: 64px; padding: 6px;
+      border: 1px solid var(--line); border-radius: 22px; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: var(--shadow);
+    }
+    .bottom-nav__item {
+      position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      min-width: 0; height: 100%; border: 0; border-radius: 16px; background: transparent; color: var(--muted);
+      text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; transition: color .15s;
+    }
+    .bottom-nav__item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bottom-nav__item svg { width: 21px; height: 21px; stroke-width: 1.8; }
+    .bottom-nav__item:hover, .bottom-nav__item.active { color: var(--text); }
+    .bottom-nav__item.active svg { color: var(--accent); }
+    .bottom-nav__item.active::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 3px; background: var(--accent); }
+    .bottom-nav > a:nth-child(3) { height: 74px; margin-top: -18px; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 20px rgba(247,138,29,.4); }
+    .bottom-nav > a:nth-child(3):hover { background: #ff9b36; color: var(--on-accent); }
+    .bottom-nav > a:nth-child(3) svg { width: 24px; height: 24px; color: var(--on-accent); }
+    .bottom-nav > a:nth-child(3).active::after { display: none; }
+    .more-wrap { position: relative; min-width: 0; height: 100%; }
+    .more-wrap > .bottom-nav__item { width: 100%; height: 100%; }
+    .more-menu {
+      position: absolute; right: 0; bottom: calc(100% + 14px); display: none; width: min(240px, 100vw - 24px);
+      max-height: min(65vh, 440px); overflow-y: auto; padding: 6px;
+      border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow);
+    }
+    .more-menu.open { display: block; }
+    .more-menu a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+    .more-menu a:hover, .more-menu a:focus-visible { outline: none; background: var(--surface-2); }
+    .more-menu a svg { width: 19px; height: 19px; color: var(--accent); }
+    .more-menu .menu-divider { height: 1px; margin: 6px 4px; background: var(--line); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 860px) {
+      .recent-panel thead { display: none; }
+      #recent-jobs tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+      #recent-jobs td:nth-child(1) { grid-column: 1; grid-row: 1; }
+      #recent-jobs td:nth-child(4) { grid-column: 2; grid-row: 1; justify-self: end; }
+      #recent-jobs td:nth-child(2) { grid-column: 1; grid-row: 2; }
+      #recent-jobs td:nth-child(3) { grid-column: 1; grid-row: 3; font-size: 13.5px; }
+      #recent-jobs td:nth-child(5) { grid-column: 2; grid-row: 2 / span 2; align-self: end; }
+    }
+    @media (max-width: 560px) {
+      .dashboard-hero > .btn { width: 46px; min-width: 46px; height: 46px; padding: 0; overflow: hidden; font-size: 0; gap: 0; }
+      .dashboard-hero > .btn svg { width: 22px; height: 22px; }
+      .section-note { display: none; }
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .stat-card { min-height: 104px; padding: 14px; }
+      .more-menu { right: -2px; }
+    }
+    @media (max-width: 330px) { .card-grid { grid-template-columns: 1fr; } .bottom-nav__item svg { width: 19px; height: 19px; } }
+    @media (min-width: 1400px) { :root { --maxw: 1180px; } body.dashboard-page { font-size: 16px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+>>>>>>> bfabf35 (Initial project upload)
 </head>
+
 <body class="dashboard-page">
   <div class="app-shell">
+<<<<<<< HEAD
     <aside class="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
       <a class="nav-link active" href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
@@ -70,15 +283,18 @@
       </div>
     </aside>
 
+=======
+>>>>>>> bfabf35 (Initial project upload)
     <main class="main">
       <div class="main__header dashboard-hero">
         <div class="dashboard-hero__brand">
-          <img src="assets/logo.png" alt="Auto Parts and Repairs" class="dashboard-hero__logo" />
+          <img src="assets/AC_logo_transparent.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
           <div>
             <h1 id="dashboard-greeting">Welcome back</h1>
-            <p class="page-intro" id="dashboard-date">Loading…</p>
+            <p class="page-intro" id="dashboard-date">Loading...</p>
           </div>
         </div>
+<<<<<<< HEAD
         <a class="btn btn--primary" href="pages/repairs.html"><i data-lucide="plus"></i> New Job Card</a>
       </div>
 
@@ -97,6 +313,18 @@
           <a class="quick-action quick-action--quote" href="pages/quotations.html"><i data-lucide="file-plus-2"></i><span>New Quotation</span></a>
           <a class="quick-action quick-action--receipt" href="pages/receipts.html"><i data-lucide="receipt"></i><span>Receipts</span></a>
           <a class="quick-action quick-action--analytics" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i><span>Full Analytics</span></a>
+=======
+        <a class="btn btn--primary" href="pages/repairs.html" aria-label="New work order"><i data-lucide="plus"></i> New Work Order</a>
+      </div>
+
+      <section class="page-section" aria-label="Quick actions">
+        <div class="quick-actions">
+          <a class="quick-action" href="pages/repairs.html"><i data-lucide="clipboard-plus"></i><span>New Work Order</span></a>
+          <a class="quick-action" href="pages/customers.html"><i data-lucide="user-plus"></i><span>Add Client</span></a>
+          <a class="quick-action" href="pages/quotations.html"><i data-lucide="file-plus-2"></i><span>New Estimate</span></a>
+          <a class="quick-action" href="pages/receipts.html"><i data-lucide="receipt"></i><span>Invoices</span></a>
+          <a class="quick-action" href="pages/analytics.html"><i data-lucide="chart-no-axes-combined"></i><span>Shop Reports</span></a>
+>>>>>>> bfabf35 (Initial project upload)
         </div>
       </section>
 
@@ -104,15 +332,15 @@
         <div class="section-heading">
           <div>
             <p class="section-kicker">Right now</p>
-            <h2>Today's Snapshot</h2>
+            <h2>Today in the Workshop</h2>
           </div>
-          <span class="section-note" id="snapshot-date">—</span>
+          <span class="section-note" id="snapshot-date"> </span>
         </div>
         <div class="card-grid" id="today-cards">
-          <div class="stat-card"><div class="stat-card__label">Jobs Created Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-card__label">Work Orders Opened</div><div class="stat-card__value">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-card__label">Work Orders Closed</div><div class="stat-card__value">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-card__label">Billed Today</div><div class="stat-card__value">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-card__label">New Clients</div><div class="stat-card__value">&mdash;</div></div>
         </div>
       </section>
 
@@ -133,44 +361,105 @@
         <div class="section-heading">
           <div>
             <p class="section-kicker">Act on these</p>
-            <h2>Needs Attention</h2>
+            <h2>Service Alerts</h2>
           </div>
-          <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
+          <a class="btn" href="pages/analytics.html"><i data-lucide="chart-no-axes-combined"></i> Shop Reports</a>
         </div>
-        <div class="panel" style="padding:6px 20px;" id="attention-panel">
-          <div class="attention-empty">Loading…</div>
+        <div class="panel" id="attention-panel">
+          <div class="attention-empty">Checking for open alerts...</div>
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel recent-panel">
         <div class="section-inline-heading">
           <div>
             <p class="section-kicker">Latest activity</p>
+<<<<<<< HEAD
             <h2>Recent Job Cards</h2>
+=======
+            <h2>Work Order Log</h2>
+>>>>>>> bfabf35 (Initial project upload)
           </div>
-          <a class="btn" href="pages/repairs.html">Open Jobs</a>
+          <a class="btn" href="pages/repairs.html">All Work Orders</a>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Job ID</th>
-              <th>Customer</th>
+              <th>WO #</th>
+              <th>Client</th>
               <th>Vehicle</th>
               <th>Status</th>
-              <th>Cost</th>
+              <th>Est. Cost</th>
             </tr>
           </thead>
           <tbody id="recent-jobs">
-            <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js</td></tr>
+            <tr><td colspan="5">No work orders loaded yet. Check the database connection in js/app.js if this message stays.</td></tr>
           </tbody>
         </table>
       </section>
     </main>
   </div>
 
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a class="bottom-nav__item active" href="index.html" aria-current="page">
+      <i data-lucide="house"></i><span>Home</span>
+    </a>
+    <a class="bottom-nav__item" href="pages/customers.html">
+      <i data-lucide="users"></i><span>Clients</span>
+    </a>
+    <a class="bottom-nav__item" href="pages/repairs.html">
+      <i data-lucide="wrench"></i><span>Work Orders</span>
+    </a>
+    <a class="bottom-nav__item" href="pages/shop.html" data-level="2">
+      <i data-lucide="package"></i><span>Parts</span>
+    </a>
+    <div class="more-wrap">
+      <button class="bottom-nav__item" type="button" id="more-toggle" aria-expanded="false" aria-controls="more-menu">
+        <i data-lucide="ellipsis"></i><span>More</span>
+      </button>
+      <div class="more-menu" id="more-menu">
+        <a href="pages/receipts.html" data-level="2"><i data-lucide="receipt"></i>Invoices &amp; Receipts</a>
+        <a href="pages/technicians.html" data-level="2"><i data-lucide="hard-hat"></i>Technicians</a>
+        <a href="pages/analytics.html"><i data-lucide="chart-no-axes-combined"></i>Shop Reports</a>
+        <a href="pages/accounting.html"><i data-lucide="landmark"></i>Accounts</a>
+        <a href="pages/suppliers.html" data-level="2"><i data-lucide="truck"></i>Parts Suppliers</a>
+        <a href="pages/quotations.html" data-level="2"><i data-lucide="file-text"></i>Estimates</a>
+        <div class="menu-divider"></div>
+        <a href="pages/settings.html"><i data-lucide="settings"></i>Settings</a>
+      </div>
+    </div>
+  </nav>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/notifications.js"></script>
+  <script>
+    if (window.lucide) window.lucide.createIcons();
+
+    const moreToggle = document.getElementById('more-toggle');
+    const moreMenu = document.getElementById('more-menu');
+
+    moreToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = moreMenu.classList.toggle('open');
+      moreToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.more-wrap')) {
+        moreMenu.classList.remove('open');
+        moreToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        moreMenu.classList.remove('open');
+        moreToggle.setAttribute('aria-expanded', 'false');
+        moreToggle.focus();
+      }
+    });
+  </script>
 </body>
 </html>

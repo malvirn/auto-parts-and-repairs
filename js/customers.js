@@ -4,6 +4,13 @@ import { hydrate } from "./data-cache.js";
 
 const tableBody = document.getElementById("customers-table");
 const form = document.getElementById("customer-form");
+const formMessage = document.getElementById("customer-form-message");
+
+function showCustomerMessage(text, tone = "success") {
+  if (!formMessage) return;
+  formMessage.textContent = text;
+  formMessage.dataset.tone = tone;
+}
 
 // ---- Load and render all customers ----
 async function fetchCustomersList() {
@@ -80,6 +87,7 @@ async function addVehicle(customerId, license_plate) {
 if (form) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    showCustomerMessage("");
 
     const full_name = document.getElementById("cust-name").value.trim();
     const customer_type = document.getElementById("cust-type").value;
@@ -92,8 +100,8 @@ if (form) {
       return;
     }
 
-    if (!/^\+263\s\d{2}\s\d{3}\s\d{4}$/.test(phone)) {
-      alert("Phone must use this format: +263 00 000 0000");
+    if (!window.CentricPhoneFields?.isValid(phone)) {
+      alert("Enter a valid phone number with its country code.");
       return;
     }
     if (email && !/^[^\s@]+@gmail\.com$/.test(email)) {
@@ -128,7 +136,9 @@ if (form) {
       }
       form.reset();
       await loadCustomers();
-      alert(`${existing.full_name} is already in the system with this phone/email${license_plate ? " — the vehicle has been added to their profile." : "."}`);
+      showCustomerMessage(license_plate
+        ? `${existing.full_name} is already registered. Vehicle ${license_plate} has been added to their customer record.`
+        : `${existing.full_name} is already registered. No duplicate customer was created.`);
       return;
     }
 
@@ -143,15 +153,17 @@ if (form) {
       return;
     }
 
+    let vehicleSaveError = null;
     if (license_plate) {
-      const vehicleError = await addVehicle(customer.id, license_plate);
-      if (vehicleError) {
-        alert("Customer was added, but the vehicle plate could not be saved: " + vehicleError.message);
-      }
+      vehicleSaveError = await addVehicle(customer.id, license_plate);
     }
 
     form.reset();
-    loadCustomers();
+    await loadCustomers();
+    showCustomerMessage(vehicleSaveError
+      ? `Customer ${full_name} has been added, but vehicle ${license_plate} could not be saved: ${vehicleSaveError.message}`
+      : `Customer ${full_name} has been added${license_plate ? ` with vehicle ${license_plate}` : ""}.`,
+    vehicleSaveError ? "error" : "success");
   });
 }
 

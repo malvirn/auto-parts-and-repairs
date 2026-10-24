@@ -47,6 +47,128 @@ function basename(href) {
   return name;
 }
 
+function addMobileNavigation(currentPage) {
+  if (!document.body.classList.contains("system-page") || document.querySelector(".bottom-nav")) return;
+
+  const sidebarLinks = [...document.querySelectorAll(".sidebar a.nav-link")];
+  const homeLink = sidebarLinks.find(link => basename(link.getAttribute("href")) === "index");
+  const preferredPages = ["customers", "repairs", "shop"];
+  const primaryLinks = preferredPages
+    .map(page => sidebarLinks.find(link => basename(link.getAttribute("href")) === page))
+    .filter(Boolean);
+  const menuLinks = sidebarLinks.filter(link => link !== homeLink && !primaryLinks.includes(link));
+
+  while (primaryLinks.length < 3) {
+    const nextLink = menuLinks.shift();
+    if (!nextLink) break;
+    primaryLinks.push(nextLink);
+  }
+
+  const nav = document.createElement("nav");
+  nav.className = "bottom-nav";
+  nav.setAttribute("aria-label", "Main navigation");
+
+  const createNavLink = (source, label) => {
+    const link = document.createElement("a");
+    link.href = source.getAttribute("href");
+    link.className = "bottom-nav__item";
+    for (const attribute of source.attributes) {
+      if (attribute.name.startsWith("data-")) link.setAttribute(attribute.name, attribute.value);
+    }
+
+    const icon = source.querySelector("[data-lucide]");
+    if (icon) link.append(icon.cloneNode(true));
+    const text = document.createElement("span");
+    text.textContent = label;
+    link.append(text);
+
+    const targetPage = basename(source.getAttribute("href"));
+    const onAccountingPage = targetPage === "accounting" && [
+      "ledger", "payables", "cashbook", "commissions", "landed-cost", "fixed-assets", "financial-statements",
+    ].includes(currentPage);
+    const active = targetPage === currentPage || onAccountingPage;
+    if (active) {
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+    }
+    return link;
+  };
+
+  if (homeLink) nav.append(createNavLink(homeLink, "Home"));
+  primaryLinks.forEach(source => {
+    const page = basename(source.getAttribute("href"));
+    const label = page === "customers" ? "Clients"
+      : page === "repairs" ? "Work Orders"
+        : page === "shop" ? "Parts"
+          : source.textContent.trim();
+    nav.append(createNavLink(source, label));
+  });
+
+  const moreWrap = document.createElement("div");
+  moreWrap.className = "more-wrap";
+  const moreToggle = document.createElement("button");
+  moreToggle.id = "more-toggle";
+  moreToggle.className = "bottom-nav__item";
+  moreToggle.type = "button";
+  moreToggle.setAttribute("aria-expanded", "false");
+  moreToggle.setAttribute("aria-controls", "more-menu");
+  moreToggle.innerHTML = '<i data-lucide="ellipsis"></i><span>More</span>';
+  const moreMenu = document.createElement("div");
+  moreMenu.className = "more-menu";
+  moreMenu.id = "more-menu";
+
+  menuLinks.forEach(source => {
+    const menuLink = source.cloneNode(true);
+    menuLink.className = "";
+    const targetPage = basename(source.getAttribute("href"));
+    const onAccountingPage = targetPage === "accounting" && [
+      "ledger", "payables", "cashbook", "commissions", "landed-cost", "fixed-assets", "financial-statements",
+    ].includes(currentPage);
+    if (targetPage === currentPage || onAccountingPage) {
+      menuLink.classList.add("current");
+      if (targetPage === currentPage) menuLink.setAttribute("aria-current", "page");
+      moreToggle.classList.add("active");
+    }
+    const pageLabels = {
+      receipts: "Invoices & Receipts",
+      technicians: "Technicians",
+      shop: "Parts Shop",
+      analytics: "Workshop Reports",
+      accounting: "Accounts",
+      suppliers: "Parts Suppliers",
+    };
+    if (pageLabels[targetPage]) {
+      const icon = menuLink.querySelector("[data-lucide]");
+      const label = pageLabels[targetPage];
+      menuLink.textContent = label;
+      if (icon) menuLink.prepend(icon);
+    }
+    moreMenu.append(menuLink);
+  });
+  moreWrap.append(moreToggle, moreMenu);
+  nav.append(moreWrap);
+  document.body.append(nav);
+
+  moreToggle.addEventListener("click", event => {
+    event.stopPropagation();
+    const isOpen = moreMenu.classList.toggle("open");
+    moreToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".more-wrap")) {
+      moreMenu.classList.remove("open");
+      moreToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      moreMenu.classList.remove("open");
+      moreToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+  if (window.lucide) lucide.createIcons({ root: nav });
+}
+
 async function getMyProfile(userId) {
   const { data, error } = await supabase.from("profiles").select("role, is_active").eq("id", userId).maybeSingle();
   if (error) {
@@ -69,6 +191,7 @@ function applyAccess(role) {
   });
 
   const currentPage = basename(path);
+  addMobileNavigation(currentPage);
 
   // Send this role to its own landing page instead of the generic
   // dashboard, if one's defined for them. This only ever fires from the

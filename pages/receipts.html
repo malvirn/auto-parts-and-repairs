@@ -2,17 +2,20 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Receipts</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f78a1d">
+  <meta name="color-scheme" content="dark light">
+  <title>Centric Auto Mobile | Receipts</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<<<<<<< HEAD
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
@@ -70,63 +73,366 @@
         </div>
       </div>
     </aside>
+=======
+
+  <style>
+    :root {
+      --bg: #1c1c1c; --surface: #2b2b2b; --surface-2: #333; --line: #414141;
+      --text: #f2f2f2; --muted: #a8a8a8; --nav-bg: rgba(30,30,30,.96); --shadow: 0 14px 34px rgba(0,0,0,.5);
+      --accent: #f78a1d; --on-accent: #181818;
+      --ok: #4cc38a; --info: #5aa9f0; --warn: #f2c14e; --bad: #ef6a5e;
+      --pm-body: #3b3b3b; --pm-edge: #1a1a1a; --pm-screen: #121212; --pm-screen-text: #f2f2f2;
+      --head: "Space Grotesk", system-ui, sans-serif; --body: "Manrope", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      --pad: clamp(14px, 4vw, 28px); --maxw: 1080px; --safe-b: env(safe-area-inset-bottom, 0px);
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]):not(.dark):not(.dark-mode) {
+        --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d;
+        --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
+        --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a;
+        --pm-body: #d9d5cf; --pm-edge: #b9b3aa; --pm-screen: #1d1d1d; --pm-screen-text: #f2f2f2; color-scheme: light;
+      }
+    }
+    :root[data-theme="light"], :root.light, :root.light-mode, body.light, body.light-mode {
+      --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d;
+      --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
+      --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a;
+      --pm-body: #d9d5cf; --pm-edge: #b9b3aa; --pm-screen: #1d1d1d; --pm-screen-text: #f2f2f2; color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+    .hidden { display: none !important; }
+    html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+    body.dashboard-page { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .app-shell { display: block !important; }
+    .sidebar { display: none !important; }
+    .main { width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0; padding: 0 0 calc(130px + var(--safe-b)) !important; background: transparent !important; color: var(--text); }
+    .main > :not(.dashboard-hero) { width: min(var(--maxw), 100% - 2 * var(--pad)); margin-inline: auto; }
+
+    /* Coloured header */
+    .dashboard-hero {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 24px !important; border: 0; border-radius: 0 0 28px 28px;
+      padding: calc(env(safe-area-inset-top, 0px) + clamp(18px, 4vw, 30px)) max(var(--pad), calc((100% - var(--maxw)) / 2)) clamp(22px, 4vw, 34px);
+      background: linear-gradient(135deg, #ffa43a 0%, #f78a1d 55%, #e5700b 100%) !important; color: #1a1209;
+    }
+    .dashboard-hero h1 { margin: 0; color: #1a1209; font: 700 clamp(26px, 6vw, 38px)/1.05 var(--head); letter-spacing: -.5px; }
+    .page-intro { margin: 6px 0 0; color: rgba(26,18,9,.8); font-size: clamp(13px, 3vw, 15px); font-weight: 500; max-width: 46ch; }
+    .section-kicker { display: none; }
+    .back-link {
+      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%;
+      background: #1a1209; color: #fff; text-decoration: none;
+    }
+    .back-link svg { width: 22px; height: 22px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--surface); color: var(--text); text-decoration: none; font: 600 14px var(--body); white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s;
+    }
+    .btn:hover { background: var(--surface-2); border-color: var(--accent); }
+    .btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .btn--primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+    .btn--primary:hover { background: #ff9b36; }
+
+    /* Sections */
+    .page-section { margin-bottom: 30px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .section-heading h2 { display: flex; align-items: center; gap: 10px; margin: 0; font: 700 clamp(19px, 4.5vw, 24px)/1.15 var(--head); }
+    .section-heading-icon { width: 22px; height: 22px; color: var(--accent); flex: 0 0 auto; }
+    .section-note { color: var(--muted); font-size: 13px; }
+
+    /* Tables become row-cards */
+    .panel { border: 0; background: transparent !important; box-shadow: none !important; margin: 0; overflow: visible; }
+    .panel table, .panel thead, .panel tbody { display: block; width: 100%; }
+    .panel tr { display: grid; align-items: center; gap: 12px; }
+    .t-pending tr { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.8fr) minmax(80px, 1fr) auto; }
+    .t-ledger tr { grid-template-columns: minmax(80px, .9fr) minmax(0, 1fr) minmax(0, 1.5fr) minmax(80px, .9fr) minmax(80px, 1fr) auto; }
+    .panel thead tr { padding: 0 18px 8px; }
+    .panel th { padding: 0; border: 0; background: none; color: var(--muted); font: 700 12px var(--body); text-align: left; }
+    .panel tbody { display: grid; gap: 8px; }
+    .panel tbody tr { padding: 12px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color .15s; }
+    .panel tbody tr:hover { border-color: var(--accent); }
+    .panel td { padding: 0; border: 0; min-width: 0; font-size: 14.5px; overflow-wrap: break-word; }
+    .t-pending td:nth-child(1), .t-ledger td:nth-child(1) { color: var(--accent); font: 700 15px var(--head); }
+    .t-pending td:nth-child(3), .t-ledger td:nth-child(4) { font: 700 15.5px var(--head); font-variant-numeric: tabular-nums; }
+    .t-pending td:nth-child(2), .t-ledger td:nth-child(3) { font-weight: 700; }
+    .t-ledger td:nth-child(2), .t-ledger td:nth-child(5) { color: var(--muted); }
+    .panel td:last-child, .panel th:last-child { justify-self: end; text-align: right; }
+    .panel td .btn { min-height: 38px; padding: 0 14px; font-size: 13px; }
+    .panel tbody tr:has(td[colspan]) { display: block; }
+    .empty-state { display: flex !important; align-items: center; gap: 10px; color: var(--muted); }
+    .empty-state svg { width: 18px; height: 18px; animation: spin 1s linear infinite; }
+    .panel td:not(.empty-state):has([class*="status"]) { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Floating nav */
+    .bottom-nav { position: fixed; z-index: 1000; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; width: min(540px, 100% - 16px); height: 64px; padding: 6px; border: 1px solid var(--line); border-radius: 22px; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: var(--shadow); }
+    .bottom-nav__item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 100%; border: 0; border-radius: 16px; background: transparent; color: var(--muted); text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; }
+    .bottom-nav__item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bottom-nav__item svg { width: 21px; height: 21px; stroke-width: 1.8; }
+    .bottom-nav__item:hover, .bottom-nav__item.active { color: var(--text); }
+    .bottom-nav__item.active svg { color: var(--accent); }
+    .bottom-nav__item.active::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 3px; background: var(--accent); }
+    .bottom-nav > a:nth-child(3) { height: 74px; margin-top: -18px; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 20px rgba(247,138,29,.4); }
+    .bottom-nav > a:nth-child(3) svg { width: 24px; height: 24px; color: var(--on-accent); }
+    .more-wrap { position: relative; min-width: 0; height: 100%; }
+    .more-wrap > .bottom-nav__item { width: 100%; height: 100%; }
+    .more-menu { position: absolute; right: 0; bottom: calc(100% + 14px); display: none; width: min(240px, 100vw - 24px); max-height: min(65vh, 440px); overflow-y: auto; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+    .more-menu.open { display: block; }
+    .more-menu a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+    .more-menu a:hover, .more-menu a.current { background: var(--surface-2); }
+    .more-menu a svg { width: 19px; height: 19px; color: var(--accent); }
+    .more-menu .menu-divider { height: 1px; margin: 6px 4px; background: var(--line); }
+
+    /* ===== Receipt printer modal ===== */
+    body:has(#receipt-modal:not(.hidden)) .bottom-nav { display: none; }
+    .modal-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: env(safe-area-inset-top, 0px) 0 var(--safe-b); background: rgba(8,8,8,.88); backdrop-filter: blur(6px); }
+    .receipt-modal-card { width: min(760px, 100%); min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+    .printer-machine { border-radius: 0 0 26px 26px !important; padding-top: max(12px, env(safe-area-inset-top, 0px)) !important; }
+    .printer-output { width: calc(100% - 32px) !important; flex: 1 0 auto; padding-bottom: 28px; }
+    .paper-wrap { min-height: 70dvh; }
+    .printer-machine {
+      position: relative; z-index: 3; width: 100%; padding: 12px 12px 30px; border-radius: 24px; border: 1px solid var(--pm-edge); background: var(--pm-body);
+      box-shadow: 0 22px 36px -18px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(0,0,0,.4);
+    }
+    .printer-machine::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 12px; height: 9px; border-radius: 4px; background: #0b0b0b; box-shadow: inset 0 2px 3px #000; }
+    .printer-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; margin-bottom: 4px; }
+    .printer-brand { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text); font: 700 14px var(--head); }
+    .printer-brand img { width: 28px; height: 28px; padding: 3px; border-radius: 8px; background: #fff; object-fit: contain; flex: 0 0 auto; }
+    .printer-brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #receipt-close { min-height: 38px; padding: 0 14px; font-size: 13px; }
+    .printer-screen { border: 1px solid #000; border-radius: 14px; padding: 14px 16px; background: var(--pm-screen); color: var(--pm-screen-text); box-shadow: inset 0 0 22px 3px rgba(0,0,0,.6); }
+    .printer-screen__meta { display: flex; justify-content: space-between; gap: 10px; color: #9b9b9b; font: 500 11px var(--mono); }
+    .printer-status { display: flex; align-items: center; gap: 10px; margin-top: 12px; font: 600 15px var(--body); }
+    .printer-status i, .printer-status svg { width: 18px; height: 18px; color: var(--accent); flex: 0 0 auto; }
+    .printer-root[data-stage="processing"] .printer-status svg, .printer-root[data-stage="printing"] .printer-status svg { animation: spin 1s linear infinite; }
+    .printer-root[data-stage="complete"] .printer-status svg { color: var(--ok); }
+    .printer-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .printer-keys .btn { min-width: 0; padding: 0 8px; border-radius: 12px; border-color: rgba(0,0,0,.35); box-shadow: 0 3px 0 rgba(0,0,0,.35); font-size: 13px; flex-direction: column; gap: 2px; min-height: 52px; white-space: normal; text-align: center; line-height: 1.1; }
+    .printer-keys .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
+    .printer-keys .btn--primary { box-shadow: 0 3px 0 #a85a08; }
+
+    .printer-output { position: relative; z-index: 2; width: calc(100% - 40px); margin-top: -12px; overflow: hidden; padding-top: 4px; }
+    .printer-output::before { content: ""; position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 8px; background: linear-gradient(rgba(0,0,0,.55), transparent); pointer-events: none; }
+    .paper-wrap {
+      background: #fbfaf7; padding-bottom: 8px;
+      -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 8px repeat-x;
+              mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 8px repeat-x;
+    }
+    .printer-root[data-stage="processing"] .paper-wrap { transform: translateY(-101%); visibility: hidden; }
+    .printer-root[data-stage="printing"] .paper-wrap { animation: feed 1.8s steps(12, end) forwards; }
+    .printer-root[data-stage="complete"] .paper-wrap { transform: none; }
+    @keyframes feed { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+    .receipt-document { padding: 24px 22px 20px; background: #fbfaf7; color: #1a1a1a; font: 400 13px/1.55 var(--mono); overflow-wrap: break-word; word-break: normal; writing-mode: horizontal-tb; min-width: 0; }
+    .receipt-document > *, .receipt-document :is(div, section, header, footer, span, p) { min-width: 0; max-width: 100%; }
+    .receipt-document > :is(div, section, header, footer) { width: 100%; }
+    .receipt-document :is(h1, h2, h3, h4) { margin: 0 0 6px; color: #1a1a1a; font: 700 16px/1.25 var(--mono); text-align: center; }
+    .receipt-document p { margin: 4px 0; }
+    .receipt-document hr { margin: 12px 0; border: 0; border-top: 1px dashed #8d8a84; }
+    .receipt-document table { width: 100%; border-collapse: collapse; display: table; }
+    .receipt-document thead, .receipt-document tbody { display: table-row-group; }
+    .receipt-document tr { display: table-row; padding: 0; border: 0; background: none; }
+    .receipt-document th, .receipt-document td { display: table-cell; padding: 4px 0; border: 0; border-bottom: 1px dashed #cfccc5; color: #1a1a1a; font: 400 12.5px/1.45 var(--mono); text-align: left; vertical-align: top; }
+    .receipt-document th { font-weight: 700; background: none; }
+    .receipt-document :is(td, th):last-child { text-align: right; justify-self: auto; }
+    .receipt-document img { max-width: 100%; height: auto; }
+    .receipt-document :is(strong, b) { font-weight: 700; }
+    /* Hard reset: stops any inherited layout from squeezing text into a thin column */
+    #receipt-document, #receipt-document * { writing-mode: horizontal-tb !important; text-orientation: mixed !important; word-break: normal !important; overflow-wrap: break-word !important; letter-spacing: normal; }
+    #receipt-document { display: block !important; width: 100% !important; max-width: none !important; columns: auto !important; }
+    #receipt-document img { display: block; width: auto !important; height: auto !important; max-width: 84px !important; max-height: 84px !important; flex: 0 0 auto !important; margin: 0 auto 10px; object-fit: contain; }
+    #receipt-document img.receipt-footer-logo { width: min(100%, 420px) !important; max-width: min(100%, 420px) !important; max-height: none !important; margin: 0 auto 8px; border-radius: 4px; }
+    #receipt-document :is(div, section, header, footer, article, span, p, h1, h2, h3, h4) { max-width: 100%; min-width: 0; }
+    #receipt-document :is(div, header, footer, section):has(> img) { flex-direction: column; align-items: center; text-align: center; }
+    #receipt-document :is(div, header, footer, section) { flex-wrap: wrap; }
+    .receipt-footer { margin-top: 22px; padding-top: 14px; border-top: 2px solid #16864a; text-align: center; }
+    .receipt-footer__services { color: #365b42; font: 700 11px/1.5 var(--body); }
+    .receipt-footer__label { margin-top: 8px !important; color: #777; font: 700 10px/1.3 var(--body); text-transform: uppercase; letter-spacing: .08em; }
+    .receipt-footer__phones { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 16px; font: 700 12px/1.5 var(--body); }
+    .receipt-footer__phones a { color: #1b6e3b; text-decoration: none; white-space: nowrap; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 760px) {
+      .panel thead { display: none; }
+      .t-pending tbody tr, .t-ledger tbody tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+      .t-pending td:nth-child(1) { grid-column: 1; grid-row: 1; }
+      .t-pending td:nth-child(3) { grid-column: 2; grid-row: 1; }
+      .t-pending td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+      .t-pending td:nth-child(4) { grid-column: 1 / -1; grid-row: 3; justify-self: start; margin-top: 8px; }
+      .t-ledger td:nth-child(1) { grid-column: 1; grid-row: 1; }
+      .t-ledger td:nth-child(4) { grid-column: 2; grid-row: 1; }
+      .t-ledger td:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+      .t-ledger td:nth-child(2) { grid-column: 1; grid-row: 3; font-size: 13px; }
+      .t-ledger td:nth-child(5) { grid-column: 2; grid-row: 3; font-size: 13px; text-align: right; }
+      .t-ledger td:nth-child(6) { grid-column: 1 / -1; grid-row: 4; justify-self: start; margin-top: 8px; }
+      .panel td:last-child { text-align: left; }
+      .t-ledger td:nth-child(5) { text-align: right; }
+      .section-note { display: none; }
+    }
+    @media (max-width: 360px) { .printer-keys .btn svg { display: none; } .receipt-document { padding: 20px 14px 16px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .printer-root .paper-wrap { animation: none !important; } }
+    @media print {
+      body.dashboard-page { background: #fff; }
+      .main, .bottom-nav, .printer-machine, .printer-output::before { display: none !important; }
+      .modal-overlay { position: static; display: block; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
+      .receipt-modal-card, .printer-output { width: 100%; margin: 0; overflow: visible; }
+      .paper-wrap { -webkit-mask: none; mask: none; animation: none !important; transform: none !important; visibility: visible !important; }
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <div class="app-shell">
+    <aside class="sidebar" aria-hidden="true"></aside>
+>>>>>>> bfabf35 (Initial project upload)
 
     <main class="main">
-      <div class="main__header">
+      <div class="main__header dashboard-hero">
         <div>
           <p class="section-kicker">Accounting desk</p>
           <h1>Receipts</h1>
-          <p class="page-intro">Record completed-job payments and keep the cash trail complete.</p>
+          <p class="page-intro">Issue receipts for finished jobs and keep a clean record of every payment.</p>
         </div>
+        <a class="back-link" href="../index.html" aria-label="Back to dashboard"><i data-lucide="house"></i></a>
       </div>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Needs action</p><h2><i class="section-heading-icon" data-lucide="file-clock"></i>Completed Jobs Awaiting Receipt</h2></div><span class="section-note">Collect payment and issue receipt</span></div>
-        <section class="panel" style="margin-bottom:32px;">
-        <table>
-          <thead>
-            <tr><th>Job ID</th><th>Customer</th><th>Total</th><th></th></tr>
-          </thead>
-          <tbody id="pending-receipts-table">
-            <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
-          </tbody>
-        </table>
+        <div class="section-heading"><div><p class="section-kicker">Needs action</p><h2><i class="section-heading-icon" data-lucide="file-clock"></i>Jobs Awaiting Receipt</h2></div><span class="section-note">Take payment, then issue the receipt</span></div>
+        <section class="panel">
+          <table class="t-pending">
+            <thead>
+              <tr><th>Job ID</th><th>Client</th><th>Total</th><th></th></tr>
+            </thead>
+            <tbody id="pending-receipts-table">
+              <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr>
+            </tbody>
+          </table>
         </section>
       </section>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="receipt"></i>All Receipts</h2></div><span class="section-note">Issued payment records</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="receipt"></i>Issued Receipts</h2></div><span class="section-note">Every payment record on file</span></div>
         <section class="panel">
-        <table>
-          <thead>
-            <tr><th>Receipt #</th><th>Reference</th><th>Customer</th><th>Total</th><th>Date</th><th></th></tr>
-          </thead>
-          <tbody id="receipts-table">
-            <tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
-          </tbody>
-        </table>
+          <table class="t-ledger">
+            <thead>
+              <tr><th>Receipt #</th><th>Reference</th><th>Client</th><th>Total</th><th>Date</th><th></th></tr>
+            </thead>
+            <tbody id="receipts-table">
+              <tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr>
+            </tbody>
+          </table>
         </section>
       </section>
     </main>
   </div>
 
+  <!-- Receipt printer: same IDs as before so receipts.js keeps working -->
   <div id="receipt-modal" class="modal-overlay hidden">
-    <div class="receipt-modal-card">
-      <div class="receipt-toolbar no-print">
-        <button id="receipt-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> Send WhatsApp</button>
-        <button id="receipt-email" type="button" class="btn"><i data-lucide="mail"></i> Send Email</button>
-        <button id="receipt-print" type="button" class="btn btn--primary"><i data-lucide="printer"></i> Print Receipt</button>
-        <button id="receipt-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
+    <div class="receipt-modal-card printer-root" id="printer-root" data-stage="processing">
+      <div class="printer-machine no-print">
+        <div class="printer-head">
+          <div class="printer-brand"><img src="../assets/AC_logo_transparent.png" alt=""><span>Centric Auto Mobile</span></div>
+          <button id="receipt-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
+        </div>
+        <div class="printer-screen">
+          <div class="printer-screen__meta"><span>RECEIPT PRINTER</span><span>READY</span></div>
+          <div class="printer-status" role="status" aria-live="polite"><i data-lucide="loader-circle"></i><span id="printer-status-text">Preparing receipt</span></div>
+        </div>
+        <div class="receipt-toolbar printer-keys">
+          <button id="receipt-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp</button>
+          <button id="receipt-email" type="button" class="btn"><i data-lucide="mail"></i> Email</button>
+          <button id="receipt-print" type="button" class="btn btn--primary"><i data-lucide="printer"></i> Print</button>
+        </div>
       </div>
-      <article id="receipt-document" class="receipt-document"></article>
+      <div class="printer-output">
+        <div class="paper-wrap">
+          <article id="receipt-document" class="receipt-document"></article>
+        </div>
+      </div>
     </div>
   </div>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a class="bottom-nav__item" href="../index.html"><i data-lucide="house"></i><span>Home</span></a>
+    <a class="bottom-nav__item" href="customers.html"><i data-lucide="users"></i><span>Clients</span></a>
+    <a class="bottom-nav__item" href="repairs.html"><i data-lucide="wrench"></i><span>Work Orders</span></a>
+    <a class="bottom-nav__item" href="shop.html" data-level="2"><i data-lucide="package"></i><span>Parts</span></a>
+    <div class="more-wrap">
+      <button class="bottom-nav__item active" type="button" id="more-toggle" aria-expanded="false" aria-controls="more-menu"><i data-lucide="ellipsis"></i><span>More</span></button>
+      <div class="more-menu" id="more-menu">
+        <a class="current" href="receipts.html" data-level="2" aria-current="page"><i data-lucide="receipt"></i>Invoices &amp; Receipts</a>
+        <a href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i>Technicians</a>
+        <a href="analytics.html"><i data-lucide="chart-no-axes-combined"></i>Shop Reports</a>
+        <a href="accounting.html"><i data-lucide="landmark"></i>Accounts</a>
+        <a href="suppliers.html" data-level="2"><i data-lucide="truck"></i>Parts Suppliers</a>
+        <a href="quotations.html" data-level="2"><i data-lucide="file-text"></i>Estimates</a>
+        <div class="menu-divider"></div>
+        <a href="settings.html"><i data-lucide="settings"></i>Settings</a>
+      </div>
+    </div>
+  </nav>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/receipts.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });
+
+    /* More menu */
+    const moreToggle = document.getElementById('more-toggle');
+    const moreMenu = document.getElementById('more-menu');
+    moreToggle.addEventListener('click', (e) => { e.stopPropagation(); moreToggle.setAttribute('aria-expanded', String(moreMenu.classList.toggle('open'))); });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.more-wrap')) { moreMenu.classList.remove('open'); moreToggle.setAttribute('aria-expanded', 'false'); } });
+
+    /* Receipt printer: processing -> printing -> complete whenever the modal opens */
+    (() => {
+      const modal = document.getElementById('receipt-modal');
+      const root = document.getElementById('printer-root');
+      const text = document.getElementById('printer-status-text');
+      const labels = { processing: 'Preparing receipt', printing: 'Printing receipt', complete: 'Receipt ready' };
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let timers = [], wasOpen = false;
+
+      const setStage = (s) => {
+        root.dataset.stage = s; text.textContent = labels[s];
+        const icon = root.querySelector('.printer-status svg, .printer-status i');
+        if (icon) { const n = document.createElement('i'); n.setAttribute('data-lucide', s === 'complete' ? 'circle-check' : 'loader-circle'); icon.replaceWith(n); if (window.lucide) lucide.createIcons(); }
+      };
+      const run = () => {
+        timers.forEach(clearTimeout); timers = [];
+        if (still) return setStage('complete');
+        setStage('processing');
+        timers.push(setTimeout(() => setStage('printing'), 800));
+        timers.push(setTimeout(() => setStage('complete'), 2700));
+      };
+      new MutationObserver(() => {
+        const open = !modal.classList.contains('hidden') && getComputedStyle(modal).display !== 'none';
+        if (open && !wasOpen) run();
+        if (!open && wasOpen) { timers.forEach(clearTimeout); setStage('processing'); }
+        wasOpen = open;
+      }).observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
+
+      /* Company name on the paper: swap the old name for Centric Auto Mobile whenever the receipt is (re)drawn */
+      const doc = document.getElementById('receipt-document');
+      const renameObs = new MutationObserver(() => {
+        renameObs.disconnect();
+        const w = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT);
+        for (let n = w.nextNode(); n; n = w.nextNode()) {
+          n.nodeValue = n.nodeValue.replace(/auto\s*parts\s*(&amp;|&|and)\s*repairs/gi, 'Centric Auto Mobile');
+        }
+        renameObs.observe(doc, { childList: true, subtree: true, characterData: true });
+      });
+      renameObs.observe(doc, { childList: true, subtree: true, characterData: true });
+
+      modal.addEventListener('click', (e) => { if (e.target === modal) document.getElementById('receipt-close').click(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { if (wasOpen) document.getElementById('receipt-close').click(); moreMenu.classList.remove('open'); }
+      });
+    })();
+  </script>
 </body>
 </html>

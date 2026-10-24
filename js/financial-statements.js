@@ -92,15 +92,15 @@ function renderProfitLoss() {
   };
 
   plBody.innerHTML = `
-    <tr class="statement-section-label"><td colspan="2">Revenue</td></tr>
+    <tr class="statement-section-label"><td colspan="2">Revenue — income recorded during this period</td></tr>
     ${revenueRows.length ? revenueRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${money(r.amount)}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">No revenue this period</td></tr>`}
     <tr class="statement-total-row"><td>Total Revenue</td><td>${money(totalRevenue)}</td></tr>
 
-    <tr class="statement-section-label"><td colspan="2">Expenses</td></tr>
+    <tr class="statement-section-label"><td colspan="2">Expenses — costs recorded during this period</td></tr>
     ${expenseRows.length ? expenseRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${money(r.amount)}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">No expenses this period</td></tr>`}
     <tr class="statement-total-row"><td>Total Expenses</td><td>${money(totalExpense)}</td></tr>
 
-    <tr class="statement-net-row"><td>${netProfit >= 0 ? "Net Profit" : "Net Loss"}</td><td>${money(Math.abs(netProfit))}</td></tr>
+    <tr class="statement-net-row"><td>${netProfit >= 0 ? "Net Profit (revenue minus expenses)" : "Net Loss (expenses exceed revenue)"}</td><td>${money(Math.abs(netProfit))}</td></tr>
   `;
 }
 
@@ -166,15 +166,15 @@ function renderBalanceSheet() {
   lastBSSummary = { asOf, totalAssets, totalLiabilities, totalEquity, netIncomeToDate };
 
   bsBody.innerHTML = `
-    <tr class="statement-section-label"><td colspan="2">Assets</td></tr>
+    <tr class="statement-section-label"><td colspan="2">Assets — what the business owns</td></tr>
     ${assetRows.length ? assetRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${money(r.amount)}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">No asset activity</td></tr>`}
     <tr class="statement-total-row"><td>Total Assets</td><td>${money(totalAssets)}</td></tr>
 
-    <tr class="statement-section-label"><td colspan="2">Liabilities</td></tr>
+    <tr class="statement-section-label"><td colspan="2">Liabilities — what the business owes</td></tr>
     ${liabilityRows.length ? liabilityRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${money(r.amount)}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">No liability activity</td></tr>`}
     <tr class="statement-total-row"><td>Total Liabilities</td><td>${money(totalLiabilities)}</td></tr>
 
-    <tr class="statement-section-label"><td colspan="2">Equity</td></tr>
+    <tr class="statement-section-label"><td colspan="2">Equity — the owners' share of the business</td></tr>
     ${equityRows.length ? equityRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${money(r.amount)}</td></tr>`).join("") : ""}
     <tr><td>Net Income to Date</td><td>${money(netIncomeToDate)}</td></tr>
     <tr class="statement-total-row"><td>Total Equity</td><td>${money(totalEquity)}</td></tr>

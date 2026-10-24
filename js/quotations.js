@@ -22,7 +22,14 @@ let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 
 const markup = 0.25;
+<<<<<<< HEAD
 const SHOP_LOGO_PATH = "../assets/logo.png"; // same file already used sitewide
+=======
+const SHOP_NAME = "Auto Parts and Repairs";
+const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
+const SHOP_LOGO_PATH = "../assets/AC_logo_transparent.png";
+const SHOP_DETAILS_LOGO_PATH = "../assets/logo2.jpeg";
+>>>>>>> bfabf35 (Initial project upload)
 
 function escapeHtml(value) {
   const div = document.createElement("div");
@@ -304,6 +311,7 @@ function buildDetailText(record, kind, items) {
     isQuote ? `Quoted items:` : `Order items:`,
     lines || "(No items)",
     ``,
+<<<<<<< HEAD
     `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
     ``,
     isQuote
@@ -316,6 +324,13 @@ function buildDetailText(record, kind, items) {
     biz.business_name,
     contact || null,
     biz.address || null,
+=======
+    `Exchange rate: 1 USD = ${Number(record.usd_to_zig_rate).toFixed(4)} ZiG`,
+    `Total: ${money(record.total_usd)} / ZiG ${Number(record.total_zig).toFixed(2)}`,
+    ``,
+    `Centric Automobile Service`,
+    `Call or WhatsApp: +263 733 656 061 · +263 716 421 990`,
+>>>>>>> bfabf35 (Initial project upload)
   ].filter(line => line !== null).join("\n");
 }
 
@@ -345,8 +360,19 @@ function buildDetailHtml(record, kind, items) {
     <h3>Diagnosis</h3><div class="receipt-customer">${escapeHtml(job.diagnosis || "Diagnosis in progress")}</div>` : ""}
     <h3>${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
     <table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
+<<<<<<< HEAD
     <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
     <p class="receipt-note">${kind === "Quotation" ? "This quotation is valid for seven (7) days from the date above. Prices are subject to the availability of parts." : `Thank you for choosing ${escapeHtml(biz.business_name)}.`}</p>`;
+=======
+    <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toFixed(2)}</strong></div>
+    <p class="receipt-note">${kind === "Quotation" ? "This quotation is valid for 7 days." : `Thank you for choosing ${SHOP_NAME}.`}</p>
+    <footer class="receipt-footer">
+      <img src="${SHOP_DETAILS_LOGO_PATH}" alt="Centric Automobile Service contact details" class="receipt-footer-logo" />
+      <p class="receipt-footer__services">Vehicle diagnostics · Repairs · Servicing · Spare parts</p>
+      <p class="receipt-footer__label">Call or WhatsApp</p>
+      <p class="receipt-footer__phones"><a href="tel:+263733656061">+263 733 656 061</a><a href="tel:+263716421990">+263 716 421 990</a></p>
+    </footer>`;
+>>>>>>> bfabf35 (Initial project upload)
 }
 
 // ---------- Send: download the document image first, then open the message ----------

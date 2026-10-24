@@ -6,7 +6,7 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Cash Book</title>
+  <title>Centric Auto Mobile | Cash Book</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,10 +34,10 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -99,7 +99,7 @@
         <div>
           <p class="section-kicker">Where money actually moved</p>
           <h1>Cash Book &amp; Petty Cash</h1>
-          <p class="page-intro">A live view over the Ledger's Cash and Bank accounts, plus the small day-to-day float kept separately for minor expenses.</p>
+          <p class="page-intro">See money coming into and going out of the workshop, with live cash and bank balances. Petty cash is shown separately for small day-to-day expenses.</p>
         </div>
       </div>
 
@@ -108,7 +108,7 @@
         <form id="cash-form" class="panel" style="padding:20px;">
           <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
             <div class="field"><label>Date</label><input type="date" id="cash-date" required /></div>
-            <div class="field"><label>Direction</label>
+            <div class="field"><label>Money movement</label>
               <select id="cash-direction">
                 <option value="in">Money In</option>
                 <option value="out">Money Out</option>
@@ -116,7 +116,7 @@
             </div>
             <div class="field"><label>Amount ($)</label><input type="number" id="cash-amount" step="0.01" min="0.01" required /></div>
             <div class="field"><label>Cash / Bank Account</label><select id="cash-account" required></select></div>
-            <div class="field"><label>Other Side (what this affects)</label><select id="cash-contra-account" required></select></div>
+            <div class="field"><label>Category or other account</label><select id="cash-contra-account" required></select></div>
             <div class="field"><label>Description</label><input type="text" id="cash-description" placeholder="e.g. Bank deposit, owner drawing" required /></div>
           </div>
           <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Post Transaction</button>
@@ -129,7 +129,7 @@
           <div><p class="section-kicker">Morning check-in, end-of-day close</p><h2><i class="section-heading-icon" data-lucide="sunrise"></i>Daily Float</h2></div>
           <input type="date" id="float-date" style="min-height:38px;" />
         </div>
-        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">What you started the day with, what came in and went out, and what that leaves you with — combined Cash on Hand + Bank, computed live from the Ledger, not a separate record.</p>
+        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">The opening balance, money received, money paid out and closing balance for the selected date. Totals combine cash on hand and bank activity from the ledger.</p>
         <div class="card-grid" id="daily-float-summary"></div>
       </section>
 
@@ -145,7 +145,7 @@
         <div class="card-grid" id="cashbook-summary"></div>
         <div class="panel">
           <table id="cashbook-table">
-            <thead><tr><th>Date</th><th>Description</th><th>In</th><th>Out</th><th>Balance</th></tr></thead>
+            <thead><tr><th>Date</th><th>Description</th><th>Money In</th><th>Money Out</th><th>Running Balance</th></tr></thead>
             <tbody><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
           </table>
         </div>

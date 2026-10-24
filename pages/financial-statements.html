@@ -6,7 +6,7 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Financial Statements</title>
+  <title>Centric Auto Mobile | Financial Statements</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -32,10 +32,10 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -97,14 +97,14 @@
         <div>
           <p class="section-kicker">The two documents an owner actually reads</p>
           <h1>Financial Statements</h1>
-          <p class="page-intro">Both computed live from every entry posted through the Ledger and every phase built on top of it — nothing here is entered separately.</p>
+          <p class="page-intro">These reports use transactions already recorded in the ledger. The Profit &amp; Loss shows income, expenses and the resulting profit or loss; the Balance Sheet shows assets, liabilities (including supplier balances) and owner equity on a chosen date.</p>
         </div>
       </div>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">In plain English</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Monthly Summary</h2></div><button id="generate-summary-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Summary</button></div>
         <div class="panel" style="padding:20px;">
-          <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Refresh P&amp;L and Balance Sheet below first (whatever period/date you want summarized), then click Generate — this reads the numbers already on this page, nothing separate.</p>
+          <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Choose a period for Profit &amp; Loss and a date for the Balance Sheet, then refresh both reports before generating this plain-language overview. It uses only the figures shown below.</p>
           <div id="ai-summary-result" style="display:none; margin-top:12px; padding:14px 16px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.9rem; white-space:pre-wrap; line-height:1.6;"></div>
         </div>
       </section>
@@ -118,8 +118,8 @@
             <button type="button" class="btn" data-pl-preset="all">All Time</button>
           </div>
           <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr); align-items:end;">
-            <div class="field"><label>From</label><input type="date" id="pl-start" /></div>
-            <div class="field"><label>To</label><input type="date" id="pl-end" /></div>
+            <div class="field"><label>Report period starts</label><input type="date" id="pl-start" /></div>
+            <div class="field"><label>Report period ends</label><input type="date" id="pl-end" /></div>
             <button id="pl-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
           </div>
           <table class="statement-table" style="margin-top:16px;">
@@ -137,7 +137,7 @@
             <button type="button" class="btn" data-bs-preset="year-end">End of This Year</button>
           </div>
           <div class="form-grid" style="max-width:none; grid-template-columns: 1fr auto; align-items:end;">
-            <div class="field"><label>As Of</label><input type="date" id="bs-asof" /></div>
+            <div class="field"><label>Balance Sheet date</label><input type="date" id="bs-asof" /></div>
             <button id="bs-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
           </div>
           <table class="statement-table" style="margin-top:16px;">

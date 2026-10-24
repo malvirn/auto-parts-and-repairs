@@ -6,7 +6,7 @@
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Customers</title>
+  <title>Centric Auto Mobile | Customers</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,10 +21,10 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <div class="nav-group open" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -75,7 +75,7 @@
         <div>
           <p class="section-kicker">Relationship management</p>
           <h1>Customers</h1>
-          <p class="page-intro">Keep customer contacts and vehicle history ready for every repair.</p>
+          <p class="page-intro">Keep customer contact details and vehicle records together so the workshop can prepare for diagnostics, repairs and servicing.</p>
         </div>
       </div>
 
@@ -95,7 +95,7 @@
         </div>
         <div class="field">
           <label>Phone Number</label>
-          <input type="tel" id="cust-phone" placeholder="e.g. +263 77 123 4567" pattern="\+263\s\d{2}\s\d{3}\s\d{4}" title="Use +263 00 000 0000 format" required />
+          <input type="tel" id="cust-phone" placeholder="77 123 4567" title="Choose a country code and enter a valid phone number" required />
         </div>
         <div class="field">
           <label>Vehicle Plate Number</label>
@@ -107,6 +107,7 @@
         </div>
         <div style="grid-column: 1 / -1;">
           <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
+          <p id="customer-form-message" class="form-message" role="status" aria-live="polite"></p>
         </div>
         </form>
       </section>
@@ -131,6 +132,7 @@
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/customers.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
 </body>

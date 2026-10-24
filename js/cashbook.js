@@ -132,7 +132,7 @@ async function loadCashBook() {
   });
 
   cashbookSummary.innerHTML = `
-    <div class="stat-card"><div class="stat-card__label">Current Balance</div><div class="stat-card__value">${money(running)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Cash / Bank Balance</div><div class="stat-card__value">${money(running)}</div></div>
   `;
 
   cashbookTableBody.innerHTML = rows.length
@@ -186,7 +186,7 @@ async function loadDailyFloat() {
     <div class="stat-card"><div class="stat-card__label">Opening Float</div><div class="stat-card__value">${money(openingFloat)}</div></div>
     <div class="stat-card"><div class="stat-card__label">Cash In Today</div><div class="stat-card__value cash-in">${money(cashIn)}</div></div>
     <div class="stat-card"><div class="stat-card__label">Cash Out Today</div><div class="stat-card__value cash-out">${money(cashOut)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">${netChange >= 0 ? "Net Made Today" : "Net Loss Today"}</div><div class="stat-card__value" style="color:${netChange >= 0 ? "var(--success,#2e7d4f)" : "var(--danger,#b23b3b)"};">${money(Math.abs(netChange))}</div></div>
+    <div class="stat-card"><div class="stat-card__label">${netChange >= 0 ? "Net Cash Increase Today" : "Net Cash Decrease Today"}</div><div class="stat-card__value" style="color:${netChange >= 0 ? "var(--success,#2e7d4f)" : "var(--danger,#b23b3b)"};">${money(Math.abs(netChange))}</div></div>
     <div class="stat-card"><div class="stat-card__label">Closing Balance</div><div class="stat-card__value">${money(closingBalance)}</div></div>
   `;
 }

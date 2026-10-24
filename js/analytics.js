@@ -71,10 +71,10 @@ function renderSummary(jobs) {
   const jobCount = jobs.length;
 
   summaryCards.innerHTML = `
-    <div class="stat-card"><div class="stat-card__label">Total Revenue</div><div class="stat-card__value">$${revenue.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Total Parts Cost</div><div class="stat-card__value">$${cost.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Profit</div><div class="stat-card__value">$${profit.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Total Jobs</div><div class="stat-card__value">${jobCount}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Billed for Completed Repairs</div><div class="stat-card__value">$${revenue.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Parts Cost for Completed Repairs</div><div class="stat-card__value">$${cost.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Estimated Repair Margin</div><div class="stat-card__value">$${profit.toFixed(2)}</div><small>Completed repair billings less parts cost.</small></div>
+    <div class="stat-card"><div class="stat-card__label">Repair Jobs in System</div><div class="stat-card__value">${jobCount}</div></div>
   `;
 }
 
@@ -87,7 +87,7 @@ function renderOperationsCards(jobs, customers) {
     <div class="stat-card"><div class="stat-card__label">Active Jobs</div><div class="stat-card__value">${active.length}</div></div>
     <div class="stat-card"><div class="stat-card__label">Awaiting Parts</div><div class="stat-card__value">${awaitingParts}</div></div>
     <div class="stat-card"><div class="stat-card__label">Ready for Pickup</div><div class="stat-card__value">${readyForPickup}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Total Customers</div><div class="stat-card__value">${customers.length}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Customers Registered</div><div class="stat-card__value">${customers.length}</div></div>
   `;
 }
 
@@ -103,9 +103,9 @@ function renderManagerCards(jobs, mechanics, parts, receipts) {
   managerCards.innerHTML = `
     <div class="stat-card"><div class="stat-card__label">Active Mechanics</div><div class="stat-card__value">${activeMechanics}</div></div>
     <div class="stat-card"><div class="stat-card__label">Low Stock Parts</div><div class="stat-card__value">${lowStock}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Outstanding Payments</div><div class="stat-card__value">${outstandingJobs}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Revenue</div><div class="stat-card__value">$${revenue.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Labour Billed</div><div class="stat-card__value">$${labour.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Completed Jobs Without a Receipt</div><div class="stat-card__value">${outstandingJobs}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Customer Payments Recorded</div><div class="stat-card__value">$${revenue.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Repair Labour Billed</div><div class="stat-card__value">$${labour.toFixed(2)}</div></div>
   `;
 }
 
@@ -125,13 +125,13 @@ function renderFinancialCards(jobs, parts, receipts, payrollRuns) {
 
   financialCards.innerHTML = `
     <div class="stat-card"><div class="stat-card__label">Receipts Issued</div><div class="stat-card__value">${receipts.length}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Billed</div><div class="stat-card__value">$${billed.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Collected</div><div class="stat-card__value">$${collected.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Outstanding</div><div class="stat-card__value">$${outstandingAmount.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Completed Repair Billings</div><div class="stat-card__value">$${billed.toFixed(2)}</div><small>Job totals for finished repairs.</small></div>
+    <div class="stat-card"><div class="stat-card__label">Customer Payments Received</div><div class="stat-card__value">$${collected.toFixed(2)}</div><small>Total recorded receipt payments.</small></div>
+    <div class="stat-card"><div class="stat-card__label">Estimated Balance on Completed Repairs</div><div class="stat-card__value">$${outstandingAmount.toFixed(2)}</div><small>Completed repair billings less all recorded receipts.</small></div>
     <div class="stat-card"><div class="stat-card__label">Inventory Value (cost)</div><div class="stat-card__value">$${inventoryValue.toFixed(2)}</div></div>
-    <div class="stat-card"><div class="stat-card__label">Gross Profit</div><div class="stat-card__value">$${grossProfit.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Estimated Gross Profit</div><div class="stat-card__value">$${grossProfit.toFixed(2)}</div><small>Completed repair billings less parts cost.</small></div>
     <div class="stat-card"><div class="stat-card__label">Payroll (this month)</div><div class="stat-card__value">$${payrollThisMonth.toFixed(2)}</div>${!thisMonthRun ? '<div style="font-size:.72rem;color:var(--text-muted);">Not yet processed</div>' : ""}</div>
-    <div class="stat-card"><div class="stat-card__label">Net Profit (after payroll)</div><div class="stat-card__value">$${netProfit.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Estimated Profit After This Month's Payroll</div><div class="stat-card__value">$${netProfit.toFixed(2)}</div><small>Does not include other workshop expenses.</small></div>
   `;
 }
 
@@ -160,7 +160,7 @@ function renderRevenueChart(jobs) {
     data: {
       labels: months.map(m => m.label),
       datasets: [{
-        label: "Revenue ($)",
+        label: "Completed Repair Billings ($)",
         data: revenueByMonth,
         borderColor: "#4f8cf7",
         backgroundColor: "rgba(79,140,247,0.12)",

@@ -222,6 +222,101 @@ $("tier-form")?.addEventListener("submit", async (e) => {
   loadTiers();
 });
 
+// ---- Vehicle labour rates ----
+async function loadVehicleRates() {
+  const tbody = document.getElementById("tiers-table");
+  if (!tbody) return;
+  const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
+  if (error) {
+    console.error("Error loading vehicle labour rates:", error);
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Failed to load labour rates: ${escapeHtml(error.message)}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data?.length ? data.map(tier => `
+    <tr class="${tier.is_active === false ? "archived-rate" : ""}">
+      <td>${escapeHtml(tier.tier_name)}</td>
+      <td>$${Number(tier.hourly_rate).toFixed(2)} / hour</td>
+      <td>${tier.makes?.length ? escapeHtml(tier.makes.join(", ")) : "Manual selection only"}</td>
+      <td>${tier.is_active !== false && tier.is_default ? "Yes" : "No"}${tier.is_active === false ? " · Archived" : ""}</td>
+      <td><button type="button" class="btn rate-archive-btn" data-id="${tier.id}" data-active="${tier.is_active !== false}" aria-label="${tier.is_active === false ? "Restore" : "Archive"} ${escapeHtml(tier.tier_name)} labour rate"><i data-lucide="${tier.is_active === false ? "rotate-ccw" : "archive"}"></i> ${tier.is_active === false ? "Restore" : "Archive"}</button></td>
+    </tr>
+  `).join("") : `<tr><td colspan="5" class="empty-state">No vehicle labour rates set up yet.</td></tr>`;
+  if (window.lucide) lucide.createIcons();
+
+  tbody.querySelectorAll(".rate-archive-btn").forEach(button => {
+    button.addEventListener("click", async () => {
+      const isActive = button.dataset.active === "true";
+      const action = isActive ? "archive" : "restore";
+      if (isActive && !confirm("Archive this labour rate? It will no longer be available for new repair orders, while existing repair orders keep their rate reference.")) return;
+      const { error: updateError } = await supabase
+        .from("vehicle_rate_tiers")
+        .update(isActive ? { is_active: false, is_default: false } : { is_active: true })
+        .eq("id", button.dataset.id);
+      if (updateError) {
+        alert(`Failed to ${action} labour rate: ${updateError.message}`);
+        return;
+      }
+      await loadVehicleRates();
+    });
+  });
+}
+
+const vehicleRateForm = document.getElementById("tier-form");
+vehicleRateForm?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const tier_name = document.getElementById("tier-name").value.trim();
+  const hourly_rate = Number(document.getElementById("tier-rate").value);
+  const makes = document.getElementById("tier-makes").value.split(",").map(make => make.trim()).filter(Boolean);
+  const is_default = document.getElementById("tier-default").checked;
+  const message = document.getElementById("tier-form-message");
+
+  if (!tier_name || !Number.isFinite(hourly_rate) || hourly_rate <= 0) {
+    message.textContent = "Enter a rate name and an hourly rate greater than zero.";
+    message.dataset.tone = "error";
+    return;
+  }
+
+  const { data: existingRates, error: loadError } = await supabase.from("vehicle_rate_tiers").select("id, is_default, sort_order").order("sort_order", { ascending: false });
+  if (loadError) {
+    message.textContent = "Could not prepare the new rate: " + loadError.message;
+    message.dataset.tone = "error";
+    return;
+  }
+
+  const previousDefaultId = existingRates?.find(rate => rate.is_default)?.id;
+  if (is_default) {
+    const { error: defaultError } = await supabase.from("vehicle_rate_tiers").update({ is_default: false }).eq("is_default", true);
+    if (defaultError) {
+      message.textContent = "Could not update the default rate: " + defaultError.message;
+      message.dataset.tone = "error";
+      return;
+    }
+  }
+
+  const { error } = await supabase.from("vehicle_rate_tiers").insert([{
+    tier_name,
+    hourly_rate,
+    makes,
+    is_default,
+    sort_order: (existingRates?.[0]?.sort_order || 0) + 1,
+  }]);
+  if (error) {
+    if (is_default && previousDefaultId) {
+      const { error: restoreError } = await supabase.from("vehicle_rate_tiers").update({ is_default: true }).eq("id", previousDefaultId);
+      if (restoreError) console.error("Failed to restore the previous default vehicle labour rate:", restoreError);
+    }
+    message.textContent = "Failed to add labour rate: " + error.message;
+    message.dataset.tone = "error";
+    return;
+  }
+
+  vehicleRateForm.reset();
+  message.textContent = "Vehicle labour rate added.";
+  message.dataset.tone = "success";
+  await loadVehicleRates();
+});
+
 // ---- Notifications ----
 async function loadNotifications() {
   const list = $("notifications-list");
@@ -237,6 +332,7 @@ async function loadNotifications() {
 
 // ---- User guide ----
 const GUIDE_TOPICS = [
+<<<<<<< HEAD
   { title: "Opening a job card", body: "Go to Job Cards. Choose Private customer or Company car, pick the customer or company (or add a new one), pick or register the vehicle, describe the fault, then fill in anything else you already know: diagnosis, mechanic, hours, parts and incidentals. Click Create Job Card." },
   { title: "Company cars", body: "Choose Company car, then pick the company or add it right there. Record who brought the car in. Company jobs get an ICRO number; private jobs get an ECRO number." },
   { title: "Labour charges", body: "Charges per hour live in Settings → Labour charges. Each charge lists the makes it applies to, so the job card picks it automatically from the vehicle's make. One charge is the default for makes that don't match." },
@@ -244,6 +340,15 @@ const GUIDE_TOPICS = [
   { title: "Printing a job card", body: "Open the job card from the queue and click Print. It prints the customer, vehicle, fault, diagnosis, parts, labour and totals with signature lines." },
   { title: "Generating a receipt", body: "When a job's status is Ready for Pickup, open its job card and click Generate Receipt, or go to Receipts." },
   { title: "Understanding job statuses", body: "Received → Diagnosing → Ready for Pickup → Collected. Unclaimed means a finished job hasn't been picked up within the free pickup window." },
+=======
+  { title: "Opening a repair order", body: "Go to Repair Jobs, select the customer and registered vehicle, enter the vehicle identifiers and the customer's concern, assign a mechanic if known, then create the repair order." },
+  { title: "Updating a job card", body: "Open View Details to update the repair status, technician findings, assigned mechanic, labour, parts fitted, and workshop supplies. Save the repair order when finished." },
+  { title: "Generating a receipt", body: "A receipt is created when a repair order is saved as Ready for Pickup or Unclaimed. Review and print or share it from Receipts." },
+  { title: "Restocking parts", body: "On the Shop page, click Restock next to a part, choose a supplier, quantity, and unit cost." },
+  { title: "Setting hourly labour rates", body: "Open Settings → Vehicle Labour Rates to add a rate for each vehicle class. Repair orders suggest the matching rate and allow an adjustment for that job." },
+  { title: "Assigning mechanics", body: "Assign a mechanic when creating a repair order or from View Details. A mechanic can be assigned to multiple active jobs; each repair order shows its assigned mechanic." },
+  { title: "Recording vehicle collection", body: "Once the customer has taken the vehicle, open the job card, choose Mark as Collected, enter handover details, then confirm collection." },
+>>>>>>> bfabf35 (Initial project upload)
 ];
 const guideAccordion = $("guide-accordion");
 if (guideAccordion) {
@@ -306,10 +411,25 @@ $("save-rate-btn")?.addEventListener("click", async (e) => {
 async function loadAccount() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
+<<<<<<< HEAD
   $("account-email").textContent = user.email;
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   const labels = { super_admin: "Super Admin", accounting: "Accounting", staff: "Staff" };
   $("account-role").textContent = profile ? (labels[profile.role] || profile.role) : "—";
+=======
+  const emailEl = document.getElementById("account-email");
+  if (emailEl) emailEl.textContent = user.email;
+  const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (profileError) console.error("Unable to load account role:", profileError);
+  const roleEl = document.getElementById("account-role");
+  if (roleEl) roleEl.textContent = profile ? profile.role : "—";
+  const canManageRates = ["super_admin", "staff"].includes(profile?.role);
+  const rateTab = document.querySelector('.settings-tab[data-target="vehicle-rates"]');
+  const rateSection = document.getElementById("vehicle-rates");
+  if (rateTab) rateTab.hidden = !canManageRates;
+  if (rateSection) rateSection.hidden = !canManageRates;
+  if (canManageRates) await loadVehicleRates();
+>>>>>>> bfabf35 (Initial project upload)
 }
 $("reset-password-btn")?.addEventListener("click", async (e) => {
   const { data: { user } } = await supabase.auth.getUser();

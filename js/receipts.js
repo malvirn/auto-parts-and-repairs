@@ -3,7 +3,8 @@ import supabase from "./supabaseClient.js";
 
 const SHOP_NAME = "Auto Parts and Repairs";
 const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
-const SHOP_LOGO_PATH = "../assets/logo.png"; // same file already used in the sidebar
+const SHOP_LOGO_PATH = "../assets/AC_logo_transparent.png";
+const SHOP_DETAILS_LOGO_PATH = "../assets/logo2.jpeg";
 
 const pendingTableBody = document.getElementById("pending-receipts-table");
 const receiptsTableBody = document.getElementById("receipts-table");
@@ -105,7 +106,13 @@ function renderReceipt(receipt) {
     ${source.aiNotes ? `<h3>AI-Assisted Diagnostic Notes</h3><div class="receipt-customer" style="white-space:pre-wrap; font-size:.85em;">${escapeHtml(source.aiNotes)}</div>` : ""}
     <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${items.map(i => `<tr><td>${escapeHtml(i.part_name)}</td><td>${i.quantity}</td><td>$${Number(i.price_at_time).toFixed(2)}</td><td>$${(Number(i.quantity) * Number(i.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}${incidentals.map(inc => `<tr><td>${escapeHtml(inc.description)}</td><td>1</td><td>$${Number(inc.amount).toFixed(2)}</td><td>$${Number(inc.amount).toFixed(2)}</td></tr>`).join("")}${source.labour > 0 ? `<tr><td>Labour</td><td>1</td><td>$${source.labour.toFixed(2)}</td><td>$${source.labour.toFixed(2)}</td></tr>` : ""}</tbody></table>
     <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
-    <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>`;
+    <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>
+    <footer class="receipt-footer">
+      <img src="${SHOP_DETAILS_LOGO_PATH}" alt="Centric Automobile Service contact details" class="receipt-footer-logo" />
+      <p class="receipt-footer__services">Vehicle diagnostics · Repairs · Servicing · Spare parts</p>
+      <p class="receipt-footer__label">Call or WhatsApp</p>
+      <p class="receipt-footer__phones"><a href="tel:+263733656061">+263 733 656 061</a><a href="tel:+263716421990">+263 716 421 990</a></p>
+    </footer>`;
   receiptModal.classList.remove("hidden");
   receiptModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
