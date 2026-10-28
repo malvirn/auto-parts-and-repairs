@@ -1,2 +1,6 @@
-
-supabase/.temp/
+﻿node_modules/
+.env
+.env.*
+dist/
+build/
+*.log

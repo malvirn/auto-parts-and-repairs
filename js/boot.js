@@ -109,7 +109,7 @@ function build() {
   wrap.innerHTML = `
     <div class="boot-floats" aria-hidden="true">${floating}</div>
     <div class="boot-card">
-      <div class="boot-logo"><img src="assets/logo.png" alt="" onerror="this.style.display='none'"></div>
+      <div class="boot-logo"><img src="assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <div class="sys-anim boot-sys" aria-label="${esc(SYSTEM.name)}">
         <div class="sys-name" aria-hidden="true">${splitLetters(SYSTEM.name)}</div>
         <small class="sys-tag">${esc(SYSTEM.tagline)}</small>

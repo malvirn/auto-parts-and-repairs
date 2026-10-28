@@ -3,7 +3,7 @@
 // get the latest version when online; cached copies are only a fallback.
 // Data from Supabase is never cached here.
 const CACHE = "apr-v5";
-const SHELL = ["/", "/index.html", "/login.html", "/css/style.css", "/css/mh-theme.css", "/assets/logo.png", "/icons/icon-192.png", "/manifest.webmanifest"];
+const SHELL = ["/", "/index.html", "/login.html", "/css/style.css", "/css/mh-theme.css", "/assets/AC_logo_transparent.png", "/icons/icon-192.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

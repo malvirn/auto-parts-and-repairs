@@ -3,16 +3,6 @@ import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 import { hydrate } from "./data-cache.js";
 
-<<<<<<< HEAD
-const $ = (id) => document.getElementById(id);
-=======
-const tableBody = document.getElementById("repairs-table");
-const form = document.getElementById("job-form");
-const customerSelect = document.getElementById("job-customer");
-const jobPlateSelect = document.getElementById("job-plate");
-const jobTechnicianSelect = document.getElementById("job-technician");
-const jobFormMessage = document.getElementById("job-form-message");
->>>>>>> bfabf35 (Initial project upload)
 
 const tableBody = $("repairs-table");
 const form = $("job-form");
@@ -104,19 +94,10 @@ async function loadRateTiers() {
   const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
   if (error) { console.error("Error loading rate tiers:", error); return; }
   rateTiers = data || [];
-<<<<<<< HEAD
   const options = rateTiers.map(t => `<option value="${t.id}">${escapeHtml(t.tier_name)} — ${money(t.hourly_rate)}/hr</option>`).join("");
   if (editRateTier) editRateTier.innerHTML = options || `<option value="">No labour charges set — add them in Settings</option>`;
   if (newRateTier) newRateTier.innerHTML = options || `<option value="">No labour charges set — add them in Settings</option>`;
   autoPickNewTier();
-=======
-  if (editRateTier) {
-    editRateTier.innerHTML = rateTiers
-      .filter(t => t.is_active !== false)
-      .map(t => `<option value="${t.id}">${escapeHtml(t.tier_name)} — $${Number(t.hourly_rate).toFixed(2)}/hr</option>`)
-      .join("");
-  }
->>>>>>> bfabf35 (Initial project upload)
 }
 
 // Case-insensitive match against each tier's makes list; falls back to the
@@ -336,7 +317,6 @@ $("new-part-add")?.addEventListener("click", () => {
   renderStaged();
 });
 
-<<<<<<< HEAD
 $("new-inc-add")?.addEventListener("click", () => {
   const description = $("new-inc-desc").value.trim();
   const amount = parseFloat($("new-inc-amount").value);
@@ -397,59 +377,22 @@ async function refreshBusyMechanics() {
   const counts = {};
   (openJobs || []).forEach(j => { counts[j.technician_id] = (counts[j.technician_id] || 0) + 1; });
   mechanicsList = mechanicsList.map(m => ({ ...m, openJobs: counts[m.id] || 0 }));
-=======
-let mechanicsList = []; // [{ id, full_name, activeJobCount }]
-
-async function refreshMechanicWorkloads() {
-  const { data: activeJobs, error } = await supabase
-    .from("repair_jobs")
-    .select("technician_id")
-    .not("technician_id", "is", null)
-    .not("status", "in", '("Ready for Pickup","Completed","Unclaimed","Collected")');
-  if (error) {
-    console.error("Error loading mechanic workloads:", error);
-    return;
-  }
-  const workloadCounts = (activeJobs || []).reduce((counts, job) => {
-    counts[job.technician_id] = (counts[job.technician_id] || 0) + 1;
-    return counts;
-  }, {});
-  mechanicsList = mechanicsList.map(mechanic => ({
-    ...mechanic,
-    activeJobCount: workloadCounts[mechanic.id] || 0,
-  }));
->>>>>>> bfabf35 (Initial project upload)
 }
 
 async function loadTechniciansIntoSelect() {
   // Only mechanics, read through technician_directory (the safe, name-only view).
   const { data: mechanics, error } = await supabase.from("technician_directory").select("id, full_name").eq("department", "Mechanics").eq("is_active", true).order("full_name");
   if (error) { console.error("Error loading technicians:", error); return; }
-<<<<<<< HEAD
   mechanicsList = (mechanics || []).map(m => ({ ...m, openJobs: 0 }));
   await refreshBusyMechanics();
   refreshTechnicianOptions(editTechnician, null);
   refreshTechnicianOptions(newTechnician, null);
   const mechanicFilter = $("jobs-filter-mechanic");
-=======
-
-  mechanicsList = (mechanics || []).map(m => ({ ...m, activeJobCount: 0 }));
-  await refreshMechanicWorkloads();
-  refreshTechnicianOptions(null);
-  if (jobTechnicianSelect) {
-    jobTechnicianSelect.innerHTML = `<option value="">Unassigned</option>` + mechanicsList.map(mechanic =>
-      `<option value="${mechanic.id}">${escapeHtml(mechanic.full_name)}${mechanic.activeJobCount ? ` — ${mechanic.activeJobCount} active job${mechanic.activeJobCount === 1 ? "" : "s"}` : ""}</option>`
-    ).join("");
-  }
-
-  const mechanicFilter = document.getElementById("jobs-filter-mechanic");
->>>>>>> bfabf35 (Initial project upload)
   if (mechanicFilter) {
     mechanicFilter.innerHTML = `<option value="">All Mechanics</option>` + mechanicsList.map(m => `<option value="${m.id}">${escapeHtml(m.full_name)}</option>`).join("");
   }
 }
 
-<<<<<<< HEAD
 // Every mechanic can be picked; the label shows how many open job cards
 // they already have so work can be spread sensibly.
 function refreshTechnicianOptions(select, currentJobTechnicianId) {
@@ -461,14 +404,6 @@ function refreshTechnicianOptions(select, currentJobTechnicianId) {
       const n = m.openJobs || 0;
       const label = n ? `${m.full_name} — ${n} open job${n === 1 ? "" : "s"}` : `${m.full_name} — free`;
       return `<option value="${m.id}">${escapeHtml(label)}</option>`;
-=======
-function refreshTechnicianOptions(currentJobTechnicianId) {
-  editTechnician.innerHTML =
-    `<option value="">Unassigned</option>` +
-    mechanicsList.map(mechanic => {
-      const label = `${mechanic.full_name}${mechanic.activeJobCount ? ` — ${mechanic.activeJobCount} active job${mechanic.activeJobCount === 1 ? "" : "s"}` : ""}`;
-      return `<option value="${mechanic.id}">${escapeHtml(label)}</option>`;
->>>>>>> bfabf35 (Initial project upload)
     }).join("");
   if (currentJobTechnicianId) select.value = currentJobTechnicianId;
   else if (keep && mechanicsList.some(m => m.id === keep)) select.value = keep;
@@ -611,11 +546,7 @@ async function fetchJobsBundle() {
     supabase.from("repair_jobs").select(`
       id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
       customers ( full_name, phone, email, customer_type ),
-<<<<<<< HEAD
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
-=======
-      vehicles ( make, model, year, license_plate, engine_number, chassis_number )
->>>>>>> bfabf35 (Initial project upload)
     `).order("created_at", { ascending: false }),
     supabase.from("technician_directory").select("id, full_name"),
   ]);
@@ -628,17 +559,11 @@ function renderJobsBundle(bundle) {
   techNamesById = Object.fromEntries(techs.map(t => [t.id, t.full_name]));
   jobsById = new Map(data.map(j => [j.id, j]));
 
-<<<<<<< HEAD
   if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No job cards yet</td></tr>`;
     if (window.lucide) lucide.createIcons();
     applyJobFilters();
     renderWorkload();
-=======
-  if (!data || data.length === 0) {
-    mechanicsList = mechanicsList.map(mechanic => ({ ...mechanic, activeJobCount: 0 }));
-    tableBody.innerHTML = `<tr><td colspan="8" style="color:var(--text-muted)">No repair jobs yet</td></tr>`;
->>>>>>> bfabf35 (Initial project upload)
     return;
   }
 
@@ -664,22 +589,12 @@ function renderJobsBundle(bundle) {
         <td><b>${escapeHtml(jobLabel(job))}</b></td>
         <td>${customerLabel}</td>
         <td>${escapeHtml(vehicleLabel)}</td>
-<<<<<<< HEAD
         <td class="jc-clip">${escapeHtml(job.fault_reported)}</td>
         <td><span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${escapeHtml(job.status)}</span></td>
         <td>${escapeHtml(techNamesById[job.technician_id] ?? "Unassigned")}</td>
         <td>${money(job.total_cost)}</td>
         <td><button class="btn edit-job-btn" data-job-id="${job.id}"><i data-lucide="file-text"></i> Open Job Card</button></td>
       </tr>`;
-=======
-        <td>${escapeHtml(job.fault_reported)}</td>
-        <td><span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${job.status}</span></td>
-        <td><strong>${escapeHtml(techNames[job.technician_id] ?? "Unassigned")}</strong>${job.technician_id ? `<small class="mechanic-workload">${activeJobCounts[job.technician_id] || 0} active job${activeJobCounts[job.technician_id] === 1 ? "" : "s"}</small>` : ""}</td>
-        <td>$${Number(job.total_cost ?? 0).toFixed(2)}</td>
-        <td><button class="btn edit-job-btn" data-job='${JSON.stringify(job).replace(/'/g, "&apos;")}'><i data-lucide="eye"></i> View Details</button></td>
-      </tr>
-    `;
->>>>>>> bfabf35 (Initial project upload)
   }).join("");
 
   if (window.lucide) lucide.createIcons();
@@ -799,89 +714,38 @@ function renderPickupCountdown(job) {
 // =====================================================================
 // Job card open / render
 // =====================================================================
-function infoCell(label, value) {
-  return `<div><span>${label}</span><b>${value ? escapeHtml(String(value)) : `<i class="jc-none">—</i>`}</b></div>`;
+function renderCardHeader(job) {
+  const vehicle = job.vehicles || {};
+  const customer = job.customers || {};
+  editJobNumber.textContent = jobLabel(job);
+  $("job-card-customer").textContent = customer.full_name || "Customer details not recorded";
+  $("job-card-phone").textContent = customer.phone || "Not recorded";
+  $("job-card-vehicle").textContent = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle details not recorded";
+  $("job-card-plate").textContent = vehicle.license_plate || "Not recorded";
+  $("job-card-mechanic").textContent = mechanicsList.find(mechanic => mechanic.id === job.technician_id)?.full_name || "Unassigned";
+  $("job-card-engine").textContent = vehicle.engine_number || "Not recorded";
+  $("job-card-chassis").textContent = vehicle.chassis_number || "Not recorded";
+  $("job-card-concern").textContent = job.fault_reported || "No concern recorded";
+  updateJobCardStatus(job.status);
 }
 
-function renderCardHeader(job) {
-  const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
-  const isCompany = job.customers?.customer_type === "company";
-  editJobNumber.textContent = jobLabel(job);
-  $("jc-tags").innerHTML =
-    `<span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${escapeHtml(job.status)}</span>` +
-    `<span class="badge ${isCompany ? "badge--in-repair" : "badge--received"}"><i data-lucide="${isCompany ? "building-2" : "user"}"></i> ${isCompany ? "Company car" : "Private"}</span>` +
-    (job.created_at ? `<span class="jc-date">Opened ${new Date(job.created_at).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>` : "");
-
-  const v = job.vehicles || {};
-  const c = job.customers || {};
-  $("jc-info").innerHTML = `
-    <div class="jc-infocard">
-      <h5><i data-lucide="${isCompany ? "building-2" : "user"}"></i> ${isCompany ? "Company" : "Customer"}</h5>
-      <div class="jc-kv">
-        ${infoCell(isCompany ? "Company" : "Name", c.full_name)}
-        ${infoCell("Phone", c.phone)}
-        ${infoCell("Email", c.email)}
-        ${isCompany ? infoCell("Brought in by", [job.driver_name, job.driver_phone].filter(Boolean).join(" · ")) : ""}
-      </div>
-    </div>
-    <div class="jc-infocard">
-      <h5><i data-lucide="car"></i> Vehicle</h5>
-      <div class="jc-kv">
-        ${infoCell("Vehicle", vehicleName(v))}
-        ${infoCell("Number plate", v.license_plate)}
-        ${infoCell("Body type", v.body_type)}
-        ${infoCell("Chassis no.", v.chassis_number)}
-        ${infoCell("Engine no.", v.engine_number)}
-        ${infoCell("Fuel in", job.fuel_level_in)}
-        ${infoCell("Odometer in", job.odometer_in != null ? `${Number(job.odometer_in).toLocaleString()} km` : "")}
-      </div>
-    </div>`;
-  $("jc-fault").innerHTML = `<span><i data-lucide="message-square-warning"></i> Fault reported</span><p>${escapeHtml(job.fault_reported || "—")}</p>`;
+function updateJobCardStatus(status) {
+  const meta = STATUS_META[status] || { cls: "", icon: "circle" };
+  const statusElement = $("job-card-status");
+  statusElement.className = `badge ${meta.cls}`;
+  statusElement.innerHTML = `<i data-lucide="${meta.icon}"></i> ${escapeHtml(status)}`;
+  if (window.lucide) lucide.createIcons();
 }
 
 async function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
   pendingCollection = false;
-<<<<<<< HEAD
   cardParts = [];
   cardIncidentals = [];
   cardIncidentalsTotal = Number(job.incidentals_cost) || 0;
   renderCardHeader(job);
 
-=======
-  const createdMessage = document.getElementById("job-card-created-message");
-  if (createdMessage) {
-    createdMessage.hidden = newlyCreatedJobId !== job.id;
-    createdMessage.textContent = newlyCreatedJobId === job.id
-      ? "Repair order added. Complete the job card below with inspection findings, status, parts, labour, and supplies."
-      : "";
-  }
-  if (newlyCreatedJobId === job.id) newlyCreatedJobId = null;
-  editJobNumber.textContent = job.cro_number || String(job.job_number).padStart(4, "0");
-  const vehicle = job.vehicles || {};
-  const vehicleName = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle details not recorded";
-  const statusMeta = STATUS_META[job.status] || { cls: "", icon: "circle" };
-  document.getElementById("job-card-customer").textContent = job.customers?.full_name || "Customer details not recorded";
-  document.getElementById("job-card-phone").textContent = job.customers?.phone || "Not recorded";
-  document.getElementById("job-card-vehicle").textContent = vehicleName;
-  document.getElementById("job-card-plate").textContent = vehicle.license_plate || "Not recorded";
-  document.getElementById("job-card-mechanic").textContent = mechanicsList.find(mechanic => mechanic.id === job.technician_id)?.full_name || "Unassigned";
-  document.getElementById("job-card-engine").textContent = vehicle.engine_number || "Not recorded";
-  document.getElementById("job-card-chassis").textContent = vehicle.chassis_number || "Not recorded";
-  document.getElementById("job-card-concern").textContent = job.fault_reported || "No concern recorded";
-  const jobCardStatus = document.getElementById("job-card-status");
-  jobCardStatus.className = `badge ${statusMeta.cls}`;
-  jobCardStatus.innerHTML = `<i data-lucide="${statusMeta.icon}"></i> ${escapeHtml(job.status)}`;
-  editStatus.querySelectorAll("option[data-legacy-status]").forEach(option => option.remove());
-  if (!STATUS_LIST.includes(job.status)) {
-    const legacyStatus = document.createElement("option");
-    legacyStatus.value = job.status;
-    legacyStatus.textContent = job.status;
-    legacyStatus.dataset.legacyStatus = "true";
-    editStatus.appendChild(legacyStatus);
-  }
->>>>>>> bfabf35 (Initial project upload)
   editStatus.value = job.status;
   editDiagnosis.value = job.diagnosis ?? "";
   editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);
@@ -892,24 +756,9 @@ async function openEditModal(job) {
     if (job.ai_suggested_causes) { aiResultEl.textContent = job.ai_suggested_causes; aiResultEl.style.display = "block"; }
     else { aiResultEl.style.display = "none"; aiResultEl.textContent = ""; }
   }
-<<<<<<< HEAD
   await refreshBusyMechanics();
   refreshTechnicianOptions(editTechnician, job.technician_id || null);
   editTechnician.value = job.technician_id ?? "";
-=======
-  const currentTier = rateTiers.find(tier => tier.id === job.rate_tier_id);
-  editRateTier?.querySelectorAll("option[data-archived-tier]").forEach(option => option.remove());
-  if (currentTier && currentTier.is_active === false && editRateTier) {
-    const archivedOption = document.createElement("option");
-    archivedOption.value = currentTier.id;
-    archivedOption.textContent = `${currentTier.tier_name} — $${Number(currentTier.hourly_rate).toFixed(2)}/hr (Archived; existing repair order)`;
-    archivedOption.dataset.archivedTier = "true";
-    editRateTier.appendChild(archivedOption);
-  }
-  editTechnician.value = job.technician_id ?? "";
-  await refreshMechanicWorkloads();
-  refreshTechnicianOptions(job.technician_id || null);
->>>>>>> bfabf35 (Initial project upload)
   editHours.value = job.labour_hours ?? "";
   const detectedTier = job.rate_tier_id
     ? rateTiers.find(t => t.id === job.rate_tier_id)
@@ -965,41 +814,18 @@ function closeEditModal() {
   }
 }
 
-<<<<<<< HEAD
 editCancelBtn?.addEventListener("click", closeEditModal);
 $("jc-close")?.addEventListener("click", closeEditModal);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.classList.contains("hidden")) closeEditModal(); });
 editStatus?.addEventListener("change", () => {
   if (!currentEditJob) return;
   updateWhatsappButton({ ...currentEditJob, status: editStatus.value });
+  updateJobCardStatus(editStatus.value);
+});
+editTechnician?.addEventListener("change", () => {
+  $("job-card-mechanic").textContent = mechanicsList.find(mechanic => mechanic.id === editTechnician.value)?.full_name || "Unassigned";
 });
 modal?.addEventListener("click", (e) => { if (e.target === modal) closeEditModal(); });
-=======
-if (editCancelBtn) editCancelBtn.addEventListener("click", closeEditModal);
-if (editStatus) {
-  editStatus.addEventListener("change", () => {
-    if (!currentEditJob) return;
-    updateWhatsappButton({ ...currentEditJob, status: editStatus.value });
-    const statusMeta = STATUS_META[editStatus.value] || { cls: "", icon: "circle" };
-    const jobCardStatus = document.getElementById("job-card-status");
-    jobCardStatus.className = `badge ${statusMeta.cls}`;
-    jobCardStatus.innerHTML = `<i data-lucide="${statusMeta.icon}"></i> ${escapeHtml(editStatus.value)}`;
-    if (editReceiptLink) {
-      editReceiptLink.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(editStatus.value));
-    }
-    if (window.lucide) lucide.createIcons();
-  });
-}
-editTechnician?.addEventListener("change", () => {
-  document.getElementById("job-card-mechanic").textContent =
-    mechanicsList.find(mechanic => mechanic.id === editTechnician.value)?.full_name || "Unassigned";
-});
-if (modal) {
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeEditModal();
-  });
-}
->>>>>>> bfabf35 (Initial project upload)
 
 editSaveBtn?.addEventListener("click", async () => {
   if (!currentEditJobId) return;
@@ -1112,7 +938,6 @@ async function ensureReceiptExists(jobId, amount) {
   if (insertError) console.error("Error auto-creating receipt:", insertError);
 }
 
-<<<<<<< HEAD
 // =====================================================================
 // Print job card
 // =====================================================================
@@ -1121,81 +946,6 @@ async function loadBusinessInfo() {
   const { data } = await supabase.from("business_settings").select("business_name, tagline, address, phone, email").eq("id", 1).maybeSingle();
   businessInfo = data || { business_name: "Auto Parts & Repairs" };
   return businessInfo;
-=======
-if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (jobFormMessage) {
-      jobFormMessage.textContent = "";
-      jobFormMessage.dataset.tone = "";
-    }
-
-    const customer_id = customerSelect.value;
-    const vehicle_id = jobPlateSelect.value;
-    const technician_id = jobTechnicianSelect?.value || null;
-    const body_type = document.getElementById("job-body-type").value;
-    const make = document.getElementById("job-make").value.trim();
-    const model = document.getElementById("job-model").value.trim();
-    const year = parseInt(document.getElementById("job-year").value) || null;
-    const chassis_number = document.getElementById("job-chassis").value.trim();
-    const engine_number = document.getElementById("job-engine").value.trim();
-    const fuel_level_in = document.getElementById("job-fuel-in").value || null;
-    const odometer_in = parseInt(document.getElementById("job-odometer-in").value) || null;
-    const fault_reported = document.getElementById("job-fault").value.trim();
-    const selectedCustomerName = customerSelect.options[customerSelect.selectedIndex]?.textContent || "Customer";
-    const selectedPlate = jobPlateSelect.options[jobPlateSelect.selectedIndex]?.textContent || "vehicle";
-
-    if (!customer_id || !vehicle_id) {
-      alert("Select a customer and one of their registered vehicles. If this customer has no vehicles yet, add one via the Customers page first.");
-      return;
-    }
-    if (!make || !fault_reported) {
-      alert("Vehicle make and the customer's reported concern are required.");
-      return;
-    }
-    if (!chassis_number || !engine_number) {
-      alert("Chassis number and engine number are both required — a plate alone isn't a reliable enough identifier for this vehicle.");
-      return;
-    }
-
-    // The vehicle already exists (it's one of the customer's registered
-    // plates) — just keep its details in sync with whatever was edited here.
-    const { error: vehicleUpdateError } = await supabase
-      .from("vehicles")
-      .update({ body_type, make, model: model || null, year, chassis_number, engine_number })
-      .eq("id", vehicle_id);
-    if (vehicleUpdateError) {
-      console.error("Error updating vehicle:", vehicleUpdateError);
-      alert("Failed to update vehicle details: " + vehicleUpdateError.message);
-      return;
-    }
-
-    const { data: createdJob, error: jobError } = await supabase
-      .from("repair_jobs")
-      .insert([{ customer_id, vehicle_id, technician_id, fault_reported, status: "Received", fuel_level_in, odometer_in }])
-      .select("id, job_number, cro_number")
-      .single();
-
-    if (jobError) {
-      console.error("Error creating repair job:", jobError);
-      alert("Failed to create repair job: " + jobError.message);
-      return;
-    }
-
-    form.reset();
-    resetVehicleSelect();
-    if (jobFormMessage) {
-      const assignedMechanic = mechanicsList.find(mechanic => mechanic.id === technician_id)?.full_name;
-      const repairOrderNumber = createdJob?.cro_number || (createdJob?.job_number ? `#${String(createdJob.job_number).padStart(4, "0")}` : "");
-      jobFormMessage.textContent = `Repair order${repairOrderNumber ? ` ${repairOrderNumber}` : ""} added for ${selectedCustomerName} — ${selectedPlate}.${assignedMechanic ? ` Assigned mechanic: ${assignedMechanic}.` : ""} The job card is open for status, findings, parts, and repair charges.`;
-      jobFormMessage.dataset.tone = "success";
-    }
-    await loadJobs();
-    newlyCreatedJobId = createdJob?.id || null;
-    const newJobRow = [...tableBody.querySelectorAll("tr[data-job-id]")].find(row => row.dataset.jobId === createdJob?.id);
-    newJobRow?.querySelector(".edit-job-btn")?.click();
-  });
->>>>>>> bfabf35 (Initial project upload)
 }
 
 async function printJobCard() {
@@ -1213,7 +963,7 @@ async function printJobCard() {
   const total = labour + parts + cardIncidentalsTotal;
   const rate = await getRate();
   const row = (k, val) => `<tr><th>${k}</th><td>${val ? escapeHtml(String(val)) : "—"}</td></tr>`;
-  const logo = new URL("../assets/logo.png", window.location.href).href;
+  const logo = new URL("../assets/AC_logo_transparent.png", window.location.href).href;
   const lines = [
     ...cardParts.map(p => `<tr><td>${escapeHtml(p.part_name)}</td><td class="r">${p.quantity}</td><td class="r">${money(p.price_at_time)}</td><td class="r">${money(p.price_at_time * p.quantity)}</td></tr>`),
     ...cardIncidentals.map(x => `<tr><td>${escapeHtml(x.description)} <small>(incidental)</small></td><td class="r">1</td><td class="r">${money(x.amount)}</td><td class="r">${money(x.amount)}</td></tr>`),
@@ -1501,7 +1251,6 @@ async function sendDiagnosisUpdate(channel) {
   if (!currentEditJob) return;
   const job = currentEditJob;
   const diagnosisText = editDiagnosis.value.trim();
-<<<<<<< HEAD
   const etaIso = editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null;
 
   let phone = null, email = null;
@@ -1512,11 +1261,6 @@ async function sendDiagnosisUpdate(channel) {
   } else {
     email = (job.customers?.email || "").trim() || (prompt("Customer email address:") || "").trim();
     if (!email) return;
-=======
-  if (!diagnosisText) {
-    alert("Enter the mechanic's inspection findings first — the customer update is generated from these notes.");
-    return;
->>>>>>> bfabf35 (Initial project upload)
   }
 
   // Open the WhatsApp tab straight away, inside the click, so the browser
@@ -1555,21 +1299,9 @@ async function sendDiagnosisUpdate(channel) {
 // ---- AI diagnostic assistance (a suggestion only; never fills Diagnosis) ----
 async function suggestPossibleCauses() {
   if (!currentEditJob) return;
-<<<<<<< HEAD
   const btn = $("ai-suggest-causes-btn");
   const resultEl = $("ai-suggest-causes-result");
   const vehicleLabel = vehicleName(currentEditJob.vehicles) || "the vehicle";
-=======
-  const btn = document.getElementById("ai-suggest-causes-btn");
-  const resultEl = document.getElementById("ai-suggest-causes-result");
-  const vehicleLabel = [currentEditJob.vehicles?.year, currentEditJob.vehicles?.make, currentEditJob.vehicles?.model].filter(Boolean).join(" ") || "the vehicle";
-  const mechanicFindings = editDiagnosis.value.trim();
-  if (!mechanicFindings) {
-    alert("Enter the mechanic's inspection findings before requesting possible causes.");
-    return;
-  }
-
->>>>>>> bfabf35 (Initial project upload)
   const original = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = `<i data-lucide="loader-circle"></i> Thinking…`;
@@ -1603,9 +1335,6 @@ $("ai-suggest-causes-btn")?.addEventListener("click", suggestPossibleCauses);
 editDiagnosisWhatsappBtn?.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
 editDiagnosisEmailBtn?.addEventListener("click", () => sendDiagnosisUpdate("email"));
 
-<<<<<<< HEAD
-// ---- Voice-powered fault intake (browser speech → AI tidy-up) ----
-=======
 if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
 if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));
 
@@ -1615,7 +1344,6 @@ if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () =>
 // needs the browser's speech service). Gemini's only job here is
 // cleaning up the raw, messy transcript (filler words, false starts)
 // into something concise — it never does the actual listening.
->>>>>>> bfabf35 (Initial project upload)
 (function setupVoiceFaultIntake() {
   const btn = $("voice-fault-btn");
   if (!btn) return;
@@ -1690,33 +1418,9 @@ if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () =>
   });
 })();
 
-<<<<<<< HEAD
 // =====================================================================
 // Filters + start-up
 // =====================================================================
-=======
-document.addEventListener("DOMContentLoaded", async () => {
-  initStatusOptions();
-  await loadCustomersIntoSelect();
-  await loadTechniciansIntoSelect();
-  loadPartsIntoSelect();
-  await loadRateTiers();
-  await loadJobs();
-
-  const params = new URLSearchParams(window.location.search);
-  const editId = params.get("edit");
-  const statusFilter = params.get("status");
-
-  if (editId) {
-    const btn = [...document.querySelectorAll(".edit-job-btn")]
-      .find(b => JSON.parse(b.dataset.job).id === editId);
-    if (btn) btn.click();
-  } else if (statusFilter) {
-    filterTableByStatus(statusFilter);
-  }
-});
-
->>>>>>> bfabf35 (Initial project upload)
 function applyJobFilters() {
   const searchTerm = ($("jobs-search")?.value || "").trim().toLowerCase();
   const mechanicId = $("jobs-filter-mechanic")?.value || "";

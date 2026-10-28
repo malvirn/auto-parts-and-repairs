@@ -2,214 +2,47 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
+
   <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f78a1d">
-  <meta name="color-scheme" content="dark light">
-  <title>Centric Auto Mobile | Quotations &amp; Sales Orders</title>
-  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTO PARTS &amp; REPAIRS — Quotations &amp; Sales Orders</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root {
-      --bg: #1c1c1c; --surface: #2b2b2b; --surface-2: #333; --line: #414141; --text: #f2f2f2; --muted: #a8a8a8;
-      --nav-bg: rgba(30,30,30,.96); --shadow: 0 14px 34px rgba(0,0,0,.5); --field: #232323;
-      --accent: #f78a1d; --on-accent: #181818; --ok: #4cc38a; --info: #5aa9f0; --warn: #f2c14e; --bad: #ef6a5e;
-      --head: "Space Grotesk", system-ui, sans-serif; --body: "Manrope", system-ui, sans-serif;
-      --pad: clamp(14px, 4vw, 28px); --maxw: 1080px; --safe-b: env(safe-area-inset-bottom, 0px); color-scheme: dark;
+    /* Modal fix — same as before: shared .modal-overlay/.modal classes have
+       no real positioning, so this forces a centered popup on this page. */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
     }
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme="dark"]):not(.dark):not(.dark-mode) {
-        --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d; --field: #faf9f7;
-        --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18); --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a; color-scheme: light;
-      }
-    }
-    :root[data-theme="light"], :root.light, :root.light-mode, body.light, body.light-mode {
-      --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d; --field: #faf9f7;
-      --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18); --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a; color-scheme: light;
-    }
-    * { box-sizing: border-box; }
-    .hidden { display: none !important; }
-    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    html { background: var(--bg); -webkit-text-size-adjust: 100%; }
-    body.dashboard-page { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .app-shell { display: block !important; }
-    .sidebar { display: none !important; }
-    .main { width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0; padding: 0 0 calc(130px + var(--safe-b)) !important; background: transparent !important; color: var(--text); }
-    .main > :not(.dashboard-hero) { width: min(var(--maxw), 100% - 2 * var(--pad)); margin-inline: auto; }
-
-    .dashboard-hero { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 24px !important; border: 0; border-radius: 0 0 28px 28px;
-      padding: calc(env(safe-area-inset-top, 0px) + clamp(18px, 4vw, 30px)) max(var(--pad), calc((100% - var(--maxw)) / 2)) clamp(22px, 4vw, 34px);
-      background: linear-gradient(135deg, #ffa43a 0%, #f78a1d 55%, #e5700b 100%) !important; color: #1a1209; }
-    .dashboard-hero h1 { margin: 0; color: #1a1209; font: 700 clamp(25px, 6vw, 38px)/1.05 var(--head); letter-spacing: -.5px; }
-    .page-intro { margin: 6px 0 0; color: rgba(26,18,9,.8); font-size: clamp(13px, 3vw, 15px); font-weight: 500; max-width: 56ch; }
-    .section-kicker { display: none; }
-    .back-link { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%; background: #1a1209; color: #fff; text-decoration: none; }
-    .back-link svg { width: 22px; height: 22px; }
-
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); text-decoration: none; font: 600 14px var(--body); white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s; }
-    .btn:hover { background: var(--surface-2); border-color: var(--accent); }
-    .btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
-    .btn--primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-    .btn--primary:hover { background: #ff9b36; }
-
-    .page-section { margin-bottom: 30px; }
-    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-    .section-heading h2 { display: flex; align-items: center; gap: 10px; margin: 0; font: 700 clamp(19px, 4.5vw, 24px)/1.15 var(--head); }
-    .section-heading-icon { width: 22px; height: 22px; color: var(--accent); flex: 0 0 auto; }
-    .section-note { color: var(--muted); font-size: 13px; }
-
-    /* ===== Form ===== */
-    .quotation-form { display: grid; gap: 26px; padding: clamp(16px, 3vw, 24px) !important; border: 1px solid var(--line) !important; border-radius: 22px; background: var(--surface) !important; box-shadow: none !important; }
-    .form-block { display: grid; gap: 12px; padding: 0; margin: 0; border: 0; min-width: 0; }
-    .form-block > h3 { margin: 0; font: 700 17px/1.2 var(--head); display: flex; align-items: center; gap: 8px; }
-    .form-block > h3 svg { width: 19px; height: 19px; color: var(--accent); }
-    .form-hint { margin: -6px 0 0; color: var(--muted); font-size: 13px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 12px; }
-    .field { display: grid; gap: 6px; min-width: 0; }
-    .field label { color: var(--muted); font-size: 13px; font-weight: 600; }
-    .quotation-form :is(input, select), .modal :is(input, select) {
-      width: 100%; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--field); color: var(--text); font: 500 16px var(--body); appearance: none; -webkit-appearance: none;
-    }
-    select { background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 36px !important; }
-    input::placeholder { color: var(--muted); opacity: .8; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-    .input-affix { position: relative; }
-    .input-affix input { padding-right: 44px; }
-    .input-affix > i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font: 700 14px var(--head); font-style: normal; pointer-events: none; }
-    .input-affix.pre input { padding-left: 34px; padding-right: 14px; }
-    .input-affix.pre > i { right: auto; left: 14px; }
-
-    /* Radio choice cards */
-    .choice-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 8px; padding: 0; margin: 0; border: 0; min-width: 0; }
-    .choice { position: relative; display: block; min-width: 0; }
-    .choice input { position: absolute; inset: 0; width: 100% !important; height: 100% !important; min-height: 0 !important; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
-    .choice .card { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--field); transition: border-color .15s, background .15s; }
-    .choice .card::before { content: ""; width: 20px; height: 20px; flex: 0 0 auto; border-radius: 50%; border: 2px solid var(--muted); transition: border-color .15s, background .15s; }
-    .choice .card b { display: block; font: 700 15px/1.2 var(--body); }
-    .choice .card small { display: block; margin-top: 2px; color: var(--muted); font-size: 12.5px; line-height: 1.25; }
-    .choice:hover .card { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-    .choice input:checked + .card { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
-    .choice input:checked + .card::before { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 5px, transparent 6px); }
-    .choice input:focus-visible + .card { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    .subpanel { display: grid; gap: 12px; padding: 14px; border: 1px dashed var(--line); border-radius: 14px; }
-    .quotation-add-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 10px; align-items: center; }
-    .form-error { margin: 0; color: var(--bad); font-size: 13px; font-weight: 600; }
-
-    /* Item lists (also styles rows built by quotations.js) */
-    .quotation-lines { display: grid; gap: 8px; }
-    .quotation-lines > * { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); overflow-wrap: break-word; }
-    .quotation-lines > .empty-state { justify-content: flex-start; color: var(--muted); border-style: dashed; }
-    .quotation-lines .btn, .line-remove { min-height: 38px; padding: 0 12px; font-size: 13px; }
-    .line-main { min-width: 0; flex: 1 1 200px; }
-    .line-main b { display: block; font-weight: 700; }
-    .line-main small { color: var(--muted); font-size: 13px; }
-    .line-amount { font: 700 15px var(--head); font-variant-numeric: tabular-nums; }
-    .tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); font: 700 11px var(--body); vertical-align: middle; }
-
-    .summary { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--field); }
-    .summary .row, .quotation-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-    .summary .row span, .quotation-total span { color: var(--muted); font-weight: 600; }
-    .summary .row strong, .quotation-total strong { font: 700 15.5px var(--head); font-variant-numeric: tabular-nums; text-align: right; }
-    .summary .grand { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-bottom: 0; }
-    .summary .grand span { color: var(--text); }
-    .summary .grand strong { font-size: clamp(19px, 4vw, 24px); color: var(--accent); }
-    .summary .rate-row { padding: 12px 16px; border-bottom: 1px solid var(--line); }
-    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .form-actions .btn--primary { min-height: 52px; padding: 0 28px; font-size: 16px; flex: 1 1 220px; }
-
-    /* ===== Tables as row cards ===== */
-    .panel { border: 0; background: transparent !important; box-shadow: none !important; margin: 0; overflow: visible; }
-    .panel table, .panel thead, .panel tbody { display: block; width: 100%; }
-    .panel tr { display: grid; align-items: center; gap: 12px; }
-    .t-quotes tr { grid-template-columns: minmax(70px, .7fr) minmax(0, 1.3fr) minmax(0, 1.1fr) minmax(70px, .8fr) minmax(80px, .9fr) minmax(70px, .8fr) minmax(80px, .9fr) auto; }
-    .t-orders tr { grid-template-columns: minmax(70px, .7fr) minmax(0, 1.5fr) minmax(70px, .9fr) minmax(80px, .9fr) minmax(80px, .9fr) minmax(90px, 1fr) auto; }
-    .panel thead tr { padding: 0 18px 8px; }
-    .panel th { padding: 0; border: 0; background: none; color: var(--muted); font: 700 12px var(--body); text-align: left; }
-    .panel tbody { display: grid; gap: 8px; }
-    .panel tbody tr { padding: 12px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color .15s; }
-    .panel tbody tr:hover { border-color: var(--accent); }
-    .panel td { padding: 0; border: 0; min-width: 0; font-size: 14.5px; overflow-wrap: break-word; }
-    .panel td:first-child { color: var(--accent); font: 700 15px var(--head); }
-    .panel td:last-child, .panel th:last-child { justify-self: end; text-align: right; }
-    .panel td .btn { min-height: 38px; padding: 0 14px; font-size: 13px; }
-    .panel tbody tr:has(td[colspan]) { display: block; }
-    .empty-state { display: flex; align-items: center; gap: 10px; color: var(--muted); }
-    .empty-state svg { width: 18px; height: 18px; }
-    .panel td [class*="status"], .panel td [class*="badge"], .panel td [class*="pill"] { display: inline-flex; align-items: center; padding: 3px 11px; border-radius: 999px; background: var(--surface-2); font: 700 12px/1.4 var(--body); white-space: nowrap; }
-    .panel td [class*="approved"], .panel td [class*="confirmed"], .panel td [class*="paid"] { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
-    .panel td [class*="draft"], .panel td [class*="pending"], .panel td [class*="sent"] { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
-    .panel td [class*="rejected"], .panel td [class*="cancel"] { background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad); }
-
-    /* ===== Modals: full-screen sheets ===== */
-    body:has(.modal-overlay:not(.hidden)) .bottom-nav { display: none; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: flex-start; justify-content: center; padding: 0; overflow-y: auto; background: rgba(8,8,8,.8); backdrop-filter: blur(6px); }
     .modal-overlay.hidden { display: none !important; }
-    .modal { width: min(720px, 100%); max-width: 720px; min-height: 100dvh; max-height: none; margin: 0 auto; display: flex; flex-direction: column; border-radius: 0; background: var(--bg); color: var(--text); box-shadow: none; overflow: visible; }
-    .modal h3 { margin: 0; padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px 18px; background: linear-gradient(135deg, #ffa43a, #f78a1d 60%, #e5700b); color: #1a1209; font: 700 clamp(20px, 5vw, 26px)/1.1 var(--head); }
-    .modal-scroll { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 16px; }
-    .modal > .modal-scroll > * { margin: 0; }
-    .quote-detail-block { padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
-    .quote-detail-block h4 { margin: 0 0 10px; font: 700 14px var(--head); color: var(--muted); }
-    .receipt-document { padding: 14px; border: 1px dashed var(--line); border-radius: 10px; background: var(--field); font: 400 13px/1.55 ui-monospace, Consolas, monospace; overflow-wrap: break-word; }
-    .receipt-document img { max-width: 72px; height: auto; }
-    .receipt-footer { margin-top: 20px; padding-top: 14px; border-top: 2px solid #16864a; color: var(--text); text-align: center; }
-    .receipt-document img.receipt-footer-logo { display: block; width: min(100%, 420px); max-width: 100%; height: auto; margin: 0 auto 8px; border-radius: 4px; }
-    .receipt-footer__services { margin: 0; color: #287345; font: 700 11px/1.5 var(--body); }
-    .receipt-footer__label { margin: 8px 0 2px; color: var(--muted); font: 700 10px/1.3 var(--body); text-transform: uppercase; letter-spacing: .08em; }
-    .receipt-footer__phones { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 16px; margin: 0; font: 700 12px/1.5 var(--body); }
-    .receipt-footer__phones a { color: #287345; text-decoration: none; white-space: nowrap; }
-    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .detail-actions .btn { min-height: 40px; font-size: 13px; }
-    #quote-detail-copy-status, #order-detail-copy-status { color: var(--ok); font-size: 13px; font-weight: 600; align-self: center; }
-    .modal .quotation-total { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-    .modal .field { padding: 0 !important; margin: 0 !important; }
-    .modal-actions { position: sticky; bottom: 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; padding: 12px 16px calc(12px + var(--safe-b)); border-top: 1px solid var(--line); background: var(--nav-bg); backdrop-filter: blur(14px); }
-    .modal-actions .btn { flex: 1 1 140px; }
-    #quote-walkin-fields.hidden, #order-walkin-note.hidden { display: none; }
-
-    /* ===== Floating nav ===== */
-    .bottom-nav { position: fixed; z-index: 1000; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; width: min(540px, 100% - 16px); height: 64px; padding: 6px; border: 1px solid var(--line); border-radius: 22px; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: var(--shadow); }
-    .bottom-nav__item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 100%; border: 0; border-radius: 16px; background: transparent; color: var(--muted); text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; }
-    .bottom-nav__item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bottom-nav__item svg { width: 21px; height: 21px; stroke-width: 1.8; }
-    .bottom-nav__item:hover, .bottom-nav__item.active { color: var(--text); }
-    .bottom-nav__item.active svg { color: var(--accent); }
-    .bottom-nav__item.active::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 3px; background: var(--accent); }
-    .bottom-nav > a:nth-child(3) { height: 74px; margin-top: -18px; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 20px rgba(247,138,29,.4); }
-    .bottom-nav > a:nth-child(3) svg { width: 24px; height: 24px; color: var(--on-accent); }
-    .more-wrap { position: relative; min-width: 0; height: 100%; }
-    .more-wrap > .bottom-nav__item { width: 100%; height: 100%; }
-    .more-menu { position: absolute; right: 0; bottom: calc(100% + 14px); display: none; width: min(240px, 100vw - 24px); max-height: min(65vh, 440px); overflow-y: auto; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
-    .more-menu.open { display: block; }
-    .more-menu a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14.5px; font-weight: 500; }
-    .more-menu a:hover, .more-menu a.current { background: var(--surface-2); }
-    .more-menu a svg { width: 19px; height: 19px; color: var(--accent); }
-    .more-menu .menu-divider { height: 1px; margin: 6px 4px; background: var(--line); }
-
-    @media (max-width: 860px) {
-      .panel thead { display: none; }
-      .t-quotes tbody tr, .t-orders tbody tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
-      .t-quotes td:nth-child(1) { grid-column: 1; grid-row: 1; } .t-quotes td:nth-child(5) { grid-column: 2; grid-row: 1; justify-self: end; }
-      .t-quotes td:nth-child(2) { grid-column: 1; grid-row: 2; font-weight: 700; } .t-quotes td:nth-child(6) { grid-column: 2; grid-row: 2; font-weight: 700; justify-self: end; }
-      .t-quotes td:nth-child(3) { grid-column: 1; grid-row: 3; color: var(--muted); } .t-quotes td:nth-child(7) { grid-column: 2; grid-row: 3; color: var(--muted); justify-self: end; }
-      .t-quotes td:nth-child(4) { grid-column: 1 / -1; grid-row: 4; color: var(--muted); font-size: 13px; } .t-quotes td:nth-child(8) { grid-column: 1 / -1; grid-row: 5; justify-self: start; margin-top: 8px; }
-      .t-orders td:nth-child(1) { grid-column: 1; grid-row: 1; } .t-orders td:nth-child(4) { grid-column: 2; grid-row: 1; justify-self: end; }
-      .t-orders td:nth-child(2) { grid-column: 1; grid-row: 2; font-weight: 700; } .t-orders td:nth-child(5) { grid-column: 2; grid-row: 2; font-weight: 700; justify-self: end; }
-      .t-orders td:nth-child(3) { grid-column: 1; grid-row: 3; color: var(--muted); font-size: 13px; } .t-orders td:nth-child(6) { grid-column: 2; grid-row: 3; color: var(--muted); justify-self: end; }
-      .t-orders td:nth-child(7) { grid-column: 1 / -1; grid-row: 4; justify-self: start; margin-top: 8px; }
-      .panel td:last-child { text-align: left; }
-      .section-note { display: none; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    .modal {
+      background: #fff; width: 100%; max-width: 640px; max-height: 88vh; border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35); display: flex; flex-direction: column;
+      overflow: hidden; margin: auto;
     }
-    @media (max-width: 480px) { .quotation-add-row { grid-template-columns: minmax(0, 1fr) 80px; } .quotation-add-row .btn { grid-column: 1 / -1; } }
-    @media (min-width: 720px) { .modal { min-height: 0; margin: 24px auto; border-radius: 24px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); } .modal h3 { padding-top: 20px; } }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    .modal h3 { padding: 20px 24px 0; margin: 0 0 4px; font-size: 17px; }
+    .modal > .quotation-lines, .modal > .quote-detail-block, .modal > .quotation-total { padding-left: 24px; padding-right: 24px; }
+    .modal-scroll { overflow-y: auto; padding: 4px 0 8px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-actions {
+      margin-top: 0; padding: 14px 24px; border-top: 1px solid var(--border, #e5e8ee); background: #fff;
+      display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: 0;
+    }
+    .quote-detail-block {
+      background: var(--surface-alt, #f9fafb); border: 1px solid var(--border, #e5e8ee);
+      border-radius: 10px; padding: 14px 16px; margin: 0 24px;
+    }
+    .quote-detail-block h4 { margin: 0 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted, #8a93a3); }
+    .quote-detail-block .receipt-document { max-width: none; margin: 0; padding: 0; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .detail-actions .btn { font-size: 13px; }
+    #quote-detail-copy-status, #order-detail-copy-status { font-size: 12px; color: var(--success, #2e7d4f); margin-left: 4px; }
+    #quote-walkin-fields.hidden, #order-walkin-note.hidden { display: none; }
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -222,9 +55,8 @@
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
-<<<<<<< HEAD
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -283,7 +115,7 @@
           <div id="quote-job-summary" class="quote-job-summary hidden" aria-live="polite"></div>
           <div id="quote-walkin-fields" class="form-grid quotation-form-grid">
             <div class="field"><label for="quote-walkin-name">Customer Name</label><input id="quote-walkin-name" placeholder="Required if no job card is selected" /></div>
-            <div class="field"><label for="quote-walkin-phone">Phone</label><input id="quote-walkin-phone" placeholder="+263 77 123 4567" /></div>
+            <div class="field"><label for="quote-walkin-phone">Phone</label><input id="quote-walkin-phone" type="tel" placeholder="+263 77 123 4567" /></div>
             <div class="field"><label for="quote-walkin-email">Email</label><input id="quote-walkin-email" type="email" /></div>
           </div>
           <div class="quotation-add-row">
@@ -292,124 +124,17 @@
           <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
           <div class="quotation-total"><span>Quotation Total</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
           <button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button>
-=======
-    <aside class="sidebar" aria-hidden="true"></aside>
-    <main class="main">
-      <div class="main__header dashboard-hero">
-        <div>
-          <p class="section-kicker">Commercial documents</p>
-          <h1>Quotations &amp; Sales Orders</h1>
-          <p class="page-intro">Price parts, labour and VAT in USD and ZiG for any client, with or without a work order, then turn approved quotes into sales orders.</p>
-        </div>
-        <a class="back-link" href="../index.html" aria-label="Back to dashboard"><i data-lucide="house"></i></a>
-      </div>
-
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">New document</p><h2><i class="section-heading-icon" data-lucide="file-plus-2"></i>Create Quotation</h2></div><span class="section-note">Stock parts, special-order parts, labour and VAT</span></div>
-
-        <form id="quotation-form" class="panel quotation-form">
-          <fieldset class="form-block">
-            <h3><i data-lucide="user-round"></i>Client</h3>
-            <div class="form-grid quotation-form-grid">
-              <div class="field"><label for="quote-job">Work order / vehicle</label><select id="quote-job"><option value="">No work order: walk-in client</option></select></div>
-            </div>
-            <div id="quote-walkin-fields" class="form-grid quotation-form-grid">
-              <div class="field"><label for="quote-walkin-name">Client name</label><input id="quote-walkin-name" placeholder="Required for walk-in clients" /></div>
-              <div class="field"><label for="quote-walkin-phone">Phone</label><input id="quote-walkin-phone" type="tel" placeholder="77 123 4567" /></div>
-              <div class="field"><label for="quote-walkin-email">Email</label><input id="quote-walkin-email" type="email" /></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="form-block">
-            <h3><i data-lucide="package"></i>Parts</h3>
-            <div class="choice-group" role="radiogroup" aria-label="Where is the part coming from?">
-              <label class="choice"><input type="radio" name="item-source" value="stock" checked><span class="card"><span><b>In stock</b><small>Pick from your parts list</small></span></span></label>
-              <label class="choice"><input type="radio" name="item-source" value="special"><span class="card"><span><b>Not in stock</b><small>Special order, you set the markup %</small></span></span></label>
-            </div>
-
-            <div class="subpanel" data-group="item-source" data-val="stock">
-              <div class="quotation-add-row">
-                <label class="sr-only" for="quote-part">Part</label><select id="quote-part"></select>
-                <label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" inputmode="numeric" />
-                <button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
-              </div>
-              <p class="form-hint" style="margin:0">In-stock parts use the standard 25% markup.</p>
-            </div>
-
-            <div class="subpanel hidden" data-group="item-source" data-val="special">
-              <div class="form-grid">
-                <div class="field"><label for="sp-name">Part name</label><input id="sp-name" placeholder="e.g. Front brake pads, Corolla 2012" /></div>
-                <div class="field"><label for="sp-cost">Our cost (USD, each)</label><div class="input-affix pre"><i>$</i><input id="sp-cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div>
-                <div class="field"><label for="sp-pct">Markup %</label><div class="input-affix"><input id="sp-pct" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 35" /><i>%</i></div></div>
-                <div class="field"><label for="sp-qty">Quantity</label><input id="sp-qty" type="number" min="1" value="1" inputmode="numeric" /></div>
-              </div>
-              <p id="sp-error" class="form-error hidden" role="alert"></p>
-              <div><button id="sp-add" type="button" class="btn btn--primary"><i data-lucide="plus"></i> Add Special-Order Part</button></div>
-            </div>
-
-            <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
-            <div id="quote-custom-items" class="quotation-lines"></div>
-          </fieldset>
-
-          <fieldset class="form-block">
-            <h3><i data-lucide="wrench"></i>Labour</h3>
-            <div class="choice-group" role="radiogroup" aria-label="Labour charge">
-              <label class="choice"><input type="radio" name="labour" value="none" checked><span class="card"><span><b>No labour</b><small>Parts only</small></span></span></label>
-              <label class="choice"><input type="radio" name="labour" value="fixed"><span class="card"><span><b>Fixed price</b><small>One agreed amount</small></span></span></label>
-              <label class="choice"><input type="radio" name="labour" value="hourly"><span class="card"><span><b>Hourly</b><small>Hours × hourly rate</small></span></span></label>
-            </div>
-            <div class="form-grid hidden" data-group="labour" data-val="fixed">
-              <div class="field"><label for="labour-fixed">Labour amount (USD)</label><div class="input-affix pre"><i>$</i><input id="labour-fixed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div>
-            </div>
-            <div class="form-grid hidden" data-group="labour" data-val="hourly">
-              <div class="field"><label for="labour-hours">Hours</label><input id="labour-hours" type="number" min="0" step="0.25" inputmode="decimal" placeholder="e.g. 2.5" /></div>
-              <div class="field"><label for="labour-rate">Rate per hour (USD)</label><div class="input-affix pre"><i>$</i><input id="labour-rate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="form-block">
-            <h3><i data-lucide="percent"></i>VAT</h3>
-            <div class="choice-group" role="radiogroup" aria-label="VAT">
-              <label class="choice"><input type="radio" name="vat" value="no" checked><span class="card"><span><b>No VAT</b><small>Price as entered</small></span></span></label>
-              <label class="choice"><input type="radio" name="vat" value="yes"><span class="card"><span><b>Add VAT</b><small>On parts and labour</small></span></span></label>
-            </div>
-            <div class="form-grid hidden" data-group="vat" data-val="yes">
-              <div class="field"><label for="vat-rate">VAT rate</label><div class="input-affix"><input id="vat-rate" type="number" min="0" step="0.1" value="15" inputmode="decimal" /><i>%</i></div></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="form-block">
-            <h3><i data-lucide="calculator"></i>Quotation summary</h3>
-            <div class="summary" aria-live="polite">
-              <div class="quotation-total"><span>In-stock parts</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
-              <div class="row"><span>Special-order parts</span><strong id="sum-special">$0.00</strong></div>
-              <div class="row"><span>Labour</span><strong id="sum-labour">$0.00</strong></div>
-              <div class="row"><span>Subtotal</span><strong id="sum-sub">$0.00</strong></div>
-              <div class="row"><span id="sum-vat-label">VAT</span><strong id="sum-vat">$0.00</strong></div>
-              <div class="rate-row field"><label for="quote-rate">Exchange rate (ZiG per $1)</label><input id="quote-rate" type="number" min="0" step="0.0001" inputmode="decimal" placeholder="Fills in from your parts, or type it" /></div>
-              <div class="row grand"><span>Total</span><strong id="sum-grand">$0.00</strong></div>
-            </div>
-            <input type="hidden" id="quote-extras-json" name="quote_extras" value="{}">
-          </fieldset>
-
-          <div class="form-actions"><button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button></div>
->>>>>>> bfabf35 (Initial project upload)
         </form>
       </section>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Issued documents</p><h2><i class="section-heading-icon" data-lucide="files"></i>Quotation List</h2></div><span class="section-note">Amend, negotiate, or convert</span></div>
-        <div class="panel"><table class="t-quotes"><thead><tr><th>Quotation</th><th>Client</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr></tbody></table></div>
+        <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
 
       <section class="page-section">
-<<<<<<< HEAD
         <div class="section-heading"><div><p class="section-kicker">Confirmed work</p><h2><i class="section-heading-icon" data-lucide="shopping-cart"></i>Sales Orders</h2></div><span class="section-note">Edit an order, then issue its receipt</span></div>
         <div class="panel"><table><thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="orders-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
-=======
-        <div class="section-heading"><div><p class="section-kicker">Confirmed work</p><h2><i class="section-heading-icon" data-lucide="shopping-cart"></i>Sales Orders</h2></div><span class="section-note">Amendable order records</span></div>
-        <div class="panel"><table class="t-orders"><thead><tr><th>Order</th><th>Client</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="orders-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr></tbody></table></div>
->>>>>>> bfabf35 (Initial project upload)
       </section>
     </main>
   </div>
@@ -420,18 +145,12 @@
       <h3>Quotation #<span id="edit-quote-number"></span></h3>
       <div class="modal-scroll">
         <div class="quote-detail-block">
-          <h4>Preview: what the client sees</h4>
+          <h4>Preview — what the customer sees</h4>
           <div id="quote-detail-text" class="receipt-document"></div>
           <div class="detail-actions">
-<<<<<<< HEAD
             <button id="quote-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Message</button>
             <button id="quote-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Customer</button>
             <button id="quote-detail-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp Customer</button>
-=======
-            <button id="quote-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Details</button>
-            <button id="quote-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Client</button>
-            <button id="quote-detail-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp Client</button>
->>>>>>> bfabf35 (Initial project upload)
             <span id="quote-detail-copy-status"></span>
           </div>
         </div>
@@ -452,24 +171,18 @@
       <h3>Sales Order #<span id="edit-order-number"></span></h3>
       <div class="modal-scroll">
         <div class="quote-detail-block">
-          <h4>Preview: what the client sees</h4>
+          <h4>Preview — what the customer sees</h4>
           <div id="order-detail-text" class="receipt-document"></div>
           <div class="detail-actions">
-<<<<<<< HEAD
             <button id="order-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Message</button>
             <button id="order-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Customer</button>
             <button id="order-detail-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp Customer</button>
-=======
-            <button id="order-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Details</button>
-            <button id="order-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Client</button>
-            <button id="order-detail-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp Client</button>
->>>>>>> bfabf35 (Initial project upload)
             <span id="order-detail-copy-status"></span>
           </div>
         </div>
         <div id="edit-order-lines" class="quotation-lines"></div>
         <div class="quotation-total"><span>Order Total</span><strong id="edit-order-total"></strong></div>
-        <div class="field"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson, no commission</option></select></div>
+        <div class="field" style="margin-top:12px; padding: 0 24px;"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson — no commission</option></select></div>
       </div>
       <div class="modal-actions">
         <button id="edit-order-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Order &amp; Issue Receipt</button>
@@ -478,122 +191,13 @@
     </div>
   </div>
 
-<<<<<<< HEAD
   <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-=======
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <a class="bottom-nav__item" href="../index.html"><i data-lucide="house"></i><span>Home</span></a>
-    <a class="bottom-nav__item" href="customers.html"><i data-lucide="users"></i><span>Clients</span></a>
-    <a class="bottom-nav__item" href="repairs.html"><i data-lucide="wrench"></i><span>Work Orders</span></a>
-    <a class="bottom-nav__item" href="shop.html" data-level="2"><i data-lucide="package"></i><span>Parts</span></a>
-    <div class="more-wrap">
-      <button class="bottom-nav__item active" type="button" id="more-toggle" aria-expanded="false" aria-controls="more-menu"><i data-lucide="ellipsis"></i><span>More</span></button>
-      <div class="more-menu" id="more-menu">
-        <a href="receipts.html" data-level="2"><i data-lucide="receipt"></i>Invoices &amp; Receipts</a>
-        <a href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i>Technicians</a>
-        <a href="analytics.html"><i data-lucide="chart-no-axes-combined"></i>Shop Reports</a>
-        <a href="accounting.html"><i data-lucide="landmark"></i>Accounts</a>
-        <a href="suppliers.html" data-level="2"><i data-lucide="truck"></i>Parts Suppliers</a>
-        <a class="current" href="quotations.html" data-level="2" aria-current="page"><i data-lucide="file-text"></i>Quotations</a>
-        <div class="menu-divider"></div>
-        <a href="settings.html"><i data-lucide="settings"></i>Settings</a>
-      </div>
-    </div>
-  </nav>
-
->>>>>>> bfabf35 (Initial project upload)
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/quotations.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });
-
-    const moreToggle = document.getElementById('more-toggle'), moreMenu = document.getElementById('more-menu');
-    moreToggle.addEventListener('click', (e) => { e.stopPropagation(); moreToggle.setAttribute('aria-expanded', String(moreMenu.classList.toggle('open'))); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('.more-wrap')) { moreMenu.classList.remove('open'); moreToggle.setAttribute('aria-expanded', 'false'); } });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') moreMenu.classList.remove('open'); });
-
-    /* Special-order parts, labour and VAT.
-       Totals are calculated here and written to #quote-extras-json so quotations.js can save them. */
-    (() => {
-      const $ = (id) => document.getElementById(id);
-      const num = (v) => { const x = parseFloat(String(v).replace(/,/g, '')); return isFinite(x) ? x : 0; };
-      const fmt = (n, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
-      const usd = (n) => '$' + fmt(n);
-      const radio = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value;
-      const form = $('quotation-form'), items = [];
-      let rateTouched = false;
-
-      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-      function showPanels() {
-        document.querySelectorAll('[data-group]').forEach((el) => el.classList.toggle('hidden', radio(el.dataset.group) !== el.dataset.val));
-      }
-      function partsTotals() {
-        const t = $('quote-total').textContent;
-        const u = t.match(/\$\s*([\d,]*\.?\d+)/), z = t.match(/ZiG\s*([\d,]*\.?\d+)/i);
-        return { usd: u ? num(u[1]) : 0, zig: z ? num(z[1]) : 0 };
-      }
-      function renderItems() {
-        const box = $('quote-custom-items');
-        box.innerHTML = items.map((it, i) => `<div><div class="line-main"><b>${esc(it.name)}<span class="tag">Not in stock</span></b><small>${it.qty} × ${usd(it.cost)} + ${fmt(it.pct, 1)}% markup</small></div><span class="line-amount">${usd(it.line)}</span><button type="button" class="btn line-remove" data-i="${i}" aria-label="Remove ${esc(it.name)}"><i data-lucide="trash-2"></i> Remove</button></div>`).join('');
-        if (window.lucide) lucide.createIcons();
-      }
-      function calc() {
-        const p = partsTotals(), rate = $('quote-rate');
-        if (!rateTouched && p.usd > 0 && p.zig > 0) rate.value = (p.zig / p.usd).toFixed(4);
-        const r = num(rate.value);
-        const special = items.reduce((s, it) => s + it.line, 0);
-        const mode = radio('labour');
-        const labour = mode === 'fixed' ? num($('labour-fixed').value) : mode === 'hourly' ? num($('labour-hours').value) * num($('labour-rate').value) : 0;
-        const sub = p.usd + special + labour;
-        const vatOn = radio('vat') === 'yes', vatPct = vatOn ? num($('vat-rate').value) : 0, vat = sub * vatPct / 100;
-        const total = sub + vat, totalZig = p.zig + (total - p.usd) * r;
-        const both = (u) => r > 0 ? `${usd(u)} / ZiG ${fmt(u * r)}` : usd(u);
-        $('sum-special').textContent = both(special);
-        $('sum-labour').textContent = both(labour);
-        $('sum-sub').textContent = both(sub);
-        $('sum-vat-label').textContent = vatOn ? `VAT (${fmt(vatPct, 1)}%)` : 'VAT';
-        $('sum-vat').textContent = vatOn ? both(vat) : 'Not added';
-        $('sum-grand').textContent = r > 0 ? `${usd(total)} / ZiG ${fmt(totalZig)}` : usd(total);
-        $('quote-extras-json').value = JSON.stringify({
-          special_items: items.map(({ name, cost, pct, qty, line }) => ({ name, cost, markup_pct: pct, qty, line_total_usd: +line.toFixed(2) })),
-          labour: { mode, usd: +labour.toFixed(2), fixed: num($('labour-fixed').value), hours: num($('labour-hours').value), hourly_rate: num($('labour-rate').value) },
-          vat: { applied: vatOn, rate_pct: vatPct, usd: +vat.toFixed(2) },
-          rate_zig_per_usd: r,
-          totals: { parts_usd: p.usd, special_usd: +special.toFixed(2), labour_usd: +labour.toFixed(2), subtotal_usd: +sub.toFixed(2), vat_usd: +vat.toFixed(2), total_usd: +total.toFixed(2), total_zig: +totalZig.toFixed(2) }
-        });
-        form.dispatchEvent(new CustomEvent('quote:extras', { detail: JSON.parse($('quote-extras-json').value) }));
-      }
-
-      $('sp-add').addEventListener('click', () => {
-        const err = $('sp-error'), name = $('sp-name').value.trim(), cost = num($('sp-cost').value), qty = Math.max(1, Math.floor(num($('sp-qty').value) || 1));
-        const pctRaw = $('sp-pct').value.trim();
-        const fail = (m, el) => { err.textContent = m; err.classList.remove('hidden'); el.focus(); };
-        if (!name) return fail('Enter the part name.', $('sp-name'));
-        if (cost <= 0) return fail('Enter what the part costs you (USD).', $('sp-cost'));
-        if (pctRaw === '' || num(pctRaw) < 0) return fail('Enter a markup % for this part.', $('sp-pct'));
-        err.classList.add('hidden');
-        const pct = num(pctRaw);
-        items.push({ name, cost, pct, qty, line: cost * (1 + pct / 100) * qty });
-        ['sp-name', 'sp-cost', 'sp-pct'].forEach((id) => { $(id).value = ''; }); $('sp-qty').value = 1; $('sp-name').focus();
-        renderItems(); calc();
-      });
-      $('quote-custom-items').addEventListener('click', (e) => {
-        const b = e.target.closest('.line-remove'); if (!b) return;
-        items.splice(+b.dataset.i, 1); renderItems(); calc();
-      });
-      $('quote-rate').addEventListener('input', () => { rateTouched = true; calc(); });
-      form.addEventListener('change', (e) => { if (e.target.matches('input[type="radio"]')) showPanels(); calc(); });
-      form.addEventListener('input', calc);
-      form.addEventListener('reset', () => setTimeout(() => { items.length = 0; rateTouched = false; renderItems(); showPanels(); calc(); }));
-      new MutationObserver(calc).observe($('quote-total'), { childList: true, characterData: true, subtree: true });
-      showPanels(); calc();
-      window.getQuoteExtras = () => JSON.parse($('quote-extras-json').value);
-    })();
-  </script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
 </body>
 </html>
