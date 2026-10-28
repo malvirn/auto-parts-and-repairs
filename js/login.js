@@ -32,9 +32,25 @@ async function completeSignIn(fallbackEmail) {
   const { data: { user: confirmed } } = await supabase.auth.getUser();
   if (!confirmed) return "Session didn't save properly — please try again.";
 
-  const { data: profile, error } = await supabase.from("profiles")
-    .select("role, is_active, full_name").eq("id", confirmed.id).maybeSingle();
-  if (error) console.error("Unable to load profile:", error);
+  const { data: roleProfile, error } = await supabase.from("profiles")
+    .select("role, full_name, access_level").eq("id", confirmed.id).maybeSingle();
+  if (error) console.error("Unable to load account role:", error);
+  let profile = roleProfile ? {
+    ...roleProfile,
+    role: Number(roleProfile.access_level) >= 2
+      ? "super_admin"
+      : normalizeRole(roleProfile.role),
+    is_active: true,
+  } : null;
+  if (profile) {
+    const { data: activeProfile, error: activeError } = await supabase.from("profiles")
+      .select("is_active").eq("id", confirmed.id).maybeSingle();
+    if (activeError) {
+      console.warn("Unable to check whether the account is active; role data loaded successfully:", activeError);
+    } else {
+      profile.is_active = activeProfile?.is_active !== false;
+    }
+  }
   if (profile && profile.is_active === false) {
     await supabase.auth.signOut();
     return "This account has been deactivated. Contact your Super Admin.";
@@ -43,6 +59,11 @@ async function completeSignIn(fallbackEmail) {
   prefetchCoreData(); // fire-and-forget — overlaps with the loading screen below
   await bootFinish(profile || { role: "staff" }, confirmed.email || fallbackEmail);
   return null;
+}
+
+function normalizeRole(role) {
+  const normalized = String(role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return normalized === "superadmin" ? "super_admin" : normalized;
 }
 
 // If someone's already got a valid, server-verified session and lands
@@ -90,7 +111,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// ---- Fingerprint sign-in ----
+// ---- Device passkey sign-in ----
 
 const fpBox = document.getElementById("fp-box");
 const fpBtn = document.getElementById("fp-signin");
@@ -99,7 +120,7 @@ const fpMsg = document.getElementById("fp-message");
 async function doFingerprint() {
   if (!fpBtn || fpBtn.disabled || document.body.classList.contains("booting")) return;
   fpBtn.disabled = true;
-  fpMsg.textContent = "Touch the fingerprint sensor…";
+  fpMsg.textContent = "Verify with your device…";
   fpMsg.dataset.tone = "info";
   try {
     await signInWithFingerprint();
@@ -123,8 +144,8 @@ async function doFingerprint() {
   fpBox.hidden = false;
   if (window.lucide) lucide.createIcons();
   fpBtn.addEventListener("click", doFingerprint);
-  // Opened as the installed app on a device that already has a fingerprint
-  // sign-in: offer the fingerprint prompt straight away.
+  // Opened as the installed app on a device that already has a passkey:
+  // offer the device verification prompt straight away.
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   const terminated = new URLSearchParams(location.search).get("terminated") === "1";
   if (standalone && deviceHasFingerprint() && !terminated) setTimeout(doFingerprint, 300);

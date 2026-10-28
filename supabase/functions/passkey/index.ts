@@ -1,8 +1,8 @@
 // supabase/functions/passkey/index.ts
 //
-// Fingerprint sign-in (WebAuthn passkeys) for Auto Parts & Repairs.
-//   register-options / register-verify  — signed-in user adds a fingerprint (max 3)
-//   login-options    / login-verify     — anyone proves a registered fingerprint
+// Device passkey sign-in (WebAuthn) for Auto Parts & Repairs.
+//   register-options / register-verify  — signed-in user adds a passkey (max 3)
+//   login-options    / login-verify     — anyone proves a registered passkey
 //                                         and receives a one-time sign-in token
 //
 // Deployed with verify_jwt = false because the login steps run before the
@@ -40,7 +40,7 @@ function originOf(req: Request): { origin: string; rpID: string } {
   let url: URL;
   try { url = new URL(origin); } catch { throw new HttpError(400, "Missing or invalid Origin header."); }
   const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  if (url.protocol !== "https:" && !local) throw new HttpError(400, "Fingerprint sign-in needs a secure (https) address.");
+  if (url.protocol !== "https:" && !local) throw new HttpError(400, "Passkey sign-in needs a secure (https) address.");
   return { origin: url.origin, rpID: url.hostname };
 }
 
@@ -81,15 +81,15 @@ Deno.serve(async (req) => {
     const action = String(body.action || "");
     const { origin, rpID } = originOf(req);
 
-    // ---------- add a fingerprint (signed in) ----------
+    // ---------- add a device passkey (signed in) ----------
     if (action === "register-options") {
       const user = await requireUser(req);
       const { count } = await admin.from("webauthn_credentials").select("id", { count: "exact", head: true }).eq("user_id", user.id);
-      if ((count || 0) >= MAX_CREDENTIALS) throw new HttpError(400, "This account already has 3 fingerprint sign-ins. Remove one first.");
-      // A fresh user handle per fingerprint: phones keep one passkey per
+      if ((count || 0) >= MAX_CREDENTIALS) throw new HttpError(400, "This account already has 3 device passkeys. Remove one first.");
+      // A fresh user handle per passkey: phones keep one passkey per
       // (site, user handle), so reusing the account id would make each new
       // registration replace the previous one on the same device.
-      const label = String(body.label || "").trim().slice(0, 40) || "Fingerprint";
+      const label = String(body.label || "").trim().slice(0, 40) || "My device";
       const options = await generateRegistrationOptions({
         rpName: RP_NAME,
         rpID,
@@ -113,9 +113,9 @@ Deno.serve(async (req) => {
         expectedRPID: rpID,
         requireUserVerification: true,
       });
-      if (!verification.verified || !verification.registrationInfo) throw new HttpError(400, "The fingerprint couldn't be verified.");
+      if (!verification.verified || !verification.registrationInfo) throw new HttpError(400, "The device passkey couldn't be verified.");
       const info = verification.registrationInfo;
-      const label = String(body.label || "").trim().slice(0, 40) || "Fingerprint";
+      const label = String(body.label || "").trim().slice(0, 40) || "My device";
       const { error } = await admin.from("webauthn_credentials").insert({
         user_id: user.id,
         credential_id: info.credential.id,
@@ -128,11 +128,11 @@ Deno.serve(async (req) => {
         device_type: info.credentialDeviceType,
         backed_up: info.credentialBackedUp,
       });
-      if (error) throw new HttpError(400, /3 fingerprint/.test(error.message) ? error.message : "Couldn't save the fingerprint: " + error.message);
+      if (error) throw new HttpError(400, /3 fingerprint|3 device passkey/i.test(error.message) ? "This account already has 3 device passkeys. Remove one first." : "Couldn't save the device passkey: " + error.message);
       return json({ ok: true, label });
     }
 
-    // ---------- sign in with a fingerprint ----------
+    // ---------- sign in with a device passkey ----------
     if (action === "login-options") {
       const options = await generateAuthenticationOptions({ rpID, userVerification: "required", timeout: 60000 });
       const challengeId = await saveChallenge(options.challenge, "login", origin, null);
@@ -143,8 +143,8 @@ Deno.serve(async (req) => {
       const expectedChallenge = await takeChallenge(String(body.challengeId || ""), "login", origin, null);
       const credentialId = String(body.response?.id || "");
       const { data: cred } = await admin.from("webauthn_credentials").select("*").eq("credential_id", credentialId).maybeSingle();
-      if (!cred) throw new HttpError(400, "This fingerprint isn't registered for any account here. Sign in with your password, then add it in Settings.");
-      if (cred.origin !== origin || cred.rp_id !== rpID) throw new HttpError(400, "This fingerprint was registered on a different address.");
+      if (!cred) throw new HttpError(400, "This device passkey isn't registered for an account here. Sign in with your password, then add it in Settings.");
+      if (cred.origin !== origin || cred.rp_id !== rpID) throw new HttpError(400, "This device passkey was registered on a different address.");
 
       const verification = await verifyAuthenticationResponse({
         response: body.response,
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
         },
         requireUserVerification: true,
       });
-      if (!verification.verified) throw new HttpError(401, "The fingerprint couldn't be verified.");
+      if (!verification.verified) throw new HttpError(401, "The device passkey couldn't be verified.");
 
       await admin.from("webauthn_credentials").update({
         counter: verification.authenticationInfo.newCounter,

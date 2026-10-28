@@ -3,35 +3,174 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Centric Auto Mobile | Customers</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
+  <style id="customers-design">
+    body.customer-page .main__header { min-height: clamp(160px,21vw,230px); }
+    body.customer-page .back-link {
+      display: grid;
+      width: 50px;
+      height: 50px;
+      flex: none;
+      place-items: center;
+      border: 1px solid rgba(31,196,103,.35);
+      border-radius: 50%;
+      background: rgba(10,16,13,.72);
+      color: #fff;
+      text-decoration: none;
+      transition: transform 180ms,border-color 180ms,background 180ms;
+    }
+    body.customer-page .back-link:hover { transform: translateY(-2px); border-color: #1fc467; background: rgba(31,196,103,.16); }
+    body.customer-page .back-link svg { width: 23px; height: 23px; }
+    body.customer-page .customer-form {
+      display: grid;
+      grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+      gap: 16px;
+      padding: clamp(18px,3vw,28px) !important;
+      margin: 0 0 24px !important;
+    }
+    body.customer-page .customer-form .field { grid-column: span 2; }
+    body.customer-page .customer-form .field:nth-child(3) { grid-column: span 3; }
+    body.customer-page .customer-form .field:nth-child(4) { grid-column: span 3; }
+    body.customer-page .customer-form .field:nth-child(5) { grid-column: span 3; }
+    body.customer-page .customer-form__actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    body.customer-page .customer-form__actions .form-message { margin: 0; }
+    body.customer-page .customer-optional {
+      color: #9fb0a6;
+      font-size: .68rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    body.customer-page .customer-directory {
+      padding: 0;
+      overflow: hidden;
+    }
+    body.customer-page .customer-directory table { min-width: 760px; }
+    body.customer-page #customers-table td:first-child { color: #fff; font-weight: 700; }
+    body.customer-page #customers-table td:nth-child(4) { color: #d8e5dc; }
+    body.customer-page .customer-type,
+    body.customer-page .customer-repeat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 27px;
+      padding: 4px 9px;
+      border: 1px solid rgba(31,196,103,.22);
+      border-radius: 999px;
+      background: rgba(31,196,103,.1);
+      color: #bde8ce;
+      font-size: .76rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    body.customer-page .customer-type[data-type="company"] {
+      border-color: rgba(255,122,18,.26);
+      background: rgba(255,122,18,.1);
+      color: #ffd0a8;
+    }
+    body.customer-page .customer-repeat.is-new {
+      border-color: rgba(255,255,255,.1);
+      background: rgba(255,255,255,.055);
+      color: #aebbb3;
+    }
+    body.customer-page .customer-empty {
+      padding: 28px 16px !important;
+      color: var(--muted) !important;
+      text-align: center;
+    }
+    @media (max-width:760px) {
+      body.customer-page .customer-directory { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+      body.customer-page .customer-directory table { display: block; width: 100%; min-width: 0; }
+      body.customer-page .customer-directory thead { display: none; }
+      body.customer-page .customer-directory tbody { display: grid; gap: 12px; }
+      body.customer-page .customer-directory tbody tr:not(:has(td[colspan])) {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) auto;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid rgba(31,196,103,.22);
+        border-radius: 16px;
+        background: linear-gradient(160deg,rgba(20,30,27,.97),rgba(12,18,16,.99));
+        box-shadow: 0 12px 28px rgba(0,0,0,.22);
+      }
+      body.customer-page .customer-directory tbody tr:has(td[colspan]) { display: block; }
+      body.customer-page .customer-directory td {
+        display: grid;
+        grid-template-columns: minmax(90px,.7fr) minmax(0,1fr);
+        gap: 8px;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        text-align: left !important;
+      }
+      body.customer-page .customer-directory td::before {
+        content: attr(data-label);
+        color: #9fb0a6;
+        font-size: .66rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      body.customer-page .customer-directory td:first-child {
+        grid-column: 1 / -1;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid rgba(255,255,255,.09) !important;
+        font-size: 1rem;
+      }
+      body.customer-page .customer-directory td:first-child::before { content: none; }
+      body.customer-page .customer-directory td:last-child { grid-column: 1 / -1; }
+      body.customer-page .customer-directory td.customer-empty { display: flex; }
+      body.customer-page .customer-directory td.customer-empty::before { content: none; }
+    }
+    @media (max-width:760px) {
+      body.customer-page .customer-form { grid-template-columns: 1fr 1fr !important; }
+      body.customer-page .customer-form .field,
+      body.customer-page .customer-form .field:nth-child(n) { grid-column: span 1; }
+      body.customer-page .customer-form__actions { grid-column: 1 / -1; }
+    }
+    @media (max-width:520px) {
+      body.customer-page .customer-form { grid-template-columns: 1fr !important; }
+      body.customer-page .customer-form .field,
+      body.customer-page .customer-form .field:nth-child(n) { grid-column: 1 / -1; }
+      body.customer-page .customer-form__actions { align-items: stretch; flex-direction: column; }
+      body.customer-page .customer-form__actions .btn { width: 100%; }
+    }
+  </style>
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page customer-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link active" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -71,41 +210,48 @@
     </aside>
 
     <main class="main">
-      <div class="main__header">
+      <div class="main__header dashboard-hero">
         <div>
           <p class="section-kicker">Relationship management</p>
           <h1>Customers</h1>
           <p class="page-intro">Keep customer contact details and vehicle records together so the workshop can prepare for diagnostics, repairs and servicing.</p>
         </div>
+        <a class="back-link" href="../index.html" aria-label="Back to Home"><i data-lucide="house"></i></a>
       </div>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">New record</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Customer</h2></div><span class="section-note">Contact details</span></div>
-        <form id="customer-form" class="form-grid panel" style="padding:20px; margin-bottom:24px;">
+        <div class="section-heading"><div><p class="section-kicker">New record</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Customer</h2></div><span class="section-note">Customer details and vehicle registration</span></div>
+        <form id="customer-form" class="customer-form panel">
         <div class="field">
-          <label>Full Name</label>
+          <label for="cust-name">Full Name</label>
           <input type="text" id="cust-name" placeholder="e.g. Tendai Moyo" required />
         </div>
         <div class="field">
-          <label>Customer Type</label>
+          <label for="cust-type">Customer Type</label>
           <select id="cust-type">
             <option value="individual">Individual</option>
             <option value="company">Company</option>
           </select>
         </div>
         <div class="field">
-          <label>Phone Number</label>
+          <label for="cust-phone">Phone Number</label>
           <input type="tel" id="cust-phone" placeholder="77 123 4567" title="Choose a country code and enter a valid phone number" required />
         </div>
         <div class="field">
-          <label>Vehicle Plate Number</label>
+          <label for="cust-plate">Vehicle Plate Number <span class="customer-optional">(optional)</span></label>
           <input type="text" id="cust-plate" placeholder="e.g. ABC 1234" />
         </div>
+        <div class="field"><label for="cust-body-type">Body Type</label><select id="cust-body-type"><option>Sedan</option><option>SUV</option><option>Hatchback</option><option>Pickup</option><option>Van</option><option>Other</option></select></div>
+        <div class="field"><label for="cust-make">Make</label><input id="cust-make" placeholder="e.g. Toyota" /></div>
+        <div class="field"><label for="cust-model">Model</label><input id="cust-model" placeholder="e.g. Hilux" /></div>
+        <div class="field"><label for="cust-year">Year</label><input id="cust-year" type="number" min="1970" max="2030" /></div>
+        <div class="field"><label for="cust-chassis">Chassis Number</label><input id="cust-chassis" /></div>
+        <div class="field"><label for="cust-engine">Engine Number</label><input id="cust-engine" /></div>
         <div class="field">
-          <label>Email</label>
+          <label for="customer-email">Email <span class="customer-optional">(optional)</span></label>
           <input type="email" id="customer-email" placeholder="customer@gmail.com" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" />
         </div>
-        <div style="grid-column: 1 / -1;">
+        <div class="customer-form__actions">
           <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
           <p id="customer-form-message" class="form-message" role="status" aria-live="polite"></p>
         </div>
@@ -113,14 +259,14 @@
       </section>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2>Registered Customers</h2></div><span class="section-note">Vehicles and repeat visits</span></div>
-        <div class="panel">
+        <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2><i class="section-heading-icon" data-lucide="users"></i>Registered Customers</h2></div><span class="section-note">Vehicles and repeat visits</span></div>
+        <div class="panel customer-directory">
         <table>
           <thead>
             <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th></tr>
           </thead>
           <tbody id="customers-table">
-            <tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+            <tr><td colspan="5" class="empty-state customer-empty"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
           </tbody>
         </table>
         </div>
@@ -135,5 +281,6 @@
   <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/customers.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

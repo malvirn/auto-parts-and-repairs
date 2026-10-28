@@ -1,10 +1,9 @@
 ﻿// ========= Receipts module =========
 import supabase from "./supabaseClient.js";
 
-const SHOP_NAME = "Auto Parts and Repairs";
-const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
-const SHOP_LOGO_PATH = "../assets/AC_logo_transparent.png";
-const SHOP_DETAILS_LOGO_PATH = "../assets/logo2.jpeg";
+const SHOP_NAME = "Centric Automobile Service";
+const SHOP_TAGLINE = "AUTO PARTS & REPAIRS";
+const SHOP_LOGO_PATH = "../assets/logo.png";
 
 const pendingTableBody = document.getElementById("pending-receipts-table");
 const receiptsTableBody = document.getElementById("receipts-table");
@@ -49,6 +48,7 @@ function normalizeReceiptSource(receipt) {
       plate: job.vehicles?.license_plate,
       status: job.status,
       labour: Number(job.labour_cost || 0),
+      total: Number(job.total_cost || 0),
       items: job.job_parts || [],
       incidentals: job.job_incidentals || [],
       aiNotes: job.ai_suggested_causes,
@@ -64,6 +64,7 @@ function normalizeReceiptSource(receipt) {
       plate: "",
       status: order.status,
       labour: 0,
+      total: Number(order.total_usd || 0),
       items: (order.sales_order_items || []).map(i => ({ part_name: i.part_name, quantity: i.quantity, price_at_time: i.unit_price_usd })),
       incidentals: [],
       aiNotes: null,
@@ -79,11 +80,26 @@ function renderReceipt(receipt) {
     return;
   }
 
-  const items = source.items;
-  const incidentals = source.incidentals;
-  const itemsTotal = items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.price_at_time), 0);
-  const incidentalsTotal = incidentals.reduce((sum, inc) => sum + Number(inc.amount), 0);
-  const total = Number(receipt.amount || itemsTotal + incidentalsTotal + source.labour);
+  const items = source.items || [];
+  const incidentals = source.incidentals || [];
+  const itemsTotal = items.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.price_at_time || 0), 0);
+  const incidentalsTotal = incidentals.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const subtotal = source.total || itemsTotal + incidentalsTotal + source.labour;
+  const amountPaid = Number(receipt.amount ?? subtotal);
+  const balanceDue = Math.max(subtotal - amountPaid, 0);
+  const formatMoney = amount => `$${Number(amount || 0).toFixed(2)}`;
+  const issuedAt = new Date(receipt.issued_at);
+  const issuedDate = Number.isNaN(issuedAt.getTime()) ? "—" : issuedAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const issuedTime = Number.isNaN(issuedAt.getTime()) ? "—" : issuedAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  const itemRows = [
+    ...items.map(item => {
+      const quantity = Number(item.quantity || 0);
+      const unitPrice = Number(item.price_at_time || 0);
+      return `<tr><td>${escapeHtml(item.part_name || "Part")}</td><td>${quantity}</td><td>${formatMoney(unitPrice)}</td><td>${formatMoney(quantity * unitPrice)}</td></tr>`;
+    }),
+    ...incidentals.map(item => `<tr><td>${escapeHtml(item.description || "Incidental")}</td><td>1</td><td>${formatMoney(item.amount)}</td><td>${formatMoney(item.amount)}</td></tr>`),
+    ...(source.labour > 0 ? [`<tr><td>Labour</td><td>1</td><td>${formatMoney(source.labour)}</td><td>${formatMoney(source.labour)}</td></tr>`] : []),
+  ].join("") || `<tr><td colspan="4">No items recorded</td></tr>`;
 
   currentReceipt = {
     receiptNumber: receipt.receipt_number,
@@ -92,26 +108,45 @@ function renderReceipt(receipt) {
   };
 
   receiptDocument.innerHTML = `
-    <header class="receipt-header">
-      <div class="receipt-brand">
-        <img src="${SHOP_LOGO_PATH}" alt="${SHOP_NAME}" class="receipt-logo" />
-        <div class="receipt-address">${SHOP_NAME}<br>${SHOP_TAGLINE}</div>
+    <header class="receipt-company">
+      <img src="${SHOP_LOGO_PATH}" alt="Centric Automobile Service logo" class="receipt-logo" />
+      <div class="receipt-company__details">
+        <h2>${SHOP_NAME}</h2>
+        <p>${SHOP_TAGLINE}</p>
+        <p>No. 14387 Galloway, Norton</p>
+        <p>+263 733 656 061</p>
+        <p>+263 716 421 990</p>
       </div>
-      <div class="receipt-meta"><strong>RECEIPT #${String(receipt.receipt_number).padStart(4, "0")}</strong>${new Date(receipt.issued_at).toLocaleDateString()}</div>
     </header>
-    <h3>Customer</h3><div class="receipt-customer">${escapeHtml(source.customer?.full_name || "Walk-in Customer")}<br>${escapeHtml(source.customer?.phone || "—")}</div>
-    ${source.kind === "job"
-      ? `<h3>Repair &amp; Vehicle</h3><div class="receipt-customer">${escapeHtml(source.referenceLabel)} · ${escapeHtml(source.vehicleLabel || "Vehicle")}<br>Plate: ${escapeHtml(source.plate || "—")}<br>Status: ${escapeHtml(source.status || "Ready for Pickup")}</div>`
-      : `<h3>Sale</h3><div class="receipt-customer">${escapeHtml(source.referenceLabel)}<br>Status: ${escapeHtml(source.status || "Confirmed")}</div>`}
-    ${source.aiNotes ? `<h3>AI-Assisted Diagnostic Notes</h3><div class="receipt-customer" style="white-space:pre-wrap; font-size:.85em;">${escapeHtml(source.aiNotes)}</div>` : ""}
-    <h3>Items</h3><table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${items.map(i => `<tr><td>${escapeHtml(i.part_name)}</td><td>${i.quantity}</td><td>$${Number(i.price_at_time).toFixed(2)}</td><td>$${(Number(i.quantity) * Number(i.price_at_time)).toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="4">No parts recorded</td></tr>`}${incidentals.map(inc => `<tr><td>${escapeHtml(inc.description)}</td><td>1</td><td>$${Number(inc.amount).toFixed(2)}</td><td>$${Number(inc.amount).toFixed(2)}</td></tr>`).join("")}${source.labour > 0 ? `<tr><td>Labour</td><td>1</td><td>$${source.labour.toFixed(2)}</td><td>$${source.labour.toFixed(2)}</td></tr>` : ""}</tbody></table>
-    <div class="receipt-total"><span>Total USD</span><strong>$${total.toFixed(2)}</strong></div>
-    <p class="receipt-note">Thank you for choosing ${SHOP_NAME}. Please retain this receipt for your records.</p>
+    <h1 class="receipt-title">PAYMENT RECEIPT</h1>
+    <dl class="receipt-meta">
+      <div><dt>Receipt No</dt><dd>${String(receipt.receipt_number).padStart(7, "0")}</dd></div>
+      <div><dt>Date of Issue</dt><dd>${issuedDate}</dd></div>
+      <div><dt>Time of Issue</dt><dd>${issuedTime}</dd></div>
+      <div><dt>Customer Name</dt><dd>${escapeHtml(source.customer?.full_name || "Walk-in Customer")}</dd></div>
+      <div><dt>Contact</dt><dd>${escapeHtml(source.customer?.phone || "—")}</dd></div>
+      ${source.kind === "job" ? `<div><dt>Vehicle Registration</dt><dd>${escapeHtml(source.plate || "—")}</dd></div>` : ""}
+      <div><dt>${source.kind === "job" ? "Work Order No" : "Sales Order No"}</dt><dd>${escapeHtml(source.referenceLabel)}</dd></div>
+      <div><dt>Payment Method</dt><dd>Not recorded</dd></div>
+      <div><dt>Currency</dt><dd>USD</dd></div>
+    </dl>
+    <section class="receipt-items">
+      <table>
+        <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </section>
+    <section class="receipt-totals" aria-label="Receipt totals">
+      <div><span>Subtotal</span><span>${formatMoney(subtotal)}</span></div>
+      <div><span>Discount</span><span>${formatMoney(0)}</span></div>
+      <div class="receipt-paid"><span>Amount Paid</span><span>${formatMoney(amountPaid)}</span></div>
+      <div><span>Balance Due</span><span>${formatMoney(balanceDue)}</span></div>
+      <div class="receipt-grand"><strong>TOTAL PAID</strong><strong>${formatMoney(amountPaid)}</strong></div>
+    </section>
+    <p class="receipt-note">Thank you for choosing Centric Automobile Service.<br>Please retain this receipt for your records.</p>
     <footer class="receipt-footer">
-      <img src="${SHOP_DETAILS_LOGO_PATH}" alt="Centric Automobile Service contact details" class="receipt-footer-logo" />
-      <p class="receipt-footer__services">Vehicle diagnostics · Repairs · Servicing · Spare parts</p>
-      <p class="receipt-footer__label">Call or WhatsApp</p>
-      <p class="receipt-footer__phones"><a href="tel:+263733656061">+263 733 656 061</a><a href="tel:+263716421990">+263 716 421 990</a></p>
+      <p class="receipt-footer__services">Centric Auto Mobile | Vehicle Diagnostics · Repairs · Servicing · Spare Parts</p>
+      <p class="receipt-footer__copyright">© ${new Date().getFullYear()} Centric Automobile Service. All rights reserved.</p>
     </footer>`;
   receiptModal.classList.remove("hidden");
   receiptModal.style.display = "flex";
@@ -119,8 +154,8 @@ function renderReceipt(receipt) {
 }
 
 const RECEIPT_SELECT = `id, receipt_number, amount, issued_at,
-  repair_jobs(id, job_number, cro_number, status, labour_cost, ai_suggested_causes, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount)),
-  sales_orders(id, order_number, status, walk_in_name, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`;
+  repair_jobs(id, job_number, cro_number, status, labour_cost, total_cost, ai_suggested_causes, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount)),
+  sales_orders(id, order_number, total_usd, status, walk_in_name, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`;
 
 // jobId being missing/empty is exactly what was crashing this with
 // "invalid input syntax" — Postgres refusing an empty string where a UUID

@@ -1,0 +1,325 @@
+body.dashboard-page #quotation-form {
+  display: grid;
+  gap: 18px;
+  padding: clamp(16px, 2.5vw, 28px) !important;
+  border-color: rgba(31, 196, 103, .32);
+}
+
+body.dashboard-page #quotation-form > .quotation-form-grid:first-child {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body.dashboard-page #quotation-form > .quotation-form-grid:first-child .field {
+  max-width: 620px;
+}
+
+body.dashboard-page #quote-walkin-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 16px;
+  border: 1px solid var(--mh-bd);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mh-in) 80%, transparent);
+}
+
+body.dashboard-page #quotation-form .quotation-add-row {
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--mh-bd);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mh-in) 80%, transparent);
+}
+
+body.dashboard-page #quotation-form .quotation-add-row--labour {
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+}
+
+body.dashboard-page #quotation-form .quotation-category-label {
+  color: var(--mh-mu);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body.dashboard-page #quotation-form .quotation-add-row select,
+body.dashboard-page #quotation-form .quotation-add-row input {
+  min-width: 0;
+  min-height: 44px;
+}
+
+body.dashboard-page #quote-draft-items {
+  gap: 10px;
+}
+
+body.dashboard-page #quotation-form .quotation-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--mh-ac) 35%, var(--mh-bd));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mh-ac) 9%, var(--mh-card));
+}
+
+body.dashboard-page #quotation-form .quotation-total span {
+  color: var(--mh-mu);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+body.dashboard-page #quotation-form .quotation-total strong {
+  color: var(--mh-al);
+  font-size: clamp(19px, 2.5vw, 26px);
+  text-align: right;
+}
+
+body.dashboard-page #quotation-form > button[type="submit"] {
+  justify-self: start;
+  min-height: 46px;
+  padding-inline: 20px;
+}
+
+body.dashboard-page #quote-job-summary { padding: 16px; }
+
+body.dashboard-page .main > .page-section > .panel:has(> table) {
+  overflow-x: auto;
+}
+
+body.dashboard-page .main > .page-section > .panel:has(> table) table {
+  min-width: 760px;
+}
+
+body.dashboard-page .quotation-document {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 32px;
+  color: #17211b;
+  background: #fff;
+  font: 14px/1.5 Inter, Arial, sans-serif;
+}
+
+body.dashboard-page .quotation-paper-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+  border-bottom: 3px solid #1a9b54;
+}
+
+body.dashboard-page .quotation-paper-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+body.dashboard-page .quotation-paper-brand img {
+  width: 74px;
+  height: 64px;
+  object-fit: contain;
+  flex: none;
+}
+
+body.dashboard-page .quotation-paper-brand div,
+body.dashboard-page .quotation-paper-reference {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+body.dashboard-page .quotation-paper-brand strong {
+  color: #152019 !important;
+  font-size: 18px;
+}
+
+body.dashboard-page .quotation-paper-brand span,
+body.dashboard-page .quotation-paper-reference time {
+  color: #617067;
+  font-size: 11px;
+}
+
+body.dashboard-page .quotation-paper-reference {
+  align-items: flex-end;
+  text-align: right;
+}
+
+body.dashboard-page .quotation-paper-reference > span {
+  color: #19844a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+body.dashboard-page .quotation-paper-reference strong {
+  color: #17211b !important;
+  font-size: 22px;
+}
+
+body.dashboard-page .quotation-paper-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 22px 0;
+  padding: 16px 18px;
+  border-left: 4px solid #1a9b54;
+  border-radius: 0 10px 10px 0;
+  background: #f2f8f4;
+}
+
+body.dashboard-page .quotation-paper-customer strong {
+  color: #17211b !important;
+  font-size: 18px;
+}
+
+body.dashboard-page .quotation-paper-customer > span:last-child {
+  color: #526258;
+  font-size: 12px;
+}
+
+body.dashboard-page .quotation-paper-kicker {
+  display: block;
+  color: #718078;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+body.dashboard-page .quotation-paper-vehicle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #e1e9e3;
+  border-radius: 12px;
+  background: #fbfcfb;
+}
+
+body.dashboard-page .quotation-paper-vehicle strong {
+  display: block;
+  margin-top: 3px;
+  color: #17211b !important;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+body.dashboard-page .quotation-paper-condition p {
+  margin: 4px 0 0;
+  color: #36443b;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+body.dashboard-page .quotation-paper-lines-title {
+  margin: 22px 0 8px;
+  color: #17211b !important;
+  font-size: 15px;
+  border: 0 !important;
+}
+
+body.dashboard-page .quotation-paper-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font: 12px/1.45 Inter, Arial, sans-serif;
+}
+
+body.dashboard-page .quotation-paper-table th,
+body.dashboard-page .quotation-paper-table td {
+  padding: 11px 8px;
+  border-bottom: 1px solid #e4e9e5;
+  color: #27332b;
+  background: transparent;
+  text-align: right;
+}
+
+body.dashboard-page .quotation-paper-table th {
+  color: #65736a;
+  background: #f3f7f4;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body.dashboard-page .quotation-paper-table th:first-child,
+body.dashboard-page .quotation-paper-table td:first-child {
+  text-align: left;
+}
+
+body.dashboard-page .quotation-paper-total {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #edf7f0;
+  text-align: right;
+}
+
+body.dashboard-page .quotation-paper-total > span:first-child {
+  grid-row: span 2;
+  align-self: center;
+  color: #47584d;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+body.dashboard-page .quotation-paper-total strong {
+  color: #12733d !important;
+  font-size: 24px;
+}
+
+body.dashboard-page .quotation-paper-total > span:last-child {
+  color: #526258;
+  font-size: 12px;
+}
+
+body.dashboard-page .quotation-paper-note {
+  margin: 16px 0;
+  color: #58655d;
+  font-size: 11px;
+}
+
+body.dashboard-page .quotation-paper-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding-top: 14px;
+  border-top: 1px solid #dfe6e1;
+  color: #66736b;
+  font-size: 10px;
+}
+
+body.dashboard-page .quotation-paper-footer a {
+  color: #187845;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  body.dashboard-page #quote-walkin-fields { grid-template-columns: 1fr; }
+  body.dashboard-page #quotation-form .quotation-add-row { grid-template-columns: minmax(0, 1fr) 76px; }
+  body.dashboard-page #quotation-form .quotation-add-row .btn { grid-column: 1 / -1; justify-content: center; }
+  body.dashboard-page #quotation-form .quotation-add-row--labour { grid-template-columns: minmax(0, 1fr) 76px; }
+  body.dashboard-page #quotation-form .quotation-add-row--labour .btn { grid-column: 1 / -1; }
+  body.dashboard-page .quotation-document { padding: 22px 18px; }
+  body.dashboard-page .quotation-paper-header { align-items: flex-start; gap: 12px; }
+  body.dashboard-page .quotation-paper-brand { align-items: flex-start; gap: 8px; }
+  body.dashboard-page .quotation-paper-brand img { width: 48px; height: 48px; }
+  body.dashboard-page .quotation-paper-brand strong { font-size: 14px; }
+  body.dashboard-page .quotation-paper-reference strong { font-size: 16px; }
+  body.dashboard-page .quotation-paper-vehicle { grid-template-columns: 1fr; }
+  body.dashboard-page .quotation-paper-footer { flex-direction: column; }
+}

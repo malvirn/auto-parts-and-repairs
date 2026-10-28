@@ -4,7 +4,7 @@ import supabase from "./supabaseClient.js";
 // "Unclaimed" is also a finished job (just uncollected) — this file was
 // still checking for "Completed", which no new job can ever have, so
 // revenue/profit/leaderboards here were silently showing wrong numbers.
-const FINISHED = ["Ready for Pickup", "Collected", "Unclaimed"];
+const FINISHED = ["Processed", "Ready for Pickup", "Collected", "Unclaimed"];
 
 const summaryCards = document.getElementById("summary-cards");
 const operationsCards = document.getElementById("operations-cards");
@@ -81,7 +81,7 @@ function renderSummary(jobs) {
 function renderOperationsCards(jobs, customers) {
   const active = jobs.filter(j => !FINISHED.includes(j.status));
   const awaitingParts = jobs.filter(j => j.status === "Awaiting Parts").length;
-  const readyForPickup = jobs.filter(j => j.status === "Ready for Pickup").length;
+  const readyForPickup = jobs.filter(j => ["Processed", "Ready for Pickup"].includes(j.status)).length;
 
   operationsCards.innerHTML = `
     <div class="stat-card"><div class="stat-card__label">Active Jobs</div><div class="stat-card__value">${active.length}</div></div>

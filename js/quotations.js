@@ -3,6 +3,8 @@ import { getRate } from "./currency.js";
 
 const quoteForm = document.getElementById("quotation-form");
 const jobSelect = document.getElementById("quote-job");
+const customerSelect = document.getElementById("quote-customer");
+const vehicleSelect = document.getElementById("quote-vehicle");
 const partSelect = document.getElementById("quote-part");
 const qtyInput = document.getElementById("quote-qty");
 const draftList = document.getElementById("quote-draft-items");
@@ -13,6 +15,7 @@ const quoteModal = document.getElementById("quote-edit-modal");
 const orderModal = document.getElementById("order-edit-modal");
 
 let jobs = [];
+let customers = [];
 let parts = [];
 let draftItems = [];
 let editingQuote = null;
@@ -21,11 +24,7 @@ let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 
-const markup = 0.25;
-const SHOP_NAME = "Auto Parts and Repairs";
-const SHOP_TAGLINE = "Vehicle Sales, Parts &amp; Repairs";
-const SHOP_LOGO_PATH = "../assets/AC_logo_transparent.png";
-const SHOP_DETAILS_LOGO_PATH = "../assets/logo2.jpeg";
+const SHOP_LOGO_PATH = "../assets/logo.png";
 
 function escapeHtml(value) {
   const div = document.createElement("div");
@@ -34,9 +33,30 @@ function escapeHtml(value) {
 }
 
 function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
-function priceForCost(cost) { return Number((Number(cost || 0) * (1 + markup)).toFixed(2)); }
 function totalOf(items) { return items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0); }
 async function zigTotal(usd) { return Number((usd * await getRate()).toFixed(2)); }
+function itemType(item) {
+  if (item.item_type) return item.item_type;
+  if (item.kind) return item.kind;
+  if (item.part_id) return "part";
+  if (/\(incidental\)\s*$/i.test(item.part_name || "")) return "sundry";
+  if (/^labour\b/i.test(item.part_name || "")) return "labour";
+  return "other";
+}
+function itemTypeLabel(item) {
+  const type = itemType(item);
+  return type === "labour" ? "Labour" : type === "sundry" ? "Sundry" : type === "part" ? "Part" : "Item";
+}
+function itemDisplayName(item) {
+  const type = itemType(item);
+  return type === "labour" ? "Labour" : type === "sundry" ? "Sundry" : item.part_name;
+}
+function itemQuantityDisplay(item) {
+  return itemType(item) === "labour" ? `${item.quantity} hr` : item.quantity;
+}
+function itemUnitPriceDisplay(item) {
+  return `${money(item.unit_price_usd)}${itemType(item) === "labour" ? "/hr" : ""}`;
+}
 
 function vehicleLabel(vehicle) {
   if (!vehicle) return "";
@@ -55,20 +75,25 @@ function resolveCustomer(record) {
 
 async function loadBaseData() {
   exchangeRate = await getRate();
-  const [jobsResult, partsResult] = await Promise.all([
-    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, status, fault_reported, diagnosis, labour_cost, labour_hours, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
+  const [jobsResult, partsResult, customersResult] = await Promise.all([
+    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
+    supabase.from("customers").select("id, full_name, phone, email, vehicles(id, license_plate, make, model)").order("full_name"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
   if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
+  if (customersResult.error) console.error("Quotation customers load failed:", customersResult.error);
   jobs = jobsResult.data || [];
   parts = partsResult.data || [];
+  customers = customersResult.data || [];
   jobSelect.innerHTML = `<option value="">No job card — walk-in customer</option>` + jobs.map(job => {
     const vehicle = vehicleLabel(job.vehicles);
     const plate = job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
     return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
   }).join("");
-  partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${part.quantity_in_stock} in shop</option>`).join("");
+  partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${money(part.selling_price)} · ${part.quantity_in_stock} in shop</option>`).join("");
+  customerSelect.innerHTML = `<option value="">Select a customer or enter a walk-in below…</option>` + customers.map(customer => `<option value="${customer.id}">${escapeHtml(customer.full_name)}${customer.phone ? ` — ${escapeHtml(customer.phone)}` : ""}</option>`).join("");
+  renderQuoteVehicles();
 }
 
 function jobRef(job) {
@@ -77,8 +102,22 @@ function jobRef(job) {
 }
 
 function toggleWalkinFields() {
-  document.getElementById("quote-walkin-fields").classList.toggle("hidden", !!jobSelect.value);
+  const linkedJob = !!jobSelect.value;
+  document.getElementById("quote-walkin-fields").classList.toggle("hidden", linkedJob || !!customerSelect.value);
+  document.getElementById("quote-customer-field").classList.toggle("hidden", linkedJob);
+  document.getElementById("quote-vehicle-field").classList.toggle("hidden", linkedJob);
+  document.getElementById("quote-fault-field").classList.toggle("hidden", linkedJob);
 }
+function renderQuoteVehicles(selectedId = "") {
+  const customer = customers.find(candidate => candidate.id === customerSelect.value);
+  const vehicles = customer?.vehicles || [];
+  vehicleSelect.innerHTML = `<option value="">No vehicle selected</option>` + vehicles.map(vehicle => `<option value="${vehicle.id}">${escapeHtml(vehicle.license_plate || "No plate")} — ${escapeHtml([vehicle.make, vehicle.model].filter(Boolean).join(" "))}</option>`).join("");
+  vehicleSelect.value = selectedId;
+}
+customerSelect.addEventListener("change", () => {
+  renderQuoteVehicles();
+  toggleWalkinFields();
+});
 jobSelect.addEventListener("change", () => {
   toggleWalkinFields();
   loadFromJob(jobSelect.value);
@@ -113,12 +152,6 @@ function renderJobSummary(job) {
   box.classList.remove("hidden");
 }
 
-function labourLabel(job) {
-  const tier = job.vehicle_rate_tiers;
-  const hours = Number(job.labour_hours) || 0;
-  return "Labour" + (tier ? ` — ${tier.tier_name} @ ${money(tier.hourly_rate)}/hr` : "") + (hours ? ` × ${hours} h` : "");
-}
-
 async function loadFromJob(jobId) {
   const job = jobs.find(candidate => candidate.id === jobId) || null;
   renderJobSummary(job);
@@ -134,14 +167,15 @@ async function loadFromJob(jobId) {
   const items = (partsRes.data || []).map(item => {
     const part = parts.find(candidate => candidate.id === item.part_id);
     const cost = Number(part?.cost_price ?? 0);
-    const unit = item.price_at_time != null ? Number(item.price_at_time) : priceForCost(cost);
+    const unit = item.price_at_time != null ? Number(item.price_at_time) : Number(part?.selling_price ?? 0);
     return { kind: "part", part_id: item.part_id, part_name: item.part_name, quantity: item.quantity, cost_price_usd: cost, unit_price_usd: unit };
   });
   if (Number(job.labour_cost) > 0) {
-    items.push({ kind: "labour", part_id: null, part_name: labourLabel(job), quantity: 1, cost_price_usd: 0, unit_price_usd: Number(job.labour_cost) });
+    const hours = Number(job.labour_hours) > 0 ? Number(job.labour_hours) : 1;
+    items.push({ kind: "labour", part_id: null, part_name: "Labour", quantity: hours, cost_price_usd: 0, unit_price_usd: Number((Number(job.labour_cost) / hours).toFixed(2)) });
   }
   (incRes.data || []).forEach(inc => {
-    items.push({ kind: "incidental", part_id: null, part_name: `${inc.description} (incidental)`, quantity: 1, cost_price_usd: 0, unit_price_usd: Number(inc.amount) });
+    items.push({ kind: "sundry", part_id: null, part_name: "Sundry", quantity: 1, cost_price_usd: 0, unit_price_usd: Number(inc.amount) });
   });
   draftItems = items;
   renderDraft();
@@ -155,10 +189,10 @@ function markupPctFor(item) {
 
 function renderDraft() {
   if (!draftItems.length) {
-    draftList.innerHTML = `<div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div>`;
+    draftList.innerHTML = `<div class="empty-state"><i data-lucide="package-open"></i><span>Add labour, parts or sundries to build the quotation.</span></div>`;
   } else {
     draftList.innerHTML = draftItems.map((item, index) => `
-      <div class="quotation-line"><span><strong>${escapeHtml(item.part_name)}</strong><small>${item.kind === "labour" ? "Labour" : item.kind === "incidental" ? "Incidental" : "Part"} · ${item.quantity} × ${money(item.unit_price_usd)}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
+      <div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${itemQuantityDisplay(item)} × ${itemUnitPriceDisplay(item)}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
     `).join("");
     draftList.querySelectorAll(".remove-quote-line").forEach(button => button.addEventListener("click", () => { draftItems.splice(Number(button.dataset.index), 1); renderDraft(); }));
   }
@@ -180,8 +214,37 @@ document.getElementById("quote-add-part").addEventListener("click", () => {
   }
 
   if (existing) existing.quantity += quantity;
-  else draftItems.push({ kind: "part", part_id: part.id, part_name: part.name, quantity, cost_price_usd: part.cost_price, unit_price_usd: priceForCost(part.cost_price) });
+  else draftItems.push({ kind: "part", part_id: part.id, part_name: part.name, quantity, cost_price_usd: Number(part.cost_price) || 0, unit_price_usd: Number(part.selling_price) || 0 });
   qtyInput.value = 1;
+  renderDraft();
+});
+
+document.getElementById("quote-add-labour")?.addEventListener("click", () => {
+  const rateInput = document.getElementById("quote-labour-rate");
+  const hoursInput = document.getElementById("quote-labour-hours");
+  const rawRate = rateInput.value.trim();
+  const rawHours = hoursInput.value.trim();
+  const rate = Number(rawRate);
+  const hours = Number(rawHours);
+  if (!rawRate || !Number.isFinite(rate) || rate < 0 || !rawHours || !Number.isFinite(hours) || hours <= 0) {
+    alert("Enter a valid labour rate per hour and the number of hours.");
+    return;
+  }
+  draftItems.push({ kind: "labour", part_id: null, part_name: "Labour", quantity: hours, cost_price_usd: 0, unit_price_usd: Number(rate.toFixed(2)) });
+  rateInput.value = "";
+  hoursInput.value = "";
+  renderDraft();
+});
+
+document.getElementById("quote-add-sundry")?.addEventListener("click", () => {
+  const rawPrice = document.getElementById("quote-sundry-price").value.trim();
+  const price = Number(rawPrice);
+  if (!rawPrice || !Number.isFinite(price) || price < 0) {
+    alert("Enter a valid sundry price.");
+    return;
+  }
+  draftItems.push({ kind: "sundry", part_id: null, part_name: "Sundry", quantity: 1, cost_price_usd: 0, unit_price_usd: Number(price.toFixed(2)) });
+  document.getElementById("quote-sundry-price").value = "";
   renderDraft();
 });
 
@@ -191,26 +254,60 @@ quoteForm.addEventListener("submit", async event => {
 
   const job = jobs.find(candidate => candidate.id === jobSelect.value) || null;
   let customer_id = null, walk_in_name = null, walk_in_phone = null, walk_in_email = null;
+  let vehicle_id = null;
+  let fault_reported = document.getElementById("quote-fault").value.trim() || null;
   if (job) {
     customer_id = job.customer_id;
+    vehicle_id = job.vehicle_id || null;
+    fault_reported = job.fault_reported || fault_reported;
+  } else if (customerSelect.value) {
+    customer_id = customerSelect.value;
+    vehicle_id = vehicleSelect.value || null;
   } else {
     walk_in_name = document.getElementById("quote-walkin-name").value.trim();
     if (!walk_in_name) { alert("Enter the customer's name, or select a job card."); return; }
     walk_in_phone = document.getElementById("quote-walkin-phone").value.trim() || null;
     walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
+    if (!walk_in_phone) {
+      alert("Enter the walk-in customer's phone number so the quotation can be linked to a customer record.");
+      return;
+    }
+    const { data: existingCustomer, error: customerLookupError } = await supabase.from("customers")
+      .select("id")
+      .eq("phone", walk_in_phone)
+      .limit(1);
+    if (customerLookupError) {
+      alert("Couldn't check the walk-in customer: " + customerLookupError.message);
+      return;
+    }
+    if (existingCustomer?.length) {
+      customer_id = existingCustomer[0].id;
+    } else {
+      const { data: createdCustomer, error: customerInsertError } = await supabase.from("customers").insert([{
+        full_name: walk_in_name,
+        phone: walk_in_phone,
+        email: walk_in_email,
+        customer_type: "individual",
+      }]).select("id").single();
+      if (customerInsertError) {
+        alert("Couldn't register the walk-in customer: " + customerInsertError.message);
+        return;
+      }
+      customer_id = createdCustomer.id;
+    }
   }
 
   const rate = await getRate();
   const totalUsd = totalOf(draftItems);
   const notes = job ? [`Fault reported: ${job.fault_reported || "—"}`, `Diagnosis: ${job.diagnosis || "Not diagnosed yet"}`].join("\n") : null;
   const { data: quote, error } = await supabase.from("quotations").insert([{
-    customer_id, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
+    customer_id, vehicle_id, fault_reported, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
     total_usd: totalUsd, total_zig: totalUsd * rate,
     walk_in_name, walk_in_phone, walk_in_email, notes,
   }]).select().single();
   if (error) { alert("Failed to save quotation: " + error.message); return; }
   const { error: itemsError } = await supabase.from("quotation_items").insert(draftItems.map(item => ({
-    quotation_id: quote.id, part_id: item.part_id, part_name: item.part_name, quantity: item.quantity,
+    quotation_id: quote.id, part_id: item.part_id, item_type: item.kind || itemType(item), part_name: item.part_name, quantity: item.quantity,
     cost_price_usd: Number(item.cost_price_usd) || 0, markup_pct: markupPctFor(item), unit_price_usd: item.unit_price_usd,
     total_usd: item.quantity * item.unit_price_usd, unit_price_zig: item.unit_price_usd * rate, total_zig: item.quantity * item.unit_price_usd * rate,
   })));
@@ -220,18 +317,33 @@ quoteForm.addEventListener("submit", async event => {
 
 async function loadDocuments() {
   const [quotes, orders] = await Promise.all([
-    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, customer_id, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
+    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, customer_id, vehicle_id, fault_reported, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
     supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
   ]);
-  quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
+  quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => {
+    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
+  }).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
   orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Edit</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
   document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
+  document.querySelectorAll(".open-quote-job").forEach(button => button.addEventListener("click", async () => {
+    if (button.dataset.jobId) {
+      window.location.href = `repairs.html?edit=${encodeURIComponent(button.dataset.jobId)}`;
+      return;
+    }
+    if (!window.confirm("Confirm the customer has approved this quotation before opening a job card.")) return;
+    const { error } = await supabase.from("quotations").update({ status: "Approved", updated_at: new Date().toISOString() }).eq("id", button.dataset.id);
+    if (error) {
+      alert("Couldn't mark the quotation approved: " + error.message);
+      return;
+    }
+    window.location.href = `repairs.html?quote=${encodeURIComponent(button.dataset.id)}`;
+  }));
   document.querySelectorAll(".edit-order").forEach(button => button.addEventListener("click", () => openOrderEditor(button.dataset.id)));
   if (window.lucide) lucide.createIcons();
 }
 
 async function fetchQuote(id) {
-  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
+  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
   let { data, error } = await supabase.from("quotations").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full quotation lookup failed, retrying with fewer fields:", error.message);
@@ -252,7 +364,10 @@ async function fetchOrder(id) {
 }
 
 async function renderEditor(container, totalNode, items, rate = exchangeRate) {
-  container.innerHTML = items.map((item, index) => `<div class="quotation-line"><span><strong>${escapeHtml(item.part_name)}</strong><small>Unit price USD</small></span><input class="amend-qty" data-index="${index}" type="number" min="1" value="${item.quantity}" /><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" /></div>`).join("");
+  container.innerHTML = items.map((item, index) => {
+    const isLabour = itemType(item) === "labour";
+    return `<div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${isLabour ? "price per hour USD" : "unit price USD"}</small></span><input class="amend-qty" data-index="${index}" type="number" min="${isLabour ? "0.01" : "1"}" step="${isLabour ? "any" : "1"}" value="${item.quantity}" /><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" /></div>`;
+  }).join("");
   const recalc = () => { const total = [...container.querySelectorAll(".amend-qty")].reduce((sum, input, index) => sum + Number(input.value || 0) * Number(container.querySelectorAll(".amend-price")[index].value || 0), 0); totalNode.textContent = `${money(total)} / ZiG ${Number(total * rate).toFixed(2)}`; };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));
   recalc();
@@ -284,12 +399,15 @@ function zig(value) {
 function buildDetailText(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
-  const vehicle = job.vehicles || {};
+  const vehicle = record.vehicles || job.vehicles || {};
   const number = docNumber(record, kind);
   const isQuote = kind === "Quotation";
-  const vehicleText = job.job_number ? `${vehicleLabel(vehicle) || "vehicle"}${vehicle.license_plate ? ` (registration ${vehicle.license_plate})` : ""}` : "";
+  const vehicleText = vehicle.license_plate || vehicleLabel(vehicle)
+    ? `${vehicleLabel(vehicle) || "vehicle"}${vehicle.license_plate ? ` (registration ${vehicle.license_plate})` : ""}`
+    : "";
+  const faultReported = job.fault_reported || record.fault_reported;
   const lines = (items || []).map((item, i) =>
-    `${i + 1}. ${item.part_name} — ${item.quantity} × ${usd(item.unit_price_usd)} = ${usd(Number(item.quantity) * Number(item.unit_price_usd))}`
+    `${i + 1}. ${itemTypeLabel(item)}${itemType(item) === "part" ? `: ${item.part_name}` : ""} — ${itemQuantityDisplay(item)} × ${itemUnitPriceDisplay(item)} = ${usd(Number(item.quantity) * Number(item.unit_price_usd))}`
   ).join("\n");
   const contact = [biz.phone && `Tel: ${biz.phone}`, biz.email && `Email: ${biz.email}`].filter(Boolean).join(" | ");
 
@@ -301,7 +419,7 @@ function buildDetailText(record, kind, items) {
       : `Thank you for your business. Please find below Sales Order No. ${number}, dated ${longDate(record.created_at)}${vehicleText ? `, for your ${vehicleText}` : ""}.`,
     ``,
     job.job_number ? `Job card: ${jobRef(job)}` : null,
-    job.job_number ? `Fault reported: ${job.fault_reported || "Not recorded"}` : null,
+    faultReported ? `Fault reported: ${faultReported}` : null,
     job.job_number ? `Diagnosis: ${job.diagnosis || "Diagnosis in progress"}` : null,
     job.job_number ? `` : null,
     isQuote ? `Quoted items:` : `Order items:`,
@@ -326,36 +444,88 @@ function buildDetailText(record, kind, items) {
 function buildDetailHtml(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
-  const vehicle = job.vehicles || {};
+  const vehicle = record.vehicles || job.vehicles || {};
   const number = docNumber(record, kind);
   const rows = (items || []).map(item => `
-    <tr><td>${escapeHtml(item.part_name)}</td><td>${item.quantity}</td><td>${money(item.unit_price_usd)}</td><td>${money(item.quantity * item.unit_price_usd)}</td></tr>
-  `).join("") || `<tr><td colspan="4">No line items</td></tr>`;
+    <tr><td>${itemTypeLabel(item)}</td><td>${itemType(item) === "part" ? escapeHtml(item.part_name) : "—"}</td><td>${itemQuantityDisplay(item)}</td><td>${itemUnitPriceDisplay(item)}</td><td>${money(item.quantity * item.unit_price_usd)}</td></tr>
+  `).join("") || `<tr><td colspan="5">No line items</td></tr>`;
   const contact = [biz.phone, biz.email].filter(Boolean).map(escapeHtml).join(" · ");
 
   return `
-    <header class="receipt-header">
-      <div class="receipt-brand">
-        <img src="${SHOP_LOGO_PATH}" alt="${escapeHtml(biz.business_name)}" class="receipt-logo" />
-        <div class="receipt-address"><strong>${escapeHtml(biz.business_name)}</strong><br>${escapeHtml(biz.tagline || "")}${biz.address ? `<br>${escapeHtml(biz.address)}` : ""}${contact ? `<br>${contact}` : ""}</div>
-      </div>
-      <div class="receipt-meta"><strong>${kind.toUpperCase()} No. ${number}</strong>${longDate(record.created_at)}</div>
-    </header>
-    <h3>${kind === "Quotation" ? "Prepared for" : "Customer"}</h3>
-    <div class="receipt-customer">${escapeHtml(customer.full_name)}<br>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? `<br>${escapeHtml(customer.email)}` : ""}</div>
-    ${job.job_number ? `<h3>Vehicle &amp; job card</h3><div class="receipt-customer">${escapeHtml(jobRef(job))} · ${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}${vehicle.chassis_number ? `<br>Chassis ${escapeHtml(vehicle.chassis_number)}` : ""}${vehicle.engine_number ? ` · Engine ${escapeHtml(vehicle.engine_number)}` : ""}${job.odometer_in != null ? `<br>Odometer in ${Number(job.odometer_in).toLocaleString()} km` : ""}</div>
-    <h3>Fault reported</h3><div class="receipt-customer">${escapeHtml(job.fault_reported || "—")}</div>
-    <h3>Diagnosis</h3><div class="receipt-customer">${escapeHtml(job.diagnosis || "Diagnosis in progress")}</div>` : ""}
-    <h3>${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
-    <table><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="receipt-total"><span>Total</span><strong>${money(record.total_usd)} / ZiG ${Number(record.total_zig || 0).toFixed(2)}</strong></div>
-    <p class="receipt-note">${kind === "Quotation" ? "This quotation is valid for 7 days." : `Thank you for choosing ${SHOP_NAME}.`}</p>
-    <footer class="receipt-footer">
-      <img src="${SHOP_DETAILS_LOGO_PATH}" alt="Centric Automobile Service contact details" class="receipt-footer-logo" />
-      <p class="receipt-footer__services">Vehicle diagnostics · Repairs · Servicing · Spare parts</p>
-      <p class="receipt-footer__label">Call or WhatsApp</p>
-      <p class="receipt-footer__phones"><a href="tel:+263733656061">+263 733 656 061</a><a href="tel:+263716421990">+263 716 421 990</a></p>
-    </footer>`;
+    <article class="quotation-document">
+      <header class="quotation-paper-header">
+        <div class="quotation-paper-brand">
+          <img src="${SHOP_LOGO_PATH}" alt="${escapeHtml(biz.business_name)}" />
+          <div><strong>${escapeHtml(biz.business_name)}</strong><span>${escapeHtml(biz.tagline || "Vehicle Sales, Parts & Repairs")}</span>${biz.address ? `<span>${escapeHtml(biz.address)}</span>` : ""}${contact ? `<span>${contact}</span>` : ""}</div>
+        </div>
+        <div class="quotation-paper-reference"><span>${kind}</span><strong>${escapeHtml(number)}</strong><time>${longDate(record.created_at)}</time></div>
+      </header>
+      <section class="quotation-paper-customer">
+        <span class="quotation-paper-kicker">${kind === "Quotation" ? "Prepared for" : "Customer"}</span>
+        <strong>${escapeHtml(customer.full_name)}</strong>
+        <span>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? ` · ${escapeHtml(customer.email)}` : ""}</span>
+      </section>
+      ${job.job_number || record.vehicle_id || record.vehicles ? `<section class="quotation-paper-vehicle">
+        ${job.job_number ? `<div><span class="quotation-paper-kicker">Job card</span><strong>${escapeHtml(jobRef(job))}</strong></div>` : ""}
+        <div><span class="quotation-paper-kicker">Vehicle</span><strong>${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}</strong></div>
+        ${vehicle.chassis_number ? `<div><span class="quotation-paper-kicker">Chassis</span><strong>${escapeHtml(vehicle.chassis_number)}</strong></div>` : ""}
+        ${vehicle.engine_number ? `<div><span class="quotation-paper-kicker">Engine</span><strong>${escapeHtml(vehicle.engine_number)}</strong></div>` : ""}
+        ${job.odometer_in != null ? `<div><span class="quotation-paper-kicker">Odometer in</span><strong>${Number(job.odometer_in).toLocaleString()} km</strong></div>` : ""}
+        ${(job.fault_reported || record.fault_reported) ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Customer concern</span><p>${escapeHtml(job.fault_reported || record.fault_reported)}</p></div>` : ""}
+        ${job.job_number ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Technician's diagnosis</span><p>${escapeHtml(job.diagnosis || "Diagnosis in progress")}</p></div>` : ""}
+      </section>` : ""}
+      <h3 class="quotation-paper-lines-title">${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
+      <table class="quotation-paper-table"><thead><tr><th>Type</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+      <section class="quotation-paper-total">
+        <span>Total payable</span>
+        <strong>${money(record.total_usd)}</strong>
+        <span>ZiG ${Number(record.total_zig || 0).toFixed(2)}</span>
+      </section>
+      <p class="quotation-paper-note">${kind === "Quotation" ? "Quotation valid for 7 days. Parts and prices are subject to availability." : `Thank you for choosing ${escapeHtml(biz.business_name)}.`}</p>
+      <footer class="quotation-paper-footer">
+        <span>Vehicle diagnostics · Repairs · Servicing · Spare parts</span>
+        <span>Call or WhatsApp: <a href="tel:+263733656061">+263 733 656 061</a> · <a href="tel:+263716421990">+263 716 421 990</a></span>
+      </footer>
+    </article>`;
+}
+
+function printDocument(record, kind) {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert(`Allow pop-ups for this site to print the ${kind.toLowerCase()}.`);
+    return;
+  }
+  const html = buildDetailHtml(record, kind, itemsOf(record, kind) || []);
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html>
+    <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+      <base href="${escapeHtml(window.location.href)}">
+      <title>${escapeHtml(kind)} ${escapeHtml(docNumber(record, kind))}</title>
+      <style>
+        @page { size: A4; margin: 14mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: #17212b; font: 14px Arial, sans-serif; }
+        .quotation-document { max-width: 190mm; margin: 0 auto; padding: 8mm; background: #fff; }
+        .quotation-paper-header { display: flex; justify-content: space-between; gap: 20px; border-bottom: 2px solid #222; padding-bottom: 16px; }
+        .quotation-paper-brand { display: flex; gap: 12px; align-items: center; }
+        .quotation-paper-brand img { width: 72px; height: 72px; object-fit: contain; }
+        .quotation-paper-brand div, .quotation-paper-reference, .quotation-paper-customer { display: grid; gap: 5px; }
+        .quotation-paper-reference { text-align: right; align-content: start; }
+        .quotation-paper-reference strong { font-size: 20px; }
+        .quotation-paper-customer, .quotation-paper-vehicle { margin: 18px 0; padding: 14px; background: #f4f6f7; }
+        .quotation-paper-vehicle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .quotation-paper-kicker { display: block; color: #59636e; font-size: 11px; text-transform: uppercase; }
+        .quotation-paper-lines-title { margin: 22px 0 8px; }
+        .quotation-paper-table { width: 100%; border-collapse: collapse; }
+        .quotation-paper-table th, .quotation-paper-table td { border-bottom: 1px solid #d5d9dc; padding: 9px 7px; text-align: left; }
+        .quotation-paper-total { display: grid; justify-items: end; gap: 5px; margin-top: 20px; }
+        .quotation-paper-total strong { font-size: 22px; }
+        .quotation-paper-note, .quotation-paper-footer { margin-top: 20px; color: #59636e; }
+        .quotation-paper-footer { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #d5d9dc; padding-top: 12px; font-size: 11px; }
+        @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+      </style>
+    </head><body>${html}<script>window.addEventListener("load", () => { window.print(); window.addEventListener("afterprint", () => window.close(), { once: true }); });<\/script></body></html>`);
+  printWindow.document.close();
 }
 
 // ---------- Send: download the document image first, then open the message ----------
@@ -480,7 +650,7 @@ async function createOrderFromQuote() {
     usd_to_zig_rate: editingQuote.usd_to_zig_rate, total_usd: editingQuote.total_usd, total_zig: editingQuote.total_zig, status: "Draft",
   }]).select().single();
   if (error) { alert("Failed to confirm sales order: " + error.message); return; }
-  const items = editingQuote.quotation_items.map(item => ({ sales_order_id: order.id, part_id: item.part_id, part_name: item.part_name, quantity: item.quantity, unit_price_usd: item.unit_price_usd, total_usd: item.total_usd, unit_price_zig: item.unit_price_zig, total_zig: item.total_zig }));
+  const items = editingQuote.quotation_items.map(item => ({ sales_order_id: order.id, part_id: item.part_id, item_type: itemType(item), part_name: item.part_name, quantity: item.quantity, unit_price_usd: item.unit_price_usd, total_usd: item.total_usd, unit_price_zig: item.unit_price_zig, total_zig: item.total_zig }));
   await supabase.from("sales_order_items").insert(items); closeModal(quoteModal); await loadDocuments();
 }
 
@@ -592,10 +762,12 @@ on("edit-order-save", saveOrderChanges);
 on("edit-order-cancel", () => closeModal(orderModal));
 
 on("quote-detail-copy", () => copyDetailText(editingQuoteDetailText, document.getElementById("quote-detail-copy-status")));
+on("quote-detail-print", () => editingQuote && printDocument(editingQuote, "Quotation"));
 on("quote-detail-email", (e) => editingQuote && sendByEmail("Quotation", editingQuote, e.currentTarget));
 on("quote-detail-whatsapp", (e) => editingQuote && sendByWhatsApp("Quotation", editingQuote, e.currentTarget));
 
 on("order-detail-copy", () => copyDetailText(editingOrderDetailText, document.getElementById("order-detail-copy-status")));
+on("order-detail-print", () => editingOrder && printDocument(editingOrder, "Sales Order"));
 on("order-detail-email", (e) => editingOrder && sendByEmail("Sales Order", editingOrder, e.currentTarget));
 on("order-detail-whatsapp", (e) => editingOrder && sendByWhatsApp("Sales Order", editingOrder, e.currentTarget));
 
@@ -605,6 +777,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadBaseData();
     const requestedJob = new URLSearchParams(window.location.search).get("job");
+    const params = new URLSearchParams(window.location.search);
+    const requestedCustomer = params.get("customer");
+    const requestedVehicle = params.get("vehicle");
+    if (requestedCustomer && customers.some(customer => customer.id === requestedCustomer)) {
+      customerSelect.value = requestedCustomer;
+      renderQuoteVehicles(params.get("vehicle") || "");
+      document.getElementById("quote-fault").value = params.get("fault") || "";
+      toggleWalkinFields();
+    }
     if (requestedJob && jobs.some(job => job.id === requestedJob)) {
       jobSelect.value = requestedJob;
       toggleWalkinFields();

@@ -5,11 +5,11 @@
   
     <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Centric Auto Mobile | Spare Parts Shop</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -37,15 +37,22 @@
       padding: 22px 24px; gap: 12px;
     }
 
-    .part-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border, #ddd); background: #f2f0ea; cursor: pointer; transition: transform .15s; }
-    .part-thumb:hover { transform: scale(1.05); }
-    .part-image-field { display: flex; gap: 14px; align-items: flex-start; }
-    .part-image-preview { width: 68px; height: 68px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border, #ddd); background: #f2f0ea; flex-shrink: 0; }
-    .image-search-row { display: flex; gap: 8px; }
-    .image-search-row input { flex: 1; }
-    .image-results { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    .image-result-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
-    .image-result-thumb:hover, .image-result-thumb.selected { border-color: var(--accent, #c0522d); }
+    #part-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+    #part-form-grid > .field { min-width: 0; }
+    #part-form-grid input, #part-form-grid select, #part-form-grid textarea, #edit-part-modal input, #edit-part-modal select, #edit-part-modal textarea { width: 100%; box-sizing: border-box; }
+    #part-form-grid .part-price-output { margin-bottom: 8px; }
+    .shop-inventory-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .shop-inventory-layout > .page-section { width: 100%; min-width: 0; margin: 0; }
+    .shop-inventory-layout .stock-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #parts-category-filter { min-width: 180px; }
+    .parts-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, .45fr) auto; gap: 12px; align-items: end; }
+    .parts-search-field, .parts-category-field { display: grid; gap: 5px; min-width: 0; }
+    .parts-search-field > span, .parts-category-field > span { color: var(--text-muted); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .parts-search-field input, .parts-category-field select { box-sizing: border-box; width: 100%; min-height: 42px; }
+    .parts-filter-count { margin: 9px 2px 0; color: var(--text-muted); font-size: .8rem; }
+    .part-description { max-width: 320px; white-space: normal; color: var(--text-muted); font-size: .82rem; }
+    .part-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .part-delete-btn { color: #ff8a80; }
 
     .suppliers-checklist { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 8px; padding: 8px; }
     .supplier-check-row { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
@@ -63,46 +70,94 @@
     .markup-control { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .markup-control input { width: 90px; }
 
-    .icon-picker, .icon-option, .part-icon-badge { display: none !important; } /* icons retired in favor of photos */
     .stock-low { color: #c0392b; font-weight: 600; }
     .stock-ok { color: var(--text-muted); }
     .margin-badge { font-size: 0.75rem; color: #2e7d32; }
     .restock-modal-actions { display: flex; gap: 8px; margin-top: 14px; }
     .restock-modal-actions .btn { flex: 1; }
+    .shop-quick-access {
+      position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 10px;
+      width: min(1500px, 100% - clamp(28px, 8vw, 116px)); margin: -10px auto 28px;
+      padding: 14px; border: 1px solid rgba(31,196,103,.25); border-radius: 16px;
+      background: linear-gradient(160deg, rgba(20,30,27,.97), rgba(12,18,16,.99));
+      box-shadow: 0 12px 28px rgba(0,0,0,.22);
+    }
+    .shop-quick-access .btn { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; }
+    .shop-quick-access .btn svg { width: 17px; height: 17px; }
+    .shop-quick-access a { text-decoration: none; }
+    #shop-add-part, #shop-reorder, #shop-catalogue, #shop-quick-sale, #shop-restocks { scroll-margin-top: 20px; }
+    @media (max-width: 720px) {
+      .shop-quick-access { width: calc(100% - 28px); margin: -8px auto 22px; padding: 10px; }
+      .shop-quick-access .btn { flex: 1 1 calc(50% - 10px); justify-content: center; }
+      .parts-filter-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      #parts-clear-filters { grid-column: 1 / -1; }
+    }
+    @media (max-width: 460px) { .parts-filter-row { grid-template-columns: 1fr; } #parts-clear-filters { grid-column: auto; } }
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
+
+  <style id="shop-theme">
+    /* The dashboard design is dark, so the Shop's light-theme colours are re-tuned here (colours only). */
+    body.dashboard-page .alert-card { background: linear-gradient(160deg, rgba(20,30,27,.96), rgba(12,18,16,.98)); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; color: var(--text); box-shadow: 0 18px 36px rgba(0,0,0,.28); }
+    body.dashboard-page .alert-card h4 { color: var(--muted); font-size: .76rem; letter-spacing: .1em; }
+    body.dashboard-page .alert-card h4 svg { width: 18px; height: 18px; color: var(--green-bright); }
+    body.dashboard-page .alert-row { border-bottom: 1px solid rgba(255,255,255,.07); }
+    body.dashboard-page .suppliers-checklist { border-color: var(--line); background: rgba(10,16,13,.5); border-radius: 12px; }
+    body.dashboard-page .stock-low { color: #ff8a80; }
+    body.dashboard-page .stock-ok { color: var(--muted); }
+    body.dashboard-page .margin-badge { color: var(--green-bright); }
+    body.dashboard-page .star-btn { color: #5b6762; }
+    body.dashboard-page .star-btn.active { color: #ffb020; }
+    body.dashboard-page .supplier-chip { background: rgba(255,255,255,.08); }
+    body.dashboard-page .supplier-chip.preferred { background: rgba(255,122,18,.18); color: #ffb070; }
+    body.dashboard-page .markup-control label { color: var(--muted); }
+    body.dashboard-page .markup-control input { width: 90px; }
+    body.dashboard-page .stock-summary-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    @media (max-width: 760px) {
+      #quick-sale-form .form-grid { grid-template-columns: 1fr !important; }
+      #part-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .parts-filter-row { grid-template-columns: 1fr; }
+      .shop-inventory-layout { grid-template-columns: 1fr; }
+      .shop-inventory-layout .stock-summary-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      #part-form-grid { grid-template-columns: 1fr; }
+      #part-form-grid > .field[style*="grid-column"] { grid-column: 1 / -1 !important; }
+    }
+  </style>
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page">
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link active" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+          <a class="nav-link active" href="shop.html" data-level="2" aria-current="page"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
           <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
           <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -115,27 +170,43 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
       </div>
     </aside>
 
-    <main class="main">
-      <div class="main__header">
+    <main class="main" id="shop-root">
+      <header class="main__header dashboard-hero">
         <div>
           <p class="section-kicker">Inventory and margin control</p>
           <h1>Parts Shop</h1>
           <p class="page-intro">Manage spare-parts inventory, supplier costs, selling prices and stock used for vehicle repairs and servicing.</p>
         </div>
+      </header>
+
+      <div class="markup-control shop-markup-control">
+        <strong>Markup rate</strong>
+        <input type="number" id="markup-rate-input" step="0.1" min="0" aria-label="Markup rate percentage" />
+        <span>%</span>
+        <button id="save-markup-btn" type="button" class="btn"><i data-lucide="check"></i> Save Rate</button>
+        <button id="apply-markup-all-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Apply to All Existing Parts</button>
       </div>
+
+      <nav class="shop-quick-access" aria-label="Shop quick access">
+        <a class="btn btn--primary" href="#shop-add-part"><i data-lucide="package-plus"></i> Add Part</a>
+        <a class="btn" href="#shop-quick-sale"><i data-lucide="shopping-bag"></i> Quick Sale</a>
+        <a class="btn" href="#shop-catalogue"><i data-lucide="package"></i> Parts Catalogue</a>
+        <a class="btn" href="#shop-reorder"><i data-lucide="sparkles"></i> Reorder Suggestions</a>
+        <a class="btn" href="#shop-restocks"><i data-lucide="history"></i> Restock History</a>
+      </nav>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Needs attention</p><h2><i class="section-heading-icon" data-lucide="bell"></i>Alerts</h2></div></div>
@@ -151,7 +222,7 @@
         </div>
       </section>
 
-      <section class="page-section">
+      <section class="page-section" id="shop-reorder">
         <div class="section-heading"><div><p class="section-kicker">Based on how fast things actually move</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Smart Reorder Suggestions</h2></div><button id="reorder-suggest-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Suggestions</button></div>
         <div class="panel" style="padding:20px;">
           <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Weighs total historical usage (repairs + sales) against current stock — not just a flat "below 3 units" rule.</p>
@@ -159,48 +230,64 @@
         </div>
       </section>
 
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Cost, price, and opening stock</span></div>
+      <div class="shop-inventory-layout page-section">
+      <section class="page-section" id="shop-add-part">
+        <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Quantity, model, details and VAT-inclusive pricing</span></div>
         <form id="part-form" class="panel" style="padding:20px; margin-bottom:24px;">
-        <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+        <div id="part-form-grid" class="form-grid" style="max-width:none;">
           <div class="field">
-            <label>Part Name</label>
-            <input type="text" id="part-name" placeholder="e.g. Brake Pads" required />
-          </div>
-          <div class="field">
-            <label>Category</label>
-            <input type="text" id="part-category" placeholder="e.g. Brakes" />
-          </div>
-          <div class="field">
-            <label>Quantity in Stock</label>
+            <label for="part-qty">Quantity</label>
             <input type="number" id="part-qty" min="0" placeholder="e.g. 10" required />
           </div>
           <div class="field">
-            <label>Cost per Unit ($)</label>
+            <label for="part-minimum-stock">Low-stock minimum</label>
+            <input type="number" id="part-minimum-stock" min="0" step="0.01" value="0" required />
+            <small class="section-note">Alert when stock reaches 10% of this level.</small>
+          </div>
+          <div class="field">
+            <label for="part-name">Model</label>
+            <input type="text" id="part-name" placeholder="e.g. Toyota Corolla 1.6" required />
+          </div>
+          <div class="field">
+            <label for="part-number">Part number (optional)</label>
+            <input type="text" id="part-number" placeholder="e.g. ABC-1234" />
+          </div>
+          <div class="field">
+            <label for="part-description">Description</label>
+            <textarea id="part-description" rows="2" placeholder="Part details, fitment or notes"></textarea>
+          </div>
+          <div class="field">
+            <label for="part-cost">Cost per Unit ($)</label>
             <input type="number" id="part-cost" step="0.01" min="0" placeholder="What you pay" required />
           </div>
           <div class="field">
-            <label>Selling Price ($) — <span id="part-markup-label">15%</span> markup</label>
-            <input type="number" id="part-price" step="0.01" min="0" placeholder="Calculated from cost" readonly required />
+            <label for="part-price">Price + VAT ($)</label>
+            <input class="part-price-output" type="number" id="part-price" step="0.01" min="0" placeholder="Calculated from cost, markup and VAT" readonly required />
+            <label for="part-vat-rate">VAT rate</label>
+            <select id="part-vat-rate" required>
+              <option value="5" selected>5%</option>
+            </select>
           </div>
-          <div></div>
-          <div class="field" style="grid-column: span 3;">
-            <label>Suppliers (check all that can supply this part — ★ marks the preferred one)</label>
+          <div class="field" style="grid-column: span 2;">
+            <label for="part-category">Category</label>
+            <select id="part-category" required>
+              <option value="Suspension">Suspension</option>
+              <option value="Body Parts">Body Parts</option>
+              <option value="Engine Parts">Engine Parts</option>
+              <option value="Interior">Interior</option>
+              <option value="Auto Electrical Parts">Auto Electrical Parts</option>
+              <option value="Air Bags">Air Bags</option>
+              <option value="Other" selected>Other</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column: span 2;">
+            <label>Suppliers (optional — check all that can supply this part; ★ marks the preferred one)</label>
             <div id="part-suppliers-list" class="suppliers-checklist"></div>
+            <small class="section-note">You can add this part without a registered supplier and link suppliers later.</small>
           </div>
-          <div class="field" style="grid-column: span 3;">
-            <label>Photo</label>
-            <div class="part-image-field">
-              <img id="part-image-preview" class="part-image-preview" src="" alt="" />
-              <div style="flex:1;">
-                <div class="image-search-row">
-                  <button type="button" id="part-image-search-btn" class="btn"><i data-lucide="search"></i> Search Google Images</button>
-                  <input type="url" id="part-image-url" placeholder="Or paste an image URL directly" />
-                </div>
-                <div id="part-image-results" class="image-results"></div>
-              </div>
-            </div>
-          </div>
+          <div class="field"><label for="part-purchase-supplier">Supplier for this stock</label><select id="part-purchase-supplier"><option value="">Select supplier…</option></select></div>
+          <div class="field"><label for="part-payment-status">Stock payment</label><select id="part-payment-status"><option value="paid">Paid now</option><option value="on_credit">Buy on credit</option></select></div>
+          <div class="field" id="part-payment-account-field"><label for="part-payment-account">Paid from</label><select id="part-payment-account"><option value="">Select cash or bank account…</option></select></div>
         </div>
         <div style="margin-top:14px;">
           <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add Part</button>
@@ -214,30 +301,40 @@
           <div class="stat-card"><div class="stat-card__label">Total Units</div><div class="stat-card__value" id="shop-total-units">—</div></div>
           <div class="stat-card"><div class="stat-card__label">Stock Value at Cost</div><div class="stat-card__value" id="shop-cost-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-cost-value-zig"></div></div>
           <div class="stat-card"><div class="stat-card__label">Stock Value at Selling Price</div><div class="stat-card__value" id="shop-retail-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-retail-value-zig"></div></div>
-        </div>
-        <div class="markup-control">
-          <label style="font-size:.85rem;">Markup rate:</label>
-          <input type="number" id="markup-rate-input" step="0.1" min="0" />
-          <span>%</span>
-          <button id="save-markup-btn" type="button" class="btn"><i data-lucide="check"></i> Save Rate</button>
-          <button id="apply-markup-all-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Apply to All Existing Parts</button>
+          <div class="stat-card"><div class="stat-card__label">Units Sold</div><div class="stat-card__value" id="shop-units-sold">—</div></div>
+          <div class="stat-card"><div class="stat-card__label">Sales Value</div><div class="stat-card__value" id="shop-sales-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-sales-value-zig"></div></div>
         </div>
       </section>
+      </div>
 
-      <section class="page-section">
+      <section class="page-section" id="shop-catalogue">
         <div class="section-heading"><div><p class="section-kicker">Stock ledger</p><h2><i class="section-heading-icon" data-lucide="package"></i>Parts Catalogue</h2></div><span class="section-note">Margin and stock health</span></div>
-        <div class="panel" style="padding:12px 16px; margin-bottom:12px;">
-          <input type="text" id="parts-search" placeholder="Search parts by name or category…" style="width:100%;" />
+        <div class="panel parts-filter-panel" style="padding:12px 16px; margin-bottom:12px;">
+          <div class="parts-filter-row">
+            <label class="parts-search-field" for="parts-search">
+              <span>Search parts</span>
+              <input type="search" id="parts-search" placeholder="Part number, model, description or category…" autocomplete="off" />
+            </label>
+            <label class="parts-category-field" for="parts-category-filter">
+              <span>Category</span>
+              <select id="parts-category-filter" aria-label="Filter parts by category">
+                <option value="">All categories</option>
+              </select>
+            </label>
+            <button id="parts-clear-filters" type="button" class="btn">Clear filters</button>
+          </div>
+          <p id="parts-filter-count" class="parts-filter-count" aria-live="polite"></p>
         </div>
         <div class="panel">
         <table>
           <thead>
             <tr>
-              <th></th>
-              <th>Name</th>
+              <th>Model</th>
+              <th>Part Number</th>
+              <th>Description</th>
               <th>Category</th>
               <th>Cost</th>
-              <th>Price</th>
+              <th>Price + VAT</th>
               <th>Margin</th>
               <th>Stock</th>
               <th>Suppliers</th>
@@ -245,13 +342,13 @@
             </tr>
           </thead>
           <tbody id="parts-table">
-            <tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+            <tr><td colspan="10" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
           </tbody>
         </table>
         </div>
       </section>
 
-      <section class="page-section">
+      <section class="page-section" id="shop-quick-sale">
         <div class="section-heading"><div><p class="section-kicker">Walk-in counter sale</p><h2><i class="section-heading-icon" data-lucide="shopping-bag"></i>Quick Sale</h2></div><span class="section-note">Deducts stock, credits a salesperson, issues a receipt</span></div>
         <form id="quick-sale-form" class="panel" style="padding:20px;">
           <div class="form-grid" style="max-width:none; grid-template-columns: repeat(4, 1fr);">
@@ -266,13 +363,18 @@
         </form>
       </section>
 
-      <section class="page-section">
+      <section class="page-section" id="shop-restocks">
         <div class="section-heading"><div><p class="section-kicker">Purchase history</p><h2><i class="section-heading-icon" data-lucide="history"></i>Recent Restocks</h2></div><span class="section-note">Audit trail of stock purchases</span></div>
         <div class="panel"><table>
-          <thead><tr><th>Part</th><th>Supplier</th><th>Quantity</th><th>Unit Cost</th><th>Date</th></tr></thead>
-          <tbody id="restocks-table"><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          <thead><tr><th>Part</th><th>Supplier</th><th>Quantity</th><th>Unit Cost</th><th>Invoice</th><th>Payment</th><th>Date</th></tr></thead>
+          <tbody id="restocks-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
         </table></div>
       </section>
+
+      <footer class="site-foot">
+        <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
     </main>
   </div>
 
@@ -282,6 +384,10 @@
       <div class="field"><label for="restock-supplier">Supplier</label><select id="restock-supplier"></select></div>
       <div class="field"><label for="restock-quantity">Quantity</label><input type="number" id="restock-quantity" min="1" required /></div>
       <div class="field"><label for="restock-unit-cost">Unit Cost ($)</label><input type="number" id="restock-unit-cost" step="0.01" min="0" required /></div>
+      <div class="field"><label for="restock-payment-status">Purchase payment</label><select id="restock-payment-status"><option value="paid">Paid now</option><option value="on_credit">Buy on credit</option></select></div>
+      <div class="field" id="restock-payment-account-field"><label for="restock-payment-account">Paid from</label><select id="restock-payment-account"></select></div>
+      <p id="restock-invoice-note" class="section-note">Paid purchases are posted to cash/bank. Credit purchases create a supplier invoice in Payables.</p>
+      <p id="restock-message" class="form-message" role="status"></p>
       <div class="restock-modal-actions">
         <button id="restock-save" type="button" class="btn btn--primary"><i data-lucide="package-plus"></i> Save Restock</button>
         <button id="restock-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
@@ -292,27 +398,34 @@
   <div id="edit-part-modal" class="modal-overlay hidden">
     <div class="modal" style="max-width:460px;">
       <h3>Edit Part</h3>
-      <div class="field"><label>Name</label><input type="text" id="edit-part-name" /></div>
-      <div class="field"><label>Category</label><input type="text" id="edit-part-category" /></div>
-      <div class="field"><label>Quantity in Stock</label><input type="number" id="edit-part-qty" min="0" /></div>
+      <div class="field"><label>Quantity</label><input type="number" id="edit-part-qty" min="0" /></div>
+      <div class="field"><label for="edit-part-minimum-stock">Low-stock minimum</label><input type="number" id="edit-part-minimum-stock" min="0" step="0.01" /></div>
+      <div class="field"><label>Model</label><input type="text" id="edit-part-name" /></div>
+      <div class="field"><label for="edit-part-number">Part number (optional)</label><input type="text" id="edit-part-number" /></div>
+      <div class="field"><label>Description</label><textarea id="edit-part-description" rows="2"></textarea></div>
       <div class="field"><label>Cost per Unit ($)</label><input type="number" id="edit-part-cost" step="0.01" min="0" /></div>
-      <div class="field"><label>Selling Price ($) — <span id="edit-part-markup-label">15%</span> markup</label><input type="number" id="edit-part-price" step="0.01" min="0" readonly /></div>
+      <div class="field">
+        <label>Price + VAT ($)</label><input type="number" id="edit-part-price" step="0.01" min="0" readonly />
+        <label for="edit-part-vat-rate">VAT rate</label>
+        <select id="edit-part-vat-rate" required>
+          <option value="5">5%</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="edit-part-category">Category</label>
+        <select id="edit-part-category" required>
+          <option value="Suspension">Suspension</option>
+          <option value="Body Parts">Body Parts</option>
+          <option value="Engine Parts">Engine Parts</option>
+          <option value="Interior">Interior</option>
+          <option value="Auto Electrical Parts">Auto Electrical Parts</option>
+          <option value="Air Bags">Air Bags</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
       <div class="field">
         <label>Suppliers (★ = preferred)</label>
         <div id="edit-part-suppliers-list" class="suppliers-checklist"></div>
-      </div>
-      <div class="field">
-        <label>Photo</label>
-        <div class="part-image-field">
-          <img id="edit-part-image-preview" class="part-image-preview" src="" alt="" />
-          <div style="flex:1;">
-            <div class="image-search-row">
-              <button type="button" id="edit-part-image-search-btn" class="btn"><i data-lucide="search"></i> Search</button>
-              <input type="url" id="edit-part-image-url" placeholder="Or paste an image URL" />
-            </div>
-            <div id="edit-part-image-results" class="image-results"></div>
-          </div>
-        </div>
       </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button id="edit-part-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
@@ -328,8 +441,6 @@
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/shop.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <div id="image-lightbox" class="modal-overlay hidden" style="cursor:zoom-out;">
-    <img id="image-lightbox-img" src="" alt="" style="max-width:90vw; max-height:90vh; border-radius:12px; object-fit:contain;" />
-  </div>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

@@ -2,17 +2,21 @@
 import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 import { hydrate } from "./data-cache.js";
+import { confirmTypedDelete } from "./bulk-delete.js";
 
+const $ = (id) => document.getElementById(id);
 
 const tableBody = $("repairs-table");
 const form = $("job-form");
 const customerSelect = $("job-customer");
 const jobPlateSelect = $("job-plate");
+const newPlateField = $("job-new-plate-field");
 
 // ---- Job card (view / update) elements ----
 const modal = $("edit-modal");
 const editJobNumber = $("edit-job-number");
 const editStatus = $("edit-status");
+const editWorkReady = $("edit-work-ready");
 const editDiagnosis = $("edit-diagnosis");
 const editLabour = $("edit-labour");
 const editParts = $("edit-parts");
@@ -40,6 +44,9 @@ const applyParkingFeeBtn = $("apply-parking-fee");
 const editRateTier = $("edit-rate-tier");
 const editHours = $("edit-hours");
 const incidentalAddBtn = $("incidental-add");
+const paymentAmountInput = $("job-payment-amount");
+const paymentMethodSelect = $("job-payment-method");
+const recordPaymentBtn = $("job-record-payment");
 
 // ---- New job card (intake) elements ----
 const newRateTier = $("job-rate-tier");
@@ -52,6 +59,7 @@ const formMessage = $("job-form-message");
 
 let currentEditJobId = null;
 let currentEditJob = null;
+let currentJobPaid = null;
 let newlyCreatedJobId = null;
 let cachedRate = null;
 let customersList = [];          // [{ id, full_name, phone, email, customer_type, vehicles: [...] }]
@@ -65,7 +73,6 @@ let techNamesById = {};
 let businessInfo = null;
 
 // Intake state
-let ownerType = "individual";    // "individual" | "company"
 let stagedParts = [];            // [{ part_id, name, price, qty }]
 let stagedIncidentals = [];      // [{ description, amount }]
 let tierTouched = false;         // staff picked a tier by hand → stop auto-detecting from make
@@ -78,27 +85,115 @@ let cardIncidentalsTotal = 0;
 
 // Only these show up in the day-to-day status dropdown. "Collected" is
 // reached only via the dedicated "Mark as Collected" button.
-const STATUS_LIST = ["Received", "Diagnosing", "Ready for Pickup", "Unclaimed"];
+const STATUS_LIST = ["Draft", "Processing", "Processed", "Received", "Diagnosing", "Ready for Pickup", "Unclaimed"];
 const TERMINAL_STATUS = "Collected";
-const NEW_VALUE = "__new";
-
 const PARKING_GRACE_DAYS = 7;
 const PARKING_FEE_PER_DAY = 3;
 
 const money = (n) => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // =====================================================================
-// Labour charges (vehicle rate tiers) — managed in Settings → Labour charges
+// Labour charges (vehicle rate tiers)
 // =====================================================================
 async function loadRateTiers() {
-  const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
-  if (error) { console.error("Error loading rate tiers:", error); return; }
-  rateTiers = data || [];
+  const table = $("tiers-table");
+  try {
+    const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
+    if (error) throw error;
+    rateTiers = (data || []).filter(t => t.is_active !== false);
+  } catch (error) {
+    console.error("Error loading rate tiers:", error);
+    const message = escapeHtml(error?.message || String(error));
+    if (table) table.innerHTML = `<tr><td colspan="5" class="empty-state">Couldn't load vehicle rates: ${message}</td></tr>`;
+    if (editRateTier) editRateTier.innerHTML = `<option value="">Couldn't load vehicle rates</option>`;
+    if (newRateTier) newRateTier.innerHTML = `<option value="">Couldn't load vehicle rates</option>`;
+    return;
+  }
   const options = rateTiers.map(t => `<option value="${t.id}">${escapeHtml(t.tier_name)} — ${money(t.hourly_rate)}/hr</option>`).join("");
   if (editRateTier) editRateTier.innerHTML = options || `<option value="">No labour charges set — add them in Settings</option>`;
   if (newRateTier) newRateTier.innerHTML = options || `<option value="">No labour charges set — add them in Settings</option>`;
+  if (table) {
+    table.innerHTML = rateTiers.length ? rateTiers.map(t => `
+      <tr>
+        <td>${escapeHtml(t.tier_name)}</td>
+        <td>${money(t.hourly_rate)}/hr</td>
+        <td>${escapeHtml((t.makes || []).join(", ") || "Manual selection")}</td>
+        <td>${t.is_default ? "Default" : "—"}</td>
+        <td></td>
+      </tr>`).join("") : `<tr><td colspan="5" class="empty-state">No vehicle rates yet. Add a tier above.</td></tr>`;
+  }
   autoPickNewTier();
 }
+
+$("tier-form")?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const nameInput = $("tier-name");
+  const rateInput = $("tier-rate");
+  const makesInput = $("tier-makes");
+  const defaultInput = $("tier-default");
+  const message = $("tier-form-message");
+  const tier_name = nameInput.value.trim();
+  const hourly_rate = Number(rateInput.value);
+  const makes = makesInput.value.split(",").map(make => make.trim()).filter(Boolean);
+  if (!tier_name) {
+    message.textContent = "Enter a name for the vehicle rate.";
+    return;
+  }
+  if (rateInput.value === "" || !Number.isFinite(hourly_rate) || hourly_rate < 0) {
+    message.textContent = "Enter a valid hourly rate.";
+    return;
+  }
+  if (rateTiers.some(t => t.tier_name.toLowerCase() === tier_name.toLowerCase())) {
+    message.textContent = "A vehicle rate with that name already exists.";
+    return;
+  }
+
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "Adding…";
+  message.textContent = "";
+  const is_default = defaultInput.checked || rateTiers.length === 0;
+  const previousDefault = rateTiers.find(tier => tier.is_default);
+  let defaultCleared = false;
+  if (is_default && previousDefault) {
+    const { error } = await supabase.from("vehicle_rate_tiers").update({ is_default: false }).eq("is_default", true);
+    if (error) {
+      button.disabled = false;
+      button.innerHTML = '<i data-lucide="plus"></i> Add Tier';
+      if (window.lucide) lucide.createIcons();
+      message.textContent = `Couldn't change the default vehicle rate: ${error.message}`;
+      return;
+    }
+    defaultCleared = true;
+  }
+  const sort_order = rateTiers.reduce((max, tier) => Math.max(max, tier.sort_order || 0), 0) + 1;
+  const { error } = await supabase.from("vehicle_rate_tiers").insert([{
+    tier_name,
+    hourly_rate,
+    makes,
+    is_default,
+    sort_order
+  }]);
+  button.disabled = false;
+  button.innerHTML = '<i data-lucide="plus"></i> Add Tier';
+  if (window.lucide) lucide.createIcons();
+  if (error) {
+    let restoreMessage = "";
+    if (defaultCleared) {
+      const { error: restoreError } = await supabase.from("vehicle_rate_tiers").update({ is_default: true }).eq("id", previousDefault.id);
+      if (restoreError) {
+        console.error("Couldn't restore the previous default vehicle rate:", restoreError);
+        restoreMessage = ` The previous default also couldn't be restored: ${restoreError.message}`;
+      }
+    }
+    message.textContent = `Couldn't add vehicle rate: ${error.message}${restoreMessage}`;
+    return;
+  }
+  form.reset();
+  message.textContent = `${tier_name} added.`;
+  await loadRateTiers();
+});
 
 // Case-insensitive match against each tier's makes list; falls back to the
 // default tier if nothing matches (or the first tier at all).
@@ -137,11 +232,17 @@ async function updateZigDisplay() {
   setText("jc-t-parts", money(parts));
   setText("jc-t-inc", money(cardIncidentalsTotal));
   setText("jc-t-total", money(total));
+  if (currentEditJobId) {
+    setText("job-payment-summary", Number.isFinite(currentJobPaid)
+      ? `Total ${money(total)} · Paid ${money(currentJobPaid)} · Balance ${money(Math.max(0, total - currentJobPaid))}`
+      : "Payment balance unavailable");
+  }
   if (!zigTotal) return;
   const rate = await getRate();
   zigTotal.textContent = `≈ ZiG ${(total * rate).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 editLabour?.addEventListener("input", updateZigDisplay);
+editParts?.addEventListener("input", updateZigDisplay);
 
 function setText(id, text) { const el = $(id); if (el) el.textContent = text; }
 
@@ -179,13 +280,11 @@ async function loadCustomers(selectId = null, selectVehicleId = null) {
 }
 
 function renderCustomerOptions(selectId = null, selectVehicleId = null) {
-  const isCompany = ownerType === "company";
-  const list = customersList.filter(c => (c.customer_type === "company") === isCompany);
   customerSelect.innerHTML =
-    `<option value="" disabled ${selectId ? "" : "selected"}>${isCompany ? "Select a company…" : "Select a customer…"}</option>` +
-    `<option value="${NEW_VALUE}">＋ Add a new ${isCompany ? "company" : "customer"}</option>` +
-    list.map(c => `<option value="${c.id}">${escapeHtml(c.full_name)}${c.phone ? ` — ${escapeHtml(c.phone)}` : ""}</option>`).join("");
-  if (selectId && list.some(c => c.id === selectId)) {
+    `<option value="" disabled ${selectId ? "" : "selected"}>Select a customer…</option>` +
+    customersList.map(c => `<option value="${c.id}">${escapeHtml(c.full_name)}${c.phone ? ` — ${escapeHtml(c.phone)}` : ""}</option>`).join("") +
+    `<option value="__new_customer__">Register a new customer…</option>`;
+  if (selectId && customersList.some(c => c.id === selectId)) {
     customerSelect.value = selectId;
     onCustomerChange(selectVehicleId);
   } else {
@@ -193,67 +292,55 @@ function renderCustomerOptions(selectId = null, selectVehicleId = null) {
   }
 }
 
-function setOwnerType(type) {
-  ownerType = type;
-  document.querySelectorAll(".jc-seg button").forEach(b => {
-    const on = b.dataset.owner === type;
-    b.classList.toggle("on", on);
-    b.setAttribute("aria-checked", String(on));
-  });
-  setText("job-customer-label", type === "company" ? "Company *" : "Customer *");
-  setText("new-customer-title", type === "company" ? "New company" : "New customer");
-  setText("new-cust-name-label", type === "company" ? "Company name *" : "Full name *");
-  $("driver-box")?.classList.toggle("hidden", type !== "company");
-  renderCustomerOptions();
-}
-document.querySelectorAll(".jc-seg button").forEach(b => b.addEventListener("click", () => setOwnerType(b.dataset.owner)));
-
 function selectedCustomer() {
   return customersList.find(c => c.id === customerSelect.value) || null;
 }
 
 function onCustomerChange(selectVehicleId = null) {
   const value = customerSelect.value;
-  const isNew = value === NEW_VALUE;
-  $("new-customer-box")?.classList.toggle("hidden", !isNew);
+  $("new-customer-box")?.classList.toggle("hidden", value !== "__new_customer__");
+  if (value === "__new_customer__") {
+    jobPlateSelect.disabled = false;
+    jobPlateSelect.innerHTML = `<option value="__new_vehicle__">Register a new vehicle…</option>`;
+    jobPlateSelect.value = "__new_vehicle__";
+    onVehicleChange();
+    return;
+  }
   if (!value) {
-    jobPlateSelect.innerHTML = `<option value="">Select a ${ownerType === "company" ? "company" : "customer"} first…</option>`;
+    jobPlateSelect.innerHTML = `<option value="">Select a customer first…</option>`;
     jobPlateSelect.disabled = true;
-    showNewPlate(false);
+    newPlateField?.classList.add("hidden");
     clearVehicleFields();
     return;
   }
-  const vehicles = isNew ? [] : (selectedCustomer()?.vehicles || []);
+  const vehicles = selectedCustomer()?.vehicles || [];
   jobPlateSelect.disabled = false;
   jobPlateSelect.innerHTML =
+    `<option value="">Select a registered vehicle…</option>` +
     vehicles.map(v => {
       const label = [v.make, v.model].filter(Boolean).join(" ");
       return `<option value="${v.id}">${escapeHtml(v.license_plate || "No plate")}${label ? ` — ${escapeHtml(label)}` : ""}</option>`;
     }).join("") +
-    `<option value="${NEW_VALUE}">＋ Register a new vehicle</option>`;
+    `<option value="__new_vehicle__">Register a new vehicle…</option>`;
   if (selectVehicleId && vehicles.some(v => v.id === selectVehicleId)) jobPlateSelect.value = selectVehicleId;
-  else jobPlateSelect.value = vehicles.length ? vehicles[0].id : NEW_VALUE;
+  else jobPlateSelect.value = "";
   onVehicleChange();
 }
 customerSelect.addEventListener("change", () => onCustomerChange());
 
 function onVehicleChange() {
-  const isNew = jobPlateSelect.value === NEW_VALUE;
-  showNewPlate(isNew);
-  if (isNew) { clearVehicleFields(); return; }
+  const isNewVehicle = jobPlateSelect.value === "__new_vehicle__";
+  newPlateField?.classList.toggle("hidden", !isNewVehicle);
   const vehicle = (selectedCustomer()?.vehicles || []).find(v => v.id === jobPlateSelect.value);
-  autofillVehicleFields(vehicle);
+  if (vehicle) autofillVehicleFields(vehicle);
+  else clearVehicleFields();
 }
 jobPlateSelect.addEventListener("change", onVehicleChange);
-
-function showNewPlate(show) {
-  $("new-plate-field")?.classList.toggle("hidden", !show);
-  if (!show && $("job-new-plate")) $("job-new-plate").value = "";
-}
 
 function clearVehicleFields() {
   $("job-body-type").value = "Sedan";
   ["job-make", "job-model", "job-year", "job-chassis", "job-engine"].forEach(id => { $(id).value = ""; });
+  if ($("job-new-plate")) $("job-new-plate").value = "";
   autoPickNewTier();
 }
 
@@ -331,6 +418,8 @@ $("new-inc-add")?.addEventListener("click", () => {
 function renderStaged() {
   const partsEl = $("new-parts-list");
   const incEl = $("new-inc-list");
+  if (!partsEl || !incEl) return;
+
   partsEl.innerHTML = stagedParts.length ? stagedParts.map((p, i) => `
     <div class="jc-line"><span>${escapeHtml(p.name)} <em>× ${p.qty}</em></span><b>${money(p.price * p.qty)}</b>
     <button type="button" class="btn jc-rm" data-kind="part" data-i="${i}" aria-label="Remove ${escapeHtml(p.name)}"><i data-lucide="x"></i></button></div>`).join("")
@@ -373,7 +462,7 @@ function showFormMessage(text, tone = "error") {
 // A mechanic can work on several job cards at once; this just counts how
 // many open ones each has so the dropdown can show it.
 async function refreshBusyMechanics() {
-  const { data: openJobs } = await supabase.from("repair_jobs").select("technician_id").not("technician_id", "is", null).not("status", "in", '("Ready for Pickup","Unclaimed","Collected")');
+  const { data: openJobs } = await supabase.from("repair_jobs").select("technician_id").not("technician_id", "is", null).not("status", "in", '("Processed","Ready for Pickup","Unclaimed","Collected")');
   const counts = {};
   (openJobs || []).forEach(j => { counts[j.technician_id] = (counts[j.technician_id] || 0) + 1; });
   mechanicsList = mechanicsList.map(m => ({ ...m, openJobs: counts[m.id] || 0 }));
@@ -420,13 +509,19 @@ async function loadJobParts(jobId) {
 
   jobPartsList.innerHTML = cardParts.length ? cardParts.map(jp => `
     <div class="jc-line" data-jp-id="${jp.id}">
+      <label class="jc-delete-select"><input type="checkbox" class="job-part-select-checkbox" value="${jp.id}" aria-label="Select ${escapeHtml(jp.part_name)}" /> Select</label>
       <span>${escapeHtml(jp.part_name)} <em>× ${jp.quantity}</em></span><b>${money(jp.price_at_time * jp.quantity)}</b>
       <button type="button" class="btn jc-rm remove-job-part-btn" data-jp-id="${jp.id}" aria-label="Remove part"><i data-lucide="x"></i></button>
     </div>`).join("") : `<div class="jc-empty">No parts added yet</div>`;
 
   jobPartsList.querySelectorAll(".remove-job-part-btn").forEach(btn => {
-    btn.addEventListener("click", () => removeJobPart(btn.dataset.jpId, jobId));
+    btn.addEventListener("click", async () => {
+      try { await removeJobPart(btn.dataset.jpId, jobId); }
+      catch (error) { alert("Couldn't remove this part: " + error.message); }
+    });
   });
+  jobPartsList.querySelectorAll(".job-part-select-checkbox").forEach(input => input.addEventListener("change", updateJobPartDeleteControls));
+  updateJobPartDeleteControls();
   if (window.lucide) lucide.createIcons();
   applyCollectedLock(currentEditJob?.status === TERMINAL_STATUS);
   recalcPartsCost();
@@ -438,22 +533,75 @@ function recalcPartsCost() {
   updateZigDisplay();
 }
 
-async function removeJobPart(jobPartId, jobId) {
+async function removeJobPart(jobPartId, jobId, { confirm = true, refresh = true } = {}) {
   if (currentEditJob?.status === TERMINAL_STATUS) {
-    alert("This vehicle has been collected. Parts can no longer be changed.");
-    return;
+    throw new Error("This vehicle has been collected. Parts can no longer be changed.");
   }
-  const { data: jp } = await supabase.from("job_parts").select("part_id, quantity").eq("id", jobPartId).single();
+  if (confirm && !(await confirmTypedDelete("this part from the job card"))) return false;
+  const { data: jp, error: partUseError } = await supabase.from("job_parts").select("part_id, quantity").eq("id", jobPartId).single();
+  if (partUseError) throw partUseError;
   if (jp?.part_id) {
-    const { data: part } = await supabase.from("parts").select("quantity_in_stock").eq("id", jp.part_id).single();
+    const { data: part, error: stockReadError } = await supabase.from("parts").select("quantity_in_stock").eq("id", jp.part_id).single();
+    if (stockReadError) throw stockReadError;
     if (part) {
-      await supabase.from("parts").update({ quantity_in_stock: part.quantity_in_stock + jp.quantity }).eq("id", jp.part_id);
+      const { error: stockUpdateError } = await supabase.from("parts").update({ quantity_in_stock: part.quantity_in_stock + jp.quantity }).eq("id", jp.part_id);
+      if (stockUpdateError) throw stockUpdateError;
     }
   }
-  await supabase.from("job_parts").delete().eq("id", jobPartId);
-  await loadJobParts(jobId);
-  await loadPartsIntoSelect();
+  const { data: deletedParts, error: deleteError } = await supabase.from("job_parts").delete().eq("id", jobPartId).select("id");
+  if (deleteError) throw deleteError;
+  if (!deletedParts?.length) throw new Error("The part was not removed. Check your role permissions and try again.");
+  if (refresh) {
+    await loadJobParts(jobId);
+    await loadPartsIntoSelect();
+  }
+  return true;
 }
+
+function updateJobPartDeleteControls() {
+  const boxes = [...document.querySelectorAll(".job-part-select-checkbox")];
+  const selectedCount = boxes.filter(box => box.checked).length;
+  const selectAll = $("job-parts-select-all");
+  const deleteButton = $("job-parts-delete-selected");
+  if (selectAll) {
+    selectAll.checked = boxes.length > 0 && selectedCount === boxes.length;
+    selectAll.indeterminate = selectedCount > 0 && selectedCount < boxes.length;
+    selectAll.disabled = boxes.length === 0 || currentEditJob?.status === TERMINAL_STATUS;
+  }
+  if (deleteButton) {
+    deleteButton.disabled = selectedCount === 0 || currentEditJob?.status === TERMINAL_STATUS;
+    deleteButton.textContent = selectedCount ? `Remove selected (${selectedCount})` : "Remove selected";
+  }
+}
+
+$("job-parts-select-all")?.addEventListener("change", event => {
+  jobPartsList?.querySelectorAll(".job-part-select-checkbox").forEach(box => { box.checked = event.currentTarget.checked; });
+  updateJobPartDeleteControls();
+});
+
+$("job-parts-delete-selected")?.addEventListener("click", async () => {
+  const ids = [...(jobPartsList?.querySelectorAll(".job-part-select-checkbox:checked") || [])].map(box => box.value);
+  const jobId = currentEditJobId;
+  if (!ids.length || !jobId || !(await confirmTypedDelete(`${ids.length} selected job part${ids.length === 1 ? "" : "s"}`))) return;
+  const button = $("job-parts-delete-selected");
+  const message = $("job-parts-delete-message");
+  button.disabled = true;
+  let removed = 0;
+  try {
+    for (const id of ids) {
+      await removeJobPart(id, jobId, { confirm: false, refresh: false });
+      removed += 1;
+    }
+    message.textContent = `${removed} job part${removed === 1 ? "" : "s"} removed; stock and job totals refreshed.`;
+    message.dataset.tone = "";
+  } catch (error) {
+    message.textContent = `${removed} removed before an error: ${error.message || String(error)}`;
+    message.dataset.tone = "error";
+  } finally {
+    await loadJobParts(jobId);
+    await loadPartsIntoSelect();
+  }
+});
 
 jobPartAddBtn?.addEventListener("click", async () => {
   if (!currentEditJobId) return;
@@ -492,23 +640,89 @@ async function loadJobIncidentals(jobId) {
 
   list.innerHTML = cardIncidentals.length ? cardIncidentals.map(inc => `
     <div class="jc-line" data-inc-id="${inc.id}">
+      <label class="jc-delete-select"><input type="checkbox" class="incidental-select-checkbox" value="${inc.id}" aria-label="Select ${escapeHtml(inc.description)}" /> Select</label>
       <span>${escapeHtml(inc.description)}</span><b>${money(inc.amount)}</b>
       <button type="button" class="btn jc-rm remove-incidental-btn" data-inc-id="${inc.id}" aria-label="Remove incidental"><i data-lucide="x"></i></button>
     </div>`).join("") : `<div class="jc-empty">None added yet</div>`;
   list.querySelectorAll(".remove-incidental-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       if (currentEditJob?.status === TERMINAL_STATUS) return;
-      await supabase.from("job_incidentals").delete().eq("id", btn.dataset.incId);
+      if (!(await confirmTypedDelete("this incidental from the job card"))) return;
+      const { data: deleted, error: deleteError } = await supabase.from("job_incidentals").delete().eq("id", btn.dataset.incId).eq("job_id", jobId).select("id");
+      if (deleteError) { alert("Couldn't remove this incidental: " + deleteError.message); return; }
+      if (!deleted?.length) { alert("This incidental was not removed. Check your role permissions and try again."); return; }
       await loadJobIncidentals(jobId);
     });
   });
+  list.querySelectorAll(".incidental-select-checkbox").forEach(input => input.addEventListener("change", updateIncidentalDeleteControls));
+  updateIncidentalDeleteControls();
   if (window.lucide) lucide.createIcons();
   applyCollectedLock(currentEditJob?.status === TERMINAL_STATUS);
 
   cardIncidentalsTotal = cardIncidentals.reduce((sum, inc) => sum + Number(inc.amount), 0);
   updateZigDisplay();
-  await supabase.from("repair_jobs").update({ incidentals_cost: cardIncidentalsTotal }).eq("id", jobId);
+  const { error: totalError } = await supabase.from("repair_jobs").update({ incidentals_cost: cardIncidentalsTotal }).eq("id", jobId);
+  if (totalError) {
+    console.error("Couldn't update job incidental total:", totalError);
+    const message = $("incidentals-delete-message");
+    if (message) {
+      message.textContent = "Incidentals changed, but the job total couldn't be saved: " + totalError.message;
+      message.dataset.tone = "error";
+    }
+  }
 }
+
+function updateIncidentalDeleteControls() {
+  const boxes = [...document.querySelectorAll(".incidental-select-checkbox")];
+  const selectedCount = boxes.filter(box => box.checked).length;
+  const selectAll = $("incidentals-select-all");
+  const deleteButton = $("incidentals-delete-selected");
+  if (selectAll) {
+    selectAll.checked = boxes.length > 0 && selectedCount === boxes.length;
+    selectAll.indeterminate = selectedCount > 0 && selectedCount < boxes.length;
+    selectAll.disabled = boxes.length === 0 || currentEditJob?.status === TERMINAL_STATUS;
+  }
+  if (deleteButton) {
+    deleteButton.disabled = selectedCount === 0 || currentEditJob?.status === TERMINAL_STATUS;
+    deleteButton.textContent = selectedCount ? `Remove selected (${selectedCount})` : "Remove selected";
+  }
+}
+
+$("incidentals-select-all")?.addEventListener("change", event => {
+  $("incidentals-list")?.querySelectorAll(".incidental-select-checkbox").forEach(box => { box.checked = event.currentTarget.checked; });
+  updateIncidentalDeleteControls();
+});
+
+$("incidentals-delete-selected")?.addEventListener("click", async () => {
+  const ids = [...($("incidentals-list")?.querySelectorAll(".incidental-select-checkbox:checked") || [])].map(box => box.value);
+  const jobId = currentEditJobId;
+  if (!ids.length || !jobId || currentEditJob?.status === TERMINAL_STATUS || !(await confirmTypedDelete(`${ids.length} selected incidental${ids.length === 1 ? "" : "s"}`))) return;
+  const button = $("incidentals-delete-selected");
+  const message = $("incidentals-delete-message");
+  button.disabled = true;
+  const { data, error } = await supabase.from("job_incidentals").delete()
+    .in("id", ids)
+    .eq("job_id", jobId)
+    .select("id");
+  if (error) {
+    message.textContent = "Couldn't remove selected incidentals: " + error.message;
+    message.dataset.tone = "error";
+    updateIncidentalDeleteControls();
+    return;
+  }
+  if (!data?.length) {
+    message.textContent = "No incidentals were removed. Refresh the job card and try again.";
+    message.dataset.tone = "error";
+    updateIncidentalDeleteControls();
+    return;
+  }
+  const remaining = ids.length - data.length;
+  message.textContent = remaining
+    ? `${data.length} removed; ${remaining} were not found. Refreshing the job total…`
+    : `${data.length} incidental${data.length === 1 ? "" : "s"} removed; job totals refreshed.`;
+  message.dataset.tone = "";
+  await loadJobIncidentals(jobId);
+});
 
 incidentalAddBtn?.addEventListener("click", async () => {
   if (!currentEditJobId) return;
@@ -544,7 +758,7 @@ function vehicleName(v) {
 async function fetchJobsBundle() {
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
+      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
       customers ( full_name, phone, email, customer_type ),
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
     `).order("created_at", { ascending: false }),
@@ -624,7 +838,7 @@ async function loadJobs() {
 // =====================================================================
 // Mechanics' workload board — every job card each mechanic is on
 // =====================================================================
-const FINISHED = ["Ready for Pickup", "Unclaimed", "Collected"];
+const FINISHED = ["Processed", "Ready for Pickup", "Unclaimed", "Collected"];
 function renderWorkload() {
   const board = $("workload-board");
   if (!board) return;
@@ -676,7 +890,7 @@ function renderPickupCountdown(job) {
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
   if (!pickupCountdownBlock || !pickupCountdownDisplay) return;
 
-  const eligible = job.ready_at && !job.collected_at && ["Ready for Pickup", "Unclaimed"].includes(job.status);
+  const eligible = job.ready_at && !job.collected_at && ["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status);
   if (!eligible) {
     pickupCountdownBlock.classList.add("hidden");
     applyParkingFeeBtn?.classList.add("hidden");
@@ -714,32 +928,50 @@ function renderPickupCountdown(job) {
 // =====================================================================
 // Job card open / render
 // =====================================================================
-function renderCardHeader(job) {
-  const vehicle = job.vehicles || {};
-  const customer = job.customers || {};
-  editJobNumber.textContent = jobLabel(job);
-  $("job-card-customer").textContent = customer.full_name || "Customer details not recorded";
-  $("job-card-phone").textContent = customer.phone || "Not recorded";
-  $("job-card-vehicle").textContent = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ") || "Vehicle details not recorded";
-  $("job-card-plate").textContent = vehicle.license_plate || "Not recorded";
-  $("job-card-mechanic").textContent = mechanicsList.find(mechanic => mechanic.id === job.technician_id)?.full_name || "Unassigned";
-  $("job-card-engine").textContent = vehicle.engine_number || "Not recorded";
-  $("job-card-chassis").textContent = vehicle.chassis_number || "Not recorded";
-  $("job-card-concern").textContent = job.fault_reported || "No concern recorded";
-  updateJobCardStatus(job.status);
+function infoCell(label, value) {
+  return `<div><span>${label}</span><b>${value ? escapeHtml(String(value)) : `<i class="jc-none">—</i>`}</b></div>`;
 }
 
-function updateJobCardStatus(status) {
-  const meta = STATUS_META[status] || { cls: "", icon: "circle" };
-  const statusElement = $("job-card-status");
-  statusElement.className = `badge ${meta.cls}`;
-  statusElement.innerHTML = `<i data-lucide="${meta.icon}"></i> ${escapeHtml(status)}`;
-  if (window.lucide) lucide.createIcons();
+function renderCardHeader(job) {
+  const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
+  const isCompany = job.customers?.customer_type === "company";
+  editJobNumber.textContent = jobLabel(job);
+  $("jc-tags").innerHTML =
+    `<span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${escapeHtml(job.status)}</span>` +
+    `<span class="badge ${isCompany ? "badge--in-repair" : "badge--received"}"><i data-lucide="${isCompany ? "building-2" : "user"}"></i> ${isCompany ? "Company car" : "Private"}</span>` +
+    (job.created_at ? `<span class="jc-date">Opened ${new Date(job.created_at).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>` : "");
+
+  const v = job.vehicles || {};
+  const c = job.customers || {};
+  $("jc-info").innerHTML = `
+    <div class="jc-infocard">
+      <h5><i data-lucide="${isCompany ? "building-2" : "user"}"></i> ${isCompany ? "Company" : "Customer"}</h5>
+      <div class="jc-kv">
+        ${infoCell(isCompany ? "Company" : "Name", c.full_name)}
+        ${infoCell("Phone", c.phone)}
+        ${infoCell("Email", c.email)}
+        ${isCompany ? infoCell("Brought in by", [job.driver_name, job.driver_phone].filter(Boolean).join(" · ")) : ""}
+      </div>
+    </div>
+    <div class="jc-infocard">
+      <h5><i data-lucide="car"></i> Vehicle</h5>
+      <div class="jc-kv">
+        ${infoCell("Vehicle", vehicleName(v))}
+        ${infoCell("Number plate", v.license_plate)}
+        ${infoCell("Body type", v.body_type)}
+        ${infoCell("Chassis no.", v.chassis_number)}
+        ${infoCell("Engine no.", v.engine_number)}
+        ${infoCell("Fuel in", job.fuel_level_in)}
+        ${infoCell("Odometer in", job.odometer_in != null ? `${Number(job.odometer_in).toLocaleString()} km` : "")}
+      </div>
+    </div>`;
+  $("jc-fault").innerHTML = `<span><i data-lucide="message-square-warning"></i> Fault reported</span><p>${escapeHtml(job.fault_reported || "—")}</p>`;
 }
 
 async function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
+  currentJobPaid = null;
   pendingCollection = false;
   cardParts = [];
   cardIncidentals = [];
@@ -747,6 +979,7 @@ async function openEditModal(job) {
   renderCardHeader(job);
 
   editStatus.value = job.status;
+  editWorkReady.checked = Boolean(job.work_ready);
   editDiagnosis.value = job.diagnosis ?? "";
   editDiagnosisEta.value = toDatetimeLocalValue(job.diagnosis_eta);
   editLabour.value = job.labour_cost ?? 0;
@@ -771,7 +1004,7 @@ async function openEditModal(job) {
   if (editQuoteLink) editQuoteLink.href = `quotations.html?job=${encodeURIComponent(job.id)}`;
   if (editReceiptLink) {
     editReceiptLink.href = `receipts.html?job=${encodeURIComponent(job.id)}`;
-    editReceiptLink.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(job.status));
+    editReceiptLink.classList.toggle("hidden", !["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status));
   }
   if ($("edit-picked-up-by")) $("edit-picked-up-by").value = job.picked_up_by || "";
   updateZigDisplay();
@@ -781,10 +1014,11 @@ async function openEditModal(job) {
   editCollectionFields?.classList.toggle("hidden", !alreadyCollected);
   $("picked-up-by-field")?.classList.toggle("hidden", job.customers?.customer_type !== "company");
   if (editMarkCollectedBtn) {
-    editMarkCollectedBtn.classList.toggle("hidden", !["Ready for Pickup", "Unclaimed"].includes(job.status));
+    editMarkCollectedBtn.classList.toggle("hidden", !["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status));
     editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Mark as Collected';
   }
   renderPickupCountdown(job);
+  loadJobPayments(job.id);
 
   modal.classList.remove("hidden");
   modal.querySelector(".jc-mbody")?.scrollTo(0, 0);
@@ -792,13 +1026,15 @@ async function openEditModal(job) {
 }
 
 function applyCollectedLock(isCollected) {
-  [editStatus, editDiagnosis, editDiagnosisEta, editLabour, editTechnician, editOdometer, editCollectionNotes, jobPartSelect, jobPartQty, jobPartAddBtn, editHours, editRateTier].forEach(element => {
+  [editStatus, editWorkReady, editDiagnosis, editDiagnosisEta, editLabour, editTechnician, editOdometer, editCollectionNotes, jobPartSelect, jobPartQty, jobPartAddBtn, editHours, editRateTier, paymentAmountInput, paymentMethodSelect, recordPaymentBtn].forEach(element => {
     if (element) element.disabled = isCollected;
   });
   [$("incidental-desc"), $("incidental-amount"), incidentalAddBtn].forEach(element => {
     if (element) element.disabled = isCollected;
   });
   document.querySelectorAll(".remove-job-part-btn, .remove-incidental-btn").forEach(button => { button.disabled = isCollected; });
+  updateJobPartDeleteControls();
+  updateIncidentalDeleteControls();
   if (editSaveBtn) editSaveBtn.disabled = isCollected;
 }
 
@@ -820,10 +1056,6 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.c
 editStatus?.addEventListener("change", () => {
   if (!currentEditJob) return;
   updateWhatsappButton({ ...currentEditJob, status: editStatus.value });
-  updateJobCardStatus(editStatus.value);
-});
-editTechnician?.addEventListener("change", () => {
-  $("job-card-mechanic").textContent = mechanicsList.find(mechanic => mechanic.id === editTechnician.value)?.full_name || "Unassigned";
 });
 modal?.addEventListener("click", (e) => { if (e.target === modal) closeEditModal(); });
 
@@ -836,6 +1068,7 @@ editSaveBtn?.addEventListener("click", async () => {
 
   const updates = {
     status,
+    work_ready: editWorkReady.checked,
     diagnosis: editDiagnosis.value.trim() || null,
     diagnosis_eta: editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null,
     labour_cost,
@@ -845,9 +1078,27 @@ editSaveBtn?.addEventListener("click", async () => {
     technician_id: editTechnician.value || null,
   };
 
+  if (status === "Processed") {
+    if (!editWorkReady.checked) {
+      alert("Mark the repair work ready before processing the job.");
+      return;
+    }
+    const total = Math.max(0, labour_cost + parts_cost + cardIncidentalsTotal);
+    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId);
+    if (paymentError) {
+      alert("Couldn't verify the job balance: " + paymentError.message);
+      return;
+    }
+    const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    if (total - paid > 0.01) {
+      alert(`The job cannot be processed until it is fully paid. Balance due: ${money(total - paid)}.`);
+      return;
+    }
+  }
+
   // Only set ready_at/completed_at the FIRST time a job enters one of these
   // states, so unrelated edits don't reset the 7-day pickup countdown.
-  const isNowReadyOrUnclaimed = ["Ready for Pickup", "Unclaimed"].includes(status);
+  const isNowReadyOrUnclaimed = ["Processed", "Ready for Pickup", "Unclaimed"].includes(status);
   if (isNowReadyOrUnclaimed && !currentEditJob?.ready_at) updates.ready_at = new Date().toISOString();
   if (isNowReadyOrUnclaimed && !currentEditJob?.completed_at) updates.completed_at = new Date().toISOString();
 
@@ -862,9 +1113,16 @@ editSaveBtn?.addEventListener("click", async () => {
     return;
   }
 
+  if (["Ready for Pickup", "Unclaimed"].includes(status)) {
+    try {
+      await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost + cardIncidentalsTotal);
+    } catch (receiptError) {
+      console.error("Could not keep the job receipt in sync:", receiptError);
+      alert(receiptError.message || String(receiptError));
+    }
+  }
   if (isNowReadyOrUnclaimed) {
-    await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost);
-    await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost);
+    await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost + cardIncidentalsTotal);
   }
 
   closeEditModal();
@@ -881,6 +1139,24 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
     editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Confirm Collection';
     if (window.lucide) lucide.createIcons();
     return;
+  }
+
+  if (currentEditJob?.status === "Processed") {
+    if (!currentEditJob.work_ready) {
+      alert("Mark the repair work ready before collection.");
+      return;
+    }
+    const total = currentJobTotal();
+    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId);
+    if (paymentError) {
+      alert("Couldn't verify the job balance: " + paymentError.message);
+      return;
+    }
+    const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    if (total - paid > 0.01) {
+      alert(`The vehicle cannot be collected until it is fully paid. Balance due: ${money(total - paid)}.`);
+      return;
+    }
   }
 
   const { data: updatedRows, error } = await supabase
@@ -930,12 +1206,92 @@ async function sendStatusEmail(job, status, totalCost) {
   if (error) console.error("Email send failed:", error);
 }
 
+function currentJobTotal() {
+  return Math.max(0,
+    (parseFloat(editLabour?.value) || 0) +
+    (parseFloat(editParts?.value) || 0) +
+    cardIncidentalsTotal);
+}
+
+async function loadJobPayments(jobId) {
+  const summary = $("job-payment-summary");
+  const history = $("job-payment-history");
+  summary.textContent = "Loading payments…";
+  history.innerHTML = "";
+  const { data, error } = await supabase.from("repair_job_payments")
+    .select("id, amount, payment_method, paid_at")
+    .eq("repair_job_id", jobId)
+    .order("paid_at");
+  if (error) {
+    currentJobPaid = null;
+    summary.textContent = `Couldn't load payments: ${error.message}`;
+    console.error("Error loading job payments:", error);
+    return;
+  }
+  const payments = data || [];
+  const paid = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  currentJobPaid = paid;
+  const total = currentJobTotal();
+  summary.textContent = `Total ${money(total)} · Paid ${money(paid)} · Balance ${money(Math.max(0, total - paid))}`;
+  history.innerHTML = payments.length
+    ? payments.map(payment => `<div class="jc-line"><span>${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}</span><strong>${money(payment.amount)}</strong></div>`).join("")
+    : `<div class="empty-state">No payments recorded yet.</div>`;
+  if (paymentAmountInput) paymentAmountInput.max = Math.max(0, total - paid).toFixed(2);
+}
+
+recordPaymentBtn?.addEventListener("click", async () => {
+  if (!currentEditJobId) return;
+  const amount = Number(paymentAmountInput.value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    alert("Enter a payment amount greater than zero.");
+    return;
+  }
+  const { data: existing, error: lookupError } = await supabase.from("repair_job_payments")
+    .select("amount")
+    .eq("repair_job_id", currentEditJobId);
+  if (lookupError) {
+    alert("Couldn't check existing payments: " + lookupError.message);
+    return;
+  }
+  const totalPaid = (existing || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const balance = currentJobTotal() - totalPaid;
+  if (amount > balance + 0.01) {
+    alert(`Payment exceeds the balance due (${money(Math.max(0, balance))}).`);
+    return;
+  }
+  recordPaymentBtn.disabled = true;
+  const { error } = await supabase.from("repair_job_payments").insert([{
+    repair_job_id: currentEditJobId,
+    amount,
+    payment_method: paymentMethodSelect.value,
+  }]);
+  recordPaymentBtn.disabled = false;
+  if (error) {
+    alert("Couldn't record payment: " + error.message);
+    return;
+  }
+  const cumulativePaid = totalPaid + amount;
+  try {
+    await ensureReceiptExists(currentEditJobId, cumulativePaid);
+  } catch (receiptError) {
+    console.error("Payment saved but cumulative receipt could not be updated:", receiptError);
+    alert(`Payment was saved, but the cumulative receipt could not be updated: ${receiptError.message || receiptError}`);
+  }
+  paymentAmountInput.value = "";
+  currentJobPaid = cumulativePaid;
+  await loadJobPayments(currentEditJobId);
+});
+
 async function ensureReceiptExists(jobId, amount) {
   const { data: existing, error: checkError } = await supabase.from("receipts").select("id").eq("repair_job_id", jobId).limit(1);
-  if (checkError) { console.error("Error checking for existing receipt:", checkError); return; }
-  if (existing && existing.length > 0) return;
+  if (checkError) throw new Error("Couldn't check the existing job receipt: " + checkError.message);
+  if (existing?.length) {
+    const { error } = await supabase.from("receipts").update({ amount }).eq("id", existing[0].id);
+    if (error) throw new Error("Couldn't update the cumulative job receipt: " + error.message);
+    return;
+  }
   const { error: insertError } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount }]);
-  if (insertError) console.error("Error auto-creating receipt:", insertError);
+  if (insertError) throw new Error("Couldn't create the job receipt: " + insertError.message);
 }
 
 // =====================================================================
@@ -963,7 +1319,7 @@ async function printJobCard() {
   const total = labour + parts + cardIncidentalsTotal;
   const rate = await getRate();
   const row = (k, val) => `<tr><th>${k}</th><td>${val ? escapeHtml(String(val)) : "—"}</td></tr>`;
-  const logo = new URL("../assets/AC_logo_transparent.png", window.location.href).href;
+  const logo = new URL("../assets/logo.png", window.location.href).href;
   const lines = [
     ...cardParts.map(p => `<tr><td>${escapeHtml(p.part_name)}</td><td class="r">${p.quantity}</td><td class="r">${money(p.price_at_time)}</td><td class="r">${money(p.price_at_time * p.quantity)}</td></tr>`),
     ...cardIncidentals.map(x => `<tr><td>${escapeHtml(x.description)} <small>(incidental)</small></td><td class="r">1</td><td class="r">${money(x.amount)}</td><td class="r">${money(x.amount)}</td></tr>`),
@@ -1012,47 +1368,44 @@ function digits(s) { return String(s || "").replace(/\D/g, ""); }
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   showFormMessage("");
-  const submitBtn = $("job-submit");
+  const submitBtn = form.querySelector('button[type="submit"]');
 
   const customerValue = customerSelect.value;
   const vehicleValue = jobPlateSelect.value;
-  const isNewCustomer = customerValue === NEW_VALUE;
-  const isNewVehicle = vehicleValue === NEW_VALUE;
   const body_type = $("job-body-type").value;
   const make = $("job-make").value.trim();
   const model = $("job-model").value.trim();
   const year = parseInt($("job-year").value, 10) || null;
   const chassis_number = $("job-chassis").value.trim();
   const engine_number = $("job-engine").value.trim();
-  const license_plate = $("job-new-plate").value.trim().toUpperCase();
   const fuel_level_in = $("job-fuel-in").value || null;
   const odometer_in = parseInt($("job-odometer-in").value, 10);
   const fault_reported = $("job-fault").value.trim();
-  const newName = $("new-cust-name").value.trim();
-  const newPhone = $("new-cust-phone").value.trim();
-  const newEmail = $("new-cust-email").value.trim();
-  const who = ownerType === "company" ? "company" : "customer";
-  // Read every remaining field now — saving a new customer/vehicle reloads the
-  // selectors below, so nothing may be read from the form after that point.
-  const owner = ownerType;
-  const labourHours = parseFloat(newHours.value);
-  const etaValue = $("job-diagnosis-eta").value;
-  const statusValue = $("job-status").value === "Diagnosing" ? "Diagnosing" : "Received";
-  const diagnosisValue = $("job-diagnosis").value.trim() || null;
-  const tierValue = newRateTier.value || null;
-  const labourValue = parseFloat(newLabour.value) || 0;
-  const technicianValue = newTechnician.value || null;
-  const driverName = owner === "company" ? ($("job-driver-name").value.trim() || null) : null;
-  const driverPhone = owner === "company" ? ($("job-driver-phone").value.trim() || null) : null;
+  const labourHours = parseFloat(newHours?.value || "") || null;
+  const etaValue = $("job-diagnosis-eta")?.value || "";
+  const intakePath = form.querySelector('input[name="job-intake-path"]:checked')?.value || "direct";
+  const statusValue = "Draft";
+  const diagnosisValue = $("job-diagnosis")?.value.trim() || null;
+  const tierValue = newRateTier?.value || null;
+  const labourValue = parseFloat(newLabour?.value || "") || 0;
+  const technicianValue = newTechnician?.value || null;
+  const driverName = $("job-driver-name")?.value.trim() || null;
+  const driverPhone = $("job-driver-phone")?.value.trim() || null;
   const partsToAdd = stagedParts.map(x => ({ ...x }));
   const incidentalsToAdd = stagedIncidentals.map(x => ({ ...x }));
 
   // ---- Validate everything before writing anything ----
-  if (!customerValue) return showFormMessage(`Select a ${who}, or choose “Add a new ${who}”.`);
-  if (isNewCustomer && (newName.length < 2 || digits(newPhone).length < 7)) return showFormMessage(`Enter the new ${who}'s name and a valid phone number.`);
-  if (isNewCustomer && newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return showFormMessage("Enter a valid email address, or leave it empty.");
-  if (!vehicleValue) return showFormMessage("Choose a vehicle, or register a new one.");
-  if (isNewVehicle && license_plate.length < 2) return showFormMessage("Enter the number plate for the new vehicle.");
+  if (!customerValue) return showFormMessage("Select a customer.");
+  const newCustomer = customerValue === "__new_customer__";
+  const newVehicle = vehicleValue === "__new_vehicle__";
+  if (!vehicleValue || (!newVehicle && !selectedCustomer()?.vehicles.some(vehicle => vehicle.id === vehicleValue))) return showFormMessage("Select a registered vehicle or choose to register a new one.");
+  const newCustomerName = $("job-new-customer-name")?.value.trim() || "";
+  const newCustomerPhone = $("job-new-customer-phone")?.value.trim() || "";
+  const newCustomerEmail = $("job-new-customer-email")?.value.trim() || "";
+  if (newCustomer && (!newCustomerName || !newCustomerPhone)) return showFormMessage("Enter the new customer's name and phone number.");
+  if (newCustomer && digits(newCustomerPhone).length < 7) return showFormMessage("Enter a valid customer phone number.");
+  if (newCustomerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newCustomerEmail)) return showFormMessage("Enter a valid email address.");
+  if (newVehicle && !$("job-new-plate").value.trim()) return showFormMessage("Enter the vehicle plate number.");
   if (!make) return showFormMessage("Enter the vehicle make.");
   if (!chassis_number || !engine_number) return showFormMessage("Chassis number and engine number are both required — a plate alone isn't a reliable identifier.");
   if ($("job-odometer-in").value && !(odometer_in >= 0)) return showFormMessage("Enter a valid odometer reading.");
@@ -1064,51 +1417,65 @@ form?.addEventListener("submit", async (e) => {
   if (window.lucide) lucide.createIcons();
 
   try {
+    const quoteId = new URLSearchParams(window.location.search).get("quote");
+    let quotedItems = [];
+    if (quoteId) {
+      const { data: quote, error: quoteError } = await supabase.from("quotations")
+        .select("customer_id, vehicle_id")
+        .eq("id", quoteId)
+        .single();
+      if (quoteError) throw new Error("Couldn't verify the quotation: " + quoteError.message);
+      if (quote.customer_id !== customerValue || (quote.vehicle_id && quote.vehicle_id !== vehicleValue)) {
+        throw new Error("This intake no longer matches the customer or vehicle on the quotation. Reopen the job-card action from that quotation.");
+      }
+      const { data: items, error: itemsError } = await supabase.from("quotation_items")
+        .select("part_id, item_type, part_name, quantity, unit_price_usd, total_usd")
+        .eq("quotation_id", quoteId);
+      if (itemsError) throw new Error("Couldn't load the approved quotation items: " + itemsError.message);
+      quotedItems = items || [];
+    }
+
     // ---- 1. Customer / company ----
     let customer_id = customerValue;
-    if (isNewCustomer) {
-      const existing = customersList.find(c => c.customer_type === owner && digits(c.phone) && digits(c.phone) === digits(newPhone));
-      if (existing) {
-        customer_id = existing.id;
+    if (newCustomer) {
+      const { data: existingCustomers, error: lookupError } = await supabase.from("customers")
+        .select("id")
+        .eq("phone", newCustomerPhone)
+        .limit(1);
+      if (lookupError) throw new Error("Couldn't check for an existing customer: " + lookupError.message);
+      if (existingCustomers?.length) {
+        customer_id = existingCustomers[0].id;
       } else {
-        const { data: created, error } = await supabase.from("customers")
-          .insert([{ full_name: newName, phone: newPhone, email: newEmail || null, customer_type: owner }])
-          .select("id").single();
-        if (error) throw new Error(`Couldn't save the new ${who}: ${error.message}`);
-        customer_id = created.id;
+        const { data: customer, error } = await supabase.from("customers").insert([{
+          full_name: newCustomerName,
+          phone: newCustomerPhone,
+          email: newCustomerEmail || null,
+          customer_type: "individual",
+        }]).select("id").single();
+        if (error) throw new Error("Couldn't register the customer: " + error.message);
+        customer_id = customer.id;
       }
     }
 
-    // ---- 2. Vehicle ----
+    // ---- 2. Create or update the selected vehicle ----
     let vehicle_id = vehicleValue;
-    if (isNewVehicle) {
-      const owned = (customersList.find(c => c.id === customer_id)?.vehicles || [])
-        .find(v => (v.license_plate || "").replace(/\s/g, "").toUpperCase() === license_plate.replace(/\s/g, ""));
-      if (owned) {
-        vehicle_id = owned.id;
-        const { error } = await supabase.from("vehicles").update({ body_type, make, model: model || null, year, chassis_number, engine_number }).eq("id", vehicle_id);
-        if (error) throw new Error("Couldn't update the vehicle: " + error.message);
-      } else {
-        const { data: v, error } = await supabase.from("vehicles")
-          .insert([{ customer_id, license_plate, body_type, make, model: model || null, year, chassis_number, engine_number }])
-          .select("id").single();
-        if (error) throw new Error("Couldn't register the vehicle: " + error.message);
-        vehicle_id = v.id;
-      }
+    const vehicleDetails = { body_type, make, model: model || null, year, chassis_number, engine_number };
+    if (newVehicle) {
+      const { data: vehicle, error } = await supabase.from("vehicles").insert([{
+        customer_id,
+        license_plate: $("job-new-plate").value.trim().toUpperCase(),
+        ...vehicleDetails,
+      }]).select("id").single();
+      if (error) throw new Error("Couldn't register the vehicle: " + error.message);
+      vehicle_id = vehicle.id;
     } else {
-      const { error } = await supabase.from("vehicles").update({ body_type, make, model: model || null, year, chassis_number, engine_number }).eq("id", vehicle_id);
+      const { error } = await supabase.from("vehicles").update(vehicleDetails).eq("id", vehicle_id);
       if (error) throw new Error("Couldn't update the vehicle details: " + error.message);
     }
 
-    // Keep the new customer/vehicle selected so a retry never duplicates them,
-    // then put back what staff typed (the reload re-fills vehicle fields).
-    if (isNewCustomer || isNewVehicle) {
-      await loadCustomers(customer_id, vehicle_id);
-      $("job-body-type").value = body_type; $("job-make").value = make; $("job-model").value = model;
-      $("job-year").value = year || ""; $("job-chassis").value = chassis_number; $("job-engine").value = engine_number;
-      if (tierValue) { newRateTier.value = tierValue; tierTouched = true; }
-      newLabour.value = labourValue ? labourValue.toFixed(2) : ""; labourTouched = !!labourValue;
-      if (technicianValue) newTechnician.value = technicianValue;
+    if (intakePath === "quote") {
+      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}`;
+      return;
     }
 
     // ---- 3. The job itself ----
@@ -1130,10 +1497,60 @@ form?.addEventListener("submit", async (e) => {
     };
     const { data: job, error: jobError } = await supabase.from("repair_jobs").insert([jobRow]).select("id, cro_number, job_number").single();
     if (jobError) throw new Error("Couldn't create the job: " + jobError.message);
+    let quoteLinkWarning = "";
+    if (quoteId) {
+      const { error: quoteUpdateError } = await supabase.from("quotations")
+        .update({ repair_job_id: job.id })
+        .eq("id", quoteId);
+      if (quoteUpdateError) {
+        quoteLinkWarning = ` The job was created, but the quotation link could not be updated: ${quoteUpdateError.message}`;
+        console.error("Could not link the created job to its quotation:", quoteUpdateError);
+      }
+    }
 
     // ---- 4. Parts (stock is taken here) and incidentals ----
     const skipped = [];
     let partsCost = 0;
+    let quotedLabourCost = 0;
+    let quotedLabourHours = 0;
+    const quoteSundries = [];
+    for (const item of quotedItems) {
+      const itemType = item.item_type || (item.part_id ? "part" : "other");
+      const quantity = Number(item.quantity);
+      const amount = Number(item.total_usd ?? quantity * Number(item.unit_price_usd));
+      if (itemType === "labour") {
+        quotedLabourHours += quantity;
+        quotedLabourCost += amount;
+      } else if (itemType === "sundry") {
+        quoteSundries.push({ description: item.part_name || "Quoted sundry", amount });
+      } else if (itemType === "part") {
+        if (!item.part_id || !Number.isInteger(quantity) || quantity <= 0) {
+          skipped.push(item.part_name || "invalid quoted part");
+          continue;
+        }
+        const { data: consumed, error: stockError } = await supabase.rpc("consume_part_stock", {
+          p_part_id: item.part_id,
+          p_quantity: quantity,
+        });
+        if (stockError || !consumed) {
+          skipped.push(item.part_name);
+          continue;
+        }
+        const { error: insertError } = await supabase.from("job_parts").insert([{
+          job_id: job.id,
+          part_id: item.part_id,
+          part_name: item.part_name,
+          quantity,
+          price_at_time: item.unit_price_usd,
+        }]);
+        if (insertError) {
+          await supabase.rpc("restore_part_stock", { p_part_id: item.part_id, p_quantity: quantity });
+          skipped.push(item.part_name);
+          continue;
+        }
+        partsCost += amount;
+      }
+    }
     for (const p of partsToAdd) {
       const { data: ok, error } = await supabase.rpc("consume_part_stock", { p_part_id: p.part_id, p_quantity: p.qty });
       if (error || !ok) { skipped.push(p.name); continue; }
@@ -1145,21 +1562,34 @@ form?.addEventListener("submit", async (e) => {
       }
       partsCost += p.price * p.qty;
     }
+    const incidentals = [
+      ...quoteSundries,
+      ...incidentalsToAdd.map(item => ({ description: item.description, amount: item.amount })),
+    ];
     let incCost = 0;
-    if (incidentalsToAdd.length) {
-      const { error } = await supabase.from("job_incidentals").insert(incidentalsToAdd.map(x => ({ job_id: job.id, description: x.description, amount: x.amount })));
+    if (incidentals.length) {
+      const { error } = await supabase.from("job_incidentals").insert(incidentals.map(item => ({ job_id: job.id, ...item })));
       if (error) skipped.push("incidentals");
-      else incCost = incidentalsToAdd.reduce((s, x) => s + x.amount, 0);
+      else incCost = incidentals.reduce((sum, item) => sum + item.amount, 0);
     }
-    if (partsCost || incCost) {
-      await supabase.from("repair_jobs").update({ parts_cost: partsCost, incidentals_cost: incCost }).eq("id", job.id);
+    const labour_cost = labourValue + quotedLabourCost;
+    const labour_hours = (labourHours || 0) + quotedLabourHours;
+    const { error: totalsError } = await supabase.from("repair_jobs").update({
+      labour_cost,
+      labour_hours: labour_hours || null,
+      parts_cost: partsCost,
+      incidentals_cost: incCost,
+    }).eq("id", job.id);
+    if (totalsError) {
+      quoteLinkWarning += ` The job was created, but its quoted totals could not be saved: ${totalsError.message}`;
+      console.error("Could not save transferred quotation totals:", totalsError);
     }
 
     resetIntakeForm();
     const label = job.cro_number || (job.job_number != null ? `#${String(job.job_number).padStart(4, "0")}` : "");
     showFormMessage(skipped.length
-      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.`
-      : `Job card ${label} created.`.replace("  ", " "), skipped.length ? "error" : "success");
+      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}`
+      : `Job card ${label} created.${quoteLinkWarning}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
     await Promise.all([loadJobs(), loadPartsIntoSelect(), loadCustomers()]);
     await refreshBusyMechanics();
     refreshTechnicianOptions(newTechnician, null);
@@ -1456,8 +1886,8 @@ function filterTableByStatus(status) {
     const job = jobsById.get(row.dataset.jobId);
     if (!job) return;
     let match;
-    if (status === "active") match = !["Ready for Pickup", "Collected", "Unclaimed"].includes(job.status);
-    else if (status === "completed-month") match = job.status === "Ready for Pickup";
+    if (status === "active") match = !["Processed", "Ready for Pickup", "Collected", "Unclaimed"].includes(job.status);
+    else if (status === "completed-month") match = ["Processed", "Ready for Pickup"].includes(job.status);
     else match = job.status === status;
     row.style.display = match ? "" : "none";
   });
@@ -1471,9 +1901,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const params = new URLSearchParams(window.location.search);
   const editId = params.get("edit");
+  const quoteId = params.get("quote");
   const statusFilter = params.get("status");
   const highlightId = params.get("highlight");
-  if (editId && jobsById.has(editId)) openEditModal(jobsById.get(editId));
+  if (quoteId) {
+    const { data: quote, error } = await supabase.from("quotations")
+      .select("customer_id, vehicle_id, fault_reported")
+      .eq("id", quoteId)
+      .single();
+    if (error) {
+      showFormMessage(`Couldn't load the quotation for a job card: ${error.message}`, "error");
+    } else {
+      if (quote.customer_id) {
+        customerSelect.value = quote.customer_id;
+        onCustomerChange(quote.vehicle_id);
+      }
+      $("job-fault").value = quote.fault_reported || "";
+      const directOption = form.querySelector('input[name="job-intake-path"][value="direct"]');
+      if (directOption) directOption.checked = true;
+      showFormMessage("Quotation loaded. Confirm the vehicle details, then create the draft job card.");
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  } else if (editId && jobsById.has(editId)) openEditModal(jobsById.get(editId));
   else if (statusFilter) filterTableByStatus(statusFilter);
   else if (highlightId) {
     const row = document.querySelector(`#repairs-table tr[data-job-id="${highlightId}"]`);

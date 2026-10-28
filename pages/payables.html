@@ -41,18 +41,19 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
 </head>
 <body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -109,6 +110,10 @@
           <h1>Accounts Payable</h1>
           <p class="page-intro">Track supplier bills, payments already made, remaining balances and due dates. Recording a bill or payment also updates the shared ledger.</p>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a class="btn" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
+          <a class="btn" href="shop.html#shop-restocks"><i data-lucide="store"></i> Shop Purchases</a>
+        </div>
       </div>
 
       <section class="page-section">
@@ -138,8 +143,8 @@
         <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="list"></i>Open &amp; Recent Payables</h2></div></div>
         <div class="panel">
           <table>
-            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due Date</th><th>Bill Total</th><th>Paid So Far</th><th>Still Owed</th><th>Status</th><th></th></tr></thead>
-            <tbody id="payables-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due Date</th><th>Bill Total</th><th>Paid So Far</th><th>Still Owed</th><th>Status</th><th>Source</th><th></th></tr></thead>
+            <tbody id="payables-table"><tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
           </table>
         </div>
       </section>
@@ -167,5 +172,6 @@
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/payables.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

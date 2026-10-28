@@ -1,10 +1,18 @@
 // ========= Customers module =========
 import supabase from "./supabaseClient.js";
 import { hydrate } from "./data-cache.js";
+import { installBulkDelete } from "./bulk-delete.js";
 
 const tableBody = document.getElementById("customers-table");
 const form = document.getElementById("customer-form");
 const formMessage = document.getElementById("customer-form-message");
+
+installBulkDelete({
+  tbody: tableBody,
+  table: "customers",
+  label: "customer",
+  getId: row => row.dataset.customerId,
+});
 
 function showCustomerMessage(text, tone = "success") {
   if (!formMessage) return;
@@ -24,16 +32,16 @@ async function fetchCustomersList() {
 
 function renderCustomersList(data) {
   if (data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted)">No customers yet — add one above</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="5" class="customer-empty">No customers yet — add one above.</td></tr>`;
     return;
   }
   tableBody.innerHTML = data.map(c => `
     <tr data-customer-id="${c.id}">
-      <td>${escapeHtml(c.full_name)}</td>
-      <td>${c.customer_type === "company" ? "Company" : "Individual"}</td>
-      <td>${escapeHtml(c.phone)}</td>
-      <td>${vehiclePlates(c.vehicles)}</td>
-      <td>${c.is_repeat_customer ? "Yes" : "No"}</td>
+      <td data-label="Customer">${escapeHtml(c.full_name)}</td>
+      <td data-label="Type"><span class="customer-type" data-type="${c.customer_type === "company" ? "company" : "individual"}">${c.customer_type === "company" ? "Company" : "Individual"}</span></td>
+      <td data-label="Phone">${escapeHtml(c.phone || "—")}</td>
+      <td data-label="Vehicles">${vehiclePlates(c.vehicles)}</td>
+      <td data-label="Customer status"><span class="customer-repeat${c.is_repeat_customer ? "" : " is-new"}">${c.is_repeat_customer ? "Repeat customer" : "New customer"}</span></td>
     </tr>
   `).join("");
 }
@@ -46,7 +54,7 @@ async function loadCustomers() {
     await hydrate("customers:list", fetchCustomersList, renderCustomersList);
   } catch (error) {
     console.error("Error loading customers:", error);
-    tableBody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Failed to load customers: ${error.message}</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="5" class="customer-empty" role="alert">Failed to load customers: ${escapeHtml(error.message)}</td></tr>`;
   }
 }
 
@@ -72,14 +80,18 @@ async function findExistingCustomer(phone, email) {
   return { customer: data && data[0] ? data[0] : null, error: null };
 }
 
-async function addVehicle(customerId, license_plate) {
+async function addVehicle(customerId, vehicle) {
   const { error } = await supabase.from("vehicles").insert([{
     customer_id: customerId,
-    body_type: "Other",
-    make: "",
-    license_plate,
+    license_plate: vehicle.license_plate,
+    body_type: vehicle.body_type,
+    make: vehicle.make,
+    model: vehicle.model || null,
+    year: vehicle.year,
+    chassis_number: vehicle.chassis_number || null,
+    engine_number: vehicle.engine_number || null,
   }]);
-  if (error) console.error("Error adding vehicle plate:", error);
+  if (error) console.error("Error adding customer vehicle:", error);
   return error;
 }
 
@@ -94,6 +106,15 @@ if (form) {
     const phone = document.getElementById("cust-phone").value.trim();
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
+    const vehicle = {
+      license_plate,
+      body_type: document.getElementById("cust-body-type").value,
+      make: document.getElementById("cust-make").value.trim(),
+      model: document.getElementById("cust-model").value.trim(),
+      year: parseInt(document.getElementById("cust-year").value, 10) || null,
+      chassis_number: document.getElementById("cust-chassis").value.trim(),
+      engine_number: document.getElementById("cust-engine").value.trim(),
+    };
 
     if (!full_name || !phone) {
       alert("Name and phone number are required.");
@@ -106,6 +127,15 @@ if (form) {
     }
     if (email && !/^[^\s@]+@gmail\.com$/.test(email)) {
       alert("Email must end with @gmail.com");
+      return;
+    }
+    const hasVehicleDetails = Boolean(vehicle.license_plate || vehicle.make || vehicle.model || vehicle.year || vehicle.chassis_number || vehicle.engine_number);
+    if (hasVehicleDetails && !license_plate) {
+      alert("Enter the vehicle plate number when registering vehicle details.");
+      return;
+    }
+    if (license_plate && (!vehicle.make || !vehicle.model || !vehicle.year || !vehicle.chassis_number || !vehicle.engine_number)) {
+      alert("Enter the vehicle make, model, year, chassis number, and engine number.");
       return;
     }
 
@@ -121,7 +151,7 @@ if (form) {
       // existing record and flag them as a repeat customer, rather than
       // creating a second customer row with the same credentials.
       if (license_plate) {
-        const vehicleError = await addVehicle(existing.id, license_plate);
+        const vehicleError = await addVehicle(existing.id, vehicle);
         if (vehicleError) {
           alert(`${existing.full_name} is already a customer, but the vehicle plate could not be saved: ${vehicleError.message}`);
           return;
@@ -155,7 +185,7 @@ if (form) {
 
     let vehicleSaveError = null;
     if (license_plate) {
-      vehicleSaveError = await addVehicle(customer.id, license_plate);
+      vehicleSaveError = await addVehicle(customer.id, vehicle);
     }
 
     form.reset();

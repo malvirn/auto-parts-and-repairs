@@ -20,18 +20,19 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -81,7 +82,7 @@
 
       <nav class="sjump" aria-label="Settings sections">
         <a href="#account">Account</a>
-        <a href="#fingerprint">Fingerprint</a>
+        <a href="#fingerprint">Biometric sign-in</a>
         <a href="#app">App</a>
         <a href="#appearance">Appearance</a>
         <a href="#about">Business</a>
@@ -110,16 +111,20 @@
           <p class="smsg" id="m-account" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
         </section>
 
-        <!-- Fingerprint sign-in -->
+        <!-- Device passkey sign-in -->
         <section class="sg" id="fingerprint" aria-labelledby="h-fp">
-          <header><i data-lucide="fingerprint"></i><div><h3 id="h-fp">Fingerprint sign-in</h3><p>Sign in by touching the fingerprint sensor instead of typing your password. Each account can have up to 3.</p></div></header>
+          <header><i data-lucide="fingerprint"></i><div><h3 id="h-fp">Fingerprint or Face ID sign-in</h3><p>Add a device passkey to sign in using the verification method supported by your phone or computer. Each account can have up to 3.</p></div></header>
+          <div class="bulk-delete-toolbar">
+            <label class="bulk-delete-select-all"><input type="checkbox" id="fp-select-all" /> Select all device passkeys</label>
+            <button id="fp-delete-selected" class="btn btn--danger" type="button" disabled>Remove selected</button>
+          </div>
           <div id="fp-list"><div class="sx" style="color:var(--text-muted)">Loading…</div></div>
           <div class="sx" id="fp-add-box">
             <div class="fp-add">
-              <div class="field"><label for="fp-label">Name this fingerprint</label><input type="text" id="fp-label" maxlength="40" placeholder="e.g. Right thumb, Office laptop" /></div>
-              <button id="fp-add" class="btn btn--primary" type="button"><i data-lucide="fingerprint"></i> Add fingerprint</button>
+              <div class="field"><label for="fp-label">Name this device passkey</label><input type="text" id="fp-label" maxlength="40" placeholder="e.g. My fingerprint, Face ID, Office laptop" /></div>
+              <button id="fp-add" class="btn btn--primary" type="button"><i data-lucide="fingerprint"></i> Set up fingerprint / Face ID</button>
             </div>
-            <p class="fp-note">Your device checks the fingerprint itself; it never leaves the device. Any fingerprint saved in this phone's or computer's own settings can unlock it, so name each one to remember where you added it. Your password always keeps working too.</p>
+            <p class="fp-note">Your device handles verification locally with its supported method, such as fingerprint, Face ID, or device PIN. The app never receives your biometric data, and it cannot choose a specific finger or biometric. The name above is just a label. Your password always keeps working too.</p>
             <p class="smsg" id="m-fp" role="status" aria-live="polite"></p>
           </div>
         </section>
@@ -152,7 +157,7 @@
               <div class="field"><label for="biz-name">Business name</label><input type="text" id="biz-name" maxlength="120" /></div>
               <div class="field"><label for="biz-tagline">Tagline</label><input type="text" id="biz-tagline" maxlength="160" /></div>
               <div class="field full"><label for="biz-address">Address</label><input type="text" id="biz-address" maxlength="240" /></div>
-              <div class="field"><label for="biz-phone">Phone</label><input type="tel" id="biz-phone" maxlength="40" /></div>
+              <div class="field"><label for="biz-phone">Phone</label><input type="text" id="biz-phone" maxlength="40" /></div>
               <div class="field"><label for="biz-email">Email</label><input type="text" id="biz-email" maxlength="120" /></div>
               <div class="field full"><label for="biz-hours">Opening hours</label><input type="text" id="biz-hours" maxlength="120" placeholder="e.g. Mon–Sat 8am–5pm" /></div>
             </div>
@@ -165,6 +170,11 @@
         <section class="sg" id="labour" aria-labelledby="h-lab">
           <header><i data-lucide="gauge"></i><div><h3 id="h-lab">Labour charges</h3><p>Charge per hour for each kind of vehicle. A new job card picks the charge from the vehicle's make; staff can still change it on the job.</p></div></header>
           <p class="tier-head">Makes are comma-separated (for example: Toyota, Honda). Leave makes empty for a charge that is only picked by hand. One charge is the default for makes that don't match.</p>
+          <div class="bulk-delete-toolbar">
+            <label class="bulk-delete-select-all"><input type="checkbox" id="tiers-select-all" /> Select all labour charges</label>
+            <button id="tiers-delete-selected" class="btn btn--danger" type="button" disabled>Delete selected</button>
+            <span id="tiers-delete-message" class="bulk-delete-message" role="status" aria-live="polite"></span>
+          </div>
           <div class="tier-list" id="tiers-list"><div class="sx" style="color:var(--text-muted)">Loading…</div></div>
           <div class="sx">
             <p class="jc-subtitle" style="margin:0 0 10px; display:flex; align-items:center; gap:8px; font-weight:600;"><i data-lucide="plus"></i> Add a labour charge</p>
@@ -231,9 +241,9 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/settings.js"></script>
   <script type="module" src="../js/access-control.js"></script>
   <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

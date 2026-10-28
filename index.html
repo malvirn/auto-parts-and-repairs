@@ -3,48 +3,249 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
 
-  <script src="js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS � Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Centric Auto Mobile — Dashboard</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="js/pwa.js" defer></script>
+
+  <!-- Dashboard styles stay local so shared application themes cannot alter its layout. -->
+  <style id="dashboard-design">
+    html{background:#0b1012;color-scheme:dark}
+    body.dashboard-page{
+      --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
+      --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
+      --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
+      /* re-point the variables your existing css/js use so generated content picks up the theme */
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
+      --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
+      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
+      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;
+      padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));
+    }
+    body.dashboard-page *{box-sizing:border-box}
+    body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100svh;overflow:visible!important;background:none}
+    body.dashboard-page .main{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:none}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    /* ===== header ===== */
+    body.dashboard-page .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;
+      min-height:0;margin:0;padding:22px clamp(14px,3.8vw,58px) 34px;border:0;background:linear-gradient(180deg,#0e1517,#0a1011)}
+    .app-header .curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:28px;pointer-events:none}
+    .hdr-brand{display:flex;align-items:center;gap:clamp(12px,1.6vw,22px);min-width:0}
+    .hdr-brand .dashboard-hero__logo{width:clamp(58px,9vw,140px);height:auto;flex:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4))}
+    .hdr-divider{width:1px;height:clamp(40px,5.6vw,86px);background:rgba(255,255,255,.18);flex:none}
+    .hdr-name{margin:0;font-size:clamp(18px,2.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
+    .hdr-name em{font-style:normal;color:var(--green-bright)}
+    .hdr-sub{margin:4px 0 0;color:#dfe8e2;font-size:clamp(11px,1.15vw,17px);letter-spacing:.02em}
+    .hdr-right{display:flex;align-items:center;gap:clamp(12px,2vw,28px);flex:none}
+    .hdr-time #dashboard-date{margin:0;font-size:clamp(11px,1vw,15px);color:#e6ede8;font-weight:400;line-height:1.3}
+    .hdr-clock{font-size:clamp(18px,1.9vw,27px);font-weight:700;letter-spacing:.01em;line-height:1.2;font-variant-numeric:tabular-nums}
+    .hdr-live{display:flex;align-items:center;gap:8px;color:var(--green-bright);font-size:clamp(11px,1vw,14px)}
+    .hdr-live i{width:11px;height:11px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 10px var(--green-bright)}
+    .hdr-live[data-state="offline"]{color:#ff9a6b}.hdr-live[data-state="offline"] i{background:#ff7a12;box-shadow:0 0 10px #ff7a12}
+    .hdr-hello{margin:0;font-size:clamp(12px,1.2vw,18px);color:#e6ede8;font-weight:400;line-height:1.35;max-width:210px}
+    #dashboard-greeting{display:block;margin:0;font-size:inherit;font-weight:600;color:var(--green-bright);line-height:1.35}
+    .tile:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:4px}
+
+    /* ===== hero ===== */
+    .hero{position:relative;display:flex;flex-direction:column;min-height:max(560px,calc(100svh - 270px));overflow:hidden;isolation:isolate;
+      padding:clamp(34px,11vh,140px) 0 clamp(22px,8vh,92px)}
+    .hero-bg{position:absolute;inset:0;z-index:-2;background:url("assets/dashboard-hero.jpeg") center right/cover no-repeat;
+      transform:translate3d(calc(var(--px,0)*-12px),calc(var(--py,0)*-8px),0) scale(1.05);transition:transform 160ms linear}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+      background:linear-gradient(90deg,rgba(8,13,12,.9) 0%,rgba(8,13,12,.62) 42%,rgba(8,13,12,.08) 100%),
+                 linear-gradient(0deg,rgba(8,13,12,.78),transparent 48%),linear-gradient(180deg,rgba(8,13,12,.6),transparent 22%)}
+    .hero-copy{padding:0 clamp(16px,6.4vw,100px)}
+    .welcome{margin:0 0 8px;color:#cfd8d2;font-size:clamp(12px,1.4vw,21px);font-weight:600;letter-spacing:.22em;text-transform:uppercase}
+    .hero-title{margin:0 0 18px;font-size:clamp(32px,5.2vw,66px);font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+    .hero-title em{font-style:normal;color:var(--green-bright)}
+    .hero-lede{margin:0;max-width:none;color:#e8eee9;font-size:clamp(14px,1.7vw,22px);line-height:1.5;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+    .accent-bar{display:block;width:clamp(70px,7.2vw,110px);height:5px;margin-top:22px;border-radius:3px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
+
+    .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1.8vw,27px);margin:auto clamp(14px,7vw,106px) 0;padding-top:34px;perspective:900px}
+    .tile{--c:var(--green);display:grid;place-items:center;aspect-ratio:243/157;padding:0;border:clamp(2px,.2vw,3px) solid var(--c);border-radius:clamp(10px,1vw,16px);
+      background:rgba(14,21,20,.84);color:#fff;text-decoration:none;cursor:pointer;font:inherit;box-shadow:0 14px 28px rgba(0,0,0,.35),inset 0 0 30px rgba(0,0,0,.25);
+      transition:transform 380ms var(--ease),box-shadow 380ms var(--ease),background 300ms}
+    .tile.grey{--c:var(--grey)} .tile.orange{--c:var(--orange)}
+    .tile svg{width:clamp(30px,6.2vw,96px);height:auto;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:transform 380ms var(--ease)}
+    .tile:hover{transform:translateY(-8px) rotateX(7deg);background:rgba(18,28,26,.94);box-shadow:0 26px 40px rgba(0,0,0,.5),0 0 28px color-mix(in srgb,var(--c) 40%,transparent)}
+    .tile:hover svg{transform:translateZ(30px) scale(1.07)}
+    .tile:active{transform:translateY(-2px) scale(.985)}
+
+    /* ===== existing dashboard content (ids and classes untouched) ===== */
+    .dash-content{max-width:1500px;margin:0 auto;padding:38px clamp(14px,4vw,58px) 46px;display:grid;gap:30px;background:var(--ink)}
+    .dash-content .page-section,.dash-content .dashboard-section{margin:0;padding:0}
+    .dash-content .section-heading,.dash-content .section-inline-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:0 0 16px}
+    .dash-content h2{margin:0;font-size:clamp(20px,2vw,26px);font-weight:700;letter-spacing:-.01em;color:#fff}
+    .dash-content .section-kicker{margin:0 0 4px;color:var(--orange);font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .dash-content .section-note{color:var(--muted);font-size:.86rem;text-decoration:none}
+    .dash-content a.section-note:hover{color:var(--green-bright)}
+    .dash-content .panel{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:16px;padding:20px;color:var(--text);box-shadow:0 18px 36px rgba(0,0,0,.28)}
+    .dash-content .card-grid,.dash-content .objectives-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .dash-content .stat-card,.dash-content .objective-card{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--text);transition:transform 300ms var(--ease),border-color 200ms}
+    .dash-content .stat-card:hover,.dash-content .objective-card:hover{transform:translateY(-4px);border-color:var(--green-bright)}
+    .dash-content .stat-card__label{color:var(--muted);font-size:.76rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+    .dash-content .stat-card__value{margin-top:8px;font-size:clamp(24px,2.4vw,32px);font-weight:700;color:#fff}
+    .dash-content .attention-empty{padding:18px 0;color:var(--muted)}
+    .dash-content .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit;font-size:.88rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 200ms,border-color 200ms,transform 200ms}
+    .dash-content .btn:hover{border-color:var(--green-bright);background:rgba(18,161,80,.16)}
+    .dash-content .btn--primary{background:linear-gradient(180deg,var(--green-bright),var(--green));border-color:transparent;color:#fff}
+    .dash-content .btn svg{width:18px;height:18px}
+    .dash-content .global-search{position:relative}
+    .dash-content .global-search__icon{position:absolute;left:18px;top:26px;width:20px;height:20px;transform:translateY(-50%);color:#cbd6cf;pointer-events:none}
+    .dash-content #global-search-input{width:100%;height:52px;padding:0 18px 0 52px;color:var(--text);font:inherit;font-size:15px;background:rgba(10,16,13,.7);border:1.5px solid var(--line);border-radius:12px;outline:0;transition:border-color 200ms,box-shadow 300ms}
+    .dash-content #global-search-input::placeholder{color:#8fa197}
+    .dash-content #global-search-input:focus{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .dash-content .global-search__results{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:80;max-height:min(60vh,480px);overflow-y:auto;
+      padding:6px;background:#111a16;border:1px solid var(--line);border-radius:12px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .dash-content .global-search__results[hidden]{display:none}
+    .dash-content .global-search__group-label{padding:12px 12px 6px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .dash-content .global-search__item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid rgba(255,255,255,.07);border-radius:8px;color:var(--text);text-decoration:none;transition:background 180ms}
+    .dash-content .global-search__group-label+.global-search__item{border-top:0}
+    .dash-content .global-search__item:hover,.dash-content .global-search__item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .dash-content .global-search__item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .dash-content .global-search__item>span{min-width:0}
+    .dash-content .global-search__item-main{display:block;font-size:.9rem;font-weight:600}
+    .dash-content .global-search__item-sub{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .dash-content .global-search__empty{padding:20px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+    .dash-content table{width:100%;border-collapse:collapse;color:var(--text)}
+    .dash-content th{padding:10px 12px;text-align:left;color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+    .dash-content td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dash-content .panel:has(table){overflow-x:auto}
+
+    /* ===== bottom tab bar ===== */
+    .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;
+      height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0);
+      background:rgba(12,18,20,.97);border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:100%;border:0;background:none;color:#d6dfd9;text-decoration:none;cursor:pointer;font:inherit;font-size:.72rem;font-weight:600;transition:color 200ms}
+    .tab:hover{color:#fff}
+    .tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .tab[aria-current="page"]{color:#fff}
+    .tab[aria-current="page"] svg{fill:currentColor;stroke:none}
+    .tab[aria-current="page"]::after{content:"";position:absolute;left:50%;top:0;width:44px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright);transform:translateX(-50%)}
+    .tab-badge{position:absolute;top:6px;left:calc(50% + 12px);display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#1b8cff;color:#fff;font-size:11px;font-weight:700}
+    .tab-badge[hidden]{display:none}
+
+    .site-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:24px clamp(14px,3.8vw,58px);background:#0a0f10;color:#d3ddd6;font-size:clamp(11px,1vw,15px)}
+    .site-foot a{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+    .site-foot svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+    /* ===== hidden navigation source for the shared More menu ===== */
+    .menu-scrim{display:none}
+    body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
+      display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
+      background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
+      transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+    .drawer-close:hover{background:rgba(255,255,255,.08)}
+    .sidebar .sidebar__brand{margin:0 0 18px}
+    .sidebar .brand-logo{width:120px;height:auto}
+    .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none;transition:background 200ms,color 200ms}
+    .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
+    .sidebar .nav-link svg{width:20px;height:20px;flex:none}
+    .sidebar .nav-group{margin-top:8px}
+    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
+    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
+    .sidebar .nav-grp{color:var(--muted)}
+    .sidebar .nav-grp:hover,.sidebar .nav-group.open>.nav-grp{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.07)}
+    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright);letter-spacing:normal}
+    .sidebar .nav-grp>span:first-of-type{flex:1}
+    .sidebar .nav-chev{width:8px;height:8px;margin-left:auto;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
+    .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
+    .sidebar .nav-grpwrap{display:none;padding:3px 0 5px 10px}
+    .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
+    .sidebar .nav-grpwrap .nav-link{padding:10px 12px;font-size:.9rem}
+
+    .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .apr-bottom-nav>a,.apr-more-toggle{position:relative;display:grid;min-width:0;height:100%;place-items:center;align-content:center;gap:4px;border:0;background:none;color:#c9d3cd;font:600 11px Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none;cursor:pointer}
+    .apr-bottom-nav>a:hover,.apr-more-toggle:hover,.apr-bottom-nav [aria-current="page"]{color:#1fc467}
+    .apr-bottom-nav svg{width:23px;height:23px}
+    .apr-bottom-nav [aria-current="page"]::after{position:absolute;top:0;left:50%;width:42px;height:3px;border-radius:0 0 3px 3px;background:#1fc467;content:"";transform:translateX(-50%)}
+    .apr-more-wrap{position:relative;min-width:0;height:100%}
+    .apr-more-menu{position:absolute;right:8px;bottom:calc(100% + 12px);display:none;width:min(310px,calc(100vw - 24px));max-height:min(65vh,440px);padding:7px;overflow:auto;border:1px solid rgba(31,196,103,.24);border-radius:16px;background:#111b18;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .apr-more-menu.open{display:block}
+    .apr-more-menu a{display:flex;min-height:44px;align-items:center;gap:11px;padding:10px;border-radius:10px;color:#dfe8e2;font:500 .9rem Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none}
+    .apr-more-menu a:hover,.apr-more-menu [aria-current="page"]{background:rgba(255,255,255,.06);color:#fff}
+    .apr-more-menu a svg{width:19px;height:19px;flex:none;color:#1fc467}
+    @media print{.apr-bottom-nav{display:none!important}}
+
+    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .main,:root[data-theme="light"] body.dashboard-page .app-shell{background:#f1f2f3!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav{border-color:#d0d3d6;background:rgba(255,255,255,.98);box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav>a,:root[data-theme="light"] body.dashboard-page .apr-more-toggle{color:#222}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]::after{background:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu{border-color:#d0d3d6;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a:hover,:root[data-theme="light"] body.dashboard-page .apr-more-menu [aria-current="page"]{background:#eceeef;color:#111}
+    :root[data-theme="light"] body.dashboard-page .hero{background:#f1f2f3}
+    :root[data-theme="light"] body.dashboard-page .hero-bg,:root[data-theme="light"] body.dashboard-page .hero::after{display:none}
+    :root[data-theme="light"] body.dashboard-page .welcome,:root[data-theme="light"] body.dashboard-page .hero-title,:root[data-theme="light"] body.dashboard-page .hero-lede,:root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__value,:root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content table,:root[data-theme="light"] body.dashboard-page .hdr-hello{color:#111!important;text-shadow:none}
+    :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
+    :root[data-theme="light"] body.dashboard-page .tile{border-color:#c9cdd1;background:#fff;color:#111;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+    :root[data-theme="light"] body.dashboard-page .tile:hover{background:#f5f6f7;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .dash-content{background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .section-note,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__label,:root[data-theme="light"] body.dashboard-page .dash-content .attention-empty,:root[data-theme="light"] body.dashboard-page .dash-content th,:root[data-theme="light"] body.dashboard-page .dash-content td{color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__results{border-color:#d9dcdf;background:#fff;color:#111;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn--primary{border-color:#111;background:#111;color:#fff}
+    :root[data-theme="light"] body.dashboard-page .dash-content #global-search-input{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .global-search__icon,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__item{color:#111}
+
+    /* ===== phones ===== */
+    @media (max-width:760px){
+      body.dashboard-page .app-header{padding-bottom:30px}
+      .hdr-sub,.hdr-divider,.hdr-hello{display:none}
+      .hdr-time #dashboard-date{display:none}
+      .tiles{margin-inline:14px}
+    }
+    @media (max-width:430px){
+      .hero{padding-top:30px}
+      .tab-badge{min-width:22px;height:22px;font-size:12px}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{transition-duration:.001ms!important;animation:none!important}
+      .hero-bg{transform:none!important}
+    }
+  </style>
 </head>
 <body class="dashboard-page">
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link active" href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <!-- Module links are reused by the shared More menu after role filtering. -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link active" href="index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="pages/customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="pages/technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="pages/technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
+          <a class="nav-link" href="pages/shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="pages/quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
           <a class="nav-link" href="pages/receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
           <a class="nav-link" href="pages/suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="pages/ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -57,13 +258,13 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -71,100 +272,161 @@
     </aside>
 
     <main class="main">
-      <div class="main__header dashboard-hero">
-        <div class="dashboard-hero__brand">
-          <img src="assets/AC_logo_transparent.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+      <!-- HEADER (keeps the original header classes and the #dashboard-greeting / #dashboard-date hooks) -->
+      <header class="main__header dashboard-hero app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+          <span class="hdr-divider" aria-hidden="true"></span>
           <div>
-            <h1 id="dashboard-greeting">Welcome back</h1>
-            <p class="page-intro" id="dashboard-date">Loading�</p>
+            <p class="hdr-name">Centric <em>Auto Mobile</em></p>
+            <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
           </div>
         </div>
-        <a class="btn btn--primary" href="pages/repairs.html"><i data-lucide="plus"></i> New Job Card</a>
+        <div class="hdr-right">
+          <div class="hdr-time">
+            <p class="page-intro" id="dashboard-date">Loading…</p>
+            <div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div>
+            <div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div>
+          </div>
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 24H1130" fill="none" stroke="#1fc467" stroke-width="3" vector-effect="non-scaling-stroke"/>
+          <path d="M1130 24C1200 24 1230 7 1300 7H1536" fill="none" stroke="#ff7a12" stroke-width="3" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </header>
+
+      <!-- HERO -->
+      <section class="hero" aria-label="Welcome">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="welcome">Welcome to</p>
+          <h1 class="hero-title">Centric <em>Auto Mobile</em></h1>
+          <p class="hero-lede">Your complete auto repair and parts management system.<br>Keep your workshop running smoothly.</p>
+          <span class="accent-bar" aria-hidden="true"></span>
+        </div>
+        <nav class="tiles" aria-label="Quick actions">
+          <a class="tile quick-action quick-action--job" href="pages/repairs.html" title="New Job Card" aria-label="New Job Card">
+            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M27 38l5-13h32l5 13"/><rect x="12" y="38" width="72" height="26" rx="9"/><circle cx="26" cy="51" r="4"/><circle cx="70" cy="51" r="4"/><path d="M20 64v8h12v-8M64 64v8h12v-8"/><circle cx="74" cy="70" r="14" fill="#12a150" stroke="none"/><circle cx="74" cy="65.5" r="3.6" fill="#fff" stroke="none"/><path d="M67 78c.8-5 3.8-6.6 7-6.6s6.2 1.6 7 6.6z" fill="#fff" stroke="none"/></svg>
+          </a>
+          <button type="button" class="tile grey" id="tile-search" title="Search" aria-label="Search">
+            <svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="42" cy="42" r="21" stroke-width="5"/><path d="M58 58l20 20" stroke-width="6"/></svg>
+          </button>
+          <a class="tile orange quick-action quick-action--customer" href="pages/customers.html" title="Add Customer" aria-label="Add Customer">
+            <svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="26" r="8"/><circle cx="27" cy="35" r="7"/><circle cx="69" cy="35" r="7"/><path d="M33 62c0-9 6-15 15-15s15 6 15 15"/><path d="M12 66c0-8 5-14 12-14M84 66c0-8-5-14-12-14"/><circle cx="72" cy="68" r="14" fill="#ff7a12" stroke="none"/><path d="M72 61v14M65 68h14" stroke="#fff" stroke-width="4.5"/></svg>
+          </a>
+          <a class="tile quick-action quick-action--quote" href="pages/shop.html" title="Shop &amp; Stock" aria-label="Shop and Stock">
+            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M16 82V40l32-22 32 22v42"/><path d="M28 82V50h40v32"/><circle cx="48" cy="66" r="8" stroke="#ff7a12" stroke-width="5"/><path d="M48 53v5M48 74v5M35 66h5M56 66h5M39 57l3 3M54 72l3 3M57 57l-3 3M42 72l-3 3" stroke="#ff7a12" stroke-width="4"/></svg>
+          </a>
+          <a class="tile orange quick-action quick-action--receipt" href="pages/receipts.html" title="Receipts" aria-label="Receipts">
+            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M24 14h32l16 16v52H24z"/><path d="M56 14v16h16M34 42h20M34 54h13M34 66h9"/><circle cx="68" cy="68" r="14" fill="#ff7a12" stroke="none"/><path d="M68 59v9.5h7" stroke="#fff" stroke-width="4"/></svg>
+          </a>
+        </nav>
+      </section>
+
+      <!-- EXISTING CONTENT: same ids / classes so js/app.js keeps filling it in -->
+      <div class="dash-content">
+        <section class="page-section">
+          <div class="global-search">
+            <i data-lucide="search" class="global-search__icon"></i>
+            <input type="text" id="global-search-input" placeholder="Search customers, job cards, quotations, suppliers..." autocomplete="off" />
+            <div class="global-search__results" id="global-search-results" hidden></div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Right now</p>
+              <h2>Today's Snapshot</h2>
+            </div>
+            <span class="section-note" id="snapshot-date">—</span>
+          </div>
+          <div class="card-grid" id="today-cards">
+            <div class="stat-card"><div class="stat-card__label">Jobs Created Today</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">S.M.A.R.T.</p>
+              <h2>Today's Objectives</h2>
+            </div>
+            <a class="section-note" href="pages/settings.html">Edit targets</a>
+          </div>
+          <div class="objectives-grid" id="objectives-grid">
+            <div class="objective-card">Loading...</div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Act on these</p>
+              <h2>Needs Attention</h2>
+            </div>
+            <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
+          </div>
+          <div class="panel" style="padding:6px 20px;" id="attention-panel">
+            <div class="attention-empty">Loading…</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-inline-heading">
+            <div>
+              <p class="section-kicker">Latest activity</p>
+              <h2>Recent Job Cards</h2>
+            </div>
+            <a class="btn" href="pages/repairs.html">Open Jobs</a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Customer</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody id="recent-jobs">
+              <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js</td></tr>
+            </tbody>
+          </table>
+        </section>
       </div>
 
-      <section class="page-section">
-        <div class="global-search">
-          <i data-lucide="search" class="global-search__icon"></i>
-          <input type="text" id="global-search-input" placeholder="Search customers, job cards, quotations, suppliers..." autocomplete="off" />
-          <div class="global-search__results" id="global-search-results" hidden></div>
-        </div>
-      </section>
+      <!-- BOTTOM TAB BAR -->
+      <nav class="tabbar" aria-label="Main">
+        <a class="tab" href="index.html" aria-current="page" aria-label="Home">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6L5 21v21h14V30h10v12h14V21z"/></svg><span>Home</span>
+        </a>
+        <button type="button" class="tab" id="tab-search" aria-label="Search">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="M30 30l11 11"/></svg><span>Search</span>
+        </button>
+        <a class="tab" href="pages/customers.html" aria-label="Customers">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 41c0-9 6-15 14-15s14 6 14 15z"/><path d="M8 34c-2-5 0-9 5-11M40 34c2-5 0-9-5-11"/></svg>
+          <span>Customers</span>
+          <span class="tab-badge" id="tab-badge" hidden>0</span>
+        </a>
+        <a class="tab" href="pages/repairs.html" aria-label="Workshop and Job Cards">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 41V19L24 7l17 12v22"/><path d="M14 41V25h20v16"/><circle cx="24" cy="33" r="4"/><path d="M24 26v2M24 38v2M17 33h2M29 33h2"/></svg><span>Workshop</span>
+        </a>
+        <a class="tab" href="pages/quotations.html" aria-label="Documents and Quotations">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h18l8 8v28H12z"/><path d="M30 6v8h8M18 22h14M18 29h14M18 36h8"/></svg><span>Quotes</span>
+        </a>
+      </nav>
 
-      <section class="page-section">
-        <div class="quick-actions">
-          <a class="quick-action quick-action--job" href="pages/repairs.html"><i data-lucide="clipboard-plus"></i><span>New Job Card</span></a>
-          <a class="quick-action quick-action--customer" href="pages/customers.html"><i data-lucide="user-plus"></i><span>Add Customer</span></a>
-          <a class="quick-action quick-action--quote" href="pages/quotations.html"><i data-lucide="file-plus-2"></i><span>New Quotation</span></a>
-          <a class="quick-action quick-action--receipt" href="pages/receipts.html"><i data-lucide="receipt"></i><span>Receipts</span></a>
-          <a class="quick-action quick-action--analytics" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i><span>Full Analytics</span></a>
-        </div>
-      </section>
-
-      <section class="dashboard-section">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Right now</p>
-            <h2>Today's Snapshot</h2>
-          </div>
-          <span class="section-note" id="snapshot-date">�</span>
-        </div>
-        <div class="card-grid" id="today-cards">
-          <div class="stat-card"><div class="stat-card__label">Jobs Created Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">&mdash;</div></div>
-          <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
-        </div>
-      </section>
-
-      <section class="dashboard-section">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">S.M.A.R.T.</p>
-            <h2>Today's Objectives</h2>
-          </div>
-          <a class="section-note" href="pages/settings.html">Edit targets</a>
-        </div>
-        <div class="objectives-grid" id="objectives-grid">
-          <div class="objective-card">Loading...</div>
-        </div>
-      </section>
-
-      <section class="dashboard-section">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Act on these</p>
-            <h2>Needs Attention</h2>
-          </div>
-          <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
-        </div>
-        <div class="panel" style="padding:6px 20px;" id="attention-panel">
-          <div class="attention-empty">Loading�</div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-inline-heading">
-          <div>
-            <p class="section-kicker">Latest activity</p>
-            <h2>Recent Job Cards</h2>
-          </div>
-          <a class="btn" href="pages/repairs.html">Open Jobs</a>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Job ID</th>
-              <th>Customer</th>
-              <th>Vehicle</th>
-              <th>Status</th>
-              <th>Cost</th>
-            </tr>
-          </thead>
-          <tbody id="recent-jobs">
-            <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet � connect Supabase in js/app.js</td></tr>
-          </tbody>
-        </table>
-      </section>
+      <footer class="site-foot">
+        <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
     </main>
   </div>
 
@@ -172,5 +434,39 @@
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/notifications.js"></script>
+  <script type="module" src="js/repair-pages-navigation.js"></script>
+
+  <!-- Visual-only helpers: clock, online dot, slide-out menu, search shortcut, parallax. No data, no auth. -->
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      const body = document.body;
+
+      // live clock + connection dot
+      const clock = $("hdr-clock"), live = $("hdr-live");
+      const tick = () => { clock.textContent = new Date().toLocaleTimeString("en-GB", { hour12: false }); };
+      tick(); setInterval(tick, 1000);
+      const net = () => { const on = navigator.onLine; live.dataset.state = on ? "online" : "offline"; live.querySelector("span").textContent = on ? "Live" : "Offline"; };
+      addEventListener("online", net); addEventListener("offline", net); net();
+
+      // Navigation is provided by the shared module bar.
+      // search shortcuts jump to the existing global search box
+      const goSearch = () => {
+        const input = $("global-search-input"); if (!input) return;
+        input.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+        setTimeout(() => input.focus({ preventScroll: true }), 350);
+      };
+      $("tile-search").addEventListener("click", goSearch);
+      $("tab-search").addEventListener("click", goSearch);
+
+      // gentle parallax on the hero photo
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        addEventListener("pointermove", e => {
+          document.body.style.setProperty("--px", (e.clientX / innerWidth - .5).toFixed(3));
+          document.body.style.setProperty("--py", (e.clientY / innerHeight - .5).toFixed(3));
+        }, { passive: true });
+      }
+    })();
+  </script>
 </body>
 </html>

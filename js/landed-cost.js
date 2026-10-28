@@ -184,7 +184,8 @@ shipmentForm.addEventListener("submit", async (e) => {
   // 2. Line items
   const { error: itemsError } = await supabase.from("purchase_shipment_items").insert(
     result.lines.map(l => ({
-      shipment_id: shipment.id, part_id: l.partId, quantity: l.qty,
+      shipment_id: shipment.id, part_id: l.partId, part_name: parts.find(part => part.id === l.partId)?.name || "Part",
+      quantity: l.qty,
       supplier_unit_cost: l.unitCost, allocated_extra_cost: l.allocatedExtra, landed_unit_cost: l.landedUnitCost,
     }))
   );
@@ -200,7 +201,13 @@ shipmentForm.addEventListener("submit", async (e) => {
     const newStock = (part?.quantity_in_stock || 0) + l.qty;
     const newSellingPrice = Number((l.landedUnitCost * (1 + markupRate)).toFixed(2));
     await supabase.from("parts").update({ cost_price: l.landedUnitCost, quantity_in_stock: newStock, selling_price: newSellingPrice }).eq("id", l.partId);
-    await supabase.from("restocks").insert([{ part_id: l.partId, supplier_id: supplierId, quantity: l.qty, unit_cost: l.landedUnitCost }]);
+    await supabase.from("restocks").insert([{
+      part_id: l.partId,
+      part_name: part?.name || "Part",
+      supplier_id: supplierId,
+      quantity: l.qty,
+      unit_cost: l.landedUnitCost,
+    }]);
   }
 
   // 4. Post to the ledger: Debit Parts Inventory for the full landed cost;
@@ -300,7 +307,7 @@ async function loadShipments() {
 async function openShipmentModal(id) {
   const { data, error } = await supabase
     .from("purchase_shipment_items")
-    .select("quantity, supplier_unit_cost, allocated_extra_cost, landed_unit_cost, parts(name)")
+    .select("quantity, supplier_unit_cost, allocated_extra_cost, landed_unit_cost, part_name, parts(name)")
     .eq("shipment_id", id);
   if (error) { alert("Couldn't load shipment details."); return; }
 
@@ -309,7 +316,7 @@ async function openShipmentModal(id) {
     <table>
       <thead><tr><th>Part</th><th>Qty</th><th>Supplier Cost</th><th>Allocated Extra</th><th>Landed Unit Cost</th></tr></thead>
       <tbody>
-        ${data.map(l => `<tr><td>${escapeHtml(l.parts?.name || "—")}</td><td>${l.quantity}</td><td>${money(l.supplier_unit_cost)}</td><td>${money(l.allocated_extra_cost)}</td><td>${money(l.landed_unit_cost)}</td></tr>`).join("")}
+        ${data.map(l => `<tr><td>${escapeHtml(l.parts?.name || l.part_name || "—")}</td><td>${l.quantity}</td><td>${money(l.supplier_unit_cost)}</td><td>${money(l.allocated_extra_cost)}</td><td>${money(l.landed_unit_cost)}</td></tr>`).join("")}
       </tbody>
     </table>
   `;

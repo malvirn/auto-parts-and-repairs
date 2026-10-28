@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { installBulkDelete } from "./bulk-delete.js";
 
 const accountForm = document.getElementById("account-form");
 const accountsTable = document.getElementById("accounts-table");
@@ -15,6 +16,21 @@ const postEntryBtn = document.getElementById("post-entry-btn");
 const journalFormMessage = document.getElementById("journal-form-message");
 
 const entriesTable = document.getElementById("entries-table");
+installBulkDelete({
+  tbody: entriesTable,
+  table: "journal_entries",
+  label: "journal entry",
+  getId: row => row.dataset.journalEntryId,
+  beforeDelete: async ids => {
+    const { data, error } = await supabase.from("journal_entries")
+      .select("id, source_type")
+      .in("id", ids);
+    if (error) throw error;
+    if ((data || []).some(entry => entry.source_type)) {
+      throw new Error("Entries created by payroll, payables, assets, or purchasing must be removed from their source workflow.");
+    }
+  },
+});
 const trialBalanceBody = document.getElementById("trial-balance-body");
 const refreshTbBtn = document.getElementById("refresh-tb-btn");
 
@@ -198,7 +214,7 @@ async function loadEntries() {
   entriesTable.innerHTML = data?.length ? data.map(entry => {
     const total = (entry.journal_lines || []).reduce((sum, l) => sum + Number(l.debit || 0), 0);
     return `
-      <tr>
+      <tr data-journal-entry-id="${entry.id}">
         <td>${entry.entry_date}</td>
         <td>${escapeHtml(entry.reference || "—")}</td>
         <td>${escapeHtml(entry.description)}</td>

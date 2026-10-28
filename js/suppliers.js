@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { confirmTypedDelete, installBulkDelete } from "./bulk-delete.js";
 
 // ⚠️ Replace with your own restricted key — see setup steps.
 // This key is visible to anyone viewing your site's source. That's normal
@@ -9,6 +10,12 @@ const GOOGLE_PLACES_API_KEY = "AIzaSyBVEIOfzRpcYL3fgGvrWq3V1bXPdBOsU78";
 
 const form = document.getElementById("supplier-form");
 const tableBody = document.getElementById("suppliers-table");
+installBulkDelete({
+  tbody: tableBody,
+  table: "suppliers",
+  label: "supplier",
+  getId: row => row.dataset.supplierId,
+});
 const modal = document.getElementById("supplier-modal");
 const saveButton = document.getElementById("supplier-save");
 const deleteButton = document.getElementById("supplier-delete");
@@ -114,7 +121,7 @@ function renderTable() {
   }
 
   tableBody.innerHTML = rows.map(supplier => `
-    <tr data-supplier='${JSON.stringify(supplier).replace(/'/g, "&apos;")}'>
+    <tr id="supplier-${supplier.id}" data-supplier-id="${supplier.id}" data-supplier='${JSON.stringify(supplier).replace(/'/g, "&apos;")}'>
       <td><strong>${escapeHtml(supplier.name)}</strong></td>
       <td>${escapeHtml(supplier.contact_person || "—")}</td>
       <td>${escapeHtml(supplier.phone || "—")}</td>
@@ -128,6 +135,8 @@ function renderTable() {
   tableBody.querySelectorAll(".edit-supplier-btn").forEach(button => {
     button.addEventListener("click", () => openModal(JSON.parse(button.closest("tr").dataset.supplier)));
   });
+  const targetId = window.location.hash.match(/^#supplier-([\w-]+)$/)?.[1];
+  if (targetId) document.getElementById(`supplier-${targetId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 searchInput?.addEventListener("input", event => {
@@ -203,7 +212,7 @@ saveButton.addEventListener("click", async () => {
 });
 
 deleteButton.addEventListener("click", async () => {
-  if (!currentId || !confirm("Delete this supplier? Existing restocks will keep their history.")) return;
+  if (!currentId || !(await confirmTypedDelete("this supplier? Existing restocks will keep their history"))) return;
   const { error } = await supabase.from("suppliers").delete().eq("id", currentId);
   if (error) { alert("Failed to delete supplier: " + error.message); return; }
   closeModal();

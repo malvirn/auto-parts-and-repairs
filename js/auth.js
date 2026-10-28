@@ -47,138 +47,38 @@ function basename(href) {
   return name;
 }
 
-function addMobileNavigation(currentPage) {
-  if (!document.body.classList.contains("system-page") || document.querySelector(".bottom-nav")) return;
-
-  const sidebarLinks = [...document.querySelectorAll(".sidebar a.nav-link")];
-  const homeLink = sidebarLinks.find(link => basename(link.getAttribute("href")) === "index");
-  const preferredPages = ["customers", "repairs", "shop"];
-  const primaryLinks = preferredPages
-    .map(page => sidebarLinks.find(link => basename(link.getAttribute("href")) === page))
-    .filter(Boolean);
-  const menuLinks = sidebarLinks.filter(link => link !== homeLink && !primaryLinks.includes(link));
-
-  while (primaryLinks.length < 3) {
-    const nextLink = menuLinks.shift();
-    if (!nextLink) break;
-    primaryLinks.push(nextLink);
-  }
-
-  const nav = document.createElement("nav");
-  nav.className = "bottom-nav";
-  nav.setAttribute("aria-label", "Main navigation");
-
-  const createNavLink = (source, label) => {
-    const link = document.createElement("a");
-    link.href = source.getAttribute("href");
-    link.className = "bottom-nav__item";
-    for (const attribute of source.attributes) {
-      if (attribute.name.startsWith("data-")) link.setAttribute(attribute.name, attribute.value);
-    }
-
-    const icon = source.querySelector("[data-lucide]");
-    if (icon) link.append(icon.cloneNode(true));
-    const text = document.createElement("span");
-    text.textContent = label;
-    link.append(text);
-
-    const targetPage = basename(source.getAttribute("href"));
-    const onAccountingPage = targetPage === "accounting" && [
-      "ledger", "payables", "cashbook", "commissions", "landed-cost", "fixed-assets", "financial-statements",
-    ].includes(currentPage);
-    const active = targetPage === currentPage || onAccountingPage;
-    if (active) {
-      link.classList.add("active");
-      link.setAttribute("aria-current", "page");
-    }
-    return link;
-  };
-
-  if (homeLink) nav.append(createNavLink(homeLink, "Home"));
-  primaryLinks.forEach(source => {
-    const page = basename(source.getAttribute("href"));
-    const label = page === "customers" ? "Clients"
-      : page === "repairs" ? "Work Orders"
-        : page === "shop" ? "Parts"
-          : source.textContent.trim();
-    nav.append(createNavLink(source, label));
-  });
-
-  const moreWrap = document.createElement("div");
-  moreWrap.className = "more-wrap";
-  const moreToggle = document.createElement("button");
-  moreToggle.id = "more-toggle";
-  moreToggle.className = "bottom-nav__item";
-  moreToggle.type = "button";
-  moreToggle.setAttribute("aria-expanded", "false");
-  moreToggle.setAttribute("aria-controls", "more-menu");
-  moreToggle.innerHTML = '<i data-lucide="ellipsis"></i><span>More</span>';
-  const moreMenu = document.createElement("div");
-  moreMenu.className = "more-menu";
-  moreMenu.id = "more-menu";
-
-  menuLinks.forEach(source => {
-    const menuLink = source.cloneNode(true);
-    menuLink.className = "";
-    const targetPage = basename(source.getAttribute("href"));
-    const onAccountingPage = targetPage === "accounting" && [
-      "ledger", "payables", "cashbook", "commissions", "landed-cost", "fixed-assets", "financial-statements",
-    ].includes(currentPage);
-    if (targetPage === currentPage || onAccountingPage) {
-      menuLink.classList.add("current");
-      if (targetPage === currentPage) menuLink.setAttribute("aria-current", "page");
-      moreToggle.classList.add("active");
-    }
-    const pageLabels = {
-      receipts: "Invoices & Receipts",
-      technicians: "Technicians",
-      shop: "Parts Shop",
-      analytics: "Workshop Reports",
-      accounting: "Accounts",
-      suppliers: "Parts Suppliers",
-    };
-    if (pageLabels[targetPage]) {
-      const icon = menuLink.querySelector("[data-lucide]");
-      const label = pageLabels[targetPage];
-      menuLink.textContent = label;
-      if (icon) menuLink.prepend(icon);
-    }
-    moreMenu.append(menuLink);
-  });
-  moreWrap.append(moreToggle, moreMenu);
-  nav.append(moreWrap);
-  document.body.append(nav);
-
-  moreToggle.addEventListener("click", event => {
-    event.stopPropagation();
-    const isOpen = moreMenu.classList.toggle("open");
-    moreToggle.setAttribute("aria-expanded", String(isOpen));
-  });
-  document.addEventListener("click", event => {
-    if (!event.target.closest(".more-wrap")) {
-      moreMenu.classList.remove("open");
-      moreToggle.setAttribute("aria-expanded", "false");
-    }
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-      moreMenu.classList.remove("open");
-      moreToggle.setAttribute("aria-expanded", "false");
-    }
-  });
-  if (window.lucide) lucide.createIcons({ root: nav });
+function normalizeRole(role) {
+  const normalized = String(role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return normalized === "superadmin" ? "super_admin" : normalized;
 }
 
 async function getMyProfile(userId) {
-  const { data, error } = await supabase.from("profiles").select("role, is_active").eq("id", userId).maybeSingle();
+  const { data, error } = await supabase.from("profiles")
+    .select("role, access_level")
+    .eq("id", userId)
+    .maybeSingle();
   if (error) {
-    console.error("Unable to load profile — defaulting to the most restrictive tier (staff):", error);
+    console.error("Unable to load the account role — defaulting to the most restrictive tier (staff):", error);
     return { role: "staff", is_active: true };
   }
-  return { role: data?.role || "staff", is_active: data?.is_active !== false };
+
+  let is_active = true;
+  const { data: activeData, error: activeError } = await supabase.from("profiles")
+    .select("is_active")
+    .eq("id", userId)
+    .maybeSingle();
+  if (activeError) {
+    console.warn("Unable to check whether the account is active; profile role was loaded successfully:", activeError);
+  } else {
+    is_active = activeData?.is_active !== false;
+  }
+  const normalizedRole = normalizeRole(data?.role);
+  const role = Number(data?.access_level) >= 2 ? "super_admin" : normalizedRole;
+  return { role, is_active };
 }
 
 function applyAccess(role) {
+  role = normalizeRole(role);
   document.body.dataset.role = role;
 
   // Hide sidebar links the current role isn't allowed to use — this is a
@@ -191,7 +91,6 @@ function applyAccess(role) {
   });
 
   const currentPage = basename(path);
-  addMobileNavigation(currentPage);
 
   // Send this role to its own landing page instead of the generic
   // dashboard, if one's defined for them. This only ever fires from the
@@ -212,23 +111,110 @@ function applyAccess(role) {
     return; // stay hidden — a redirect is about to happen
   }
 
+  document.dispatchEvent(new Event("apr:access-ready"));
+
   // Only NOW is it confirmed this role is actually allowed on this exact
   // page — reveal it. Every earlier return in this function leaves the
   // page hidden on purpose, because a redirect is about to happen.
   revealPage();
 }
 
+function createLoadingSkeleton() {
+  const main = document.querySelector("body.dashboard-page .main");
+  if (!main || main.querySelector(":scope > .auth-skeleton")) return;
+
+  const skeleton = document.createElement("section");
+  skeleton.className = "auth-skeleton";
+  skeleton.setAttribute("aria-label", "Loading page content");
+  skeleton.setAttribute("role", "status");
+
+  for (let index = 0; index < 4; index += 1) {
+    const card = document.createElement("div");
+    card.className = "auth-skeleton__card";
+    if (index === 3) card.classList.add("auth-skeleton__card--wide");
+
+    const heading = document.createElement("span");
+    heading.className = "auth-skeleton__bar auth-skeleton__bar--heading";
+    const value = document.createElement("span");
+    value.className = "auth-skeleton__bar auth-skeleton__bar--value";
+    const detail = document.createElement("span");
+    detail.className = "auth-skeleton__bar auth-skeleton__bar--detail";
+    const footer = document.createElement("span");
+    footer.className = "auth-skeleton__bar auth-skeleton__bar--footer";
+
+    card.append(heading, value, detail, footer);
+    skeleton.append(card);
+  }
+
+  const header = main.querySelector(":scope > .app-header, :scope > .main__header, :scope > .dashboard-hero, :scope > .site-masthead");
+  if (header) header.after(skeleton);
+  else main.prepend(skeleton);
+  main.setAttribute("aria-busy", "true");
+}
+
 function hidePage() {
-  document.documentElement.style.visibility = "hidden";
-  if (document.getElementById("auth-gate-style")) return;
-  const style = document.createElement("style");
-  style.id = "auth-gate-style";
-  style.textContent = "body { visibility: hidden !important; }";
-  document.head.appendChild(style);
+  document.documentElement.style.visibility = "";
+  document.body.classList.add("auth-loading");
+  createLoadingSkeleton();
+
+  if (!document.getElementById("auth-gate-style")) {
+    const style = document.createElement("style");
+    style.id = "auth-gate-style";
+    style.textContent = `
+      body.auth-loading .main > :not(.app-header):not(.main__header):not(.dashboard-hero):not(.site-masthead):not(.site-foot):not(.auth-skeleton) {
+        display: none !important;
+      }
+      body.auth-loading .auth-skeleton {
+        display: grid;
+        width: min(1080px, calc(100% - 2 * clamp(14px, 4vw, 28px)));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin: 0 auto 30px;
+      }
+      body.auth-loading .auth-skeleton__card {
+        display: grid;
+        min-height: 148px;
+        align-content: start;
+        gap: 17px;
+        padding: 20px;
+        border: 1px solid rgba(31, 196, 103, .2);
+        border-radius: 18px;
+        background: linear-gradient(155deg, #111b18, #0c1210);
+      }
+      body.auth-loading .auth-skeleton__card--wide { grid-column: 1 / -1; min-height: 190px; }
+      body.auth-loading .auth-skeleton__bar {
+        display: block;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(159, 176, 166, .08), rgba(159, 176, 166, .2), rgba(159, 176, 166, .08));
+        background-size: 220% 100%;
+        animation: auth-skeleton-shimmer 1.4s ease-in-out infinite;
+      }
+      body.auth-loading .auth-skeleton__bar--heading { width: 42%; }
+      body.auth-loading .auth-skeleton__bar--value { width: 66%; height: 24px; }
+      body.auth-loading .auth-skeleton__bar--detail { width: 86%; }
+      body.auth-loading .auth-skeleton__bar--footer { width: 54%; }
+      @keyframes auth-skeleton-shimmer { to { background-position: -220% 0; } }
+      @media (max-width: 700px) {
+        body.auth-loading .auth-skeleton { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        body.auth-loading .auth-skeleton__card { min-height: 132px; padding: 16px; }
+      }
+      @media (max-width: 420px) {
+        body.auth-loading .auth-skeleton { grid-template-columns: minmax(0, 1fr); }
+        body.auth-loading .auth-skeleton__card--wide { grid-column: auto; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        body.auth-loading .auth-skeleton__bar { animation: none; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
 }
 
 function revealPage() {
-  document.documentElement.style.visibility = "";
+  document.body.classList.remove("auth-loading");
+  document.querySelector("body.dashboard-page .main")?.removeAttribute("aria-busy");
+  document.querySelector(".auth-skeleton")?.remove();
   document.getElementById("auth-gate-style")?.remove();
 }
 

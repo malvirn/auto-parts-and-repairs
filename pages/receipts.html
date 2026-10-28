@@ -2,80 +2,68 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f78a1d">
-  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b1012">
+  <meta name="color-scheme" content="dark">
   <title>Centric Auto Mobile | Receipts</title>
   <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root {
-      --bg: #1c1c1c; --surface: #2b2b2b; --surface-2: #333; --line: #414141;
-      --text: #f2f2f2; --muted: #a8a8a8; --nav-bg: rgba(30,30,30,.96); --shadow: 0 14px 34px rgba(0,0,0,.5);
-      --accent: #f78a1d; --on-accent: #181818;
+      --bg: #0b1012; --surface: #111b18; --surface-2: #0c1210; --line: rgba(31,196,103,.28);
+      --text: #eef3ef; --muted: #9fb0a6; --nav-bg: rgba(12,18,20,.97); --shadow: 0 14px 34px rgba(0,0,0,.5);
+      --accent: #1fc467; --on-accent: #08120c;
       --ok: #4cc38a; --info: #5aa9f0; --warn: #f2c14e; --bad: #ef6a5e;
-      --pm-body: #3b3b3b; --pm-edge: #1a1a1a; --pm-screen: #121212; --pm-screen-text: #f2f2f2;
-      --head: "Space Grotesk", system-ui, sans-serif; --body: "Manrope", system-ui, sans-serif;
-      --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      --pm-body: #17221e; --pm-edge: #080d0b; --pm-screen: #0b1012; --pm-screen-text: #eef3ef;
+      --head: "Manrope", system-ui, sans-serif; --body: "Inter", "Segoe UI", system-ui, sans-serif;
+      --mono: "Courier New", ui-monospace, Consolas, monospace;
       --pad: clamp(14px, 4vw, 28px); --maxw: 1080px; --safe-b: env(safe-area-inset-bottom, 0px);
       color-scheme: dark;
-    }
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme="dark"]):not(.dark):not(.dark-mode) {
-        --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d;
-        --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
-        --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a;
-        --pm-body: #d9d5cf; --pm-edge: #b9b3aa; --pm-screen: #1d1d1d; --pm-screen-text: #f2f2f2; color-scheme: light;
-      }
-    }
-    :root[data-theme="light"], :root.light, :root.light-mode, body.light, body.light-mode {
-      --bg: #f3f1ee; --surface: #fff; --surface-2: #efece8; --line: #e2ded8; --text: #1d1d1d; --muted: #66625d;
-      --nav-bg: rgba(255,255,255,.97); --shadow: 0 12px 30px rgba(40,30,20,.18);
-      --ok: #1f9d63; --info: #2b7fd0; --warn: #a97800; --bad: #d8453a;
-      --pm-body: #d9d5cf; --pm-edge: #b9b3aa; --pm-screen: #1d1d1d; --pm-screen-text: #f2f2f2; color-scheme: light;
     }
 
     * { box-sizing: border-box; }
     .hidden { display: none !important; }
     html { background: var(--bg); -webkit-text-size-adjust: 100%; }
-    body.dashboard-page { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    body.dashboard-page { margin: 0; min-height: 100vh; padding-bottom: calc(76px + var(--safe-b)); background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .app-shell { display: block !important; }
     .sidebar { display: none !important; }
-    .main { width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0; padding: 0 0 calc(130px + var(--safe-b)) !important; background: transparent !important; color: var(--text); }
+    .main { width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0; padding: 0 0 32px !important; background: transparent !important; color: var(--text); }
     .main > :not(.dashboard-hero) { width: min(var(--maxw), 100% - 2 * var(--pad)); margin-inline: auto; }
 
     /* Coloured header */
     .dashboard-hero {
       display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 24px !important; border: 0; border-radius: 0 0 28px 28px;
-      padding: calc(env(safe-area-inset-top, 0px) + clamp(18px, 4vw, 30px)) max(var(--pad), calc((100% - var(--maxw)) / 2)) clamp(22px, 4vw, 34px);
-      background: linear-gradient(135deg, #ffa43a 0%, #f78a1d 55%, #e5700b 100%) !important; color: #1a1209;
+      min-height: clamp(150px, 20vw, 230px);
+      padding: calc(env(safe-area-inset-top, 0px) + clamp(26px, 4.6vw, 54px)) max(var(--pad), calc((100% - var(--maxw)) / 2));
+      background: linear-gradient(90deg,rgba(8,13,12,.96),rgba(8,13,12,.56)), url("../assets/dashboard-hero.jpeg") center right/cover no-repeat !important; color: #fff;
     }
-    .dashboard-hero h1 { margin: 0; color: #1a1209; font: 700 clamp(26px, 6vw, 38px)/1.05 var(--head); letter-spacing: -.5px; }
-    .page-intro { margin: 6px 0 0; color: rgba(26,18,9,.8); font-size: clamp(13px, 3vw, 15px); font-weight: 500; max-width: 46ch; }
-    .section-kicker { display: none; }
+    .dashboard-hero h1 { margin: 0; color: #fff; font: 700 clamp(30px, 4.4vw, 58px)/1.05 var(--head); letter-spacing: -.5px; }
+    .page-intro { margin: 8px 0 0; color: #dfe8e2; font-size: clamp(13px, 3vw, 16px); font-weight: 500; max-width: 46ch; }
+    .section-kicker { display: block; margin: 0 0 6px; color: #ff7a12; font-size: .74rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
     .back-link {
       flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%;
-      background: #1a1209; color: #fff; text-decoration: none;
+      background: rgba(10,16,13,.72); color: #fff; text-decoration: none; border: 1px solid rgba(31,196,103,.35);
     }
     .back-link svg { width: 22px; height: 22px; }
+    .receipt-live-time { display: grid; flex: 0 0 auto; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; }
+    .receipt-live-time__date { color: #dfe8e2; font-size: 12px; }
+    .receipt-live-time__clock { color: #fff; font-size: clamp(17px, 2vw, 24px); font-weight: 700; }
 
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 12px;
       background: var(--surface); color: var(--text); text-decoration: none; font: 600 14px var(--body); white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s;
     }
     .btn:hover { background: var(--surface-2); border-color: var(--accent); }
     .btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
-    .btn--primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-    .btn--primary:hover { background: #ff9b36; }
+    .btn--primary { border-color: transparent; background: linear-gradient(180deg,#1fc467,#12a150); color: #fff; box-shadow: 0 5px 0 #0b6b34,0 12px 20px rgba(0,0,0,.28); }
+    .btn--primary:hover { background: linear-gradient(180deg,#1fc467,#12a150); filter: brightness(1.08); }
 
     /* Sections */
     .page-section { margin-bottom: 30px; }
@@ -109,15 +97,15 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Floating nav */
-    .bottom-nav { position: fixed; z-index: 1000; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; width: min(540px, 100% - 16px); height: 64px; padding: 6px; border: 1px solid var(--line); border-radius: 22px; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: var(--shadow); }
-    .bottom-nav__item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 100%; border: 0; border-radius: 16px; background: transparent; color: var(--muted); text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; }
+    .bottom-nav { position: fixed; z-index: 1000; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; width: 100%; height: calc(76px + var(--safe-b)); padding: 6px 0 var(--safe-b); border: 0; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: 0 -14px 28px rgba(0,0,0,.35); }
+    .bottom-nav__item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 100%; border: 0; border-radius: 0; background: transparent; color: var(--muted); text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; }
     .bottom-nav__item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bottom-nav__item svg { width: 21px; height: 21px; stroke-width: 1.8; }
     .bottom-nav__item:hover, .bottom-nav__item.active { color: var(--text); }
     .bottom-nav__item.active svg { color: var(--accent); }
     .bottom-nav__item.active::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 3px; background: var(--accent); }
-    .bottom-nav > a:nth-child(3) { height: 74px; margin-top: -18px; background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 20px rgba(247,138,29,.4); }
-    .bottom-nav > a:nth-child(3) svg { width: 24px; height: 24px; color: var(--on-accent); }
+    .bottom-nav > a:nth-child(3) { height: 100%; margin-top: 0; background: transparent; color: var(--muted); box-shadow: none; }
+    .bottom-nav > a:nth-child(3) svg { width: 21px; height: 21px; color: inherit; }
     .more-wrap { position: relative; min-width: 0; height: 100%; }
     .more-wrap > .bottom-nav__item { width: 100%; height: 100%; }
     .more-menu { position: absolute; right: 0; bottom: calc(100% + 14px); display: none; width: min(240px, 100vw - 24px); max-height: min(65vh, 440px); overflow-y: auto; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
@@ -157,42 +145,48 @@
 
     .printer-output { position: relative; z-index: 2; width: calc(100% - 40px); margin-top: -12px; overflow: hidden; padding-top: 4px; }
     .printer-output::before { content: ""; position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 8px; background: linear-gradient(rgba(0,0,0,.55), transparent); pointer-events: none; }
-    .paper-wrap {
-      background: #fbfaf7; padding-bottom: 8px;
-      -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 8px repeat-x;
-              mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 8px repeat-x;
-    }
+    .paper-wrap { background: #fbfaf7; box-shadow: 0 20px 44px rgba(0,0,0,.34); }
     .printer-root[data-stage="processing"] .paper-wrap { transform: translateY(-101%); visibility: hidden; }
     .printer-root[data-stage="printing"] .paper-wrap { animation: feed 1.8s steps(12, end) forwards; }
     .printer-root[data-stage="complete"] .paper-wrap { transform: none; }
     @keyframes feed { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
-    .receipt-document { padding: 24px 22px 20px; background: #fbfaf7; color: #1a1a1a; font: 400 13px/1.55 var(--mono); overflow-wrap: break-word; word-break: normal; writing-mode: horizontal-tb; min-width: 0; }
+    .receipt-document { position: relative; isolation: isolate; padding: clamp(24px,5vw,56px) clamp(20px,6vw,54px) 30px; background: #fbfaf7; color: #1a1a1a; font: 400 14px/1.5 var(--mono); overflow-wrap: break-word; word-break: normal; writing-mode: horizontal-tb; min-width: 0; }
+    .receipt-document::before { content: ""; position: absolute; z-index: -1; inset: 25% 15%; background: url("../assets/logo.png") center/contain no-repeat; opacity: .045; pointer-events: none; }
     .receipt-document > *, .receipt-document :is(div, section, header, footer, span, p) { min-width: 0; max-width: 100%; }
     .receipt-document > :is(div, section, header, footer) { width: 100%; }
-    .receipt-document :is(h1, h2, h3, h4) { margin: 0 0 6px; color: #1a1a1a; font: 700 16px/1.25 var(--mono); text-align: center; }
     .receipt-document p { margin: 4px 0; }
-    .receipt-document hr { margin: 12px 0; border: 0; border-top: 1px dashed #8d8a84; }
-    .receipt-document table { width: 100%; border-collapse: collapse; display: table; }
-    .receipt-document thead, .receipt-document tbody { display: table-row-group; }
-    .receipt-document tr { display: table-row; padding: 0; border: 0; background: none; }
-    .receipt-document th, .receipt-document td { display: table-cell; padding: 4px 0; border: 0; border-bottom: 1px dashed #cfccc5; color: #1a1a1a; font: 400 12.5px/1.45 var(--mono); text-align: left; vertical-align: top; }
-    .receipt-document th { font-weight: 700; background: none; }
-    .receipt-document :is(td, th):last-child { text-align: right; justify-self: auto; }
-    .receipt-document img { max-width: 100%; height: auto; }
-    .receipt-document :is(strong, b) { font-weight: 700; }
-    /* Hard reset: stops any inherited layout from squeezing text into a thin column */
     #receipt-document, #receipt-document * { writing-mode: horizontal-tb !important; text-orientation: mixed !important; word-break: normal !important; overflow-wrap: break-word !important; letter-spacing: normal; }
     #receipt-document { display: block !important; width: 100% !important; max-width: none !important; columns: auto !important; }
-    #receipt-document img { display: block; width: auto !important; height: auto !important; max-width: 84px !important; max-height: 84px !important; flex: 0 0 auto !important; margin: 0 auto 10px; object-fit: contain; }
-    #receipt-document img.receipt-footer-logo { width: min(100%, 420px) !important; max-width: min(100%, 420px) !important; max-height: none !important; margin: 0 auto 8px; border-radius: 4px; }
-    #receipt-document :is(div, section, header, footer, article, span, p, h1, h2, h3, h4) { max-width: 100%; min-width: 0; }
-    #receipt-document :is(div, header, footer, section):has(> img) { flex-direction: column; align-items: center; text-align: center; }
-    #receipt-document :is(div, header, footer, section) { flex-wrap: wrap; }
-    .receipt-footer { margin-top: 22px; padding-top: 14px; border-top: 2px solid #16864a; text-align: center; }
-    .receipt-footer__services { color: #365b42; font: 700 11px/1.5 var(--body); }
-    .receipt-footer__label { margin-top: 8px !important; color: #777; font: 700 10px/1.3 var(--body); text-transform: uppercase; letter-spacing: .08em; }
-    .receipt-footer__phones { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 16px; font: 700 12px/1.5 var(--body); }
+    .receipt-company { display: grid; grid-template-columns: 150px minmax(0,1fr); align-items: center; gap: 22px; padding: 0 0 18px; border-bottom: 3px solid transparent; border-image: linear-gradient(90deg,#16864a 0 78%,#f28a24 78% 100%) 1; }
+    .receipt-logo { display: block; width: 145px; height: 110px; object-fit: contain; }
+    .receipt-company__details { min-width: 0; padding-left: 22px; border-left: 3px solid #16864a; }
+    .receipt-company__details h2 { margin: 0 0 4px; color: #111; font: 700 clamp(16px,2.5vw,25px)/1.15 var(--mono); letter-spacing: -.045em; }
+    .receipt-company__details p { margin: 2px 0; font-size: 14px; }
+    .receipt-title { margin: 22px 0 18px; padding: 0 0 12px; border-bottom: 2px solid #222; font: 700 clamp(20px,3vw,30px)/1.2 var(--mono); text-align: center; }
+    .receipt-meta { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 0 0 28px; padding: 0; }
+    .receipt-meta div { display: grid; grid-template-columns: minmax(125px,.75fr) minmax(0,1fr); gap: 8px; }
+    .receipt-meta dt { font-weight: 400; }
+    .receipt-meta dd { margin: 0; }
+    .receipt-meta dd::before { content: ": "; }
+    .receipt-items { margin-top: 16px; border-top: 2px solid #333; border-bottom: 2px solid #333; }
+    .receipt-document .receipt-items table { width: 100%; border-collapse: collapse; display: table; }
+    .receipt-document .receipt-items thead,.receipt-document .receipt-items tbody { display: table-row-group; }
+    .receipt-document .receipt-items tr { display: table-row; padding: 0; border: 0; background: none; }
+    .receipt-document .receipt-items th,.receipt-document .receipt-items td { display: table-cell; padding: 9px 4px; border: 0; color: #1a1a1a; font: 400 13px/1.4 var(--mono); text-align: left; vertical-align: top; }
+    .receipt-document .receipt-items th { border-bottom: 1px solid #333; font-weight: 700; }
+    .receipt-document .receipt-items :is(td,th):not(:first-child) { text-align: right; white-space: nowrap; }
+    .receipt-document .receipt-items th:first-child,.receipt-document .receipt-items td:first-child { padding-left: 0; }
+    .receipt-document .receipt-items th:last-child,.receipt-document .receipt-items td:last-child { padding-right: 0; }
+    .receipt-totals { width: min(100%,360px); margin: 14px 0 0 auto; }
+    .receipt-totals div { display: flex; justify-content: space-between; gap: 20px; padding: 5px 0; }
+    .receipt-totals .receipt-paid { margin-top: 6px; padding-top: 10px; border-top: 2px solid #333; }
+    .receipt-totals .receipt-grand { margin-top: 2px; border-top: 1px solid #333; font-weight: 700; }
+    .receipt-note { margin: 28px 0 !important; text-align: center; }
+    .receipt-footer { margin-top: 24px; padding-top: 14px; border-top: 3px solid transparent; border-image: linear-gradient(90deg,#16864a 0 78%,#f28a24 78% 100%) 1; text-align: center; }
+    .receipt-footer__services { color: #252525; font: 400 11px/1.5 var(--mono); }
+    .receipt-footer__copyright { margin-top: 4px !important; color: #333; font: 400 11px/1.5 var(--mono); }
+    .receipt-footer__phones { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 16px; margin-top: 4px !important; font: 400 12px/1.5 var(--mono); }
     .receipt-footer__phones a { color: #1b6e3b; text-decoration: none; white-space: nowrap; }
 
     /* ===== Responsive ===== */
@@ -212,15 +206,30 @@
       .panel td:last-child { text-align: left; }
       .t-ledger td:nth-child(5) { text-align: right; }
       .section-note { display: none; }
+      .receipt-live-time__date { font-size: 10px; }
+    }
+    @media (max-width: 520px) {
+      .receipt-live-time__date { display: none; }
+      .receipt-live-time__clock { font-size: 16px; }
+      .receipt-company { grid-template-columns: 92px minmax(0,1fr); gap: 12px; }
+      .receipt-company__details { padding-left: 12px; }
+      .receipt-logo { width: 88px; height: 84px; }
+      .receipt-company__details h2 { font-size: 15px; }
+      .receipt-company__details p { font-size: 11px; }
+      .receipt-meta div { grid-template-columns: minmax(110px,.8fr) minmax(0,1fr); gap: 4px; font-size: 12px; }
+      .receipt-document .receipt-items th,.receipt-document .receipt-items td { padding: 8px 2px; font-size: 10px; }
+      .receipt-document .receipt-items :is(td,th):not(:first-child) { white-space: normal; }
+      .printer-output { width: calc(100% - 16px) !important; }
     }
     @media (max-width: 360px) { .printer-keys .btn svg { display: none; } .receipt-document { padding: 20px 14px 16px; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .printer-root .paper-wrap { animation: none !important; } }
     @media print {
       body.dashboard-page { background: #fff; }
-      .main, .bottom-nav, .printer-machine, .printer-output::before { display: none !important; }
+      .main, .bottom-nav, .apr-bottom-nav, .printer-machine, .printer-output::before { display: none !important; }
       .modal-overlay { position: static; display: block; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
       .receipt-modal-card, .printer-output { width: 100%; margin: 0; overflow: visible; }
-      .paper-wrap { -webkit-mask: none; mask: none; animation: none !important; transform: none !important; visibility: visible !important; }
+      .printer-output { width: 100% !important; padding-bottom: 0; }
+      .paper-wrap { animation: none !important; transform: none !important; visibility: visible !important; box-shadow: none; }
     }
   </style>
 </head>
@@ -234,6 +243,10 @@
           <p class="section-kicker">Accounting desk</p>
           <h1>Receipts</h1>
           <p class="page-intro">Issue receipts for finished jobs and keep a clean record of every payment.</p>
+        </div>
+        <div class="receipt-live-time" aria-label="Current date and time">
+          <time class="receipt-live-time__date" id="receipt-page-date"></time>
+          <time class="receipt-live-time__clock" id="receipt-page-clock"></time>
         </div>
         <a class="back-link" href="../index.html" aria-label="Back to dashboard"><i data-lucide="house"></i></a>
       </div>
@@ -273,7 +286,7 @@
     <div class="receipt-modal-card printer-root" id="printer-root" data-stage="processing">
       <div class="printer-machine no-print">
         <div class="printer-head">
-          <div class="printer-brand"><img src="../assets/AC_logo_transparent.png" alt=""><span>Centric Auto Mobile</span></div>
+          <div class="printer-brand"><img src="../assets/logo.png" alt=""><span>Centric Auto Mobile</span></div>
           <button id="receipt-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
         </div>
         <div class="printer-screen">
@@ -294,39 +307,37 @@
     </div>
   </div>
 
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <a class="bottom-nav__item" href="../index.html"><i data-lucide="house"></i><span>Home</span></a>
-    <a class="bottom-nav__item" href="customers.html"><i data-lucide="users"></i><span>Clients</span></a>
-    <a class="bottom-nav__item" href="repairs.html"><i data-lucide="wrench"></i><span>Work Orders</span></a>
-    <a class="bottom-nav__item" href="shop.html" data-level="2"><i data-lucide="package"></i><span>Parts</span></a>
-    <div class="more-wrap">
-      <button class="bottom-nav__item active" type="button" id="more-toggle" aria-expanded="false" aria-controls="more-menu"><i data-lucide="ellipsis"></i><span>More</span></button>
-      <div class="more-menu" id="more-menu">
-        <a class="current" href="receipts.html" data-level="2" aria-current="page"><i data-lucide="receipt"></i>Invoices &amp; Receipts</a>
-        <a href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i>Technicians</a>
-        <a href="analytics.html"><i data-lucide="chart-no-axes-combined"></i>Shop Reports</a>
-        <a href="accounting.html"><i data-lucide="landmark"></i>Accounts</a>
-        <a href="suppliers.html" data-level="2"><i data-lucide="truck"></i>Parts Suppliers</a>
-        <a href="quotations.html" data-level="2"><i data-lucide="file-text"></i>Estimates</a>
-        <div class="menu-divider"></div>
-        <a href="settings.html"><i data-lucide="settings"></i>Settings</a>
-      </div>
-    </div>
-  </nav>
-
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/receipts.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });
-
-    /* More menu */
-    const moreToggle = document.getElementById('more-toggle');
-    const moreMenu = document.getElementById('more-menu');
-    moreToggle.addEventListener('click', (e) => { e.stopPropagation(); moreToggle.setAttribute('aria-expanded', String(moreMenu.classList.toggle('open'))); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('.more-wrap')) { moreMenu.classList.remove('open'); moreToggle.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) lucide.createIcons();
+      const date = document.getElementById("receipt-page-date");
+      const clock = document.getElementById("receipt-page-clock");
+      const updateTime = () => {
+        const now = new Date();
+        date.textContent = now.toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+        date.dateTime = now.toISOString();
+        clock.textContent = now.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        clock.dateTime = now.toISOString();
+      };
+      updateTime();
+      window.setInterval(updateTime, 1000);
+    });
 
     /* Receipt printer: processing -> printing -> complete whenever the modal opens */
     (() => {
@@ -356,21 +367,9 @@
         wasOpen = open;
       }).observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
 
-      /* Company name on the paper: swap the old name for Centric Auto Mobile whenever the receipt is (re)drawn */
-      const doc = document.getElementById('receipt-document');
-      const renameObs = new MutationObserver(() => {
-        renameObs.disconnect();
-        const w = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT);
-        for (let n = w.nextNode(); n; n = w.nextNode()) {
-          n.nodeValue = n.nodeValue.replace(/auto\s*parts\s*(&amp;|&|and)\s*repairs/gi, 'Centric Auto Mobile');
-        }
-        renameObs.observe(doc, { childList: true, subtree: true, characterData: true });
-      });
-      renameObs.observe(doc, { childList: true, subtree: true, characterData: true });
-
       modal.addEventListener('click', (e) => { if (e.target === modal) document.getElementById('receipt-close').click(); });
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { if (wasOpen) document.getElementById('receipt-close').click(); moreMenu.classList.remove('open'); }
+        if (e.key === 'Escape' && wasOpen) document.getElementById('receipt-close').click();
       });
     })();
   </script>

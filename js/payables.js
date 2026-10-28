@@ -138,11 +138,11 @@ function agingBucket(dueDate, balance) {
 async function loadPayables() {
   const { data, error } = await supabase
     .from("payables")
-    .select("id, bill_number, bill_date, due_date, amount, amount_paid, status, description, suppliers(name)")
+    .select("id, bill_number, bill_date, due_date, amount, amount_paid, status, description, restock_id, suppliers(id, name)")
     .order("due_date");
 
   if (error) {
-    payablesTable.innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Failed to load: ${escapeHtml(error.message)}. If you're not logged in as an admin, this is expected — payables are admin-only.</td></tr>`;
+    payablesTable.innerHTML = `<tr><td colspan="9" style="color:var(--danger)">Failed to load: ${escapeHtml(error.message)}. Apply supabase/migrations/shop-restock-payables.sql if the Shop purchase columns are missing.</td></tr>`;
     agingCards.innerHTML = "";
     return;
   }
@@ -180,20 +180,25 @@ function renderPayablesTable() {
   payablesTable.innerHTML = payables.map(p => {
     const balance = Number(p.amount) - Number(p.amount_paid);
     return `
-      <tr>
-        <td>${escapeHtml(p.suppliers?.name || "—")}</td>
+      <tr id="payable-${escapeHtml(p.id)}">
+        <td>${p.suppliers?.id ? `<a href="suppliers.html#supplier-${encodeURIComponent(p.suppliers.id)}">${escapeHtml(p.suppliers.name)}</a>` : "—"}</td>
         <td>${escapeHtml(p.bill_number || "—")}</td>
         <td>${p.due_date}</td>
         <td>${money(p.amount)}</td>
         <td>${money(p.amount_paid)}</td>
         <td>${money(balance)}</td>
         <td><span class="status-badge ${p.status}">${p.status.replace("_", " ")}</span></td>
+        <td>${p.restock_id ? `<a href="shop.html#restock-${encodeURIComponent(p.restock_id)}">Shop restock</a>` : "Manual bill"}</td>
         <td>${balance > 0 ? `<button type="button" class="btn pay-btn" data-id="${p.id}"><i data-lucide="banknote"></i> Pay</button>` : ""}</td>
       </tr>
     `;
   }).join("");
   if (window.lucide) lucide.createIcons();
   payablesTable.querySelectorAll(".pay-btn").forEach(btn => btn.addEventListener("click", () => openPaymentModal(btn.dataset.id)));
+  const targetId = new URLSearchParams(window.location.search).get("highlight") || window.location.hash.match(/^#payable-(.+)$/)?.[1];
+  const target = targetId ? document.getElementById(`payable-${targetId}`) : null;
+  target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  target?.classList.add("highlight-flash");
 }
 
 // ---------- Record Payment (posts: debit Accounts Payable, credit chosen cash/bank account) ----------

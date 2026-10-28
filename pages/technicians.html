@@ -41,18 +41,19 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
 </head>
 <body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link active" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link active" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -200,5 +201,6 @@
   <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/technicians.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@ async function fetchDashboardBundle() {
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
     getData("customers", supabase.from("customers").select("id, created_at")),
-    getData("parts", supabase.from("parts").select("id, name, quantity_in_stock")),
+    getData("parts", supabase.from("parts").select("id, name, category, quantity_in_stock, minimum_stock")),
     getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
     getData("settings", supabase.from("settings").select("daily_jobs_target, daily_revenue_target").limit(1)),
@@ -171,7 +171,7 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
   let overdueCount = 0;
   let overdueFeeTotal = 0;
   jobs.forEach(job => {
-    if (!job.ready_at || job.collected_at || !["Ready for Pickup", "Unclaimed"].includes(job.status)) return;
+    if (!job.ready_at || job.collected_at || !["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status)) return;
     const graceEnd = new Date(job.ready_at).getTime() + PARKING_GRACE_DAYS * 86400000;
     if (now <= graceEnd) return;
     overdueCount += 1;
@@ -184,16 +184,17 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
     });
   }
 
-  const lowStock = parts.filter(p => Number(p.quantity_in_stock) < 3);
+  const lowStock = parts.filter(p => Number(p.minimum_stock || 0) > 0 && Number(p.quantity_in_stock || 0) <= Number(p.minimum_stock) * 0.1);
   if (lowStock.length > 0) {
+    const categories = [...new Set(lowStock.map(part => part.category || "Uncategorised"))];
     items.push({
       level: "warning", icon: "package-x", href: "pages/shop.html",
-      text: `${lowStock.length} part${lowStock.length === 1 ? "" : "s"} low on stock`,
+      text: `Low-stock alert (10% of minimum) — ${categories.join(", ")}: ${lowStock.length} part${lowStock.length === 1 ? "" : "s"}`,
     });
   }
 
   const receiptedJobIds = new Set(receipts.map(r => r.repair_job_id).filter(Boolean));
-  const pendingReceipts = jobs.filter(job => ["Ready for Pickup", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
+  const pendingReceipts = jobs.filter(job => ["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
   if (pendingReceipts.length > 0) {
     items.push({
       level: "warning", icon: "file-clock", href: "pages/receipts.html",
@@ -371,37 +372,6 @@ function initGlobalSearch() {
   });
 }
 
-function initSidebarToggle() {
-  const sidebar = document.querySelector(".sidebar");
-  const main = document.querySelector(".main");
-  if (!sidebar || !main || document.querySelector(".sidebar-toggle")) return;
-
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "sidebar-toggle";
-  toggle.setAttribute("aria-label", "Open navigation");
-  toggle.setAttribute("aria-expanded", "false");
-  toggle.innerHTML = '<i data-lucide="menu"></i>';
-  document.body.appendChild(toggle);
-
-  const backdrop = document.createElement("button");
-  backdrop.type = "button";
-  backdrop.className = "sidebar-backdrop";
-  backdrop.setAttribute("aria-label", "Close navigation");
-  document.body.appendChild(backdrop);
-
-  const setOpen = (open) => {
-    document.body.classList.toggle("sidebar-open", open);
-    toggle.setAttribute("aria-expanded", String(open));
-    toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
-  };
-
-  toggle.addEventListener("click", () => setOpen(!document.body.classList.contains("sidebar-open")));
-  backdrop.addEventListener("click", () => setOpen(false));
-  sidebar.querySelectorAll("a").forEach(link => link.addEventListener("click", () => setOpen(false)));
-  if (window.lucide) lucide.createIcons();
-}
-
 // ---- Sidebar categories (collapsible, remembered per browser) ----
 const NAV_STATE_KEY = "apr-nav-open";
 function readNavState() {
@@ -430,6 +400,5 @@ function initNavGroups() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavGroups();
-  initSidebarToggle();
   if (recentJobsBody) loadDashboard();
 });

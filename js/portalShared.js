@@ -1,4 +1,7 @@
 export const STATUS_META = {
+  Draft: { cls: "badge--received", icon: "file-edit" },
+  Processing: { cls: "badge--in-repair", icon: "wrench" },
+  Processed: { cls: "badge--ready", icon: "check-circle" },
   Received: { cls: "badge--received", icon: "inbox" },
   Diagnosing: { cls: "badge--diagnosing", icon: "search" },
   "Awaiting Parts": { cls: "badge--awaiting", icon: "package-search" },
@@ -19,6 +22,9 @@ export function messageForStatus(job) {
 
   if (job?.status === "Ready for Pickup") {
     return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) is ready for pickup! Total cost: $${total}. Thank you for choosing us.`;
+  }
+  if (job?.status === "Processed") {
+    return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) is fully paid and ready for pickup. Thank you for choosing us.`;
   }
   if (job?.status === "Completed") {
     return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) has been completed. Total cost: $${total}. Thanks again!`;

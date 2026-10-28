@@ -2,6 +2,8 @@
 
 This guide explains the application as it works today. Your role determines which pages you can see. If a page is missing or access is denied, ask your Super Admin to check your account; do not try to work around the access controls.
 
+The repair quotation, payment, and stock-threshold workflow requires the SQL migration `supabase/migrations/repair-quotations-payments-stock.sql` to be applied in Supabase before using the updated screens.
+
 ## 1. Sign in and get around
 
 1. Open the application and go to **Sign In**.
@@ -30,17 +32,16 @@ The actual pages available are controlled by your assigned account role and data
 4. Select **Add Customer**.
 5. Check the customer directory before creating another record. If the phone number or email is already registered, the system treats the submission as a returning customer and can add the entered plate to that customer's vehicles.
 
-Use the same customer's registered vehicle when opening a repair job. A plate entered on the Customers page creates a basic vehicle record; complete or verify its vehicle details in the repair intake when needed.
+Use the customer form to register each vehicle's plate, body type, make, model, year, chassis number, and engine number. Submitting another vehicle with the same phone/email adds it to the existing customer's record instead of creating a duplicate customer.
 
 ### B. Open a repair job
 
-1. Open **Repair Jobs** and use **Create Repair Order**.
-2. Select the customer, then select one of that customer's registered vehicles. If the vehicle is not listed, add its plate from **Customers** first.
-3. Confirm the make and enter the model/year where known, plus the required chassis number and engine number.
-4. Record the fuel level and odometer at drop-off when available.
-5. Write the customer's reported concern clearly and factually. Assign a mechanic if known; a mechanic can be assigned to more than one active repair order.
-6. Select **Create Repair Order**. The system confirms it was added and opens its job card so you can immediately enter findings, status, parts, labour, and workshop supplies.
-7. Close the job card to return to the workshop queue. Use its search field and mechanic/customer-type filters to narrow the list. The assigned mechanic and their active job count are shown.
+1. Open **Repair Jobs** and choose an existing customer or register a new one in the intake form.
+2. Select a registered vehicle or register a new vehicle. When registering, enter its plate, make, model, year, body type, chassis number, and engine number; these details will be available for auto-fill later.
+3. Record the fuel level and odometer at drop-off when available.
+4. Write the customer's reported concern clearly and factually, then choose **Create a quotation first** or **Open a draft job card directly**. A quotation-first intake saves the customer and vehicle, opens the quotation form with those details, and does not create a job card.
+5. To open a job card after a quotation, use **Open Job Card** beside that quotation, confirm the vehicle details, and submit the intake. The new job starts as **Draft**.
+6. Close the job card to return to the workshop queue. Use its search field and mechanic/customer-type filters to narrow the list. The assigned mechanic and their active job count are shown.
 
 ### C. Diagnose, assign, and price the work
 
@@ -52,27 +53,23 @@ Use the same customer's registered vehicle when opening a repair job. A plate en
 
 ### D. Keep the job status current
 
-1. Set the status to match the real work state, then save.
-2. The current day-to-day choices include **Received**, **Diagnosing**, **Ready for Pickup**, and **Unclaimed**. Older jobs may show legacy states such as **Awaiting Parts**, **In Repair**, or **Completed**.
-3. **Ready for Pickup** means the repair is finished and awaiting the customer. **Unclaimed** is for a finished vehicle that has not been collected.
-4. When a vehicle is physically handed back, open the job and select **Mark as Collected**. Enter the collection odometer, handover notes, and (for company customers) who collected it; then select **Confirm Collection**. Collected jobs are locked against routine edits.
+1. New jobs start as **Draft**. Move a job to **Processing** when work begins and keep diagnosis, labour, parts, and incidentals current.
+2. Record one or more installments in **Split Payments**, selecting the actual method for each payment. The panel shows total, paid, and balance; the methods are Cash, Card, Bank transfer, Mobile money, and Other.
+3. Mark **Repair work is ready for pickup** when the work is finished. **Processed** is allowed only after the work is marked ready and the balance is zero. Older jobs may retain legacy statuses.
+4. When a processed vehicle is physically handed back, select **Mark as Collected**. Enter the collection odometer and handover details; collected jobs are locked against routine edits.
 5. A ready/unclaimed vehicle has a seven-day free pickup window. After it expires, the job shows an estimated parking fee of $3 per overdue day. Check the amount and shop policy before using **Apply Parking Fee**, then save the job.
 6. Use the job's customer-update actions when you need to send a status update or diagnosis by WhatsApp/email. Verify the contact details and message before sending.
 
 ### E. Issue and share a receipt
 
-1. A job must be **Ready for Pickup** or **Unclaimed** before it can receive a receipt.
-2. Open **Receipts**. If the completed job is listed under **Completed Jobs Awaiting Receipt**, select **Generate**.
-3. Review the receipt. Use **Print Receipt**, **Send WhatsApp**, or **Send Email** as appropriate.
-4. Find previously issued receipts under **All Receipts**.
-
-The application also ensures a repair receipt when a job is saved as Ready for Pickup or Unclaimed. Check **All Receipts** before trying to create another record.
+1. Each repair installment updates a single cumulative receipt with the total amount paid so far.
+2. Open **Receipts** to review, print, or share the current receipt. Check **All Receipts** before trying to create another record.
 
 ## 4. Customers and the public repair-status portal
 
 ### Customer records
 
-The **Customers** page stores individual/company contacts and vehicle plates. Use consistent phone numbers and check for an existing record before adding someone. A repeat phone or email is treated as the same customer rather than a new customer.
+The **Customers** page stores individual/company contacts and complete vehicle details. Use consistent phone numbers and check for an existing record before adding someone. A repeat phone or email is treated as the same customer, and another plate is added as an additional vehicle.
 
 ### Customer portal
 
@@ -87,12 +84,13 @@ Staff can also share the portal link provided by a repair job when available. Tr
 
 ### Manage inventory
 
-1. Open **Shop** to check low-stock alerts, best sellers, reorder suggestions, stock totals, and the parts catalogue.
-2. To add inventory, complete **Add Part** with the part name, category, opening quantity, and unit cost. The selling price is calculated using the configured markup.
+1. Open **Shop** to check low-stock alerts, best sellers, reorder suggestions, stock totals, and the parts catalogue. You can search the catalogue by part number, model, description, or category.
+2. To add inventory, complete **Add Part** with the part name, optional part number, category, opening quantity, configured low-stock minimum, and unit cost. The selling price is calculated using the configured markup.
 3. Optionally link one or more suppliers; mark the preferred supplier where applicable. Add a relevant part photo if useful.
-4. Search the catalogue by part name or category. Use the part's edit/restock actions to correct details or record a stock purchase.
+4. Search the catalogue by part number, model, description, or category. Use the part's edit/restock actions to correct details or record a stock purchase.
 5. For a restock, choose the supplier, quantity, and unit cost. Confirm the entry against the supplier invoice; restocking changes on-hand stock and is included in purchase history.
 6. The markup rate applies to new parts and edits. **Apply to All Existing Parts** changes prices across existing inventory, so review the rate before using it.
+7. The admin dashboard and Shop alert when a part reaches or falls below 10% of its configured minimum. Set each part's minimum in its add/edit form; a minimum of zero disables that alert.
 
 ### Quick Sale
 
@@ -107,9 +105,9 @@ Open **Suppliers** to add or edit supplier contact details, search the directory
 
 ## 6. Quotations and sales orders
 
-1. Open **Quotations** and choose a repair job/vehicle, or choose the walk-in option and enter the customer's name (and contact details if available).
-2. Add parts and quantities. Check the quotation total in USD and ZiG; the page applies its displayed 25% markup and current exchange rate.
-3. Select **Save Quotation**. Review the issued quotation in the list and share the customer-facing copy as appropriate. A quotation is valid for seven days.
+1. From repair intake, choose quotation-first to carry the selected customer, vehicle, and reported fault into a new quote. You can also open **Quotations** and choose a repair job/vehicle, a registered customer/vehicle, or a walk-in customer.
+2. Enter the labour rate per hour and hours worked, then select **Add Labour**. Add parts at their current Shop selling prices and quantities. Enter each sundry price and select **Add Sundry** as needed. Labour and sundry lines do not use descriptions. Check the quotation total in USD and ZiG.
+3. Select **Save Quotation**. Use **Amend** on the issued quotation to review, print, or share its customer-facing copy, or **Open Job Card** to continue into job intake after approval. A quotation is valid for seven days.
 4. When the customer approves, use the available quotation/order actions to confirm or convert the work into a sales order. Confirming an order deducts stock; review the items and quantities first.
 5. Review sales orders in the **Sales Orders** list. Use the order actions to inspect or amend a record. A confirmed order has a receipt; find it from **Receipts**.
 

@@ -38,6 +38,32 @@
     #trial-balance-table td:nth-child(3), #trial-balance-table td:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
     #trial-balance-table th:nth-child(3), #trial-balance-table th:nth-child(4) { text-align: right; }
     .tb-totals td { font-weight: 700; border-top: 2px solid var(--border); }
+    .customer-account-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
+    .customer-account-stat { padding:12px 14px; border-left:3px solid var(--border); background:rgba(0,0,0,.025); }
+    .customer-account-stat span { display:block; color:var(--text-muted); font-size:.78rem; }
+    .customer-account-stat strong { display:block; margin-top:4px; font-size:1.15rem; font-variant-numeric:tabular-nums; }
+    .customer-account-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0; }
+    .customer-account-controls input { flex:1 1 240px; min-width:180px; }
+    .customer-account-controls select { flex:0 1 190px; }
+    .customer-accounts-table-wrap { overflow-x:auto; }
+    #customer-accounts-table { min-width:760px; }
+    #customer-accounts-table td:nth-child(3), #customer-accounts-table td:nth-child(4), #customer-accounts-table td:nth-child(5) { text-align:right; font-variant-numeric:tabular-nums; }
+    #customer-accounts-table th:nth-child(3), #customer-accounts-table th:nth-child(4), #customer-accounts-table th:nth-child(5) { text-align:right; }
+    .customer-balance--due { color:var(--danger,#b23b3b); font-weight:700; }
+    .customer-balance--credit { color:var(--success,#2e7d4f); font-weight:700; }
+    .customer-account-actions { display:flex; justify-content:flex-end; gap:4px; }
+    .customer-account-actions .btn { width:32px; height:32px; min-width:32px; min-height:32px; padding:0; display:inline-grid; place-items:center; }
+    .customer-account-actions .btn i { width:15px; height:15px; }
+    .customer-transaction-list { display:grid; gap:6px; padding:8px 4px; }
+    .customer-transaction { display:grid; grid-template-columns:minmax(160px,1.4fr) repeat(3,minmax(90px,1fr)); gap:10px; align-items:center; font-size:.82rem; }
+    .customer-transaction span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+    @media (max-width:700px) {
+      .customer-account-summary { grid-template-columns:1fr; gap:6px; }
+      .customer-account-stat { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+      .customer-account-stat strong { margin-top:0; }
+      .customer-transaction { grid-template-columns:1fr 1fr; }
+      .customer-transaction span:first-child { grid-column:1 / -1; }
+    }
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -47,18 +73,19 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
 </head>
 <body class="dashboard-page system-page">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="../assets/AC_logo_transparent.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Mechanics</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -116,6 +143,34 @@
           <p class="page-intro">This is the financial record behind workshop sales, repair costs, parts purchases and payments. Other accounting sections post their transactions here.</p>
         </div>
       </div>
+
+      <section class="page-section" aria-labelledby="customer-accounts-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Accounts receivable</p><h2 id="customer-accounts-heading"><i class="section-heading-icon" data-lucide="contact-round"></i>Customer Accounts</h2></div>
+          <button id="refresh-customer-accounts" type="button" class="btn" title="Refresh customer balances" aria-label="Refresh customer balances"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">Outstanding repair and confirmed sales balances, with customer credits shown separately.</p>
+        <div class="customer-account-summary" aria-live="polite">
+          <div class="customer-account-stat"><span>Customer debt</span><strong id="customer-debt-total">$0.00</strong></div>
+          <div class="customer-account-stat"><span>Customer credits</span><strong id="customer-credit-total">$0.00</strong></div>
+          <div class="customer-account-stat"><span>Accounts owing</span><strong id="customer-debt-count">0</strong></div>
+        </div>
+        <div class="customer-account-controls">
+          <input id="customer-account-search" type="search" placeholder="Search name, phone, or email" aria-label="Search customer accounts">
+          <select id="customer-account-filter" aria-label="Filter customer accounts">
+            <option value="all">All customer accounts</option>
+            <option value="owed">Amounts owed</option>
+            <option value="credit">Customer credits</option>
+          </select>
+        </div>
+        <p id="customer-accounts-message" class="form-message" role="status"></p>
+        <div class="panel customer-accounts-table-wrap">
+          <table id="customer-accounts-table">
+            <thead><tr><th>Customer</th><th>Open items</th><th>Charges</th><th>Payments</th><th>Balance</th><th><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody id="customer-accounts-body"><tr><td colspan="6" class="empty-state">Loading customer accounts…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Setup</p><h2><i class="section-heading-icon" data-lucide="list-tree"></i>Chart of Accounts</h2></div><span class="section-note">Organise income, expenses, assets and amounts owed</span></div>
@@ -217,6 +272,8 @@
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/ledger.js"></script>
+  <script type="module" src="../js/customer-accounts.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
 </body>
 </html>

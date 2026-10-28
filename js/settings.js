@@ -1,5 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { fingerprintSupported, registerFingerprint, listFingerprints, removeFingerprint, MAX_FINGERPRINTS } from "./passkey.js";
+import { confirmTypedDelete } from "./bulk-delete.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -44,49 +45,94 @@ document.querySelectorAll("#modes button").forEach(b => b.addEventListener("clic
 mq?.addEventListener?.("change", () => { if (currentMode() === "system") applyMode("system"); });
 applyMode(currentMode());
 
-// ---- Fingerprint sign-in ----
+// ---- Device passkey sign-in ----
 async function loadFingerprints() {
   const list = $("fp-list");
   if (!list) return;
   const supported = await fingerprintSupported();
   let items = [];
   try { items = await listFingerprints(); }
-  catch (e) { list.innerHTML = `<div class="sx" style="color:var(--danger)">Couldn't load fingerprints: ${escapeHtml(e.message)}</div>`; return; }
+  catch (e) {
+    list.innerHTML = `<div class="sx" style="color:var(--danger)">Couldn't load device passkeys: ${escapeHtml(e.message)}</div>`;
+    updateFingerprintDeleteControls();
+    return;
+  }
 
   list.innerHTML = items.length ? items.map(f => `
-    <div class="sr">
+    <div class="sr fp-row" data-fp-id="${escapeHtml(f.id)}">
+      <label class="fp-select"><input type="checkbox" class="fp-select-checkbox" value="${escapeHtml(f.id)}" aria-label="Select ${escapeHtml(f.label)}" /> Select</label>
       <div class="t"><b><i data-lucide="fingerprint" class="fp-row-ic"></i> ${escapeHtml(f.label)}</b>
         <span>Added ${new Date(f.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}${f.last_used_at ? ` · last used ${new Date(f.last_used_at).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : " · not used yet"}</span></div>
       <button type="button" class="btn btn--danger fp-del" data-id="${f.id}" data-label="${escapeHtml(f.label)}"><i data-lucide="trash-2"></i> Remove</button>
     </div>`).join("")
-    : `<div class="sr"><div class="t"><b>No fingerprints yet</b><span>Add one below to sign in with your finger.</span></div></div>`;
+    : `<div class="sr"><div class="t"><b>No device passkeys yet</b><span>Add one below to sign in with fingerprint, Face ID, or another supported device method.</span></div></div>`;
 
   const full = items.length >= MAX_FINGERPRINTS;
   const addBtn = $("fp-add");
   const label = $("fp-label");
   if (addBtn) addBtn.disabled = full || !supported;
   if (label) label.disabled = full || !supported;
-  if (!supported) say("m-fp", "This device or browser doesn't offer fingerprint sign-in. Open the app on a phone or computer with a fingerprint sensor (over https).", false);
-  else if (full) say("m-fp", `This account has ${MAX_FINGERPRINTS} fingerprints, the most allowed. Remove one to add another.`, true);
+  if (!supported) say("m-fp", "This device or browser doesn't offer a platform passkey. Open the app over https on a phone or computer that supports device sign-in.", false);
+  else if (full) say("m-fp", `This account has ${MAX_FINGERPRINTS} device passkeys, the most allowed. Remove one to add another.`, true);
   if (window.lucide) lucide.createIcons();
 
   list.querySelectorAll(".fp-del").forEach(b => b.addEventListener("click", async () => {
-    if (!confirm(`Remove "${b.dataset.label}"? You won't be able to sign in with it any more.`)) return;
-    try { await removeFingerprint(b.dataset.id); say("m-fp", "Fingerprint removed."); }
+    if (!(await confirmTypedDelete(`device passkey "${b.dataset.label}"`))) return;
+    try { await removeFingerprint(b.dataset.id); say("m-fp", "Device passkey removed."); }
     catch (e) { say("m-fp", "Couldn't remove: " + e.message, false); }
     loadFingerprints();
   }));
+  list.querySelectorAll(".fp-select-checkbox").forEach(input => input.addEventListener("change", updateFingerprintDeleteControls));
+  updateFingerprintDeleteControls();
 }
+
+function updateFingerprintDeleteControls() {
+  const boxes = [...document.querySelectorAll(".fp-select-checkbox")];
+  const selectedCount = boxes.filter(box => box.checked).length;
+  const selectAll = $("fp-select-all");
+  const deleteButton = $("fp-delete-selected");
+  if (selectAll) {
+    selectAll.checked = boxes.length > 0 && selectedCount === boxes.length;
+    selectAll.indeterminate = selectedCount > 0 && selectedCount < boxes.length;
+    selectAll.disabled = boxes.length === 0;
+  }
+  if (deleteButton) {
+    deleteButton.disabled = selectedCount === 0;
+    deleteButton.textContent = selectedCount ? `Remove selected (${selectedCount})` : "Remove selected";
+  }
+}
+
+$("fp-select-all")?.addEventListener("change", event => {
+  document.querySelectorAll(".fp-select-checkbox").forEach(box => { box.checked = event.currentTarget.checked; });
+  updateFingerprintDeleteControls();
+});
+
+$("fp-delete-selected")?.addEventListener("click", async () => {
+  const ids = [...document.querySelectorAll(".fp-select-checkbox:checked")].map(box => box.value);
+  if (!ids.length || !(await confirmTypedDelete(`${ids.length} selected device passkey${ids.length === 1 ? "" : "s"}`))) return;
+  let removed = 0;
+  try {
+    for (const id of ids) {
+      await removeFingerprint(id);
+      removed += 1;
+    }
+    say("m-fp", `${removed} device passkey${removed === 1 ? "" : "s"} removed.`);
+  } catch (error) {
+    say("m-fp", `${removed} removed before an error: ${error.message || String(error)}`, false);
+  } finally {
+    await loadFingerprints();
+  }
+});
 
 $("fp-add")?.addEventListener("click", async (e) => {
   const btn = e.currentTarget;
-  const label = ($("fp-label")?.value || "").trim() || "Fingerprint";
-  busy(btn, true, "Touch the sensor…");
+  const label = ($("fp-label")?.value || "").trim() || "My device";
+  busy(btn, true, "Verify with your device…");
   say("m-fp", "");
   try {
     await registerFingerprint(label);
     $("fp-label").value = "";
-    say("m-fp", `"${label}" added. Next time, tap "Sign in with fingerprint".`);
+    say("m-fp", `"${label}" added. Next time, choose fingerprint / Face ID on the sign-in page.`);
   } catch (err) {
     say("m-fp", err.message || String(err), false);
   } finally {
@@ -144,21 +190,27 @@ let tiers = [];
 async function loadTiers() {
   const { data, error } = await supabase.from("vehicle_rate_tiers").select("*").order("sort_order");
   const list = $("tiers-list");
-  if (error) { list.innerHTML = `<div class="sx" style="color:var(--danger)">Couldn't load labour charges: ${escapeHtml(error.message)}</div>`; return; }
+  if (error) {
+    list.innerHTML = `<div class="sx" style="color:var(--danger)">Couldn't load labour charges: ${escapeHtml(error.message)}</div>`;
+    updateTierDeleteControls();
+    return;
+  }
   tiers = data || [];
   if (!tiers.length) {
     list.innerHTML = `<div class="sx" style="color:var(--text-muted)">No labour charges yet. Add the first one below.</div>`;
+    updateTierDeleteControls();
     return;
   }
   list.innerHTML = tiers.map(t => `
     <form class="tier-row" data-id="${t.id}" novalidate>
+      <label class="tier-select"><input type="checkbox" class="tier-select-checkbox" value="${t.id}" aria-label="Select ${escapeHtml(t.tier_name)}" /> Select</label>
       <div class="field"><label for="tn-${t.id}">Name</label><input id="tn-${t.id}" name="name" type="text" maxlength="60" value="${escapeHtml(t.tier_name)}" /></div>
       <div class="field"><label for="tr-${t.id}">Per hour ($)</label><input id="tr-${t.id}" name="rate" type="number" step="0.01" min="0" value="${Number(t.hourly_rate).toFixed(2)}" /></div>
       <div class="field wide"><label for="tm-${t.id}">Makes</label><input id="tm-${t.id}" name="makes" type="text" value="${escapeHtml((t.makes || []).join(", "))}" placeholder="Picked by hand only" /></div>
       <label class="def"><input type="radio" name="tier-default" ${t.is_default ? "checked" : ""} aria-label="Default labour charge" /> Default</label>
       <div class="acts">
         <button type="submit" class="btn" aria-label="Save ${escapeHtml(t.tier_name)}"><i data-lucide="check"></i> Save</button>
-        <button type="button" class="btn btn--danger tier-del" aria-label="Delete ${escapeHtml(t.tier_name)}"><i data-lucide="trash-2"></i></button>
+        <button type="button" class="btn btn--danger tier-del" aria-label="Delete ${escapeHtml(t.tier_name)}"><i data-lucide="trash-2"></i> Delete</button>
       </div>
     </form>`).join("");
   if (window.lucide) lucide.createIcons();
@@ -182,15 +234,60 @@ async function loadTiers() {
     f.querySelector("input[type=radio]").addEventListener("change", () => setDefaultTier(id));
     f.querySelector(".tier-del").addEventListener("click", async () => {
       const t = tiers.find(x => x.id === id);
-      if (!confirm(`Delete "${t?.tier_name}"? Jobs that already used it keep their recorded labour cost; it just won't be offered on new jobs.`)) return;
-      const { error } = await supabase.from("vehicle_rate_tiers").delete().eq("id", id);
+      if (!(await confirmTypedDelete(`labour charge "${t?.tier_name}"? Jobs that already used it keep their recorded labour cost`))) return;
+      const { data, error } = await supabase.from("vehicle_rate_tiers").delete().eq("id", id).select("id");
       say("tier-form-message", error
         ? (/foreign key|violates/i.test(error.message) ? "This charge is used by existing jobs, so it can't be deleted. Rename it or change its rate instead." : "Couldn't delete: " + error.message)
-        : "Labour charge deleted.", !error);
+        : data?.length ? "Labour charge deleted." : "No charge was deleted. Check your role permissions and try again.", !error && Boolean(data?.length));
       if (!error) loadTiers();
     });
   });
+  list.querySelectorAll(".tier-select-checkbox").forEach(input => input.addEventListener("change", updateTierDeleteControls));
+  updateTierDeleteControls();
 }
+
+function updateTierDeleteControls() {
+  const boxes = [...document.querySelectorAll(".tier-select-checkbox")];
+  const selected = boxes.filter(box => box.checked);
+  const selectAll = $("tiers-select-all");
+  const deleteButton = $("tiers-delete-selected");
+  if (selectAll) {
+    selectAll.checked = boxes.length > 0 && selected.length === boxes.length;
+    selectAll.indeterminate = selected.length > 0 && selected.length < boxes.length;
+    selectAll.disabled = boxes.length === 0;
+  }
+  if (deleteButton) {
+    deleteButton.disabled = selected.length === 0;
+    deleteButton.textContent = selected.length ? `Delete selected (${selected.length})` : "Delete selected";
+  }
+}
+
+$("tiers-select-all")?.addEventListener("change", event => {
+  document.querySelectorAll(".tier-select-checkbox").forEach(box => { box.checked = event.currentTarget.checked; });
+  updateTierDeleteControls();
+});
+
+$("tiers-delete-selected")?.addEventListener("click", async () => {
+  const ids = [...document.querySelectorAll(".tier-select-checkbox:checked")].map(box => box.value);
+  const message = $("tiers-delete-message");
+  if (!ids.length || !(await confirmTypedDelete(`${ids.length} selected labour charge${ids.length === 1 ? "" : "s"}`))) return;
+  const { data, error } = await supabase.from("vehicle_rate_tiers").delete().in("id", ids).select("id");
+  if (error) {
+    message.textContent = /foreign key|violates/i.test(error.message)
+      ? "Some selected charges are used by existing jobs, so they cannot be deleted."
+      : "Couldn't delete selected charges: " + error.message;
+    message.dataset.tone = "error";
+    return;
+  }
+  if (!data?.length) {
+    message.textContent = "No charges were deleted. Check your role permissions and try again.";
+    message.dataset.tone = "error";
+    return;
+  }
+  message.textContent = `${data.length} labour charge${data.length === 1 ? "" : "s"} deleted.`;
+  message.dataset.tone = "";
+  loadTiers();
+});
 
 async function setDefaultTier(id) {
   const { error: clearErr } = await supabase.from("vehicle_rate_tiers").update({ is_default: false }).neq("id", id);
