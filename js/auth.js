@@ -212,10 +212,33 @@ function hidePage() {
 }
 
 function revealPage() {
+  clearTimeout(authWatchdog);
+  document.getElementById("auth-stall-banner")?.remove();
   document.body.classList.remove("auth-loading");
   document.querySelector("body.dashboard-page .main")?.removeAttribute("aria-busy");
   document.querySelector(".auth-skeleton")?.remove();
   document.getElementById("auth-gate-style")?.remove();
+}
+
+// ---------- Stall watchdog ----------
+// If the auth check never finishes, the skeleton cards would just shimmer
+// forever with nothing in the console. This reports WHICH step is stuck,
+// both in the console and as a visible banner, then removes itself once the
+// page is revealed.
+let authStage = "starting";
+let authWatchdog = null;
+
+function startAuthWatchdog() {
+  authWatchdog = setTimeout(() => {
+    console.error("[auth] still waiting after 10s. Stuck at step:", authStage);
+    if (document.getElementById("auth-stall-banner")) return;
+    const banner = document.createElement("div");
+    banner.id = "auth-stall-banner";
+    banner.setAttribute("role", "alert");
+    banner.style.cssText = "position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:99999;padding:12px 14px;border-radius:12px;background:#2a1710;border:1px solid #ff7a12;color:#ffd9bf;font:600 13px/1.4 system-ui,sans-serif";
+    banner.textContent = "Still loading. Stuck at: " + authStage + ". Check your connection, close other tabs of this site, then reload.";
+    document.body.appendChild(banner);
+  }, 10000);
 }
 
 async function protectPage() {
@@ -224,12 +247,14 @@ async function protectPage() {
   // is still actually valid server-side. This matters specifically after
   // an account gets deleted (e.g. a database reset) — a stale local
   // session would otherwise still "look" logged in and load the page.
+  authStage = "verifying login with Supabase (auth.getUser)";
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) {
     window.location.replace(loginPath);
     return;
   }
 
+  authStage = "loading your profile and role (profiles table)";
   const profile = await getMyProfile(user.id);
 
   if (!profile.is_active) {
@@ -238,12 +263,17 @@ async function protectPage() {
     return;
   }
 
+  authStage = "applying page access";
   applyAccess(profile.role);
 }
 
 if (!isLoginPage) {
+  startAuthWatchdog();
   hidePage(); // synchronous, immediate — closes the exposure window as much as possible before the async role check below even starts
-  protectPage();
+  protectPage().catch(err => {
+    console.error("[auth] protectPage failed at step:", authStage, err);
+    authStage = authStage + " (error: " + (err?.message || err) + ")";
+  });
 
   // Also react to sign-out happening in another tab, and to a token
   // refresh failing silently — without this, a session that dies while
