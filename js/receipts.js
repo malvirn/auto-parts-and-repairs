@@ -1,4 +1,4 @@
-﻿// ========= Receipts module =========
+// ========= Receipts module =========
 import supabase from "./supabaseClient.js";
 
 const SHOP_NAME = "Centric Automobile Service";
@@ -305,10 +305,28 @@ async function loadAllReceipts() {
   if (window.lucide) lucide.createIcons();
 }
 
+// html2canvas is only needed when sending a receipt, so it loads on demand
+// instead of blocking the page <head> (a slow unpkg response used to freeze
+// the whole receipts page before any script could run).
+let html2canvasPromise = null;
+function loadHtml2Canvas() {
+  if (typeof html2canvas === "function") return Promise.resolve();
+  if (html2canvasPromise) return html2canvasPromise;
+  html2canvasPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+    s.onload = resolve;
+    s.onerror = () => {
+      html2canvasPromise = null;
+      reject(new Error("html2canvas didn't load — check your internet connection and try again."));
+    };
+    document.head.appendChild(s);
+  });
+  return html2canvasPromise;
+}
+
 async function captureReceiptImage() {
-  if (typeof html2canvas !== "function") {
-    throw new Error("html2canvas didn't load — check your internet connection and reload the page.");
-  }
+  await loadHtml2Canvas();
   return html2canvas(receiptDocument, {
     scale: 4,
     backgroundColor: "#ffffff",
