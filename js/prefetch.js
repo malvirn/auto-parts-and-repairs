@@ -25,7 +25,7 @@ async function prefetchDashboard() {
       customers ( full_name ),
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
-    getData("customers", supabase.from("customers").select("id, created_at")),
+    getData("customers", supabase.from("customers").select("id, created_at").is("deleted_at", null)),
     getData("parts", supabase.from("parts").select("id, name, quantity_in_stock")),
     getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
@@ -36,9 +36,10 @@ async function prefetchDashboard() {
 
 async function prefetchCustomers() {
   const data = await getData("customers list", supabase.from("customers")
-    .select("id, full_name, phone, customer_type, is_repeat_customer, vehicles(license_plate)")
+    .select("id, full_name, phone, customer_type, is_repeat_customer, deleted_at, vehicles(license_plate)")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false }));
-  cacheSet("customers:list", data);
+  cacheSet("customers:active-list", data);
 }
 
 async function prefetchJobs() {

@@ -32,7 +32,7 @@ async function fetchDashboardBundle() {
       customers ( full_name ),
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
-    getData("customers", supabase.from("customers").select("id, created_at")),
+    getData("customers", supabase.from("customers").select("id, created_at").is("deleted_at", null)),
     getData("parts", supabase.from("parts").select("id, name, category, quantity_in_stock, minimum_stock")),
     getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
@@ -45,7 +45,6 @@ async function loadDashboard() {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   renderGreeting();
-  initGlobalSearch();
 
   // Renders instantly from whatever's cached (from sign-in's prefetch, or a
   // previous visit this session), then refreshes from the network in the
@@ -261,7 +260,7 @@ let globalSearchCache = null;
 async function loadGlobalSearchCache() {
   if (globalSearchCache) return globalSearchCache;
   const [customers, jobs, quotations, suppliers] = await Promise.all([
-    getData("customers", supabase.from("customers").select("id, full_name, phone").order("full_name")),
+    getData("customers", supabase.from("customers").select("id, full_name, phone").is("deleted_at", null).order("full_name")),
     getData("jobs", supabase.from("repair_jobs").select(`
       id, job_number, status, customers ( full_name ), vehicles ( make, model, license_plate )
     `).order("created_at", { ascending: false }).limit(300)),
@@ -311,10 +310,11 @@ async function runGlobalSearch(term, resultsEl) {
   const supplierHits = suppliers.filter(s => matches(term, s.name, s.phone)).slice(0, 6);
 
   const groups = [];
+  const pagePrefix = window.location.pathname.includes("/pages/") ? "../" : "";
   if (customerHits.length) groups.push({
     label: "Customers",
     items: customerHits.map(c => searchResultItem({
-      href: `pages/customers.html?highlight=${c.id}`, icon: "user",
+      href: `${pagePrefix}pages/customers.html?highlight=${c.id}`, icon: "user",
       main: c.full_name, sub: c.phone,
     })),
   });
@@ -323,7 +323,7 @@ async function runGlobalSearch(term, resultsEl) {
     items: jobHits.map(j => {
       const vehicle = [j.vehicles?.make, j.vehicles?.model, j.vehicles?.license_plate].filter(Boolean).join(" ");
       return searchResultItem({
-        href: `pages/repairs.html?highlight=${j.id}`, icon: "clipboard-list",
+        href: `${pagePrefix}pages/repairs.html?highlight=${j.id}`, icon: "clipboard-list",
         main: `#${String(j.job_number).padStart(4, "0")} — ${j.customers?.full_name ?? "Unknown customer"}`,
         sub: [vehicle, j.status].filter(Boolean).join(" · "),
       });
@@ -332,7 +332,7 @@ async function runGlobalSearch(term, resultsEl) {
   if (quoteHits.length) groups.push({
     label: "Quotations",
     items: quoteHits.map(q => searchResultItem({
-      href: `pages/quotations.html?highlight=${q.id}`, icon: "file-text",
+      href: `${pagePrefix}pages/quotations.html?highlight=${q.id}`, icon: "file-text",
       main: `Quote #${q.quotation_number}`,
       sub: q.customers?.full_name ?? q.walk_in_name ?? "Walk-in",
     })),
@@ -340,7 +340,7 @@ async function runGlobalSearch(term, resultsEl) {
   if (supplierHits.length) groups.push({
     label: "Suppliers",
     items: supplierHits.map(s => searchResultItem({
-      href: `pages/suppliers.html?highlight=${s.id}`, icon: "truck",
+      href: `${pagePrefix}pages/suppliers.html?highlight=${s.id}`, icon: "truck",
       main: s.name, sub: s.phone,
     })),
   });
@@ -353,22 +353,47 @@ async function runGlobalSearch(term, resultsEl) {
 }
 
 function initGlobalSearch() {
-  const input = document.getElementById("global-search-input");
-  const resultsEl = document.getElementById("global-search-results");
-  if (!input || !resultsEl) return;
+  if (!document.getElementById("global-search-input") && document.getElementById("hs-results")) return;
+  let input = document.getElementById("global-search-input") || document.getElementById("hs-input");
+  let wrapper;
+  if (!input) {
+    const header = document.querySelector("body.dashboard-page .site-masthead, body.dashboard-page .app-header, body.dashboard-page .main__header");
+    if (!header) return;
+    wrapper = document.createElement("div");
+    wrapper.className = "global-search apr-global-search";
+    wrapper.innerHTML = `<label class="sr-only" for="global-search-input">Search the whole system</label><input id="global-search-input" type="search" placeholder="Search customers, job cards, quotations and suppliers…" autocomplete="off"><div class="global-search__results apr-global-search-results" id="global-search-results" hidden></div>`;
+    header.append(wrapper);
+    input = wrapper.querySelector("input");
+  }
+  wrapper = wrapper || input.closest(".global-search") || input.closest(".hs") || input.parentElement;
+  let resultsEl = document.getElementById("global-search-results");
+  if (!resultsEl) {
+    resultsEl = document.createElement("div");
+    resultsEl.id = "global-search-results";
+    resultsEl.className = "global-search__results apr-global-search-results";
+    resultsEl.hidden = true;
+    wrapper.append(resultsEl);
+  }
+  wrapper.classList.add("apr-global-search");
 
   let debounceTimer;
   input.addEventListener("input", () => {
     clearTimeout(debounceTimer);
     const term = input.value.trim();
     if (term.length < 2) { resultsEl.hidden = true; resultsEl.innerHTML = ""; return; }
-    debounceTimer = setTimeout(() => runGlobalSearch(term, resultsEl), 250);
+    debounceTimer = setTimeout(() => {
+      runGlobalSearch(term, resultsEl).catch(error => {
+        console.error("Global search failed:", error);
+        resultsEl.innerHTML = `<div class="global-search__empty" role="alert">Search unavailable: ${escapeHtml(error.message || String(error))}</div>`;
+        resultsEl.hidden = false;
+      });
+    }, 250);
   });
   input.addEventListener("focus", () => {
     if (input.value.trim().length >= 2) resultsEl.hidden = false;
   });
   document.addEventListener("click", (e) => {
-    if (!e.target.closest(".global-search")) resultsEl.hidden = true;
+    if (!e.target.closest(".apr-global-search")) resultsEl.hidden = true;
   });
 }
 
@@ -400,5 +425,6 @@ function initNavGroups() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavGroups();
+  initGlobalSearch();
   if (recentJobsBody) loadDashboard();
 });

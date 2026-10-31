@@ -16,6 +16,7 @@ const esc = s => { const d = document.createElement("div"); d.textContent = s ??
 // ---------- add the Credit button to each row ----------
 function addButtons() {
   if (!tableBody) return;
+  let added = 0;
   tableBody.querySelectorAll(".view-receipt-btn").forEach(view => {
     if (view.parentElement.querySelector(".credit-note-btn")) return;
     const btn = document.createElement("button");
@@ -27,12 +28,23 @@ function addButtons() {
     view.after(btn);
     view.parentElement.style.display = "flex";
     view.parentElement.style.gap = "6px";
+    added++;
   });
-  if (window.lucide) lucide.createIcons();
+  // Only draw icons when a button was actually added. lucide.createIcons()
+  // itself rewrites DOM nodes inside this table, which re-fires the
+  // MutationObserver below; calling it on every mutation made the page loop
+  // forever ("Page Unresponsive"). The takeRecords() call discards the
+  // mutations our own icon pass just caused.
+  if (added && window.lucide) {
+    lucide.createIcons();
+    observer.takeRecords();
+  }
 }
 
+const observer = new MutationObserver(() => addButtons());
+
 if (tableBody) {
-  new MutationObserver(addButtons).observe(tableBody, { childList: true, subtree: true });
+  observer.observe(tableBody, { childList: true, subtree: true });
   addButtons();
   tableBody.addEventListener("click", e => {
     const btn = e.target.closest(".credit-note-btn");

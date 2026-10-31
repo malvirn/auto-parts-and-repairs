@@ -1,379 +1,660 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>document.documentElement.style.visibility = "hidden";</script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1012">
-  <meta name="color-scheme" content="dark">
-  <title>Centric Auto Mobile | Receipts</title>
-  <link rel="icon" type="image/png" href="../assets/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <!-- deferred so a slow CDN can never freeze the page; html2canvas now loads on demand from receipts.js -->
-  <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-
-  <style>
-    :root {
-      --bg: #0b1012; --surface: #111b18; --surface-2: #0c1210; --line: rgba(31,196,103,.28);
-      --text: #eef3ef; --muted: #9fb0a6; --nav-bg: rgba(12,18,20,.97); --shadow: 0 14px 34px rgba(0,0,0,.5);
-      --accent: #1fc467; --on-accent: #08120c;
-      --ok: #4cc38a; --info: #5aa9f0; --warn: #f2c14e; --bad: #ef6a5e;
-      --pm-body: #17221e; --pm-edge: #080d0b; --pm-screen: #0b1012; --pm-screen-text: #eef3ef;
-      --head: "Manrope", system-ui, sans-serif; --body: "Inter", "Segoe UI", system-ui, sans-serif;
-      --mono: "Courier New", ui-monospace, Consolas, monospace;
-      --pad: clamp(14px, 4vw, 28px); --maxw: 1080px; --safe-b: env(safe-area-inset-bottom, 0px);
-      color-scheme: dark;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Centric Auto Mobile — Receipts &amp; Invoices</title>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b1012">
+<script src="../js/pwa.js" defer></script>
+<script src="../js/theme.js"></script>
+<style id="dashboard-design">
+    html{background:#0b1012;color-scheme:dark}
+    body.dashboard-page{
+      --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
+      --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
+      --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
+      /* re-point the variables your existing css/js use so generated content picks up the theme */
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
+      --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
+      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
+      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;
+      padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));
     }
+    body.dashboard-page *{box-sizing:border-box}
+    body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100svh;overflow:visible!important;background:none}
+    body.dashboard-page .main{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:none}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-    * { box-sizing: border-box; }
-    .hidden { display: none !important; }
-    html { background: var(--bg); -webkit-text-size-adjust: 100%; }
-    body.dashboard-page { margin: 0; min-height: 100vh; padding-bottom: calc(76px + var(--safe-b)); background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .app-shell { display: block !important; }
-    .sidebar { display: none !important; }
-    .main { width: 100% !important; max-width: none !important; margin: 0 !important; min-width: 0; padding: 0 0 32px !important; background: transparent !important; color: var(--text); }
-    .main > :not(.dashboard-hero) { width: min(var(--maxw), 100% - 2 * var(--pad)); margin-inline: auto; }
+    /* ===== header ===== */
+    body.dashboard-page .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;
+      min-height:0;margin:0;padding:22px clamp(14px,3.8vw,58px) 34px;border:0;background:linear-gradient(180deg,#0e1517,#0a1011)}
+    .app-header .curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:28px;pointer-events:none}
+    .hdr-brand{display:flex;align-items:center;gap:clamp(12px,1.6vw,22px);min-width:0}
+    .hdr-brand .dashboard-hero__logo{width:clamp(58px,9vw,140px);height:auto;flex:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4))}
+    .hdr-divider{width:1px;height:clamp(40px,5.6vw,86px);background:rgba(255,255,255,.18);flex:none}
+    .hdr-name{margin:0;font-size:clamp(18px,2.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
+    .hdr-name em{font-style:normal;color:var(--green-bright)}
+    .hdr-sub{margin:4px 0 0;color:#dfe8e2;font-size:clamp(11px,1.15vw,17px);letter-spacing:.02em}
+    .hdr-right{display:flex;align-items:center;gap:clamp(12px,2vw,28px);flex:none}
+    .hdr-time #dashboard-date{margin:0;font-size:clamp(11px,1vw,15px);color:#e6ede8;font-weight:400;line-height:1.3}
+    .hdr-clock{font-size:clamp(18px,1.9vw,27px);font-weight:700;letter-spacing:.01em;line-height:1.2;font-variant-numeric:tabular-nums}
+    .hdr-live{display:flex;align-items:center;gap:8px;color:var(--green-bright);font-size:clamp(11px,1vw,14px)}
+    .hdr-live i{width:11px;height:11px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 10px var(--green-bright)}
+    .hdr-live[data-state="offline"]{color:#ff9a6b}.hdr-live[data-state="offline"] i{background:#ff7a12;box-shadow:0 0 10px #ff7a12}
+    .hdr-hello{margin:0;font-size:clamp(12px,1.2vw,18px);color:#e6ede8;font-weight:400;line-height:1.35;max-width:210px}
+    #dashboard-greeting{display:block;margin:0;font-size:inherit;font-weight:600;color:var(--green-bright);line-height:1.35}
+    .tile:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
-    /* Coloured header */
-    .dashboard-hero {
-      display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 24px !important; border: 0; border-radius: 0 0 28px 28px;
-      min-height: clamp(150px, 20vw, 230px);
-      padding: calc(env(safe-area-inset-top, 0px) + clamp(26px, 4.6vw, 54px)) max(var(--pad), calc((100% - var(--maxw)) / 2));
-      background: linear-gradient(90deg,rgba(8,13,12,.96),rgba(8,13,12,.56)), url("../assets/dashboard-hero.jpeg") center right/cover no-repeat !important; color: #fff;
+    /* ===== hero ===== */
+    .hero{position:relative;display:flex;flex-direction:column;min-height:max(560px,calc(100svh - 270px));overflow:hidden;isolation:isolate;
+      padding:clamp(34px,11vh,140px) 0 clamp(22px,8vh,92px)}
+    .hero-bg{position:absolute;inset:0;z-index:-2;background:url("../assets/dashboard-hero.jpeg") center right/cover no-repeat;
+      transform:translate3d(calc(var(--px,0)*-12px),calc(var(--py,0)*-8px),0) scale(1.05);transition:transform 160ms linear}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+      background:linear-gradient(90deg,rgba(8,13,12,.9) 0%,rgba(8,13,12,.62) 42%,rgba(8,13,12,.08) 100%),
+                 linear-gradient(0deg,rgba(8,13,12,.78),transparent 48%),linear-gradient(180deg,rgba(8,13,12,.6),transparent 22%)}
+    .hero-copy{padding:0 clamp(16px,6.4vw,100px)}
+    .welcome{margin:0 0 8px;color:#cfd8d2;font-size:clamp(12px,1.4vw,21px);font-weight:600;letter-spacing:.22em;text-transform:uppercase}
+    .hero-title{margin:0 0 18px;font-size:clamp(32px,5.2vw,66px);font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+    .hero-title em{font-style:normal;color:var(--green-bright)}
+    .hero-lede{margin:0;max-width:none;color:#e8eee9;font-size:clamp(14px,1.7vw,22px);line-height:1.5;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+    .accent-bar{display:block;width:clamp(70px,7.2vw,110px);height:5px;margin-top:22px;border-radius:3px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
+
+    .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1.8vw,27px);margin:auto clamp(14px,7vw,106px) 0;padding-top:34px;perspective:900px}
+    .tile{--c:var(--green);display:grid;place-items:center;aspect-ratio:243/157;padding:0;border:clamp(2px,.2vw,3px) solid var(--c);border-radius:clamp(10px,1vw,16px);
+      background:rgba(14,21,20,.84);color:#fff;text-decoration:none;cursor:pointer;font:inherit;box-shadow:0 14px 28px rgba(0,0,0,.35),inset 0 0 30px rgba(0,0,0,.25);
+      transition:transform 380ms var(--ease),box-shadow 380ms var(--ease),background 300ms}
+    .tile.grey{--c:var(--grey)} .tile.orange{--c:var(--orange)}
+    .tile svg{width:clamp(30px,6.2vw,96px);height:auto;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:transform 380ms var(--ease)}
+    .tile:hover{transform:translateY(-8px) rotateX(7deg);background:rgba(18,28,26,.94);box-shadow:0 26px 40px rgba(0,0,0,.5),0 0 28px color-mix(in srgb,var(--c) 40%,transparent)}
+    .tile:hover svg{transform:translateZ(30px) scale(1.07)}
+    .tile:active{transform:translateY(-2px) scale(.985)}
+
+    /* ===== existing dashboard content (ids and classes untouched) ===== */
+    .dash-content{max-width:1500px;margin:0 auto;padding:38px clamp(14px,4vw,58px) 46px;display:grid;gap:30px;background:var(--ink)}
+    .dash-content .page-section,.dash-content .dashboard-section{margin:0;padding:0}
+    .dash-content .section-heading,.dash-content .section-inline-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:0 0 16px}
+    .dash-content h2{margin:0;font-size:clamp(20px,2vw,26px);font-weight:700;letter-spacing:-.01em;color:#fff}
+    .dash-content .section-kicker{margin:0 0 4px;color:var(--orange);font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .dash-content .section-note{color:var(--muted);font-size:.86rem;text-decoration:none}
+    .dash-content a.section-note:hover{color:var(--green-bright)}
+    .dash-content .panel{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:16px;padding:20px;color:var(--text);box-shadow:0 18px 36px rgba(0,0,0,.28)}
+    .dash-content .card-grid,.dash-content .objectives-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .dash-content .stat-card,.dash-content .objective-card{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--text);transition:transform 300ms var(--ease),border-color 200ms}
+    .dash-content .stat-card:hover,.dash-content .objective-card:hover{transform:translateY(-4px);border-color:var(--green-bright)}
+    .dash-content .stat-card__label{color:var(--muted);font-size:.76rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+    .dash-content .stat-card__value{margin-top:8px;font-size:clamp(24px,2.4vw,32px);font-weight:700;color:#fff}
+    .dash-content .attention-empty{padding:18px 0;color:var(--muted)}
+    .dash-content .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit;font-size:.88rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 200ms,border-color 200ms,transform 200ms}
+    .dash-content .btn:hover{border-color:var(--green-bright);background:rgba(18,161,80,.16)}
+    .dash-content .btn--primary{background:linear-gradient(180deg,var(--green-bright),var(--green));border-color:transparent;color:#fff}
+    .dash-content .btn svg{width:18px;height:18px}
+    .dash-content .global-search{position:relative}
+    .dash-content .global-search__icon{position:absolute;left:18px;top:26px;width:20px;height:20px;transform:translateY(-50%);color:#cbd6cf;pointer-events:none}
+    .dash-content #global-search-input{width:100%;height:52px;padding:0 18px 0 52px;color:var(--text);font:inherit;font-size:15px;background:rgba(10,16,13,.7);border:1.5px solid var(--line);border-radius:12px;outline:0;transition:border-color 200ms,box-shadow 300ms}
+    .dash-content #global-search-input::placeholder{color:#8fa197}
+    .dash-content #global-search-input:focus{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .dash-content .global-search__results{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:80;max-height:min(60vh,480px);overflow-y:auto;
+      padding:6px;background:#111a16;border:1px solid var(--line);border-radius:12px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .dash-content .global-search__results[hidden]{display:none}
+    .dash-content .global-search__group-label{padding:12px 12px 6px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .dash-content .global-search__item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid rgba(255,255,255,.07);border-radius:8px;color:var(--text);text-decoration:none;transition:background 180ms}
+    .dash-content .global-search__group-label+.global-search__item{border-top:0}
+    .dash-content .global-search__item:hover,.dash-content .global-search__item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .dash-content .global-search__item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .dash-content .global-search__item>span{min-width:0}
+    .dash-content .global-search__item-main{display:block;font-size:.9rem;font-weight:600}
+    .dash-content .global-search__item-sub{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .dash-content .global-search__empty{padding:20px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+    .dash-content table{width:100%;border-collapse:collapse;color:var(--text)}
+    .dash-content th{padding:10px 12px;text-align:left;color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+    .dash-content td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dash-content .panel:has(table){overflow-x:auto}
+
+
+    /* ===== customer statements (top of dashboard) ===== */
+    .cs-tools{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+    .cs-tools input{flex:1 1 220px;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:rgba(10,16,13,.7);color:var(--text);font:inherit}
+    .cs-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .cs-chip{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--muted);font:600 .85rem var(--font);cursor:pointer}
+    .cs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);color:var(--text);border-color:var(--green-bright)}
+    .cs-list{display:grid;gap:8px}
+    .cs-cust{border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+    .cs-cust>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
+    .cs-cust>summary::-webkit-details-marker{display:none}
+    .cs-name{font-weight:700}
+    .cs-sub{color:var(--muted);font-size:.8rem;margin-top:2px}
+    .cs-bal{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .cs-bal.owe{color:#ff9a6b}.cs-bal.ok{color:var(--green-bright)}
+    .cs-body{padding:0 16px 16px}
+    .cs-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 12px}
+    .cs-facts div{padding:10px;border:1px solid var(--line);border-radius:10px;font-size:.8rem;color:var(--muted)}
+    .cs-facts b{display:block;color:var(--text);font-size:.95rem;font-variant-numeric:tabular-nums}
+    .cs-wrap{overflow-x:auto}
+    .cs-wrap table{min-width:520px;font-size:.85rem}
+    .cs-wrap td:nth-child(n+4),.cs-wrap th:nth-child(n+4){text-align:right;font-variant-numeric:tabular-nums}
+    .cs-st{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:700}
+    .cs-st.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+    .cs-st.part{background:rgba(242,193,78,.18);color:#f2c14e}
+    .cs-st.unpaid{background:rgba(255,107,107,.18);color:#ff6b6b}
+    .cs-msg{padding:16px;color:var(--muted)}
+
+    /* ===== bottom tab bar ===== */
+    .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;
+      height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0);
+      background:rgba(12,18,20,.97);border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:100%;border:0;background:none;color:#d6dfd9;text-decoration:none;cursor:pointer;font:inherit;font-size:.72rem;font-weight:600;transition:color 200ms}
+    .tab:hover{color:#fff}
+    .tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .tab[aria-current="page"]{color:#fff}
+    .tab[aria-current="page"] svg{fill:currentColor;stroke:none}
+    .tab[aria-current="page"]::after{content:"";position:absolute;left:50%;top:0;width:44px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright);transform:translateX(-50%)}
+    .tab-badge{position:absolute;top:6px;left:calc(50% + 12px);display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#1b8cff;color:#fff;font-size:11px;font-weight:700}
+    .tab-badge[hidden]{display:none}
+
+    .site-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:24px clamp(14px,3.8vw,58px);background:#0a0f10;color:#d3ddd6;font-size:clamp(11px,1vw,15px)}
+    .site-foot a{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+    .site-foot svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+    /* ===== hidden navigation source for the shared More menu ===== */
+    .menu-scrim{display:none}
+    body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
+      display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
+      background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
+      transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
+    .drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+    .drawer-close:hover{background:rgba(255,255,255,.08)}
+    .sidebar .sidebar__brand{margin:0 0 18px}
+    .sidebar .brand-logo{width:120px;height:auto}
+    .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none;transition:background 200ms,color 200ms}
+    .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
+    .sidebar .nav-link svg{width:20px;height:20px;flex:none}
+    .sidebar .nav-group{margin-top:8px}
+    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
+    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
+    .sidebar .nav-grp{color:var(--muted)}
+    .sidebar .nav-grp:hover,.sidebar .nav-group.open>.nav-grp{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.07)}
+    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright);letter-spacing:normal}
+    .sidebar .nav-grp>span:first-of-type{flex:1}
+    .sidebar .nav-chev{width:8px;height:8px;margin-left:auto;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
+    .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
+    .sidebar .nav-grpwrap{display:none;padding:3px 0 5px 10px}
+    .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
+    .sidebar .nav-grpwrap .nav-link{padding:10px 12px;font-size:.9rem}
+
+    .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .apr-bottom-nav>a,.apr-more-toggle{position:relative;display:grid;min-width:0;height:100%;place-items:center;align-content:center;gap:4px;border:0;background:none;color:#c9d3cd;font:600 11px Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none;cursor:pointer}
+    .apr-bottom-nav>a:hover,.apr-more-toggle:hover,.apr-bottom-nav [aria-current="page"]{color:#1fc467}
+    .apr-bottom-nav svg{width:23px;height:23px}
+    .apr-bottom-nav [aria-current="page"]::after{position:absolute;top:0;left:50%;width:42px;height:3px;border-radius:0 0 3px 3px;background:#1fc467;content:"";transform:translateX(-50%)}
+    .apr-more-wrap{position:relative;min-width:0;height:100%}
+    .apr-more-menu{position:absolute;right:8px;bottom:calc(100% + 12px);display:none;width:min(310px,calc(100vw - 24px));max-height:min(65vh,440px);padding:7px;overflow:auto;border:1px solid rgba(31,196,103,.24);border-radius:16px;background:#111b18;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .apr-more-menu.open{display:block}
+    .apr-more-menu a{display:flex;min-height:44px;align-items:center;gap:11px;padding:10px;border-radius:10px;color:#dfe8e2;font:500 .9rem Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none}
+    .apr-more-menu a:hover,.apr-more-menu [aria-current="page"]{background:rgba(255,255,255,.06);color:#fff}
+    .apr-more-menu a svg{width:19px;height:19px;flex:none;color:#1fc467}
+    @media print{.apr-bottom-nav{display:none!important}}
+
+    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .main,:root[data-theme="light"] body.dashboard-page .app-shell{background:#f1f2f3!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav{border-color:#d0d3d6;background:rgba(255,255,255,.98);box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav>a,:root[data-theme="light"] body.dashboard-page .apr-more-toggle{color:#222}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]::after{background:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu{border-color:#d0d3d6;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a:hover,:root[data-theme="light"] body.dashboard-page .apr-more-menu [aria-current="page"]{background:#eceeef;color:#111}
+    :root[data-theme="light"] body.dashboard-page .hero{background:#f1f2f3}
+    :root[data-theme="light"] body.dashboard-page .hero-bg,:root[data-theme="light"] body.dashboard-page .hero::after{display:none}
+    :root[data-theme="light"] body.dashboard-page .welcome,:root[data-theme="light"] body.dashboard-page .hero-title,:root[data-theme="light"] body.dashboard-page .hero-lede,:root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__value,:root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content table,:root[data-theme="light"] body.dashboard-page .hdr-hello{color:#111!important;text-shadow:none}
+    :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
+    :root[data-theme="light"] body.dashboard-page .tile{border-color:#c9cdd1;background:#fff;color:#111;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+    :root[data-theme="light"] body.dashboard-page .tile:hover{background:#f5f6f7;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .dash-content{background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .section-note,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__label,:root[data-theme="light"] body.dashboard-page .dash-content .attention-empty,:root[data-theme="light"] body.dashboard-page .dash-content th,:root[data-theme="light"] body.dashboard-page .dash-content td{color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__results{border-color:#d9dcdf;background:#fff;color:#111;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn--primary{border-color:#111;background:#111;color:#fff}
+    :root[data-theme="light"] body.dashboard-page .dash-content #global-search-input{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .global-search__icon,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__item{color:#111}
+
+    /* ===== phones ===== */
+    @media (max-width:760px){
+      body.dashboard-page .app-header{padding-bottom:30px}
+      .hdr-sub,.hdr-divider,.hdr-hello{display:none}
+      .hdr-time #dashboard-date{display:none}
+      .tiles{margin-inline:14px}
     }
-    .dashboard-hero h1 { margin: 0; color: #fff; font: 700 clamp(30px, 4.4vw, 58px)/1.05 var(--head); letter-spacing: -.5px; }
-    .page-intro { margin: 8px 0 0; color: #dfe8e2; font-size: clamp(13px, 3vw, 16px); font-weight: 500; max-width: 46ch; }
-    .section-kicker { display: block; margin: 0 0 6px; color: #ff7a12; font-size: .74rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-    .back-link {
-      flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%;
-      background: rgba(10,16,13,.72); color: #fff; text-decoration: none; border: 1px solid rgba(31,196,103,.35);
+    @media (max-width:430px){
+      .hero{padding-top:30px}
+      .tab-badge{min-width:22px;height:22px;font-size:12px}
     }
-    .back-link svg { width: 22px; height: 22px; }
-    .receipt-live-time { display: grid; flex: 0 0 auto; justify-items: end; gap: 2px; font-variant-numeric: tabular-nums; }
-    .receipt-live-time__date { color: #dfe8e2; font-size: 12px; }
-    .receipt-live-time__clock { color: #fff; font-size: clamp(17px, 2vw, 24px); font-weight: 700; }
-
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 12px;
-      background: var(--surface); color: var(--text); text-decoration: none; font: 600 14px var(--body); white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s;
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{transition-duration:.001ms!important;animation:none!important}
+      .hero-bg{transform:none!important}
     }
-    .btn:hover { background: var(--surface-2); border-color: var(--accent); }
-    .btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
-    .btn--primary { border-color: transparent; background: linear-gradient(180deg,#1fc467,#12a150); color: #fff; box-shadow: 0 5px 0 #0b6b34,0 12px 20px rgba(0,0,0,.28); }
-    .btn--primary:hover { background: linear-gradient(180deg,#1fc467,#12a150); filter: brightness(1.08); }
+    /* ===== header: search + top-right "more" menu ===== */
+    [hidden]{display:none!important}
+    body.dashboard-page .app-header{display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right menu";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px}
+    body.dashboard-page .hdr-brand{grid-area:brand}
+    body.dashboard-page .hdr-right{grid-area:right}
+    .hs{grid-area:search;position:relative;width:100%;max-width:640px;min-width:0;justify-self:center}
+    .hs-bar{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--text) 7%,transparent);transition:border-color 200ms,box-shadow 300ms}
+    .hs-bar:focus-within{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .hs-bar>svg{width:20px;height:20px;flex:none;color:var(--muted)}
+    #hs-input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:15px}
+    #hs-input::placeholder{color:var(--muted)}
+    .hs-kbd{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:.75rem}
+    .hs-panel{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:90;max-height:min(70vh,540px);overflow-y:auto;padding:0 8px 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .hs-chips{position:sticky;top:0;z-index:1;display:flex;gap:6px;overflow-x:auto;padding:10px 0;background:var(--panel);scrollbar-width:none}
+    .hs-chips::-webkit-scrollbar{display:none}
+    .hs-chip{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:600 .78rem var(--font);white-space:nowrap;cursor:pointer}
+    .hs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);border-color:var(--green-bright);color:var(--text)}
+    .hs-group{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 8px 4px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .hs-more{border:0;background:none;color:var(--green-bright);font:600 .75rem var(--font);cursor:pointer;letter-spacing:0;text-transform:none}
+    .hs-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none}
+    .hs-item:hover,.hs-item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .hs-item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .hs-item>span{min-width:0}
+    .hs-item b{display:block;font-size:.9rem;font-weight:600;overflow-wrap:anywhere}
+    .hs-item small{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .hs-empty{padding:22px 14px;color:var(--muted);font-size:.9rem;text-align:center}
 
-    /* Sections */
-    .page-section { margin-bottom: 30px; }
-    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-    .section-heading h2 { display: flex; align-items: center; gap: 10px; margin: 0; font: 700 clamp(19px, 4.5vw, 24px)/1.15 var(--head); }
-    .section-heading-icon { width: 22px; height: 22px; color: var(--accent); flex: 0 0 auto; }
-    .section-note { color: var(--muted); font-size: 13px; }
+    .hdr-menu-wrap{grid-area:menu;position:relative;margin-right:56px}
+    .hdr-more{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);cursor:pointer;transition:background 200ms,border-color 200ms}
+    .hdr-more:hover,.hdr-more[aria-expanded="true"]{border-color:var(--green-bright);background:rgba(31,196,103,.16)}
+    .hdr-more svg{width:22px;height:22px;fill:currentColor}
+    .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:95;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .hdr-menu .m-head{padding:12px 10px 4px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .hdr-menu a{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px;border-radius:10px;color:var(--text);font-size:.92rem;font-weight:500;text-decoration:none}
+    .hdr-menu a:hover,.hdr-menu a:focus-visible,.hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
+    .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
 
-    /* Tables become row-cards */
-    .panel { border: 0; background: transparent !important; box-shadow: none !important; margin: 0; overflow: visible; }
-    .panel table, .panel thead, .panel tbody { display: block; width: 100%; }
-    .panel tr { display: grid; align-items: center; gap: 12px; }
-    .t-pending tr { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.8fr) minmax(80px, 1fr) auto; }
-    .t-ledger tr { grid-template-columns: minmax(80px, .9fr) minmax(0, 1fr) minmax(0, 1.5fr) minmax(80px, .9fr) minmax(80px, 1fr) auto; }
-    .panel thead tr { padding: 0 18px 8px; }
-    .panel th { padding: 0; border: 0; background: none; color: var(--muted); font: 700 12px var(--body); text-align: left; }
-    .panel tbody { display: grid; gap: 8px; }
-    .panel tbody tr { padding: 12px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color .15s; }
-    .panel tbody tr:hover { border-color: var(--accent); }
-    .panel td { padding: 0; border: 0; min-width: 0; font-size: 14.5px; overflow-wrap: break-word; }
-    .t-pending td:nth-child(1), .t-ledger td:nth-child(1) { color: var(--accent); font: 700 15px var(--head); }
-    .t-pending td:nth-child(3), .t-ledger td:nth-child(4) { font: 700 15.5px var(--head); font-variant-numeric: tabular-nums; }
-    .t-pending td:nth-child(2), .t-ledger td:nth-child(3) { font-weight: 700; }
-    .t-ledger td:nth-child(2), .t-ledger td:nth-child(5) { color: var(--muted); }
-    .panel td:last-child, .panel th:last-child { justify-self: end; text-align: right; }
-    .panel td .btn { min-height: 38px; padding: 0 14px; font-size: 13px; }
-    .panel tbody tr:has(td[colspan]) { display: block; }
-    .empty-state { display: flex !important; align-items: center; gap: 10px; color: var(--muted); }
-    .empty-state svg { width: 18px; height: 18px; animation: spin 1s linear infinite; }
-    .panel td:not(.empty-state):has([class*="status"]) { display: block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* the More menu now lives in the header, so the bottom bar keeps only its four main links */
+    .apr-more-wrap{display:none!important}
+    .apr-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
 
-    /* Floating nav */
-    .bottom-nav { position: fixed; z-index: 1000; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; width: 100%; height: calc(76px + var(--safe-b)); padding: 6px 0 var(--safe-b); border: 0; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0; background: var(--nav-bg); backdrop-filter: blur(16px); box-shadow: 0 -14px 28px rgba(0,0,0,.35); }
-    .bottom-nav__item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; height: 100%; border: 0; border-radius: 0; background: transparent; color: var(--muted); text-decoration: none; font: 600 clamp(9.5px, 2.6vw, 11px) var(--body); cursor: pointer; }
-    .bottom-nav__item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bottom-nav__item svg { width: 21px; height: 21px; stroke-width: 1.8; }
-    .bottom-nav__item:hover, .bottom-nav__item.active { color: var(--text); }
-    .bottom-nav__item.active svg { color: var(--accent); }
-    .bottom-nav__item.active::after { content: ""; position: absolute; bottom: 1px; width: 16px; height: 3px; border-radius: 3px; background: var(--accent); }
-    .bottom-nav > a:nth-child(3) { height: 100%; margin-top: 0; background: transparent; color: var(--muted); box-shadow: none; }
-    .bottom-nav > a:nth-child(3) svg { width: 21px; height: 21px; color: inherit; }
-    .more-wrap { position: relative; min-width: 0; height: 100%; }
-    .more-wrap > .bottom-nav__item { width: 100%; height: 100%; }
-    .more-menu { position: absolute; right: 0; bottom: calc(100% + 14px); display: none; width: min(240px, 100vw - 24px); max-height: min(65vh, 440px); overflow-y: auto; padding: 6px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
-    .more-menu.open { display: block; }
-    .more-menu a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14.5px; font-weight: 500; }
-    .more-menu a:hover, .more-menu a.current { background: var(--surface-2); }
-    .more-menu a svg { width: 19px; height: 19px; color: var(--accent); }
-    .more-menu .menu-divider { height: 1px; margin: 6px 4px; background: var(--line); }
+    /* ===== system overview ===== */
+    .dash-content a.stat-card{display:block;text-decoration:none}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+    .kpi-sub{margin-top:6px;color:var(--muted);font-size:.78rem}
+    .ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+    .ov-grid .panel{padding:16px 18px}
+    .ov-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+    .ov-head h3{margin:0;font-size:1rem;font-weight:700}
+    .ov-head a{color:var(--muted);font-size:.8rem;text-decoration:none}
+    .ov-head a:hover{color:var(--green-bright)}
+    .ov-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);color:var(--text);text-decoration:none;font-size:.88rem}
+    .ov-row:last-child{border-bottom:0}
+    .ov-row:hover .ov-main{color:var(--green-bright)}
+    .ov-main{min-width:0;overflow-wrap:anywhere}
+    .ov-main small{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}
+    .ov-end{flex:none;font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+    .ov-end.bad{color:#ff6b6b}.ov-end.warn{color:#f2c14e}
+    .ov-bar{height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--text) 10%,transparent)}
+    .ov-bar i{display:block;height:100%;border-radius:4px;background:var(--green-bright)}
+    .ov-empty{padding:14px 0;color:var(--muted);font-size:.88rem}
 
-    /* ===== Receipt printer modal ===== */
-    body:has(#receipt-modal:not(.hidden)) .bottom-nav { display: none; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: env(safe-area-inset-top, 0px) 0 var(--safe-b); background: rgba(8,8,8,.88); backdrop-filter: blur(6px); }
-    .receipt-modal-card { width: min(760px, 100%); min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
-    .printer-machine { border-radius: 0 0 26px 26px !important; padding-top: max(12px, env(safe-area-inset-top, 0px)) !important; }
-    .printer-output { width: calc(100% - 32px) !important; flex: 1 0 auto; padding-bottom: 28px; }
-    .paper-wrap { min-height: 70dvh; }
-    .printer-machine {
-      position: relative; z-index: 3; width: 100%; padding: 12px 12px 30px; border-radius: 24px; border: 1px solid var(--pm-edge); background: var(--pm-body);
-      box-shadow: 0 22px 36px -18px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(0,0,0,.4);
+    @media (min-width:761px) and (max-width:1400px){
+      .hdr-right .hdr-divider,.hdr-hello{display:none} /* give the search bar the room */
     }
-    .printer-machine::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 12px; height: 9px; border-radius: 4px; background: #0b0b0b; box-shadow: inset 0 2px 3px #000; }
-    .printer-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; margin-bottom: 4px; }
-    .printer-brand { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text); font: 700 14px var(--head); }
-    .printer-brand img { width: 28px; height: 28px; padding: 3px; border-radius: 8px; background: #fff; object-fit: contain; flex: 0 0 auto; }
-    .printer-brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #receipt-close { min-height: 38px; padding: 0 14px; font-size: 13px; }
-    .printer-screen { border: 1px solid #000; border-radius: 14px; padding: 14px 16px; background: var(--pm-screen); color: var(--pm-screen-text); box-shadow: inset 0 0 22px 3px rgba(0,0,0,.6); }
-    .printer-screen__meta { display: flex; justify-content: space-between; gap: 10px; color: #9b9b9b; font: 500 11px var(--mono); }
-    .printer-status { display: flex; align-items: center; gap: 10px; margin-top: 12px; font: 600 15px var(--body); }
-    .printer-status i, .printer-status svg { width: 18px; height: 18px; color: var(--accent); flex: 0 0 auto; }
-    .printer-root[data-stage="processing"] .printer-status svg, .printer-root[data-stage="printing"] .printer-status svg { animation: spin 1s linear infinite; }
-    .printer-root[data-stage="complete"] .printer-status svg { color: var(--ok); }
-    .printer-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-    .printer-keys .btn { min-width: 0; padding: 0 8px; border-radius: 12px; border-color: rgba(0,0,0,.35); box-shadow: 0 3px 0 rgba(0,0,0,.35); font-size: 13px; flex-direction: column; gap: 2px; min-height: 52px; white-space: normal; text-align: center; line-height: 1.1; }
-    .printer-keys .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
-    .printer-keys .btn--primary { box-shadow: 0 3px 0 #a85a08; }
-
-    .printer-output { position: relative; z-index: 2; width: calc(100% - 40px); margin-top: -12px; overflow: hidden; padding-top: 4px; }
-    .printer-output::before { content: ""; position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 8px; background: linear-gradient(rgba(0,0,0,.55), transparent); pointer-events: none; }
-    .paper-wrap { background: #fbfaf7; box-shadow: 0 20px 44px rgba(0,0,0,.34); }
-    .printer-root[data-stage="processing"] .paper-wrap { transform: translateY(-101%); visibility: hidden; }
-    .printer-root[data-stage="printing"] .paper-wrap { animation: feed 1.8s steps(12, end) forwards; }
-    .printer-root[data-stage="complete"] .paper-wrap { transform: none; }
-    @keyframes feed { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-
-    .receipt-document { position: relative; isolation: isolate; padding: clamp(24px,5vw,56px) clamp(20px,6vw,54px) 30px; background: #fbfaf7; color: #1a1a1a; font: 400 14px/1.5 var(--mono); overflow-wrap: break-word; word-break: normal; writing-mode: horizontal-tb; min-width: 0; }
-    .receipt-document::before { content: ""; position: absolute; z-index: -1; inset: 25% 15%; background: url("../assets/logo.png") center/contain no-repeat; opacity: .045; pointer-events: none; }
-    .receipt-document > *, .receipt-document :is(div, section, header, footer, span, p) { min-width: 0; max-width: 100%; }
-    .receipt-document > :is(div, section, header, footer) { width: 100%; }
-    .receipt-document p { margin: 4px 0; }
-    #receipt-document, #receipt-document * { writing-mode: horizontal-tb !important; text-orientation: mixed !important; word-break: normal !important; overflow-wrap: break-word !important; letter-spacing: normal; }
-    #receipt-document { display: block !important; width: 100% !important; max-width: none !important; columns: auto !important; }
-    .receipt-company { display: grid; grid-template-columns: 150px minmax(0,1fr); align-items: center; gap: 22px; padding: 0 0 18px; border-bottom: 3px solid transparent; border-image: linear-gradient(90deg,#16864a 0 78%,#f28a24 78% 100%) 1; }
-    .receipt-logo { display: block; width: 145px; height: 110px; object-fit: contain; }
-    .receipt-company__details { min-width: 0; padding-left: 22px; border-left: 3px solid #16864a; }
-    .receipt-company__details h2 { margin: 0 0 4px; color: #111; font: 700 clamp(16px,2.5vw,25px)/1.15 var(--mono); letter-spacing: -.045em; }
-    .receipt-company__details p { margin: 2px 0; font-size: 14px; }
-    .receipt-title { margin: 22px 0 18px; padding: 0 0 12px; border-bottom: 2px solid #222; font: 700 clamp(20px,3vw,30px)/1.2 var(--mono); text-align: center; }
-    .receipt-meta { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 0 0 28px; padding: 0; }
-    .receipt-meta div { display: grid; grid-template-columns: minmax(125px,.75fr) minmax(0,1fr); gap: 8px; }
-    .receipt-meta dt { font-weight: 400; }
-    .receipt-meta dd { margin: 0; }
-    .receipt-meta dd::before { content: ": "; }
-    .receipt-items { margin-top: 16px; border-top: 2px solid #333; border-bottom: 2px solid #333; }
-    .receipt-document .receipt-items table { width: 100%; border-collapse: collapse; display: table; }
-    .receipt-document .receipt-items thead,.receipt-document .receipt-items tbody { display: table-row-group; }
-    .receipt-document .receipt-items tr { display: table-row; padding: 0; border: 0; background: none; }
-    .receipt-document .receipt-items th,.receipt-document .receipt-items td { display: table-cell; padding: 9px 4px; border: 0; color: #1a1a1a; font: 400 13px/1.4 var(--mono); text-align: left; vertical-align: top; }
-    .receipt-document .receipt-items th { border-bottom: 1px solid #333; font-weight: 700; }
-    .receipt-document .receipt-items :is(td,th):not(:first-child) { text-align: right; white-space: nowrap; }
-    .receipt-document .receipt-items th:first-child,.receipt-document .receipt-items td:first-child { padding-left: 0; }
-    .receipt-document .receipt-items th:last-child,.receipt-document .receipt-items td:last-child { padding-right: 0; }
-    .receipt-totals { width: min(100%,360px); margin: 14px 0 0 auto; }
-    .receipt-totals div { display: flex; justify-content: space-between; gap: 20px; padding: 5px 0; }
-    .receipt-totals .receipt-paid { margin-top: 6px; padding-top: 10px; border-top: 2px solid #333; }
-    .receipt-totals .receipt-grand { margin-top: 2px; border-top: 1px solid #333; font-weight: 700; }
-    .receipt-note { margin: 28px 0 !important; text-align: center; }
-    .receipt-footer { margin-top: 24px; padding-top: 14px; border-top: 3px solid transparent; border-image: linear-gradient(90deg,#16864a 0 78%,#f28a24 78% 100%) 1; text-align: center; }
-    .receipt-footer__services { color: #252525; font: 400 11px/1.5 var(--mono); }
-    .receipt-footer__copyright { margin-top: 4px !important; color: #333; font: 400 11px/1.5 var(--mono); }
-    .receipt-footer__phones { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px 16px; margin-top: 4px !important; font: 400 12px/1.5 var(--mono); }
-    .receipt-footer__phones a { color: #1b6e3b; text-decoration: none; white-space: nowrap; }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 760px) {
-      .panel thead { display: none; }
-      .t-pending tbody tr, .t-ledger tbody tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
-      .t-pending td:nth-child(1) { grid-column: 1; grid-row: 1; }
-      .t-pending td:nth-child(3) { grid-column: 2; grid-row: 1; }
-      .t-pending td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
-      .t-pending td:nth-child(4) { grid-column: 1 / -1; grid-row: 3; justify-self: start; margin-top: 8px; }
-      .t-ledger td:nth-child(1) { grid-column: 1; grid-row: 1; }
-      .t-ledger td:nth-child(4) { grid-column: 2; grid-row: 1; }
-      .t-ledger td:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
-      .t-ledger td:nth-child(2) { grid-column: 1; grid-row: 3; font-size: 13px; }
-      .t-ledger td:nth-child(5) { grid-column: 2; grid-row: 3; font-size: 13px; text-align: right; }
-      .t-ledger td:nth-child(6) { grid-column: 1 / -1; grid-row: 4; justify-self: start; margin-top: 8px; }
-      .panel td:last-child { text-align: left; }
-      .t-ledger td:nth-child(5) { text-align: right; }
-      .section-note { display: none; }
-      .receipt-live-time__date { font-size: 10px; }
+    @media (max-width:760px){
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand right menu" "search search search"}
+      .hs{max-width:none;justify-self:stretch}
+      #hs-input{font-size:16px}
+      .hs-kbd{display:none}
     }
-    @media (max-width: 520px) {
-      .receipt-live-time__date { display: none; }
-      .receipt-live-time__clock { font-size: 16px; }
-      .receipt-company { grid-template-columns: 92px minmax(0,1fr); gap: 12px; }
-      .receipt-company__details { padding-left: 12px; }
-      .receipt-logo { width: 88px; height: 84px; }
-      .receipt-company__details h2 { font-size: 15px; }
-      .receipt-company__details p { font-size: 11px; }
-      .receipt-meta div { grid-template-columns: minmax(110px,.8fr) minmax(0,1fr); gap: 4px; font-size: 12px; }
-      .receipt-document .receipt-items th,.receipt-document .receipt-items td { padding: 8px 2px; font-size: 10px; }
-      .receipt-document .receipt-items :is(td,th):not(:first-child) { white-space: normal; }
-      .printer-output { width: calc(100% - 16px) !important; }
-    }
-    @media (max-width: 360px) { .printer-keys .btn svg { display: none; } .receipt-document { padding: 20px 14px 16px; } }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .printer-root .paper-wrap { animation: none !important; } }
-    @media print {
-      body.dashboard-page { background: #fff; }
-      .main, .bottom-nav, .apr-bottom-nav, .printer-machine, .printer-output::before { display: none !important; }
-      .modal-overlay { position: static; display: block; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
-      .receipt-modal-card, .printer-output { width: 100%; margin: 0; overflow: visible; }
-      .printer-output { width: 100% !important; padding-bottom: 0; }
-      .paper-wrap { animation: none !important; transform: none !important; visibility: visible !important; box-shadow: none; }
+    @media (max-width:560px){
+      .hdr-clock{display:none}
     }
   </style>
+<style id="rc-design">
+.rc-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rc-tabs .seg{padding:10px 18px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+.rc-tabs .seg[aria-pressed="true"]{background:var(--green);color:#fff;border-color:transparent}
+.rc-tabs .grow{flex:1}
+.rc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.rc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);cursor:pointer}
+.rc-row:last-child{border-bottom:0}.rc-row:hover b{color:var(--green-bright)}
+.rc-row small{display:block;color:var(--muted);margin-top:2px}
+.rc-amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,122,18,.18);color:#ffb070}
+.pill.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+.rc-build{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:900px){.rc-build{grid-template-columns:1fr}}
+.rc-form{display:grid;gap:12px}.rc-form h3{margin:6px 0 0;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rc-form input,.rc-form select,.rc-form textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit;font-size:16px}
+.rc-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.li{display:grid;grid-template-columns:1fr 62px 86px 32px;gap:8px}
+.li button{border:0;background:none;color:#ff6b6b;font-size:20px;cursor:pointer}
+.rc-bar{display:flex;gap:10px;flex-wrap:wrap}
+.rc-bar .btn{flex:1 1 130px;justify-content:center}
+.btn.wa{background:#25d366!important;border-color:transparent!important;color:#06361a!important}
+.rc-doc-wrap{overflow-x:auto;padding:2px}
+#doc{background:#fff;color:#14181a;width:100%;max-width:794px;margin:0 auto;padding:36px;border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+#doc .top{display:flex;justify-content:space-between;gap:16px;border-bottom:4px solid #12a150;padding-bottom:14px}
+#doc .top img{height:56px;width:auto}#doc h1{margin:0;font-size:26px;letter-spacing:.04em;color:#12a150;text-align:right}
+#doc .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+#doc .meta small{color:#6b7570;text-transform:uppercase;letter-spacing:.08em;font-size:10px;display:block}
+#doc table{width:100%;border-collapse:collapse;margin-top:6px}
+#doc th{background:#0e1517;color:#fff;text-align:left;padding:8px;font-size:11px;text-transform:uppercase}
+#doc td{padding:8px;border-bottom:1px solid #e4e8e5}#doc .n{text-align:right;font-variant-numeric:tabular-nums}
+#doc .tot{margin-left:auto;width:260px;margin-top:12px}#doc .tot div{display:flex;justify-content:space-between;padding:4px 0}
+#doc .tot .g{border-top:3px solid #ff7a12;font-size:17px;font-weight:800;margin-top:4px;padding-top:8px}
+#doc .stamp{display:inline-block;border:3px solid #12a150;color:#12a150;padding:2px 12px;border-radius:6px;font-weight:800;transform:rotate(-6deg);margin-top:8px}
+#doc .foot{margin-top:26px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-size:.9rem}
+select.st option{background:#10181a;color:#eef3ef}
+:root[data-theme="light"] body.dashboard-page select option{background:#fff!important;color:#17211b!important}
+:root[data-theme="dark"] body.dashboard-page select option{background:#10181a!important;color:#eef3ef!important}
+.apr-global-search-results{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:200;max-height:min(60vh,480px);overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);box-shadow:0 12px 30px rgba(0,0,0,.3)}
+.apr-global-search:not(.hs){position:relative;grid-area:search;flex:1;min-width:220px}
+.apr-global-search:not(.hs) input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit}
+.apr-global-search-results .global-search__group-label{padding:12px 12px 6px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.apr-global-search-results .global-search__item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid var(--line);color:var(--text);text-decoration:none}
+.apr-global-search-results .global-search__item-main{display:block;font-weight:600}
+.apr-global-search-results .global-search__item-sub{display:block;color:var(--muted);font-size:.8rem}
+:root[data-theme="light"] body.dashboard-page .apr-global-search-results{border-color:#d9dcdf;background:#fff;color:#111}
+:root[data-theme="light"] body.dashboard-page .apr-global-search-results .global-search__item{color:#111}
+[hidden]{display:none!important}
+@media print{
+  @page{size:A4;margin:10mm}
+  body.dashboard-page{background:#fff!important;padding:0!important}
+  body.dashboard-page *{visibility:hidden}
+  #doc,#doc *{visibility:visible}
+  #doc{position:absolute;left:0;top:0;max-width:none;box-shadow:none;padding:0}
+  @page receiptStandard{size:A4;margin:10mm}
+  @page receiptThermal{size:80mm auto;margin:3mm}
+  body[data-print-mode="standard"] #doc{page:receiptStandard}
+  body[data-print-mode="thermal"] #doc{page:receiptThermal;width:74mm;max-width:74mm;padding:3mm;font-size:10px;line-height:1.35;box-shadow:none}
+  body[data-print-mode="thermal"] #doc .top{gap:6px;border-bottom-width:2px}
+  body[data-print-mode="thermal"] #doc .top img{height:30px}
+  body[data-print-mode="thermal"] #doc h1{font-size:16px}
+  body[data-print-mode="thermal"] #doc .meta{grid-template-columns:1fr;gap:6px}
+  body[data-print-mode="thermal"] #doc table{font-size:9px}
+  body[data-print-mode="thermal"] #doc th,body[data-print-mode="thermal"] #doc td{padding:4px 2px}
+  body[data-print-mode="thermal"] #doc .tot{width:100%}
+  body[data-print-mode="thermal"] #doc .foot{font-size:9px}
+}
+</style>
 </head>
 <body class="dashboard-page">
-  <div class="app-shell">
-    <aside class="sidebar" aria-hidden="true"></aside>
-
-    <main class="main">
-      <div class="main__header dashboard-hero">
-        <div>
-          <p class="section-kicker">Accounting desk</p>
-          <h1>Receipts</h1>
-          <p class="page-intro">Issue receipts for finished jobs and keep a clean record of every payment.</p>
-        </div>
-        <div class="receipt-live-time" aria-label="Current date and time">
-          <time class="receipt-live-time__date" id="receipt-page-date"></time>
-          <time class="receipt-live-time__clock" id="receipt-page-clock"></time>
-        </div>
-        <a class="back-link" href="../index.html" aria-label="Back to dashboard"><i data-lucide="house"></i></a>
-      </div>
-
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Needs action</p><h2><i class="section-heading-icon" data-lucide="file-clock"></i>Jobs Awaiting Receipt</h2></div><span class="section-note">Take payment, then issue the receipt</span></div>
-        <section class="panel">
-          <table class="t-pending">
-            <thead>
-              <tr><th>Job ID</th><th>Client</th><th>Total</th><th></th></tr>
-            </thead>
-            <tbody id="pending-receipts-table">
-              <tr><td colspan="4" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr>
-            </tbody>
-          </table>
-        </section>
-      </section>
-
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="receipt"></i>Issued Receipts</h2></div><span class="section-note">Every payment record on file</span></div>
-        <section class="panel">
-          <table class="t-ledger">
-            <thead>
-              <tr><th>Receipt #</th><th>Reference</th><th>Client</th><th>Total</th><th>Date</th><th></th></tr>
-            </thead>
-            <tbody id="receipts-table">
-              <tr><td colspan="6" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading...</span></td></tr>
-            </tbody>
-          </table>
-        </section>
-      </section>
-    </main>
-  </div>
-
-  <!-- Receipt printer: same IDs as before so receipts.js keeps working -->
-  <div id="receipt-modal" class="modal-overlay hidden">
-    <div class="receipt-modal-card printer-root" id="printer-root" data-stage="processing">
-      <div class="printer-machine no-print">
-        <div class="printer-head">
-          <div class="printer-brand"><img src="../assets/logo.png" alt=""><span>Centric Auto Mobile</span></div>
-          <button id="receipt-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
-        </div>
-        <div class="printer-screen">
-          <div class="printer-screen__meta"><span>RECEIPT PRINTER</span><span>READY</span></div>
-          <div class="printer-status" role="status" aria-live="polite"><i data-lucide="loader-circle"></i><span id="printer-status-text">Preparing receipt</span></div>
-        </div>
-        <div class="receipt-toolbar printer-keys">
-          <button id="receipt-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp</button>
-          <button id="receipt-email" type="button" class="btn"><i data-lucide="mail"></i> Email</button>
-          <button id="receipt-print" type="button" class="btn btn--primary"><i data-lucide="printer"></i> Print</button>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
+      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
+      <div class="nav-group" data-group="workshop">
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
+          <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
-      <div class="printer-output">
-        <div class="paper-wrap">
-          <article id="receipt-document" class="receipt-document"></article>
+      <div class="nav-group" data-group="sales">
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
+          <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
+          <a class="nav-link active" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+          <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
+      <div class="nav-group" data-group="accounting">
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
+          <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
+          <a class="nav-link" href="payables.html"><i data-lucide="banknote"></i> Payables</a>
+          <a class="nav-link" href="cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
+          <a class="nav-link" href="commissions.html"><i data-lucide="percent"></i> Commissions</a>
+          <a class="nav-link" href="landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
+          <a class="nav-link" href="fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
+          <a class="nav-link" href="financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
+        </div>
+      </div>
+      <div class="nav-group" data-group="insights">
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+        </div>
+      </div>
+      <div class="nav-group" data-group="system">
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+        </div>
+      </div>
+    </aside>
+<main class="main">
+<header class="main__header dashboard-hero app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div>
+            <p class="hdr-name">Centric <em>Auto Mobile</em></p>
+            <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
+          </div>
+        </div>
+        <!-- Header search: searches the whole system, with filters -->
+        <div class="hs" id="hs">
+          <div class="hs-bar" role="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="hs-input" placeholder="Search receipts &amp; invoices…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
+            <span class="hs-kbd" aria-hidden="true">/</span>
+          </div>
+          <div class="hs-panel" id="hs-panel" hidden>
+            <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
+            <div id="hs-results" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="hdr-right">
+          <div class="hdr-time">
+            <p class="page-intro" id="dashboard-date">Loading…</p>
+            <div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div>
+            <div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div>
+          </div>
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+        <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 24H1130" fill="none" stroke="#1fc467" stroke-width="3" vector-effect="non-scaling-stroke"/>
+          <path d="M1130 24C1200 24 1230 7 1300 7H1536" fill="none" stroke="#ff7a12" stroke-width="3" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </header>
+<div class="dash-content rc">
+  <section class="panel" id="v-list">
+    <div class="rc-tabs">
+      <button class="seg" data-tab="receipts" aria-pressed="true">Receipts</button>
+      <button class="seg" data-tab="invoices" aria-pressed="false">Invoices</button>
+      <span class="grow"></span>
+      <button class="btn btn--primary" id="new-inv"><i data-lucide="plus"></i> New invoice</button>
     </div>
-  </div>
+    <div class="rc-stats" style="margin:18px 0" id="stats"></div>
+    <div id="list"><div class="ov-empty">Loading…</div></div>
+  </section>
 
-  <!-- supabase-js from jsDelivr (unpkg was the slow/blocking host); must stay before the module scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-  <script type="module" src="../js/receipts.js"></script>
-  <script type="module" src="../js/credit-notes.js"></script>
-  <script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (window.lucide) lucide.createIcons();
-      const date = document.getElementById("receipt-page-date");
-      const clock = document.getElementById("receipt-page-clock");
-      const updateTime = () => {
-        const now = new Date();
-        date.textContent = now.toLocaleDateString("en-GB", {
-          weekday: "short",
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-        date.dateTime = now.toISOString();
-        clock.textContent = now.toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-        clock.dateTime = now.toISOString();
-      };
-      updateTime();
-      window.setInterval(updateTime, 1000);
-    });
+  <section class="panel" id="v-build" hidden>
+    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New invoice</h2></div>
+    <div class="rc-build" style="margin-top:18px">
+      <div class="rc-form">
+        <h3>1 · Customer</h3>
+        <select id="f-cust"><option value="">Walk-in / type details below</option></select>
+        <input id="f-name" placeholder="Customer name" />
+        <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email" /></div>
+        <h3>2 · Items</h3>
+        <div id="items" style="display:grid;gap:8px"></div>
+        <datalist id="parts-dl"></datalist>
+        <button class="btn" id="add-li" type="button"><i data-lucide="plus"></i> Add line</button>
+        <div class="two"><input id="f-vat" type="number" min="0" step="0.5" value="15" placeholder="VAT %" title="VAT %" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
+        <div class="two"><input id="f-due" type="date" title="Due date" /><input id="f-ref" placeholder="Job card / vehicle reg (optional)" /></div>
+        <textarea id="f-notes" rows="2" placeholder="Notes / payment instructions (EcoCash, bank, cash)"></textarea>
+        <h3>3 · Save &amp; send</h3>
+        <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save invoice &amp; share</button>
+      </div>
+      <div class="rc-doc-wrap"><div id="doc-new"></div></div>
+    </div>
+  </section>
 
-    /* Receipt printer: processing -> printing -> complete whenever the modal opens */
-    (() => {
-      const modal = document.getElementById('receipt-modal');
-      const root = document.getElementById('printer-root');
-      const text = document.getElementById('printer-status-text');
-      const labels = { processing: 'Preparing receipt', printing: 'Printing receipt', complete: 'Receipt ready' };
-      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let timers = [], wasOpen = false;
+  <section class="panel" id="v-doc" hidden>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-paid" hidden><i data-lucide="badge-check"></i> Mark paid</button></div>
+    <div class="rc-bar" style="margin:16px 0">
+      <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp</button>
+      <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
+      <label class="sr-only" for="receipt-printer-type">Receipt printer format</label>
+      <select class="st" id="receipt-printer-type"><option value="standard">Standard printer · A4</option><option value="thermal">Thermal printer · 80 mm</option></select>
+      <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
+      <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+    </div>
+    <div class="rc-doc-wrap"><div id="doc"></div></div>
+  </section>
+</div>
+<!-- BOTTOM TAB BAR -->
+      <nav class="tabbar" aria-label="Main">
+        <a class="tab" href="../index.html" aria-label="Home">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6L5 21v21h14V30h10v12h14V21z"/></svg><span>Home</span>
+        </a>
+        <button type="button" class="tab" id="tab-search" aria-label="Search">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="M30 30l11 11"/></svg><span>Search</span>
+        </button>
+        <a class="tab" href="customers.html" aria-label="Customers">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 41c0-9 6-15 14-15s14 6 14 15z"/><path d="M8 34c-2-5 0-9 5-11M40 34c2-5 0-9-5-11"/></svg>
+          <span>Customers</span>
+          <span class="tab-badge" id="tab-badge" hidden>0</span>
+        </a>
+        <a class="tab" href="repairs.html" aria-label="Workshop and Job Cards">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 41V19L24 7l17 12v22"/><path d="M14 41V25h20v16"/><circle cx="24" cy="33" r="4"/><path d="M24 26v2M24 38v2M17 33h2M29 33h2"/></svg><span>Workshop</span>
+        </a>
+        <a class="tab" href="quotations.html" aria-label="Documents and Quotations">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h18l8 8v28H12z"/><path d="M30 6v8h8M18 22h14M18 29h14M18 36h8"/></svg><span>Quotes</span>
+        </a>
+      </nav>
 
-      const setStage = (s) => {
-        root.dataset.stage = s; text.textContent = labels[s];
-        const icon = root.querySelector('.printer-status svg, .printer-status i');
-        if (icon) { const n = document.createElement('i'); n.setAttribute('data-lucide', s === 'complete' ? 'circle-check' : 'loader-circle'); icon.replaceWith(n); if (window.lucide) lucide.createIcons(); }
-      };
-      const run = () => {
-        timers.forEach(clearTimeout); timers = [];
-        if (still) return setStage('complete');
-        setStage('processing');
-        timers.push(setTimeout(() => setStage('printing'), 800));
-        timers.push(setTimeout(() => setStage('complete'), 2700));
-      };
-      new MutationObserver(() => {
-        const open = !modal.classList.contains('hidden') && getComputedStyle(modal).display !== 'none';
-        if (open && !wasOpen) run();
-        if (!open && wasOpen) { timers.forEach(clearTimeout); setStage('processing'); }
-        wasOpen = open;
-      }).observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
+      <footer class="site-foot">
+        <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
+</main>
+</div>
 
-      modal.addEventListener('click', (e) => { if (e.target === modal) document.getElementById('receipt-close').click(); });
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && wasOpen) document.getElementById('receipt-close').click();
-      });
-    })();
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/app.js"></script>
+<script type="module" src="../js/notifications.js"></script>
+<script type="module" src="../js/repair-pages-navigation.js"></script>
+<script>
+(()=>{const $=id=>document.getElementById(id);const c=$("hdr-clock"),l=$("hdr-live"),d=$("dashboard-date");
+const t=()=>{const n=new Date();c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};t();setInterval(t,1000);
+const o=()=>{l.dataset.state=navigator.onLine?"online":"offline";l.querySelector("span").textContent=navigator.onLine?"Live":"Offline"};addEventListener("online",o);addEventListener("offline",o);o()})();
+</script>
+<script type="module">
+import supabase from "../js/supabaseClient.js";
+const $=id=>document.getElementById(id);
+const usd=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
+const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
+const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
+const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
+const CO={email:"malvirngomo8@gmail.com"};
+let tab="receipts",rows={receipts:[],invoices:[]},cur=null,parts=[];
+
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
+function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
+const calc=o=>{const sub=o.items.reduce((s,i)=>s+i.q*i.p,0),disc=Math.min(+o.discount||0,sub),vat=(sub-disc)*(+o.vat||0)/100;return{sub,disc,vat,total:sub-disc+vat}};
+
+/* ---------- the document (invoice or receipt) ---------- */
+function docHTML(o){const t=calc(o),inv=o.kind==="invoice";
+return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
+<div><h1>${inv?"INVOICE":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
+<div class="meta"><div><small>${inv?"Billed to":"Received from"}</small><b>${esc(o.customer.name||"Walk-in customer")}</b><br>${esc(o.customer.phone||"")}<br>${esc(o.customer.email||"")}</div>
+<div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${o.status==="paid"||!inv?'<br><span class="stamp">PAID</span>':""}</div></div>
+<table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
+<div class="tot"><div><span>Subtotal</span><span>${usd(t.sub)}</span></div>${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${+o.vat?`<div><span>VAT ${o.vat}%</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Total due":"Total paid"}</span><span>${usd(t.total)}</span></div></div>
+${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
+
+/* ---------- load lists ---------- */
+async function load(){
+ const [r,i]=await Promise.all([
+  supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,customers(full_name,phone,email))").order("issued_at",{ascending:false}).limit(300),
+  supabase.from("invoices").select("*").order("issued_at",{ascending:false}).limit(300)]);
+ rows.receipts=(r.data||[]).map(x=>{const c=x.repair_jobs?.customers||x.sales_orders?.customers||{};const ref=x.repair_jobs?`Job #${x.repair_jobs.job_number}`:x.sales_orders?`Order #${x.sales_orders.order_number}`:"";
+  return{kind:"receipt",id:x.id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref,items:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:Number(x.amount)||0}],discount:0,vat:0,status:"paid"}});
+ rows.invoices=(i.data||[]).map(x=>({kind:"invoice",id:x.id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items:x.items||[],discount:x.discount,vat:x.vat_rate,notes:x.notes,status:x.status}));
+ if(i.error)$("list").dataset.err="Invoices table missing — run supabase/migrations/invoices.sql";
+ render()}
+function render(){
+ const q=($("hs-input").value||"").toLowerCase(),L=rows[tab].filter(o=>!q||(o.number+o.customer.name+o.ref).toLowerCase().includes(q));
+ const inv=rows.invoices,out=inv.filter(o=>o.status!=="paid").reduce((s,o)=>s+calc(o).total,0),paid=inv.filter(o=>o.status==="paid").reduce((s,o)=>s+calc(o).total,0),rec=rows.receipts.reduce((s,o)=>s+calc(o).total,0);
+ $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${usd(b)}</div></div>`).join("");
+ $("list").innerHTML=(L.map((o,i)=>`<div class="rc-row" data-i="${i}"><div><b>${o.number}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status||"unpaid"}</span>`:""}<small>${esc(o.customer.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}</small></div><div class="rc-amt">${usd(calc(o).total)}</div></div>`).join(""))||`<div class="ov-empty">${$("list").dataset.err&&tab==="invoices"?$("list").dataset.err:"Nothing here yet."}</div>`;
+ $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]))}
+function open(o){cur=o;$("doc").innerHTML=docHTML(o);$("d-paid").hidden=!(o.kind==="invoice"&&o.status!=="paid");show("doc")}
+
+/* ---------- builder ---------- */
+function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="1" step="1" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
+ r.querySelector("button").onclick=()=>{r.remove();prev()};r.oninput=e=>{if(e.target===r.children[0]){const m=parts.find(x=>x.name===e.target.value);if(m)r.children[2].value=m.price}prev()};$("items").append(r)}
+function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:$("f-vat").value,
+ customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value},
+ items:[...$("items").children].map(r=>({d:r.children[0].value.trim(),q:+r.children[1].value||1,p:+r.children[2].value||0})).filter(i=>i.d||i.p)}}
+const prev=()=>{$("doc-new").innerHTML=`<div id="doc" style="box-shadow:none">${docHTML(collect())}</div>`};
+async function openBuilder(){show("build");if(!$("items").children.length){addLine();const d=new Date();d.setDate(d.getDate()+7);$("f-due").value=d.toISOString().slice(0,10)}prev();
+if($("f-cust").options.length<2){const [c,p]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
+  $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option(x.full_name||"Unnamed",x.id),{_c:x})));
+  parts=(p.data||[]).map(x=>({name:x.name,price:x.selling_price??x.unit_price??x.sale_price??x.price??""})).filter(x=>x.name);
+ $("parts-dl").innerHTML=parts.map(x=>`<option value="${esc(x.name)}">`).join("")}
+const params=new URLSearchParams(location.search);
+if(params.get("name"))$("f-name").value=params.get("name");
+if(params.get("phone"))$("f-phone").value=params.get("phone");
+if(params.get("email"))$("f-email").value=params.get("email");
+if(params.get("ref"))$("f-ref").value=params.get("ref");
+prev()}
+$("f-cust").onchange=e=>{const c=e.target.selectedOptions[0]._c;if(c){$("f-name").value=c.full_name||"";$("f-phone").value=c.phone||"";$("f-email").value=c.email||""}prev()};
+$("v-build").addEventListener("input",prev);
+$("save").onclick=async()=>{const o=collect();if(!o.items.length)return toast("Add at least one item");if(!o.customer.name)return toast("Add a customer name");
+ const t=calc(o),{data,error}=await supabase.from("invoices").insert({customer_id:$("f-cust").value||null,customer_name:o.customer.name,customer_phone:o.customer.phone,customer_email:o.customer.email,items:o.items,discount:+o.discount||0,vat_rate:+o.vat||0,subtotal:t.sub,total:t.total,notes:o.notes,reference:o.ref,due_date:o.due||null}).select().single();
+ if(error){console.error(error);return toast("Couldn't save: "+error.message)}
+ await load();open(rows.invoices.find(x=>x.id===data.id)||rows.invoices[0]);toast("Saved — choose how to send it")};
+
+/* ---------- share: WhatsApp / email / print / PDF ---------- */
+const lib=s=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=s;e.onload=ok;e.onerror=no;document.head.append(e)});
+async function pdf(){if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+ const cv=await html2canvas($("doc"),{scale:2,backgroundColor:"#fff",useCORS:true}),p=new jspdf.jsPDF("p","mm","a4"),w=210,h=cv.height*w/cv.width;p.addImage(cv.toDataURL("image/jpeg",.92),"JPEG",0,0,w,Math.min(h,297));
+ return new File([p.output("blob")],`${cur.number}.pdf`,{type:"application/pdf"})}
+const msg=()=>{const t=calc(cur).total;return `Hi ${cur.customer.name||""}, here is your ${cur.kind} ${cur.number} from Centric Auto Mobile.\nTotal: ${usd(t)}${cur.kind==="invoice"&&cur.due?`\nDue: ${dt(cur.due)}`:""}\nThank you!`}
+const save=f=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;a.click()};
+$("s-pdf").onclick=async()=>{try{save(await pdf())}catch{toast("PDF failed — use Print → Save as PDF")}};
+$("s-print").onclick=()=>{
+ const mode=$("receipt-printer-type").value;
+ document.body.dataset.printMode=mode;
+ window.addEventListener("afterprint",()=>delete document.body.dataset.printMode,{once:true});
+ print();
+};
+$("s-wa").onclick=async()=>{try{const f=await pdf();if(navigator.canShare?.({files:[f]}))return await navigator.share({files:[f],text:msg()})}catch(e){if(e.name==="AbortError")return}
+ open2(`https://wa.me/${waNum(cur.customer.phone)}?text=${encodeURIComponent(msg())}`);toast("Tap PDF to attach the file in WhatsApp")};
+$("s-mail").onclick=async()=>{try{save(await pdf());toast("PDF downloaded — attach it to the email")}catch{}
+ open2(`mailto:${cur.customer.email||""}?subject=${encodeURIComponent(cur.kind[0].toUpperCase()+cur.kind.slice(1)+" "+cur.number+" — Centric Auto Mobile")}&body=${encodeURIComponent(msg())}`)};
+const open2=u=>{window.open(u,"_blank")||(location.href=u)};
+$("d-paid").onclick=async()=>{const{error}=await supabase.from("invoices").update({status:"paid"}).eq("id",cur.id);if(error)return toast(error.message);cur.status="paid";$("doc").innerHTML=docHTML(cur);$("d-paid").hidden=true;load();toast("Marked as paid")};
+
+/* ---------- wiring ---------- */
+document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+$("new-inv").onclick=openBuilder;$("add-li").onclick=()=>addLine();$("b-back").onclick=$("d-back").onclick=()=>show("list");
+$("hs-input").oninput=render;
+const sp=new URLSearchParams(location.search);if(sp.get("new"))openBuilder();
+load();
+</script>
 </body>
 </html>

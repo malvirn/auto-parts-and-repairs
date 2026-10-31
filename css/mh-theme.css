@@ -1502,3 +1502,11 @@ html[data-theme="light"] { background:#f3f6fb !important; color-scheme:light !im
   background:#eceeef !important;
   color:#111111 !important;
 }
+:root[data-theme="dark"] select option {
+  background:#111b18 !important;
+  color:#eef3ef !important;
+}
+:root[data-theme="light"] select option {
+  background:#ffffff !important;
+  color:#17211b !important;
+}

@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,7 @@
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="js/pwa.js" defer></script>
+  <script src="js/theme.js"></script>
 
   <!-- Dashboard styles stay local so shared application themes cannot alter its layout. -->
   <style id="dashboard-design">
@@ -123,6 +124,34 @@
     .dash-content td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
     .dash-content .panel:has(table){overflow-x:auto}
 
+
+    /* ===== customer statements (top of dashboard) ===== */
+    .cs-tools{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+    .cs-tools input{flex:1 1 220px;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:rgba(10,16,13,.7);color:var(--text);font:inherit}
+    .cs-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .cs-chip{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--muted);font:600 .85rem var(--font);cursor:pointer}
+    .cs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);color:var(--text);border-color:var(--green-bright)}
+    .cs-list{display:grid;gap:8px}
+    .cs-cust{border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+    .cs-cust>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
+    .cs-cust>summary::-webkit-details-marker{display:none}
+    .cs-name{font-weight:700}
+    .cs-sub{color:var(--muted);font-size:.8rem;margin-top:2px}
+    .cs-bal{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .cs-bal.owe{color:#ff9a6b}.cs-bal.ok{color:var(--green-bright)}
+    .cs-body{padding:0 16px 16px}
+    .cs-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 12px}
+    .cs-facts div{padding:10px;border:1px solid var(--line);border-radius:10px;font-size:.8rem;color:var(--muted)}
+    .cs-facts b{display:block;color:var(--text);font-size:.95rem;font-variant-numeric:tabular-nums}
+    .cs-wrap{overflow-x:auto}
+    .cs-wrap table{min-width:520px;font-size:.85rem}
+    .cs-wrap td:nth-child(n+4),.cs-wrap th:nth-child(n+4){text-align:right;font-variant-numeric:tabular-nums}
+    .cs-st{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:700}
+    .cs-st.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+    .cs-st.part{background:rgba(242,193,78,.18);color:#f2c14e}
+    .cs-st.unpaid{background:rgba(255,107,107,.18);color:#ff6b6b}
+    .cs-msg{padding:16px;color:var(--muted)}
+
     /* ===== bottom tab bar ===== */
     .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;
       height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0);
@@ -219,6 +248,80 @@
       *,*::before,*::after{transition-duration:.001ms!important;animation:none!important}
       .hero-bg{transform:none!important}
     }
+    /* ===== header: search + top-right "more" menu ===== */
+    [hidden]{display:none!important}
+    body.dashboard-page .app-header{display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right menu";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px}
+    body.dashboard-page .hdr-brand{grid-area:brand}
+    body.dashboard-page .hdr-right{grid-area:right}
+    .hs{grid-area:search;position:relative;width:100%;max-width:640px;min-width:0;justify-self:center}
+    .hs-bar{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--text) 7%,transparent);transition:border-color 200ms,box-shadow 300ms}
+    .hs-bar:focus-within{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .hs-bar>svg{width:20px;height:20px;flex:none;color:var(--muted)}
+    #hs-input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:15px}
+    #hs-input::placeholder{color:var(--muted)}
+    .hs-kbd{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:.75rem}
+    .hs-panel{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:90;max-height:min(70vh,540px);overflow-y:auto;padding:0 8px 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .hs-chips{position:sticky;top:0;z-index:1;display:flex;gap:6px;overflow-x:auto;padding:10px 0;background:var(--panel);scrollbar-width:none}
+    .hs-chips::-webkit-scrollbar{display:none}
+    .hs-chip{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:600 .78rem var(--font);white-space:nowrap;cursor:pointer}
+    .hs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);border-color:var(--green-bright);color:var(--text)}
+    .hs-group{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 8px 4px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .hs-more{border:0;background:none;color:var(--green-bright);font:600 .75rem var(--font);cursor:pointer;letter-spacing:0;text-transform:none}
+    .hs-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none}
+    .hs-item:hover,.hs-item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .hs-item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .hs-item>span{min-width:0}
+    .hs-item b{display:block;font-size:.9rem;font-weight:600;overflow-wrap:anywhere}
+    .hs-item small{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .hs-empty{padding:22px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+
+    .hdr-menu-wrap{grid-area:menu;position:relative;margin-right:56px}
+    .hdr-more{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);cursor:pointer;transition:background 200ms,border-color 200ms}
+    .hdr-more:hover,.hdr-more[aria-expanded="true"]{border-color:var(--green-bright);background:rgba(31,196,103,.16)}
+    .hdr-more svg{width:22px;height:22px;fill:currentColor}
+    .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:95;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .hdr-menu .m-head{padding:12px 10px 4px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .hdr-menu a{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px;border-radius:10px;color:var(--text);font-size:.92rem;font-weight:500;text-decoration:none}
+    .hdr-menu a:hover,.hdr-menu a:focus-visible,.hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
+    .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+
+    /* the More menu now lives in the header, so the bottom bar keeps only its four main links */
+    .apr-more-wrap{display:none!important}
+    .apr-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+    /* ===== system overview ===== */
+    .dash-content a.stat-card{display:block;text-decoration:none}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+    .kpi-sub{margin-top:6px;color:var(--muted);font-size:.78rem}
+    .ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+    .ov-grid .panel{padding:16px 18px}
+    .ov-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+    .ov-head h3{margin:0;font-size:1rem;font-weight:700}
+    .ov-head a{color:var(--muted);font-size:.8rem;text-decoration:none}
+    .ov-head a:hover{color:var(--green-bright)}
+    .ov-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);color:var(--text);text-decoration:none;font-size:.88rem}
+    .ov-row:last-child{border-bottom:0}
+    .ov-row:hover .ov-main{color:var(--green-bright)}
+    .ov-main{min-width:0;overflow-wrap:anywhere}
+    .ov-main small{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}
+    .ov-end{flex:none;font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+    .ov-end.bad{color:#ff6b6b}.ov-end.warn{color:#f2c14e}
+    .ov-bar{height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--text) 10%,transparent)}
+    .ov-bar i{display:block;height:100%;border-radius:4px;background:var(--green-bright)}
+    .ov-empty{padding:14px 0;color:var(--muted);font-size:.88rem}
+
+    @media (min-width:761px) and (max-width:1400px){
+      .hdr-right .hdr-divider,.hdr-hello{display:none} /* give the search bar the room */
+    }
+    @media (max-width:760px){
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand right menu" "search search search"}
+      .hs{max-width:none;justify-self:stretch}
+      #hs-input{font-size:16px}
+      .hs-kbd{display:none}
+    }
+    @media (max-width:560px){
+      .hdr-clock{display:none}
+    }
   </style>
 </head>
 <body class="dashboard-page">
@@ -282,6 +385,18 @@
             <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
           </div>
         </div>
+        <!-- Header search: searches the whole system, with filters -->
+        <div class="hs" id="hs">
+          <div class="hs-bar" role="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
+            <span class="hs-kbd" aria-hidden="true">/</span>
+          </div>
+          <div class="hs-panel" id="hs-panel" hidden>
+            <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
+            <div id="hs-results" aria-live="polite"></div>
+          </div>
+        </div>
         <div class="hdr-right">
           <div class="hdr-time">
             <p class="page-intro" id="dashboard-date">Loading…</p>
@@ -290,6 +405,13 @@
           </div>
           <span class="hdr-divider" aria-hidden="true"></span>
           <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
         <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 24H1130" fill="none" stroke="#1fc467" stroke-width="3" vector-effect="non-scaling-stroke"/>
@@ -327,14 +449,45 @@
 
       <!-- EXISTING CONTENT: same ids / classes so js/app.js keeps filling it in -->
       <div class="dash-content">
-        <section class="page-section">
-          <div class="global-search">
-            <i data-lucide="search" class="global-search__icon"></i>
-            <input type="text" id="global-search-input" placeholder="Search customers, job cards, quotations, suppliers..." autocomplete="off" />
-            <div class="global-search__results" id="global-search-results" hidden></div>
+        <section class="dashboard-section" id="system-overview">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Whole system</p>
+              <h2>System Overview</h2>
+            </div>
+            <span class="section-note" id="ov-updated">Loading…</span>
+          </div>
+          <div class="kpi-grid" id="ov-kpis">
+            <div class="stat-card"><div class="stat-card__label">Loading</div><div class="stat-card__value">&mdash;</div></div>
           </div>
         </section>
-
+        <section class="dashboard-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Act on these</p>
+              <h2>Needs Attention</h2>
+            </div>
+            <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
+          </div>
+          <div class="panel" style="padding:6px 20px;" id="attention-panel">
+            <div class="attention-empty">Loading…</div>
+          </div>
+        </section>
+        <section class="dashboard-section" id="system-lists">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Workshop, stock &amp; money</p>
+              <h2>Key Lists</h2>
+            </div>
+          </div>
+          <div class="ov-grid">
+            <div class="panel"><div class="ov-head"><h3>Job cards by status</h3><a href="pages/repairs.html">Open</a></div><div id="ov-status"><div class="ov-empty">Loading…</div></div></div>
+            <div class="panel"><div class="ov-head"><h3>Low stock parts</h3><a href="pages/shop.html">Open</a></div><div id="ov-lowstock"><div class="ov-empty">Loading…</div></div></div>
+            <div class="panel"><div class="ov-head"><h3>Bills to pay</h3><a href="pages/payables.html">Open</a></div><div id="ov-payables"><div class="ov-empty">Loading…</div></div></div>
+            <div class="panel"><div class="ov-head"><h3>Recent quotations</h3><a href="pages/quotations.html">Open</a></div><div id="ov-quotes"><div class="ov-empty">Loading…</div></div></div>
+            <div class="panel"><div class="ov-head"><h3>Recent receipts</h3><a href="pages/receipts.html">Open</a></div><div id="ov-receipts"><div class="ov-empty">Loading…</div></div></div>
+          </div>
+        </section>
         <section class="dashboard-section">
           <div class="section-heading">
             <div>
@@ -350,7 +503,6 @@
             <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
           </div>
         </section>
-
         <section class="dashboard-section">
           <div class="section-heading">
             <div>
@@ -363,18 +515,29 @@
             <div class="objective-card">Loading...</div>
           </div>
         </section>
-
-        <section class="dashboard-section">
+        <section class="dashboard-section" id="customer-statements">
           <div class="section-heading">
             <div>
-              <p class="section-kicker">Act on these</p>
-              <h2>Needs Attention</h2>
+              <p class="section-kicker">Customer accounts</p>
+              <h2>Customer Statements</h2>
             </div>
-            <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
+            <a class="section-note" href="pages/financial-statements.html">Company statements</a>
           </div>
-          <div class="panel" style="padding:6px 20px;" id="attention-panel">
-            <div class="attention-empty">Loading…</div>
+          <div class="card-grid" id="cs-cards" style="margin-bottom:14px">
+            <div class="stat-card"><div class="stat-card__label">Total Invoiced</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Collected</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Outstanding</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Customers Owing</div><div class="stat-card__value">&mdash;</div></div>
           </div>
+          <div class="cs-tools">
+            <input type="search" id="cs-search" placeholder="Search customer, phone or invoice..." autocomplete="off">
+            <div class="cs-chips" id="cs-chips">
+              <button type="button" class="cs-chip" data-f="all" aria-pressed="true">All</button>
+              <button type="button" class="cs-chip" data-f="owing" aria-pressed="false">Owing</button>
+              <button type="button" class="cs-chip" data-f="clear" aria-pressed="false">Paid up</button>
+            </div>
+          </div>
+          <div class="cs-list" id="cs-list"><div class="cs-msg">Loading customer accounts…</div></div>
         </section>
 
         <section class="panel">
@@ -430,7 +593,8 @@
     </main>
   </div>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- supabase-js from jsDelivr (unpkg was the slow/blocking host); must stay before the module scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/notifications.js"></script>
@@ -452,8 +616,8 @@
       // Navigation is provided by the shared module bar.
       // search shortcuts jump to the existing global search box
       const goSearch = () => {
-        const input = $("global-search-input"); if (!input) return;
-        input.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+        const input = $("hs-input"); if (!input) return;
+        window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
         setTimeout(() => input.focus({ preventScroll: true }), 350);
       };
       $("tile-search").addEventListener("click", goSearch);
@@ -467,6 +631,423 @@
         }, { passive: true });
       }
     })();
+  </script>
+
+  <!-- Customer statements: reads the existing customer_account_statement view (+ credit notes). -->
+  <script type="module">
+    import supabase from "./js/supabaseClient.js";
+    const $ = id => document.getElementById(id);
+    const usd = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
+    const day = v => { const d = new Date(v + "T00:00:00"); return v && !isNaN(d) ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"; };
+    const wa = p => { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0")) d = "263" + d.slice(1); return d; };
+    let customers = [], filter = "all", showAll = false;
+    const openIds = new Set();
+
+    function msg(text) { $("cs-list").innerHTML = '<div class="cs-msg">' + esc(text) + "</div>"; }
+
+    async function load() {
+      const [st, cr] = await Promise.all([
+        supabase.from("customer_account_statement").select("*").order("entry_date", { ascending: false }),
+        supabase.from("credit_notes").select("customer_id, amount"),
+      ]);
+      if (st.error) {
+        console.error("Customer statements:", st.error);
+        msg("Couldn't load customer statements: " + st.error.message + ". If the view is missing, run supabase/migrations/customer-account-statement-view.sql.");
+        return;
+      }
+      const credits = new Map();
+      (cr.data || []).forEach(r => credits.set(r.customer_id, (credits.get(r.customer_id) || 0) + Number(r.amount || 0)));
+      const map = new Map();
+      for (const e of st.data || []) {
+        let c = map.get(e.customer_id);
+        if (!c) map.set(e.customer_id, c = { id: e.customer_id, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0 });
+        c.rows.push(e);
+        c.total += Number(e.total_amount) || 0;
+        c.paid += Number(e.amount_paid) || 0;
+        c.balance += Number(e.balance_due) || 0;
+        if (e.entry_date > c.last) c.last = e.entry_date;
+      }
+      customers = [...map.values()].sort((a, b) => b.balance - a.balance || a.name.localeCompare(b.name));
+      cards();
+      render();
+    }
+
+    function cards() {
+      const sum = k => customers.reduce((s, c) => s + c[k], 0);
+      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length)];
+      document.querySelectorAll("#cs-cards .stat-card__value").forEach((el, i) => { el.textContent = vals[i]; });
+      window.__aprOwed = { amount: customers.reduce((s, c) => s + Math.max(c.balance, 0), 0), count: customers.filter(c => c.balance > 0.01).length };
+      document.dispatchEvent(new Event("apr:owed"));
+    }
+
+    function render() {
+      const q = $("cs-search").value.trim().toLowerCase();
+      const list = customers.filter(c => {
+        if (filter === "owing" && !(c.balance > 0.01)) return false;
+        if (filter === "clear" && c.balance > 0.01) return false;
+        return !q || (c.name + " " + c.phone + " " + c.rows.map(r => r.reference).join(" ")).toLowerCase().includes(q);
+      });
+      if (!list.length) { msg(customers.length ? "No customers match." : "No customer invoices yet."); return; }
+      const shown = showAll || q ? list : list.slice(0, 15);
+      $("cs-list").innerHTML = shown.map(c => {
+        const owe = c.balance > 0.01;
+        const label = owe ? usd(c.balance) + " owing" : c.balance < -0.01 ? usd(-c.balance) + " credit" : "Paid up";
+        const rows = c.rows.map(r => {
+          const bal = Number(r.balance_due) || 0, paid = Number(r.amount_paid) || 0;
+          const s = bal <= 0.01 ? ["paid", "Paid"] : paid > 0 ? ["part", "Part-paid"] : ["unpaid", "Unpaid"];
+          return `<tr><td>${day(r.entry_date)}</td><td>${esc(r.reference)}</td><td>${esc(r.source_type)}</td><td>${usd(r.total_amount)}</td><td>${usd(paid)}</td><td>${usd(bal)}</td><td><span class="cs-st ${s[0]}">${s[1]}</span></td></tr>`;
+        }).join("");
+        const remind = owe && c.phone ? `<a class="btn" style="margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}?text=${encodeURIComponent("Hi " + c.name + ", this is a reminder from Centric Auto Mobile: your outstanding balance is " + usd(c.balance) + ". Thank you.")}">WhatsApp reminder</a>` : "";
+        return `<details class="cs-cust" data-id="${esc(c.id)}"${openIds.has(c.id) ? " open" : ""}>
+          <summary><div><div class="cs-name">${esc(c.name)}</div><div class="cs-sub">${esc(c.phone || "No phone")} · ${c.rows.length} invoice${c.rows.length === 1 ? "" : "s"}</div></div><div class="cs-bal ${owe ? "owe" : "ok"}">${label}</div></summary>
+          <div class="cs-body">
+            <div class="cs-facts"><div>Invoiced<b>${usd(c.total)}</b></div><div>Paid<b>${usd(c.paid)}</b></div><div>Balance<b>${usd(c.balance)}</b></div><div>Credit notes<b>${usd(c.credits)}</b></div><div>Last activity<b>${day(c.last)}</b></div><div>Email<b style="font-size:.8rem;overflow-wrap:anywhere">${esc(c.email || "—")}</b></div></div>
+            <div class="cs-wrap"><table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Invoiced</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>${remind}
+          </div></details>`;
+      }).join("") + (!showAll && !q && list.length > 15 ? `<button type="button" class="btn" id="cs-all">Show all ${list.length} customers</button>` : "");
+    }
+
+    $("cs-list").addEventListener("toggle", e => { const id = e.target.dataset?.id; if (id) e.target.open ? openIds.add(id) : openIds.delete(id); }, true);
+    $("cs-list").addEventListener("click", e => { if (e.target.id === "cs-all") { showAll = true; render(); } });
+    $("cs-search").addEventListener("input", render);
+    $("cs-chips").addEventListener("click", e => {
+      const b = e.target.closest("[data-f]"); if (!b) return;
+      filter = b.dataset.f;
+      document.querySelectorAll("#cs-chips .cs-chip").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      render();
+    });
+    load();
+  </script>
+  <!-- Header tools: debounced whole-system search with filters, and the top-right More menu. -->
+  <script type="module">
+    import supabase from "./js/supabaseClient.js";
+    const $ = id => document.getElementById(id);
+    const enc = encodeURIComponent;
+    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
+    const money = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    const pad = n => (n == null || n === "" ? "" : String(n).padStart(4, "0"));
+    const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+    const icons = () => { if (window.lucide) window.lucide.createIcons(); };
+
+    // ---------- data sources (each loads once, then is reused for 2 minutes) ----------
+    const memo = new Map();
+    function rows(key, build) {
+      const hit = memo.get(key);
+      if (hit && Date.now() - hit.t < 120000) return hit.p;
+      const p = (async () => {
+        try { const { data, error } = await build(); if (error) throw error; return data || []; }
+        catch (e) { console.warn(`Search source "${key}" unavailable:`, e.message || e); memo.delete(key); return []; }
+      })();
+      memo.set(key, { t: Date.now(), p });
+      return p;
+    }
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const flat = (o, out = []) => {
+      if (o == null) return out;
+      if (typeof o === "string") { if (!UUID.test(o)) out.push(o); }
+      else if (Array.isArray(o)) o.forEach(v => flat(v, out));
+      else if (typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "id" || /_id$|_at$|date$/i.test(k)) continue; flat(v, out); }
+      return out;
+    };
+    const mk = (title, sub, href, parts = []) => ({ title: title || "—", sub: sub || "", href, hay: [title, sub, ...parts].filter(Boolean).join(" ").toLowerCase() });
+    const veh = v => [v?.year, v?.make, v?.model].filter(Boolean).join(" ");
+    const jobsRows = () => rows("jobs", () => supabase.from("repair_jobs").select("id, job_number, cro_number, status, fault_reported, customers ( full_name, phone ), vehicles ( make, model, year, license_plate )").order("created_at", { ascending: false }).limit(1000));
+
+    const SOURCES = [
+      { key: "customers", label: "Customers", icon: "users", load: async () =>
+          (await rows("customers", () => supabase.from("customers").select("*").is("deleted_at", null).limit(1000)))
+            .map(c => mk(c.full_name || "Unnamed customer", [c.phone, c.email].filter(Boolean).join(" · "), `pages/customers.html?highlight=${enc(c.id)}`, flat(c))) },
+      { key: "jobs", label: "Job Cards", icon: "clipboard-list", load: async () =>
+          (await jobsRows()).map(j => mk(`#${pad(j.job_number)} — ${j.customers?.full_name || "Unknown customer"}`,
+            [veh(j.vehicles), j.vehicles?.license_plate, j.status].filter(Boolean).join(" · "), `pages/repairs.html?highlight=${enc(j.id)}`,
+            [String(j.job_number ?? ""), j.cro_number, j.fault_reported, j.customers?.phone, j.vehicles?.make, j.vehicles?.model])) },
+      { key: "vehicles", label: "Vehicles", icon: "car", load: async () => {
+          const seen = new Set(), out = [];
+          for (const j of await jobsRows()) {
+            const v = j.vehicles; if (!v) continue;
+            const k = [v.license_plate, v.make, v.model, v.year].join("|"); if (seen.has(k)) continue; seen.add(k);
+            out.push(mk(veh(v) || "Vehicle", [v.license_plate, j.customers?.full_name].filter(Boolean).join(" · "), `pages/repairs.html?highlight=${enc(j.id)}`, [v.license_plate, v.make, v.model]));
+          }
+          return out; } },
+      { key: "quotes", label: "Quotations", icon: "file-text", load: async () =>
+          (await rows("quotes", () => supabase.from("quotations").select("id, quotation_number, status, fault_reported, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)))
+            .map(q => mk(`Quote #${q.quotation_number}`, [q.customers?.full_name || q.walk_in_name || "Walk-in", q.status].filter(Boolean).join(" · "), `pages/quotations.html?highlight=${enc(q.id)}`, [String(q.quotation_number ?? ""), q.fault_reported])) },
+      { key: "orders", label: "Sales Orders", icon: "shopping-cart", load: async () =>
+          (await rows("orders", () => supabase.from("sales_orders").select("id, order_number, status, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)))
+            .map(o => mk(`Sales order #${o.order_number}`, [o.customers?.full_name || o.walk_in_name || "Walk-in", o.status].filter(Boolean).join(" · "), "pages/quotations.html", [String(o.order_number ?? "")])) },
+      { key: "receipts", label: "Receipts", icon: "receipt", load: async () =>
+          (await rows("receipts", () => supabase.from("receipts").select("id, receipt_number, amount, issued_at, repair_jobs ( job_number, customers ( full_name ) ), sales_orders ( order_number, walk_in_name, customers ( full_name ) )").order("issued_at", { ascending: false }).limit(1000)))
+            .map(r => { const who = r.repair_jobs?.customers?.full_name || r.sales_orders?.customers?.full_name || r.sales_orders?.walk_in_name || "";
+              return mk(`Receipt #${pad(r.receipt_number)}`, [who, money(r.amount)].filter(Boolean).join(" · "), "pages/receipts.html", [String(r.receipt_number ?? ""), Number(r.amount || 0).toFixed(2), String(r.repair_jobs?.job_number ?? ""), String(r.sales_orders?.order_number ?? "")]); }) },
+      { key: "credit", label: "Credit Notes", icon: "file-minus", load: async () =>
+          (await rows("credit", () => supabase.from("credit_notes").select("id, credit_note_number, reason, amount, customers ( full_name )").order("issued_at", { ascending: false }).limit(500)))
+            .map(c => mk(`Credit note #${c.credit_note_number}`, [c.customers?.full_name, money(c.amount)].filter(Boolean).join(" · "), "pages/receipts.html", [String(c.credit_note_number ?? ""), c.reason])) },
+      { key: "parts", label: "Parts", icon: "package", load: async () =>
+          (await rows("parts", () => supabase.from("parts").select("*").limit(1000)))
+            .map(p => mk(p.name, [p.part_number, p.category, `${p.quantity_in_stock ?? 0} in stock`].filter(Boolean).join(" · "), "pages/shop.html", flat(p))) },
+      { key: "suppliers", label: "Suppliers", icon: "truck", load: async () =>
+          (await rows("suppliers", () => supabase.from("suppliers").select("*").limit(1000)))
+            .map(s => mk(s.name, s.phone || "", `pages/suppliers.html?highlight=${enc(s.id)}`, flat(s))) },
+      { key: "staff", label: "Staff", icon: "hard-hat", load: async () =>
+          (await rows("staff", () => supabase.from("technician_directory").select("id, full_name, department, is_active").limit(500)))
+            .map(t => mk(t.full_name, [t.department, t.is_active === false ? "Inactive" : ""].filter(Boolean).join(" · "), "pages/technicians.html", [t.department])) },
+      { key: "bills", label: "Payables", icon: "banknote", load: async () =>
+          (await rows("bills", () => supabase.from("payables").select("id, bill_number, due_date, amount, amount_paid, suppliers ( name )").limit(1000)))
+            .map(b => mk(`Bill ${b.bill_number || ""}${b.suppliers?.name ? " — " + b.suppliers.name : ""}`.trim(), `${money((Number(b.amount) || 0) - (Number(b.amount_paid) || 0))} outstanding`, `pages/payables.html?highlight=${enc(b.id)}`, [b.bill_number, b.suppliers?.name])) },
+      { key: "accounts", label: "Accounts", icon: "book-open-check", load: async () =>
+          (await rows("accounts", () => supabase.from("accounts").select("id, code, name, type").limit(500)))
+            .map(a => mk(`${a.code} — ${a.name}`, a.type, "pages/ledger.html", [a.code, a.name])) },
+      { key: "journal", label: "Journal", icon: "notebook-pen", load: async () =>
+          (await rows("journal", () => supabase.from("journal_entries").select("id, entry_date, reference, description, source_type").order("entry_date", { ascending: false }).limit(1000)))
+            .map(e => mk(e.description || e.reference || "Journal entry", [e.entry_date, e.reference, e.source_type].filter(Boolean).join(" · "), "pages/ledger.html", [e.reference, e.source_type])) },
+      { key: "assets", label: "Assets", icon: "wrench", load: async () =>
+          (await rows("assets", () => supabase.from("fixed_assets").select("*").limit(500)))
+            .map(a => mk(a.name || "Asset", [a.category, a.status].filter(Boolean).join(" · "), "pages/fixed-assets.html", flat(a))) },
+      { key: "pages", label: "Pages", icon: "layout-grid", load: async () => {
+          const out = [];
+          document.querySelectorAll("#sidebar .nav-group").forEach(g => {
+            const grp = g.querySelector(".nav-grp span")?.textContent.trim() || "";
+            g.querySelectorAll("a.nav-link").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
+          });
+          return out; } },
+    ];
+    const BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
+
+    // ---------- search UI ----------
+    const input = $("hs-input"), panel = $("hs-panel"), chips = $("hs-chips"), out = $("hs-results");
+    if (input && panel && chips && out) {
+      let filter = "all", seq = 0, warmed = false;
+      chips.innerHTML = [{ key: "all", label: "All" }, ...SOURCES].map(s => `<button type="button" class="hs-chip" data-f="${s.key}" aria-pressed="${s.key === "all"}">${esc(s.label)}</button>`).join("");
+
+      const hint = () => { out.innerHTML = `<div class="hs-empty">Type at least 2 characters to search everything in the system.</div>`; };
+      const openPanel = () => { panel.hidden = false; };
+      const closePanel = () => { panel.hidden = true; };
+
+      function rank(items, tokens) {
+        const first = tokens[0], res = [];
+        for (const it of items) {
+          if (!tokens.every(t => it.hay.includes(t))) continue;
+          const title = it.title.toLowerCase();
+          res.push({ it, s: title.startsWith(first) ? 0 : title.includes(first) ? 1 : 2 });
+        }
+        return res.sort((a, b) => a.s - b.s).map(x => x.it);
+      }
+      function draw(term, results) {
+        const single = filter !== "all";
+        const total = results.reduce((n, r) => n + r.hits.length, 0);
+        if (!total) {
+          out.innerHTML = `<div class="hs-empty">No matches for “${esc(term)}”${single ? ` in ${esc(BY_KEY[filter].label)}` : ""}.${single ? " Try the <b>All</b> filter." : ""}</div>`;
+          return;
+        }
+        const cap = single ? 40 : 5;
+        out.innerHTML = results.filter(r => r.hits.length).map(r => {
+          const shown = r.hits.slice(0, cap), more = r.hits.length - shown.length;
+          return `<div class="hs-group"><span>${esc(r.s.label)} · ${r.hits.length}</span>${more > 0 ? `<button type="button" class="hs-more" data-f="${r.s.key}">Show all</button>` : ""}</div>`
+            + shown.map(i => `<a class="hs-item" href="${esc(i.href)}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
+        }).join("");
+        icons();
+      }
+      async function run() {
+        const term = input.value.trim();
+        const my = ++seq;
+        if (term.length < 2) { hint(); return; }
+        const tokens = term.toLowerCase().split(/\s+/).filter(Boolean);
+        const list = filter === "all" ? SOURCES : [BY_KEY[filter]];
+        const results = await Promise.all(list.map(async s => ({ s, hits: rank(await s.load(), tokens) })));
+        if (my !== seq) return; // a newer search replaced this one
+        draw(term, results);
+      }
+      const runDebounced = debounce(run, 250);
+      function setFilter(key) {
+        filter = key;
+        chips.querySelectorAll(".hs-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === key)));
+        if (input.value.trim().length >= 2) { out.innerHTML = `<div class="hs-empty">Searching…</div>`; run(); } else hint();
+        input.focus({ preventScroll: true });
+      }
+      const warm = () => { if (warmed) return; warmed = true; SOURCES.forEach(s => { if (s.key !== "pages") s.load(); }); };
+
+      hint();
+      input.addEventListener("focus", () => { openPanel(); warm(); });
+      input.addEventListener("input", () => {
+        openPanel();
+        if (input.value.trim().length < 2) { seq++; hint(); return; }
+        out.innerHTML = `<div class="hs-empty">Searching…</div>`;
+        runDebounced();
+      });
+      chips.addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) setFilter(b.dataset.f); });
+      out.addEventListener("click", e => { const b = e.target.closest(".hs-more"); if (b) setFilter(b.dataset.f); });
+      document.addEventListener("click", e => { if (!e.target.closest("#hs")) closePanel(); });
+      input.addEventListener("keydown", e => {
+        if (e.key === "ArrowDown") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); a.focus(); } }
+        else if (e.key === "Enter") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); window.location.href = a.href; } }
+      });
+      out.addEventListener("keydown", e => {
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+        const all = [...out.querySelectorAll(".hs-item")], i = all.indexOf(document.activeElement);
+        if (i < 0) return;
+        e.preventDefault();
+        if (e.key === "ArrowDown") all[Math.min(i + 1, all.length - 1)].focus();
+        else if (i === 0) input.focus(); else all[i - 1].focus();
+      });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && !panel.hidden) { closePanel(); input.blur(); }
+        else if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "") && !document.activeElement?.isContentEditable) { e.preventDefault(); input.focus(); }
+      });
+    }
+
+    // ---------- top-right More menu ----------
+    const btn = $("hdr-menu-btn"), menu = $("hdr-menu");
+    if (btn && menu) {
+      const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+      const linkHtml = a => {
+        const href = a.getAttribute("href") || "#";
+        const icon = a.querySelector("[data-lucide]")?.getAttribute("data-lucide") || "circle";
+        const cur = href.split(/[?#]/)[0].split("/").pop().toLowerCase() === here ? ' aria-current="page"' : "";
+        return `<a role="menuitem" href="${esc(href)}"${cur}><i data-lucide="${esc(icon)}"></i><span>${esc(a.textContent.trim())}</span></a>`;
+      };
+      function build() {
+        let html = "";
+        [...($("sidebar")?.children || [])].forEach(el => {
+          if (el.matches("a.nav-link")) html += linkHtml(el);
+          else if (el.matches(".nav-group")) {
+            const links = [...el.querySelectorAll("a.nav-link")]; // links the role can't use were already removed
+            if (links.length) html += `<div class="m-head">${esc(el.querySelector(".nav-grp span")?.textContent.trim() || "")}</div>` + links.map(linkHtml).join("");
+          }
+        });
+        menu.innerHTML = html || `<div class="hs-empty">No modules available.</div>`;
+        icons();
+      }
+      const setOpen = (open, restore) => {
+        if (open) build();
+        menu.hidden = !open;
+        btn.setAttribute("aria-expanded", String(open));
+        if (open) menu.querySelector("a")?.focus({ preventScroll: true });
+        else if (restore) btn.focus({ preventScroll: true });
+      };
+      btn.addEventListener("click", () => setOpen(menu.hidden));
+      document.addEventListener("click", e => { if (!menu.hidden && !e.target.closest(".hdr-menu-wrap")) setOpen(false); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) setOpen(false, true); });
+    }
+  </script>
+
+  <!-- System overview: KPI cards + key lists across the whole system. Each query fails on its own. -->
+  <script type="module">
+    import supabase from "./js/supabaseClient.js";
+    import { hydrate } from "./js/data-cache.js";
+    const $ = id => document.getElementById(id);
+    const enc = encodeURIComponent;
+    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
+    const usd = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    const pad = n => (n == null ? "—" : String(n).padStart(4, "0"));
+    const shortDate = v => { const d = new Date(v); return v && !isNaN(d) ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—"; };
+    const q = async p => { try { const r = await p; if (r.error) { console.warn("Overview:", r.error.message); return null; } return r; } catch (e) { console.warn("Overview:", e); return null; } };
+
+    const STATUS_ORDER = ["Draft", "Processing", "Received", "Diagnosing", "Processed", "Ready for Pickup", "Unclaimed", "Collected"];
+    const IN_WORKSHOP = ["Processing", "Received", "Diagnosing"];
+    const AWAITING = ["Processed", "Ready for Pickup", "Unclaimed"];
+
+    async function fetchOverview() {
+      const [jobs, parts, receipts, quotes, payables, customers, suppliers, staff] = await Promise.all([
+        q(supabase.from("repair_jobs").select("id, job_number, status").limit(1000)),
+        q(supabase.from("parts").select("id, name, part_number, quantity_in_stock, minimum_stock, cost_price").limit(1000)),
+        q(supabase.from("receipts").select("id, receipt_number, amount, issued_at, repair_jobs ( customers ( full_name ) ), sales_orders ( walk_in_name, customers ( full_name ) )").order("issued_at", { ascending: false }).limit(1000)),
+        q(supabase.from("quotations").select("id, quotation_number, status, total_usd, created_at, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)),
+        q(supabase.from("payables").select("id, bill_number, due_date, amount, amount_paid, suppliers ( name )").limit(1000)),
+        q(supabase.from("customers").select("id", { count: "exact", head: true }).is("deleted_at", null)),
+        q(supabase.from("suppliers").select("id", { count: "exact", head: true })),
+        q(supabase.from("technician_directory").select("id", { count: "exact", head: true }).eq("is_active", true)),
+      ]);
+      return {
+        jobs: jobs?.data ?? null, parts: parts?.data ?? null, receipts: receipts?.data ?? null, quotes: quotes?.data ?? null, payables: payables?.data ?? null,
+        customers: customers?.count ?? null, suppliers: suppliers?.count ?? null, staff: staff?.count ?? null,
+      };
+    }
+
+    let last = null;
+    function render(b) {
+      last = b;
+      const now = new Date(), todayStr = now.toISOString().slice(0, 10);
+      const monthKey = now.getFullYear() * 12 + now.getMonth();
+      const inMonth = v => { const d = new Date(v); return v && !isNaN(d) && d.getFullYear() * 12 + d.getMonth() === monthKey; };
+      const dash = "—";
+
+      const jobs = b.jobs, parts = b.parts, receipts = b.receipts, quotes = b.quotes, payables = b.payables;
+      const active = jobs ? jobs.filter(j => j.status !== "Collected") : null;
+      const low = parts ? parts.filter(p => Number(p.minimum_stock || 0) > 0 && Number(p.quantity_in_stock || 0) <= Number(p.minimum_stock)) : null;
+      const owedBills = payables ? payables.filter(p => (Number(p.amount) || 0) - (Number(p.amount_paid) || 0) > 0.01) : null;
+      const overdueBills = owedBills ? owedBills.filter(p => p.due_date && p.due_date < todayStr) : null;
+      const monthReceipts = receipts ? receipts.filter(r => inMonth(r.issued_at)) : null;
+      const owed = window.__aprOwed;
+
+      const cards = [
+        ["Active Job Cards", active ? active.length : dash, jobs ? `${jobs.length} in total` : "", "pages/repairs.html"],
+        ["In The Workshop", jobs ? jobs.filter(j => IN_WORKSHOP.includes(j.status)).length : dash, "Received, diagnosing, processing", "pages/repairs.html"],
+        ["Awaiting Pickup", jobs ? jobs.filter(j => AWAITING.includes(j.status)).length : dash, jobs ? `${jobs.filter(j => j.status === "Unclaimed").length} unclaimed` : "", "pages/repairs.html?status=Unclaimed"],
+        ["Revenue This Month", monthReceipts ? usd(monthReceipts.reduce((s, r) => s + Number(r.amount || 0), 0)) : dash, monthReceipts ? `${monthReceipts.length} receipt${monthReceipts.length === 1 ? "" : "s"}` : "", "pages/receipts.html"],
+        ["Owed By Customers", owed ? usd(owed.amount) : dash, owed ? `${owed.count} customer${owed.count === 1 ? "" : "s"} owing` : "", "#customer-statements"],
+        ["Quotations This Month", quotes ? quotes.filter(x => inMonth(x.created_at)).length : dash, "", "pages/quotations.html"],
+        ["Parts In Catalogue", parts ? parts.length : dash, low ? `${low.length} at or below minimum` : "", "pages/shop.html"],
+        ["Stock Value (Cost)", parts ? usd(parts.reduce((s, p) => s + Number(p.quantity_in_stock || 0) * Number(p.cost_price || 0), 0)) : dash, "", "pages/shop.html"],
+        ["Bills Outstanding", owedBills ? usd(owedBills.reduce((s, p) => s + (Number(p.amount) || 0) - (Number(p.amount_paid) || 0), 0)) : dash, overdueBills ? `${overdueBills.length} overdue` : "", "pages/payables.html"],
+        ["Customers", b.customers ?? dash, "", "pages/customers.html"],
+        ["Suppliers", b.suppliers ?? dash, "", "pages/suppliers.html"],
+        ["Active Staff", b.staff ?? dash, "", "pages/technicians.html"],
+      ];
+      $("ov-kpis").innerHTML = cards.map(([label, value, sub, href]) =>
+        `<a class="stat-card" href="${href}"><div class="stat-card__label">${esc(label)}</div><div class="stat-card__value">${esc(String(value))}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ""}</a>`).join("");
+      $("ov-updated").textContent = "Updated " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+      // job cards by status
+      if (!jobs) $("ov-status").innerHTML = `<div class="ov-empty">Not available.</div>`;
+      else if (!jobs.length) $("ov-status").innerHTML = `<div class="ov-empty">No job cards yet.</div>`;
+      else {
+        const counts = {};
+        jobs.forEach(j => { counts[j.status || "Unknown"] = (counts[j.status || "Unknown"] || 0) + 1; });
+        const keys = Object.keys(counts).sort((a, c) => (STATUS_ORDER.indexOf(a) + 100) % 100 - (STATUS_ORDER.indexOf(c) + 100) % 100 || a.localeCompare(c));
+        const max = Math.max(...Object.values(counts));
+        $("ov-status").innerHTML = keys.map(k => `<a class="ov-row" href="pages/repairs.html?status=${enc(k)}"><div class="ov-main" style="flex:1">${esc(k)}<div class="ov-bar"><i style="width:${(counts[k] / max) * 100}%"></i></div></div><div class="ov-end">${counts[k]}</div></a>`).join("");
+      }
+
+      // low stock
+      if (!low) $("ov-lowstock").innerHTML = `<div class="ov-empty">Not available.</div>`;
+      else if (!low.length) $("ov-lowstock").innerHTML = `<div class="ov-empty">Every part is above its minimum.</div>`;
+      else {
+        const sorted = [...low].sort((a, c) => Number(a.quantity_in_stock) / Number(a.minimum_stock) - Number(c.quantity_in_stock) / Number(c.minimum_stock));
+        $("ov-lowstock").innerHTML = sorted.slice(0, 8).map(p => `<a class="ov-row" href="pages/shop.html"><div class="ov-main">${esc(p.name)}${p.part_number ? `<small>${esc(p.part_number)}</small>` : ""}</div><div class="ov-end ${Number(p.quantity_in_stock) <= 0 ? "bad" : "warn"}">${Number(p.quantity_in_stock || 0)} / ${Number(p.minimum_stock)}</div></a>`).join("")
+          + (sorted.length > 8 ? `<div class="ov-empty">+ ${sorted.length - 8} more</div>` : "");
+      }
+
+      // bills to pay
+      if (!owedBills) $("ov-payables").innerHTML = `<div class="ov-empty">Not available for your role.</div>`;
+      else if (!owedBills.length) $("ov-payables").innerHTML = `<div class="ov-empty">No unpaid bills.</div>`;
+      else {
+        const sorted = [...owedBills].sort((a, c) => String(a.due_date || "9999").localeCompare(String(c.due_date || "9999")));
+        $("ov-payables").innerHTML = sorted.slice(0, 6).map(p => {
+          const over = p.due_date && p.due_date < todayStr;
+          return `<a class="ov-row" href="pages/payables.html?highlight=${enc(p.id)}"><div class="ov-main">${esc(p.suppliers?.name || "Supplier")}<small>Bill ${esc(p.bill_number || "—")} · due ${esc(p.due_date ? shortDate(p.due_date + "T00:00:00") : "—")}${over ? " · overdue" : ""}</small></div><div class="ov-end ${over ? "bad" : ""}">${usd((Number(p.amount) || 0) - (Number(p.amount_paid) || 0))}</div></a>`;
+        }).join("") + (sorted.length > 6 ? `<div class="ov-empty">+ ${sorted.length - 6} more</div>` : "");
+      }
+
+      // recent quotations
+      if (!quotes) $("ov-quotes").innerHTML = `<div class="ov-empty">Not available.</div>`;
+      else if (!quotes.length) $("ov-quotes").innerHTML = `<div class="ov-empty">No quotations yet.</div>`;
+      else $("ov-quotes").innerHTML = quotes.slice(0, 5).map(x => `<a class="ov-row" href="pages/quotations.html?highlight=${enc(x.id)}"><div class="ov-main">Quote #${esc(x.quotation_number)} — ${esc(x.customers?.full_name || x.walk_in_name || "Walk-in")}<small>${esc(x.status || "")} · ${esc(shortDate(x.created_at))}</small></div><div class="ov-end">${usd(x.total_usd)}</div></a>`).join("");
+
+      // recent receipts
+      if (!receipts) $("ov-receipts").innerHTML = `<div class="ov-empty">Not available.</div>`;
+      else if (!receipts.length) $("ov-receipts").innerHTML = `<div class="ov-empty">No receipts yet.</div>`;
+      else $("ov-receipts").innerHTML = receipts.slice(0, 5).map(r => {
+        const who = r.repair_jobs?.customers?.full_name || r.sales_orders?.customers?.full_name || r.sales_orders?.walk_in_name || "—";
+        return `<a class="ov-row" href="pages/receipts.html"><div class="ov-main">Receipt #${esc(pad(r.receipt_number))} — ${esc(who)}<small>${esc(shortDate(r.issued_at))}</small></div><div class="ov-end">${usd(r.amount)}</div></a>`;
+      }).join("");
+    }
+
+    document.addEventListener("apr:owed", () => { if (last) render(last); });
+    hydrate("dash:overview", fetchOverview, render).catch(err => {
+      console.error("System overview:", err);
+      $("ov-updated").textContent = "Couldn't load";
+    });
   </script>
 </body>
 </html>

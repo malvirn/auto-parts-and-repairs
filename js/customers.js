@@ -6,12 +6,18 @@ import { installBulkDelete } from "./bulk-delete.js";
 const tableBody = document.getElementById("customers-table");
 const form = document.getElementById("customer-form");
 const formMessage = document.getElementById("customer-form-message");
+const archiveToggle = document.getElementById("customer-archive-toggle");
+const directoryTitle = document.getElementById("customer-directory-title");
+const directoryDescription = document.getElementById("customer-directory-description");
+let showingArchived = false;
 
 installBulkDelete({
   tbody: tableBody,
   table: "customers",
   label: "customer",
   getId: row => row.dataset.customerId,
+  softDeleteColumn: "deleted_at",
+  isSelectable: row => row.dataset.archived !== "true",
 });
 
 function showCustomerMessage(text, tone = "success") {
@@ -22,28 +28,32 @@ function showCustomerMessage(text, tone = "success") {
 
 // ---- Load and render all customers ----
 async function fetchCustomersList() {
-  const { data, error } = await supabase
+  let query = supabase
     .from("customers")
-    .select("id, full_name, phone, customer_type, is_repeat_customer, vehicles(license_plate)")
+    .select("id, full_name, phone, customer_type, is_repeat_customer, deleted_at, vehicles(license_plate)")
     .order("created_at", { ascending: false });
+  query = showingArchived ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
+  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }
 
 function renderCustomersList(data) {
   if (data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" class="customer-empty">No customers yet — add one above.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty">${showingArchived ? "No archived customers." : "No customers yet — add one above."}</td></tr>`;
     return;
   }
   tableBody.innerHTML = data.map(c => `
-    <tr data-customer-id="${c.id}">
+    <tr data-customer-id="${c.id}" data-archived="${showingArchived}">
       <td data-label="Customer">${escapeHtml(c.full_name)}</td>
       <td data-label="Type"><span class="customer-type" data-type="${c.customer_type === "company" ? "company" : "individual"}">${c.customer_type === "company" ? "Company" : "Individual"}</span></td>
       <td data-label="Phone">${escapeHtml(c.phone || "—")}</td>
       <td data-label="Vehicles">${vehiclePlates(c.vehicles)}</td>
       <td data-label="Customer status"><span class="customer-repeat${c.is_repeat_customer ? "" : " is-new"}">${c.is_repeat_customer ? "Repeat customer" : "New customer"}</span></td>
+      <td data-label="Action">${showingArchived ? `<button type="button" class="btn customer-restore" data-restore-customer="${escapeHtml(c.id)}"><i data-lucide="rotate-ccw"></i> Restore</button>` : "—"}</td>
     </tr>
   `).join("");
+  if (window.lucide) lucide.createIcons();
 }
 
 // Renders instantly from cache (set at sign-in or on an earlier visit this
@@ -51,12 +61,43 @@ function renderCustomersList(data) {
 // shows a blank table while the network replies.
 async function loadCustomers() {
   try {
-    await hydrate("customers:list", fetchCustomersList, renderCustomersList);
+    if (showingArchived) {
+      renderCustomersList(await fetchCustomersList());
+    } else {
+      await hydrate("customers:active-list", fetchCustomersList, renderCustomersList);
+    }
   } catch (error) {
     console.error("Error loading customers:", error);
-    tableBody.innerHTML = `<tr><td colspan="5" class="customer-empty" role="alert">Failed to load customers: ${escapeHtml(error.message)}</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty" role="alert">Failed to load customers: ${escapeHtml(error.message)}</td></tr>`;
   }
 }
+
+archiveToggle?.addEventListener("click", async () => {
+  showingArchived = !showingArchived;
+  archiveToggle.setAttribute("aria-pressed", String(showingArchived));
+  archiveToggle.textContent = showingArchived ? "View active customers" : "View archived customers";
+  if (directoryTitle) directoryTitle.textContent = showingArchived ? "Archived Customers" : "Registered Customers";
+  if (directoryDescription) directoryDescription.textContent = showingArchived
+    ? "Archived records are retained for review and can be restored."
+    : "Active customer records";
+  await loadCustomers();
+});
+
+tableBody?.addEventListener("click", async event => {
+  const button = event.target.closest("[data-restore-customer]");
+  if (!button) return;
+  button.disabled = true;
+  const { error } = await supabase.from("customers")
+    .update({ deleted_at: null })
+    .eq("id", button.dataset.restoreCustomer);
+  if (error) {
+    button.disabled = false;
+    showCustomerMessage(`Couldn't restore customer: ${error.message}`, "error");
+    return;
+  }
+  showCustomerMessage("Customer restored.");
+  await loadCustomers();
+});
 
 // ---- Find an existing customer by phone or email ----
 // Phone and/or email identify a real person: if either already exists in
@@ -71,13 +112,29 @@ async function findExistingCustomer(phone, email) {
     .from("customers")
     .select("id, full_name, phone, email, is_repeat_customer")
     .or(filters.join(","))
+    .is("deleted_at", null)
     .limit(1);
 
   if (error) {
     console.error("Error checking for an existing customer:", error);
     return { customer: null, error };
   }
-  return { customer: data && data[0] ? data[0] : null, error: null };
+  if (data?.[0]) return { customer: data[0], error: null };
+
+  const { data: archived, error: archivedError } = await supabase
+    .from("customers")
+    .select("id, full_name, phone, email, is_repeat_customer")
+    .or(filters.join(","))
+    .not("deleted_at", "is", null)
+    .limit(1);
+  if (archivedError) {
+    console.error("Error checking archived customers:", archivedError);
+    return { customer: null, error: archivedError };
+  }
+  return {
+    customer: archived?.[0] ? { ...archived[0], is_archived: true } : null,
+    error: null,
+  };
 }
 
 async function addVehicle(customerId, vehicle) {
@@ -146,6 +203,16 @@ if (form) {
     }
 
     if (existing) {
+      if (existing.is_archived) {
+        if (!confirm(`${existing.full_name} is archived. Restore this customer record and continue?`)) return;
+        const { error: restoreError } = await supabase.from("customers")
+          .update({ deleted_at: null })
+          .eq("id", existing.id);
+        if (restoreError) {
+          alert(`Couldn't restore ${existing.full_name}: ${restoreError.message}`);
+          return;
+        }
+      }
       // This phone or email already belongs to someone in the system.
       // Treat it as that customer returning — add the vehicle to their
       // existing record and flag them as a repeat customer, rather than
@@ -166,9 +233,11 @@ if (form) {
       }
       form.reset();
       await loadCustomers();
-      showCustomerMessage(license_plate
-        ? `${existing.full_name} is already registered. Vehicle ${license_plate} has been added to their customer record.`
-        : `${existing.full_name} is already registered. No duplicate customer was created.`);
+      showCustomerMessage(existing.is_archived
+        ? `${existing.full_name} was restored${license_plate ? ` and vehicle ${license_plate} was added` : ""}.`
+        : license_plate
+          ? `${existing.full_name} is already registered. Vehicle ${license_plate} has been added to their customer record.`
+          : `${existing.full_name} is already registered. No duplicate customer was created.`);
       return;
     }
 

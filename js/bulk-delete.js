@@ -31,10 +31,13 @@ function installDeleteDialogStyles() {
   document.head.append(style);
 }
 
-export async function confirmTypedDelete(description) {
+export async function confirmTypedDelete(description, { reversible = false } = {}) {
+  const action = reversible ? "Archive" : "Delete";
+  const confirmationWord = reversible ? "ARCHIVE" : CONFIRMATION_WORD;
+  const warning = reversible ? "This hides the record from active customer lists. You can restore it later." : "This action cannot be undone.";
   if (typeof HTMLDialogElement === "undefined" || typeof HTMLDialogElement.prototype.showModal !== "function") {
-    if (!window.confirm(`Delete ${description}? This cannot be undone.`)) return false;
-    return window.prompt(`Type ${CONFIRMATION_WORD} to confirm deletion:`) === CONFIRMATION_WORD;
+    if (!window.confirm(`${action} ${description}? ${warning}`)) return false;
+    return window.prompt(`Type ${confirmationWord} to confirm ${action.toLowerCase()}:`) === confirmationWord;
   }
 
   installDeleteDialogStyles();
@@ -47,25 +50,25 @@ export async function confirmTypedDelete(description) {
       <div class="apr-delete-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
       </div>
-      <h2 id="apr-delete-title">Confirm deletion</h2>
+      <h2 id="apr-delete-title">Confirm ${action.toLowerCase()}</h2>
       <p class="apr-delete-description" id="apr-delete-description"></p>
       <p class="apr-delete-warning">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-        This action cannot be undone.
+        ${warning}
       </p>
-      <label for="apr-delete-confirm-input">Type <strong>${CONFIRMATION_WORD}</strong> to continue</label>
-      <input id="apr-delete-confirm-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Type DELETE to confirm" />
+      <label for="apr-delete-confirm-input">Type <strong>${confirmationWord}</strong> to continue</label>
+      <input id="apr-delete-confirm-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Type ${confirmationWord} to confirm" />
       <div class="apr-delete-actions">
         <button class="apr-delete-cancel" type="button">Cancel</button>
-        <button class="apr-delete-submit" type="submit" value="confirmed" disabled>Delete</button>
+        <button class="apr-delete-submit" type="submit" value="confirmed" disabled>${action}</button>
       </div>
     </form>
   `;
-  dialog.querySelector(".apr-delete-description").textContent = `You are about to delete ${description}.`;
+  dialog.querySelector(".apr-delete-description").textContent = `You are about to ${action.toLowerCase()} ${description}.`;
   const input = dialog.querySelector("#apr-delete-confirm-input");
   const submit = dialog.querySelector(".apr-delete-submit");
   const cancel = dialog.querySelector(".apr-delete-cancel");
-  input.addEventListener("input", () => { submit.disabled = input.value !== CONFIRMATION_WORD; });
+  input.addEventListener("input", () => { submit.disabled = input.value !== confirmationWord; });
   cancel.addEventListener("click", () => dialog.close("cancelled"));
   dialog.addEventListener("click", event => {
     if (event.target === dialog) dialog.close("cancelled");
@@ -82,7 +85,7 @@ export async function confirmTypedDelete(description) {
   });
 }
 
-export function installBulkDelete({ tbody, table, label, getId, beforeDelete, foreignKeyMessage }) {
+export function installBulkDelete({ tbody, table, label, getId, beforeDelete, foreignKeyMessage, softDeleteColumn, isSelectable }) {
   if (!tbody || tbody.dataset.bulkDeleteReady === "true") return;
   const tableElement = tbody.closest("table");
   if (!tableElement) return;
@@ -92,7 +95,7 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   toolbar.className = "bulk-delete-toolbar";
   toolbar.innerHTML = `
     <label class="bulk-delete-select-all"><input type="checkbox" aria-label="Select all ${label}" /> Select all</label>
-    <button class="btn btn--danger" type="button" disabled>Delete selected</button>
+    <button class="btn btn--danger" type="button" disabled>${softDeleteColumn ? "Archive selected" : "Delete selected"}</button>
     <span class="bulk-delete-message" role="status" aria-live="polite"></span>
   `;
   if (!document.getElementById("bulk-delete-style")) {
@@ -123,10 +126,11 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   const message = toolbar.querySelector(".bulk-delete-message");
 
   function updateControls() {
-    const checkboxes = [...tbody.querySelectorAll(".bulk-delete-row input")];
+    const checkboxes = [...tbody.querySelectorAll(".bulk-delete-row input:not(:disabled)")];
     const selected = checkboxes.filter(box => box.checked);
     deleteButton.disabled = selected.length === 0;
-    deleteButton.textContent = selected.length ? `Delete selected (${selected.length})` : "Delete selected";
+    const action = softDeleteColumn ? "Archive" : "Delete";
+    deleteButton.textContent = selected.length ? `${action} selected (${selected.length})` : `${action} selected`;
     selectAll.checked = checkboxes.length > 0 && selected.length === checkboxes.length;
     selectAll.indeterminate = selected.length > 0 && selected.length < checkboxes.length;
     selectAll.disabled = checkboxes.length === 0;
@@ -142,6 +146,7 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
       checkbox.type = "checkbox";
       checkbox.value = String(id);
       checkbox.setAttribute("aria-label", `Select ${label} record`);
+      checkbox.disabled = isSelectable ? !isSelectable(row) : false;
       checkbox.addEventListener("change", updateControls);
       cell.append(checkbox);
       row.prepend(cell);
@@ -157,24 +162,28 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   deleteButton.addEventListener("click", async () => {
     const ids = [...new Set([...tbody.querySelectorAll(".bulk-delete-row input:checked")].map(box => box.value))];
     if (!ids.length) return;
-    if (!(await confirmTypedDelete(`${ids.length} ${label} record${ids.length === 1 ? "" : "s"}`))) {
-      message.textContent = "Cancelled — nothing was deleted.";
+    const action = softDeleteColumn ? "archive" : "delete";
+    if (!(await confirmTypedDelete(`${ids.length} ${label} record${ids.length === 1 ? "" : "s"}`, { reversible: Boolean(softDeleteColumn) }))) {
+      message.textContent = `Cancelled — nothing was ${action}d.`;
       return;
     }
 
     deleteButton.disabled = true;
-    message.textContent = "Deleting selected records…";
+    message.textContent = `${softDeleteColumn ? "Archiving" : "Deleting"} selected records…`;
     try {
       if (beforeDelete) await beforeDelete(ids);
-      const { data, error } = await supabase.from(table).delete().in("id", ids).select("id");
+      const request = softDeleteColumn
+        ? supabase.from(table).update({ [softDeleteColumn]: new Date().toISOString() }).in("id", ids).select("id")
+        : supabase.from(table).delete().in("id", ids).select("id");
+      const { data, error } = await request;
       if (error) throw error;
       const deleted = data || [];
-      if (!deleted.length) throw new Error("No records were deleted. Check your role permissions and try again.");
+      if (!deleted.length) throw new Error(`No records were ${action}d. Check your role permissions and try again.`);
 
       const remaining = ids.length - deleted.length;
       message.textContent = remaining
-        ? `Deleted ${deleted.length}; ${remaining} were not deleted. Refreshing totals…`
-        : `Deleted ${deleted.length}. Refreshing totals…`;
+        ? `${softDeleteColumn ? "Archived" : "Deleted"} ${deleted.length}; ${remaining} were not changed. Refreshing totals…`
+        : `${softDeleteColumn ? "Archived" : "Deleted"} ${deleted.length}. Refreshing totals…`;
       try {
         for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
           const key = sessionStorage.key(i);

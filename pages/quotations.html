@@ -123,11 +123,17 @@
             <div class="field"><label for="quote-walkin-email">Email</label><input id="quote-walkin-email" type="email" /></div>
           </div>
           <div class="field" id="quote-fault-field"><label for="quote-fault">Fault reported</label><textarea id="quote-fault" rows="2" placeholder="Customer's reported issue"></textarea></div>
-          <div class="quotation-add-row quotation-add-row--labour">
-            <label class="sr-only" for="quote-labour-rate">Labour rate per hour</label><input id="quote-labour-rate" type="number" min="0" step="0.01" placeholder="Labour rate ($/hour)" />
-            <label class="sr-only" for="quote-labour-hours">Labour hours</label><input id="quote-labour-hours" type="number" min="0.01" step="any" placeholder="Hours" />
-            <button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button>
+          <div class="field"><label for="quote-labour-mode">Labour charging method</label>
+            <select id="quote-labour-mode"><option value="time_based">Time-based rate tier</option><option value="provider_estimate">Provider-estimated task price</option></select>
           </div>
+          <div class="quotation-add-row quotation-add-row--labour" id="quote-time-fields">
+            <label class="sr-only" for="quote-labour-tier">Hourly rate tier</label><select id="quote-labour-tier"><option value="">Loading labour rates…</option></select>
+            <label class="sr-only" for="quote-labour-hours">Labour hours</label><input id="quote-labour-hours" type="number" min="0.01" step="any" value="1" placeholder="Hours" />
+          </div>
+          <div class="quotation-add-row quotation-add-row--labour" id="quote-estimate-fields" hidden>
+            <label class="sr-only" for="quote-labour-estimate">Provider labour estimate</label><input id="quote-labour-estimate" type="number" min="0" step="0.01" placeholder="Estimated task price ($)" />
+          </div>
+          <button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button>
           <div class="quotation-add-row">
             <label class="sr-only" for="quote-part">Part</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
           </div>

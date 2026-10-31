@@ -273,6 +273,7 @@ async function loadCustomers(selectId = null, selectVehicleId = null) {
   const { data, error } = await supabase
     .from("customers")
     .select("id, full_name, phone, email, customer_type, vehicles(id, license_plate, make, model, year, chassis_number, engine_number, body_type)")
+    .is("deleted_at", null)
     .order("full_name");
   if (error) { console.error("Error loading customers:", error); return; }
   customersList = data || [];
@@ -758,7 +759,7 @@ function vehicleName(v) {
 async function fetchJobsBundle() {
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
+      id, job_number, cro_number, customer_id, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, labour_mode, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
       customers ( full_name, phone, email, customer_type ),
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
     `).order("created_at", { ascending: false }),
@@ -1073,6 +1074,7 @@ editSaveBtn?.addEventListener("click", async () => {
     diagnosis_eta: editDiagnosisEta.value ? new Date(editDiagnosisEta.value).toISOString() : null,
     labour_cost,
     labour_hours: parseFloat(editHours.value) || null,
+    labour_mode: $("edit-labour-mode")?.value || currentEditJob?.labour_mode || "time_based",
     rate_tier_id: editRateTier.value || null,
     parts_cost,
     technician_id: editTechnician.value || null,
@@ -1090,8 +1092,15 @@ editSaveBtn?.addEventListener("click", async () => {
       return;
     }
     const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-    if (total - paid > 0.01) {
-      alert(`The job cannot be processed until it is fully paid. Balance due: ${money(total - paid)}.`);
+    let accountCredit = 0;
+    try {
+      if (currentEditJob?.customer_id) accountCredit = await availableCustomerCredit(currentEditJob.customer_id, currentEditJobId);
+    } catch (creditError) {
+      alert(`Couldn't verify carry-forward customer credit: ${creditError.message}`);
+      return;
+    }
+    if (total - paid - accountCredit > 0.01) {
+      alert(`The job cannot be processed until it is fully paid or covered by customer account credit. Balance due: ${money(total - paid - accountCredit)}.`);
       return;
     }
   }
@@ -1232,11 +1241,32 @@ async function loadJobPayments(jobId) {
   const paid = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
   currentJobPaid = paid;
   const total = currentJobTotal();
-  summary.textContent = `Total ${money(total)} · Paid ${money(paid)} · Balance ${money(Math.max(0, total - paid))}`;
+  let credit = 0;
+  if (currentEditJob?.customer_id) {
+    try {
+      credit = await availableCustomerCredit(currentEditJob.customer_id, jobId);
+    } catch (creditError) {
+      summary.textContent = `Payments loaded, but customer credit couldn't be checked: ${creditError.message}`;
+      console.error("Error checking customer carry-forward credit:", creditError);
+      return;
+    }
+  }
+  const due = Math.max(0, total - paid - credit);
+  summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid)))}` : ""} · Balance ${money(due)}`;
   history.innerHTML = payments.length
     ? payments.map(payment => `<div class="jc-line"><span>${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}</span><strong>${money(payment.amount)}</strong></div>`).join("")
     : `<div class="empty-state">No payments recorded yet.</div>`;
-  if (paymentAmountInput) paymentAmountInput.max = Math.max(0, total - paid).toFixed(2);
+  if (paymentAmountInput) paymentAmountInput.removeAttribute("max");
+}
+
+async function availableCustomerCredit(customerId, excludingJobId) {
+  const { data, error } = await supabase.from("customer_account_statement")
+    .select("source_id, balance_due")
+    .eq("customer_id", customerId);
+  if (error) throw new Error(error.message);
+  const accountBalance = (data || []).reduce((balance, entry) =>
+    entry.source_id === excludingJobId ? balance : balance + Number(entry.balance_due || 0), 0);
+  return Math.max(0, -accountBalance);
 }
 
 recordPaymentBtn?.addEventListener("click", async () => {
@@ -1254,11 +1284,6 @@ recordPaymentBtn?.addEventListener("click", async () => {
     return;
   }
   const totalPaid = (existing || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-  const balance = currentJobTotal() - totalPaid;
-  if (amount > balance + 0.01) {
-    alert(`Payment exceeds the balance due (${money(Math.max(0, balance))}).`);
-    return;
-  }
   recordPaymentBtn.disabled = true;
   const { error } = await supabase.from("repair_job_payments").insert([{
     repair_job_id: currentEditJobId,
@@ -1441,6 +1466,7 @@ form?.addEventListener("submit", async (e) => {
       const { data: existingCustomers, error: lookupError } = await supabase.from("customers")
         .select("id")
         .eq("phone", newCustomerPhone)
+        .is("deleted_at", null)
         .limit(1);
       if (lookupError) throw new Error("Couldn't check for an existing customer: " + lookupError.message);
       if (existingCustomers?.length) {
@@ -1489,6 +1515,7 @@ form?.addEventListener("submit", async (e) => {
       diagnosis: diagnosisValue,
       diagnosis_eta: etaValue ? new Date(etaValue).toISOString() : null,
       rate_tier_id: tierValue,
+      labour_mode: $("job-labour-mode")?.value || "time_based",
       labour_hours: labourHours > 0 ? labourHours : null,
       labour_cost: labourValue,
       technician_id: technicianValue,

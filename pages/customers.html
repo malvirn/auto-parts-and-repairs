@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/theme.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1012">
@@ -69,6 +70,9 @@
       overflow: hidden;
     }
     body.customer-page .customer-directory table { min-width: 760px; }
+    body.customer-page .customer-directory-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    body.customer-page .customer-directory-toolbar p { margin:0; color:var(--text-muted); font-size:.88rem; }
+    body.customer-page .customer-restore { min-height:34px; padding:6px 10px; }
     body.customer-page #customers-table td:first-child { color: #fff; font-weight: 700; }
     body.customer-page #customers-table td:nth-child(4) { color: #d8e5dc; }
     body.customer-page .customer-type,
@@ -259,14 +263,18 @@
       </section>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2><i class="section-heading-icon" data-lucide="users"></i>Registered Customers</h2></div><span class="section-note">Vehicles and repeat visits</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2><i class="section-heading-icon" data-lucide="users"></i><span id="customer-directory-title">Registered Customers</span></h2></div><span class="section-note">Vehicles and repeat visits</span></div>
+        <div class="customer-directory-toolbar">
+          <p id="customer-directory-description" aria-live="polite">Active customer records</p>
+          <button type="button" class="btn" id="customer-archive-toggle" aria-pressed="false">View archived customers</button>
+        </div>
         <div class="panel customer-directory">
         <table>
           <thead>
-            <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th></tr>
+            <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th><th>Action</th></tr>
           </thead>
           <tbody id="customers-table">
-            <tr><td colspan="5" class="empty-state customer-empty"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+            <tr><td colspan="7" class="empty-state customer-empty"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
           </tbody>
         </table>
         </div>

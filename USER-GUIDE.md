@@ -2,7 +2,7 @@
 
 This guide explains the application as it works today. Your role determines which pages you can see. If a page is missing or access is denied, ask your Super Admin to check your account; do not try to work around the access controls.
 
-The repair quotation, payment, and stock-threshold workflow requires the SQL migration `supabase/migrations/repair-quotations-payments-stock.sql` to be applied in Supabase before using the updated screens.
+The repair quotation, payment, and stock-threshold workflow requires the SQL migration `supabase/migrations/repair-quotations-payments-stock.sql` to be applied in Supabase before using the updated screens. Apply `supabase/migrations/customer-account-statement-view.sql` to display customer balances and carry-forward credit. Apply `supabase/migrations/customer-archive-labour-mode.sql` to enable customer archiving/restoration and provider-estimated or time-tier labour charges.
 
 ## 1. Sign in and get around
 
@@ -47,15 +47,15 @@ Use the customer form to register each vehicle's plate, body type, make, model, 
 
 1. Select **View Details** on the repair order to open its job card. The job card highlights the customer, vehicle identifiers, assigned mechanic, reported concern, and current repair status.
 2. Record the mechanic's inspection findings in **Technician Findings / Diagnosis** and, if useful, an expected diagnostic-completion time. The cause-suggestion tool uses these findings (not only the customer's reported concern), requires findings to be entered first, and provides suggestions only; verify them yourself.
-3. Select the appropriate vehicle labour rate and enter hours worked. Configure hourly rates in **Settings → Vehicle Labour Rates**. Labour is calculated from the selected rate and hours; verify the resulting amount. Labour and parts cost can also be edited directly. Archive rates you no longer use; archived rates remain linked to past repair orders and can be restored later.
+3. Choose either **Time-based rate tier** and enter hours, or **Provider-estimated task price** and enter the task estimate. Configure hourly rates in **Settings → Vehicle Labour Rates**. The selected labour method and amount appear on the job card and flow through to its quotation.
 4. Add parts from the shop catalogue and set the quantity. Stock is updated when parts are attached to a job. Add a workshop supply with a description and amount when appropriate.
 5. Save the repair order. The displayed ZiG amount is an estimate based on the configured exchange rate.
 
 ### D. Keep the job status current
 
 1. New jobs start as **Draft**. Move a job to **Processing** when work begins and keep diagnosis, labour, parts, and incidentals current.
-2. Record one or more installments in **Split Payments**, selecting the actual method for each payment. The panel shows total, paid, and balance; the methods are Cash, Card, Bank transfer, Mobile money, and Other.
-3. Mark **Repair work is ready for pickup** when the work is finished. **Processed** is allowed only after the work is marked ready and the balance is zero. Older jobs may retain legacy statuses.
+2. Record one or more installments in **Split Payments**, selecting the actual method for each payment. Overpayments are allowed and remain as customer account credit. Credit is carried forward against later customer charges; the account view shows the net balance, and eligible credit is considered when processing a later job. Payment methods are Cash, Card, Bank transfer, Mobile money, and Other.
+3. Mark **Repair work is ready for pickup** when the work is finished. **Processed** is allowed only after the work is marked ready and any remaining balance is covered by payment or customer account credit. Older jobs may retain legacy statuses.
 4. When a processed vehicle is physically handed back, select **Mark as Collected**. Enter the collection odometer and handover details; collected jobs are locked against routine edits.
 5. A ready/unclaimed vehicle has a seven-day free pickup window. After it expires, the job shows an estimated parking fee of $3 per overdue day. Check the amount and shop policy before using **Apply Parking Fee**, then save the job.
 6. Use the job's customer-update actions when you need to send a status update or diagnosis by WhatsApp/email. Verify the contact details and message before sending.
@@ -63,13 +63,13 @@ Use the customer form to register each vehicle's plate, body type, make, model, 
 ### E. Issue and share a receipt
 
 1. Each repair installment updates a single cumulative receipt with the total amount paid so far.
-2. Open **Receipts** to review, print, or share the current receipt. Check **All Receipts** before trying to create another record.
+2. Open **Receipts** to review, print, or share the current receipt. Select **Standard printer · A4** or **Thermal printer · 80 mm** before printing. Check **All Receipts** before trying to create another record.
 
 ## 4. Customers and the public repair-status portal
 
 ### Customer records
 
-The **Customers** page stores individual/company contacts and complete vehicle details. Use consistent phone numbers and check for an existing record before adding someone. A repeat phone or email is treated as the same customer, and another plate is added as an additional vehicle.
+The **Customers** page stores individual/company contacts and complete vehicle details. Use consistent phone numbers and check for an existing record before adding someone. A repeat phone or email is treated as the same customer, and another plate is added as an additional vehicle. Archive customers rather than permanently deleting them; use **View archived customers** to review records and **Restore** to return a customer to active lists. Archived customers' historical records remain available.
 
 ### Customer portal
 
@@ -88,7 +88,7 @@ Staff can also share the portal link provided by a repair job when available. Tr
 2. To add inventory, complete **Add Part** with the part name, optional part number, category, opening quantity, configured low-stock minimum, and unit cost. The selling price is calculated using the configured markup.
 3. Optionally link one or more suppliers; mark the preferred supplier where applicable. Add a relevant part photo if useful.
 4. Search the catalogue by part number, model, description, or category. Use the part's edit/restock actions to correct details or record a stock purchase.
-5. For a restock, choose the supplier, quantity, and unit cost. Confirm the entry against the supplier invoice; restocking changes on-hand stock and is included in purchase history.
+5. For a restock, type a new supplier name or choose a saved supplier, then enter quantity and unit cost. Add the supplier's email to save it with a new supplier record and use **Email parts order** to compose an order request. After saving a purchase, choose whether to print its receipt on a standard or thermal printer.
 6. The markup rate applies to new parts and edits. **Apply to All Existing Parts** changes prices across existing inventory, so review the rate before using it.
 7. The admin dashboard and Shop alert when a part reaches or falls below 10% of its configured minimum. Set each part's minimum in its add/edit form; a minimum of zero disables that alert.
 
@@ -106,7 +106,7 @@ Open **Suppliers** to add or edit supplier contact details, search the directory
 ## 6. Quotations and sales orders
 
 1. From repair intake, choose quotation-first to carry the selected customer, vehicle, and reported fault into a new quote. You can also open **Quotations** and choose a repair job/vehicle, a registered customer/vehicle, or a walk-in customer.
-2. Enter the labour rate per hour and hours worked, then select **Add Labour**. Add parts at their current Shop selling prices and quantities. Enter each sundry price and select **Add Sundry** as needed. Labour and sundry lines do not use descriptions. Check the quotation total in USD and ZiG.
+2. Choose **Time-based rate tier** and hours, or **Provider-estimated task price**, then select **Add Labour**. Job-card labour details carry into the quotation. Add parts at their current Shop selling prices and quantities. Enter each sundry price and select **Add Sundry** as needed. Check the quotation total in USD and ZiG.
 3. Select **Save Quotation**. Use **Amend** on the issued quotation to review, print, or share its customer-facing copy, or **Open Job Card** to continue into job intake after approval. A quotation is valid for seven days.
 4. When the customer approves, use the available quotation/order actions to confirm or convert the work into a sales order. Confirming an order deducts stock; review the items and quantities first.
 5. Review sales orders in the **Sales Orders** list. Use the order actions to inspect or amend a record. A confirmed order has a receipt; find it from **Receipts**.

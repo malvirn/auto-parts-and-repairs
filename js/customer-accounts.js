@@ -64,7 +64,7 @@ function accountStatementText(customer) {
     customer.balance > 0.01
       ? `Amount outstanding: ${money(customer.balance)}`
       : customer.balance < -0.01
-        ? `Customer credit: ${money(Math.abs(customer.balance))}`
+        ? `Carry-forward customer credit: ${money(Math.abs(customer.balance))}`
         : "Account balance: $0.00",
     "Please contact Centric Auto Mobile if you have questions about this statement.",
   ];
@@ -119,7 +119,7 @@ function render() {
   tbody.innerHTML = visible.map(customer => {
     const openItems = customer.entries.filter(entry => entry.balance_due > 0.01).length;
     const balanceClass = customer.balance > 0.01 ? "customer-balance--due" : customer.balance < -0.01 ? "customer-balance--credit" : "";
-    const balanceText = customer.balance < -0.01 ? `Credit ${money(Math.abs(customer.balance))}` : money(customer.balance);
+    const balanceText = customer.balance < -0.01 ? `Credit carried forward ${money(Math.abs(customer.balance))}` : money(customer.balance);
     const expanded = expandedCustomerId === customer.id;
     const detail = expanded ? `<tr class="customer-account-detail-row"><td colspan="6"><div class="customer-transaction-list">
       <div class="customer-transaction"><strong>Reference and date</strong><strong>Charge</strong><strong>Paid</strong><strong>Balance</strong></div>

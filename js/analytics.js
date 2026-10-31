@@ -24,7 +24,7 @@ async function loadAnalytics() {
   const [jobsRes, jobPartsRes, customersRes, techDirRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes] = await Promise.all([
     supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id`),
     supabase.from("job_parts").select("part_name, quantity, price_at_time"),
-    supabase.from("customers").select("id"),
+    supabase.from("customers").select("id").is("deleted_at", null),
     supabase.from("technician_directory").select("id, full_name, department, is_active"),
     supabase.from("technicians").select("id, full_name, department, is_active, salary, deductions"),
     supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),

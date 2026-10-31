@@ -33,6 +33,7 @@ const editCancelBtn = document.getElementById("edit-part-cancel");
 const restockModal = document.getElementById("restock-modal");
 const restockPartName = document.getElementById("restock-part-name");
 const restockSupplier = document.getElementById("restock-supplier");
+const restockSupplierEmail = document.getElementById("restock-supplier-email");
 const restockQuantity = document.getElementById("restock-quantity");
 const restockUnitCost = document.getElementById("restock-unit-cost");
 const restockPaymentStatus = document.getElementById("restock-payment-status");
@@ -41,6 +42,10 @@ const restockPaymentAccount = document.getElementById("restock-payment-account")
 const restockMessage = document.getElementById("restock-message");
 const restockSaveBtn = document.getElementById("restock-save");
 const restockCancelBtn = document.getElementById("restock-cancel");
+const restockEmailOrderBtn = document.getElementById("restock-email-order");
+const purchasePrintModal = document.getElementById("purchase-print-modal");
+const purchasePrintSummary = document.getElementById("purchase-print-summary");
+const purchasePrintType = document.getElementById("purchase-print-type");
 const partPurchaseSupplier = document.getElementById("part-purchase-supplier");
 const partPaymentStatus = document.getElementById("part-payment-status");
 const partPaymentAccountField = document.getElementById("part-payment-account-field");
@@ -53,6 +58,7 @@ const salesValueEl = document.getElementById("shop-sales-value");
 
 let currentEditId = null;
 let currentRestockPart = null;
+let completedPurchase = null;
 let allSuppliers = [];              // [{id, name}]
 let purchaseAccounts = [];
 let currentPartSuppliers = {};      // part_id -> [{id, name, is_preferred}]
@@ -146,15 +152,15 @@ function readSupplierChecklist(container) {
 
 async function loadSuppliersIntoSelect() {
   const [{ data, error }, { data: accountData, error: accountError }] = await Promise.all([
-    supabase.from("suppliers").select("id, name").order("name"),
+    supabase.from("suppliers").select("id, name, email").order("name"),
     supabase.from("accounts").select("id, code, name").eq("is_active", true).order("code"),
   ]);
   if (error) { console.error("Error loading suppliers:", error); return; }
   if (accountError) console.error("Error loading purchase payment accounts:", accountError);
   allSuppliers = data || [];
   purchaseAccounts = accountData || [];
+  if (restockSupplier) document.getElementById("restock-supplier-options").innerHTML = allSuppliers.map(s => `<option value="${escapeHtml(s.name)}"></option>`).join("");
   const options = allSuppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
-  if (restockSupplier) restockSupplier.innerHTML = `<option value="">No supplier selected</option>${options}`;
   if (partPurchaseSupplier) partPurchaseSupplier.innerHTML = `<option value="">Select supplier…</option>${options}`;
   const paymentOptions = purchaseAccounts.filter(account => ["1000", "1010"].includes(account.code));
   if (restockPaymentAccount) restockPaymentAccount.innerHTML = `<option value="">Select cash or bank account…</option>${paymentOptions.map(account => `<option value="${account.id}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("")}`;
@@ -408,11 +414,14 @@ async function loadRestocks() {
 // ---- Restock modal ----
 function openRestockModal(part) {
   currentRestockPart = part;
+  restockSaveBtn.disabled = false;
   restockPartName.textContent = part.name;
   restockQuantity.value = 1;
   restockUnitCost.value = Number(part.cost_price || 0).toFixed(2);
   const preferred = (currentPartSuppliers[part.id] || []).find(l => l.is_preferred);
-  restockSupplier.value = preferred?.id || part.supplier_id || "";
+  const preferredId = preferred?.id || part.supplier_id;
+  restockSupplier.value = allSuppliers.find(s => s.id === preferredId)?.name || "";
+  document.getElementById("restock-supplier-email").value = allSuppliers.find(s => s.id === preferredId)?.email || "";
   restockPaymentStatus.value = "paid";
   restockPaymentAccount.value = "";
   restockPaymentAccountField.hidden = false;
@@ -421,6 +430,62 @@ function openRestockModal(part) {
   restockModal.classList.remove("hidden");
   restockModal.style.display = "flex";
 }
+
+function showPurchasePrintChoice(purchase) {
+  completedPurchase = purchase;
+  purchasePrintSummary.textContent = `${purchase.partName} × ${purchase.quantity} from ${purchase.supplierName} · ${purchase.invoiceNumber} · ${formatMoney(purchase.total)}`;
+  purchasePrintModal.classList.remove("hidden");
+  purchasePrintModal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
+}
+
+function printPurchaseReceipt() {
+  if (!completedPurchase) return;
+  const mode = purchasePrintType.value;
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("The receipt could not open because the browser blocked the print window. Allow pop-ups and try again.");
+    return;
+  }
+  const p = completedPurchase;
+  const width = mode === "thermal" ? "74mm" : "100%";
+  printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Purchase receipt ${escapeHtml(p.invoiceNumber)}</title>
+    <style>@page{size:${mode === "thermal" ? "80mm auto" : "A4"};margin:${mode === "thermal" ? "3mm" : "15mm"}}body{font:14px Arial,sans-serif;color:#111;margin:0 auto;width:${width};max-width:${mode === "thermal" ? "74mm" : "720px"}}h1{font-size:20px;text-align:center}p{margin:7px 0}.total{font-weight:bold;border-top:1px solid #333;padding-top:8px}table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px solid #ddd}@media print{body{width:${width}}}</style></head>
+    <body><h1>Purchase receipt</h1><p><strong>Centric Auto Mobile</strong></p><p>Invoice: ${escapeHtml(p.invoiceNumber)}</p><p>Date: ${escapeHtml(p.date)}</p><p>Supplier: ${escapeHtml(p.supplierName)}</p><table><tr><td>${escapeHtml(p.partName)} × ${p.quantity}</td><td style="text-align:right">${formatMoney(p.total)}</td></tr></table><p>Unit cost: ${formatMoney(p.unitCost)}</p><p class="total">Total: ${formatMoney(p.total)}</p><script>window.addEventListener("load",()=>window.print());<\/script></body></html>`);
+  printWindow.document.close();
+}
+
+document.getElementById("purchase-print-now")?.addEventListener("click", printPurchaseReceipt);
+document.getElementById("purchase-print-close")?.addEventListener("click", () => {
+  purchasePrintModal.classList.add("hidden");
+  purchasePrintModal.style.display = "none";
+  completedPurchase = null;
+});
+
+restockEmailOrderBtn?.addEventListener("click", () => {
+  if (!currentRestockPart) return;
+  const supplierName = restockSupplier.value.trim();
+  const supplier = allSuppliers.find(item => item.name.toLowerCase() === supplierName.toLowerCase());
+  const email = (restockSupplierEmail.value || supplier?.email || "").trim();
+  if (!supplierName || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert("Enter a supplier name and email address before composing the order.");
+    return;
+  }
+  const quantity = Number(restockQuantity.value);
+  const unitCost = Number(restockUnitCost.value);
+  if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(unitCost) || unitCost < 0) {
+    alert("Enter a valid quantity and unit cost before composing the order.");
+    return;
+  }
+  const subject = `Parts order request — ${currentRestockPart.name}`;
+  const body = `Hello ${supplierName},\n\nPlease confirm availability and delivery for:\n${currentRestockPart.name} × ${quantity}\nExpected unit cost: ${formatMoney(unitCost)}\n\nPlease reply with your confirmation and expected delivery date.\n\nCentric Auto Mobile`;
+  window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
+restockSupplier?.addEventListener("input", () => {
+  const supplier = allSuppliers.find(item => item.name.toLowerCase() === restockSupplier.value.trim().toLowerCase());
+  if (supplier) restockSupplierEmail.value = supplier.email || "";
+  else restockSupplierEmail.value = "";
+});
 
 function closeRestockModal() {
   restockModal.classList.add("hidden");
@@ -533,20 +598,67 @@ restockSaveBtn?.addEventListener("click", async () => {
   if (!currentRestockPart) return;
   const quantity = parseInt(restockQuantity.value, 10);
   const unitCost = parseFloat(restockUnitCost.value);
-  const supplierId = restockSupplier.value;
   const paymentStatus = restockPaymentStatus.value;
   const cashAccountId = restockPaymentAccount.value;
   if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(unitCost) || unitCost < 0) {
     alert("Enter a valid quantity and unit cost.");
     return;
   }
-
+  if (quantity * unitCost <= 0) {
+    alert("The stock purchase total must be greater than zero.");
+    return;
+  }
+  if (!purchaseAccounts.some(account => account.code === "1200")) {
+    alert("Parts Inventory account (code 1200) is missing from the Chart of Accounts.");
+    return;
+  }
+  if (paymentStatus === "paid" && (!cashAccountId || !purchaseAccounts.some(account => account.id === cashAccountId))) {
+    alert("Select a valid cash or bank account used to pay this supplier.");
+    return;
+  }
+  if (paymentStatus === "on_credit" && !purchaseAccounts.some(account => account.code === "2000")) {
+    alert("Accounts Payable account (code 2000) is missing from the Chart of Accounts.");
+    return;
+  }
+  const supplierName = restockSupplier.value.trim();
+  if (!supplierName) {
+    alert("Type or select a supplier.");
+    return;
+  }
+  const supplierEmail = restockSupplierEmail.value.trim();
+  if (supplierEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierEmail)) {
+    alert("Enter a valid supplier email address.");
+    return;
+  }
+  let supplier = allSuppliers.find(item => item.id === supplierName || item.name.toLowerCase() === supplierName.toLowerCase());
+  if (!supplier) {
+    const { data: createdSupplier, error: supplierError } = await supabase.from("suppliers")
+      .insert([{ name: supplierName, email: supplierEmail || null }])
+      .select("id, name, email")
+      .single();
+    if (supplierError) {
+      restockMessage.textContent = `Couldn't add supplier: ${supplierError.message}`;
+      restockMessage.dataset.tone = "error";
+      return;
+    }
+    supplier = createdSupplier;
+    allSuppliers.push(supplier);
+    document.getElementById("restock-supplier-options").insertAdjacentHTML("beforeend", `<option value="${escapeHtml(supplier.name)}"></option>`);
+  } else if (supplierEmail && !supplier.email) {
+    const { error: emailError } = await supabase.from("suppliers").update({ email: supplierEmail }).eq("id", supplier.id);
+    if (emailError) {
+      restockMessage.textContent = `Couldn't save supplier email: ${emailError.message}`;
+      restockMessage.dataset.tone = "error";
+      return;
+    }
+    supplier.email = supplierEmail;
+  }
   restockSaveBtn.disabled = true;
   restockMessage.textContent = "Recording stock purchase…";
   restockMessage.dataset.tone = "info";
 
   const purchase = await createShopPurchase({
-    part: currentRestockPart, quantity, unitCost, supplierId, paymentStatus,
+    part: currentRestockPart, quantity, unitCost, supplierId: supplier.id, paymentStatus,
     cashAccountId, purchaseDate: new Date().toISOString().slice(0, 10),
   });
   if (purchase.error) {
@@ -571,9 +683,19 @@ restockSaveBtn?.addEventListener("click", async () => {
     return;
   }
 
+  const purchasedPartName = currentRestockPart.name;
   closeRestockModal();
   await loadParts();
   await loadRestocks();
+  showPurchasePrintChoice({
+    partName: purchasedPartName,
+    quantity,
+    unitCost,
+    supplierName: supplier.name,
+    invoiceNumber: purchase.invoiceNumber,
+    date: new Date().toLocaleDateString(),
+    total: quantity * unitCost,
+  });
 });
 
 // ---- Edit modal ----

@@ -1,281 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>document.documentElement.style.visibility = "hidden";</script>
-  
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Centric Auto Mobile — Repair Jobs</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(20, 18, 15, 0.45);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 50; padding: 24px;
-    }
-    .modal-overlay.hidden { display: none; }
-    .hidden { display: none !important; }
-    .modal {
-      background: var(--surface);
-      border-radius: var(--radius);
-      width: 640px;
-      max-width: 100%;
-      max-height: 88vh;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal > h3 {
-      padding: 20px 24px 16px;
-      margin: 0;
-      font-size: 1.05rem;
-      border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
-      flex-shrink: 0;
-    }
-    .modal-body {
-      overflow-y: auto;
-      padding: 4px 24px 8px;
-      flex: 1;
-    }
-    .modal-section {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border, rgba(0,0,0,.06));
-    }
-    .modal-section:last-child { border-bottom: none; }
-    .modal-section-title {
-      font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
-      color: var(--text-muted); margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
-      font-weight: 700;
-    }
-    .modal-section-title i { width: 14px; height: 14px; }
-    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .modal-row .field { margin-bottom: 0; }
-    .modal-actions {
-      flex-shrink: 0; padding: 14px 24px; border-top: 1px solid var(--border, rgba(0,0,0,.08));
-      display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface);
-    }
-    .modal-actions-secondary { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border, rgba(0,0,0,.08)); }
-    .modal .field { margin-bottom: 14px; }
-    .modal textarea { resize: vertical; min-height: 60px; }
-    #pickup-countdown-block {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      background: var(--surface-2, transparent);
-    }
-  </style>
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1012">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Auto Parts">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js" defer></script>
-
-  <!-- Page-owned styles keep shared application themes from changing this layout. -->
-  <style id="repairs-design">
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Centric Auto Mobile — Job Cards</title>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b1012">
+<script src="../js/pwa.js" defer></script>
+<script src="../js/theme.js"></script>
+<style id="dashboard-design">
     html{background:#0b1012;color-scheme:dark}
     body.dashboard-page{
       --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
       --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
       --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
-      --bg:var(--ink); --surface:#111b18; --surface-2:#0c1210; --text-muted:var(--muted);
-      --border:rgba(31,196,103,.22); --radius:14px; --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
-      --st:var(--green-bright);
-      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font); color-scheme:dark;
-      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;line-height:1.5;
-      padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));
+      /* re-point the variables your existing css/js use so generated content picks up the theme */
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
+      --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
+      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
+      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;
+      padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));
     }
     body.dashboard-page *{box-sizing:border-box}
-    body.dashboard-page button,body.dashboard-page input,body.dashboard-page select,body.dashboard-page textarea{font-family:inherit}
     body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100svh;overflow:visible!important;background:none}
     body.dashboard-page .main{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:none}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-    /* ===== top bar ===== */
-    .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px clamp(14px,3.8vw,58px) 30px;background:linear-gradient(180deg,#0e1517,#0a1011)}
+    /* ===== header ===== */
+    body.dashboard-page .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;
+      min-height:0;margin:0;padding:22px clamp(14px,3.8vw,58px) 34px;border:0;background:linear-gradient(180deg,#0e1517,#0a1011)}
     .app-header .curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:28px;pointer-events:none}
     .hdr-brand{display:flex;align-items:center;gap:clamp(12px,1.6vw,22px);min-width:0}
-    .hdr-brand img{width:clamp(54px,7vw,110px);height:auto;flex:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4))}
-    .hdr-divider{width:1px;height:clamp(36px,4.6vw,66px);background:rgba(255,255,255,.18);flex:none}
-    .hdr-name{margin:0;font-size:clamp(17px,2.1vw,29px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
+    .hdr-brand .dashboard-hero__logo{width:clamp(58px,9vw,140px);height:auto;flex:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4))}
+    .hdr-divider{width:1px;height:clamp(40px,5.6vw,86px);background:rgba(255,255,255,.18);flex:none}
+    .hdr-name{margin:0;font-size:clamp(18px,2.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
     .hdr-name em{font-style:normal;color:var(--green-bright)}
-    .hdr-sub{margin:4px 0 0;color:#dfe8e2;font-size:clamp(11px,1.05vw,15px)}
-    .hdr-right{display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex:none}
-    .hdr-date{margin:0;font-size:clamp(11px,1vw,15px);color:#e6ede8}
-    .hdr-clock{font-size:clamp(18px,1.8vw,26px);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+    .hdr-sub{margin:4px 0 0;color:#dfe8e2;font-size:clamp(11px,1.15vw,17px);letter-spacing:.02em}
+    .hdr-right{display:flex;align-items:center;gap:clamp(12px,2vw,28px);flex:none}
+    .hdr-time #dashboard-date{margin:0;font-size:clamp(11px,1vw,15px);color:#e6ede8;font-weight:400;line-height:1.3}
+    .hdr-clock{font-size:clamp(18px,1.9vw,27px);font-weight:700;letter-spacing:.01em;line-height:1.2;font-variant-numeric:tabular-nums}
     .hdr-live{display:flex;align-items:center;gap:8px;color:var(--green-bright);font-size:clamp(11px,1vw,14px)}
     .hdr-live i{width:11px;height:11px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 10px var(--green-bright)}
     .hdr-live[data-state="offline"]{color:#ff9a6b}.hdr-live[data-state="offline"] i{background:#ff7a12;box-shadow:0 0 10px #ff7a12}
-    .tab:focus-visible,.bottom-nav__item:focus-visible{outline:2px solid #fff;outline-offset:4px}
+    .hdr-hello{margin:0;font-size:clamp(12px,1.2vw,18px);color:#e6ede8;font-weight:400;line-height:1.35;max-width:210px}
+    #dashboard-greeting{display:block;margin:0;font-size:inherit;font-weight:600;color:var(--green-bright);line-height:1.35}
+    .tile:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
-    /* ===== page title banner (your original .main__header) ===== */
-    body.dashboard-page .main__header.dashboard-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;isolation:isolate;overflow:hidden;
-      margin:0;min-height:clamp(150px,20vw,230px);padding:clamp(26px,4.6vw,54px) clamp(14px,6.4vw,100px);border:0;border-radius:0;background:var(--ink);box-shadow:none}
-    .main__header.dashboard-hero::before{content:"";position:absolute;inset:0;z-index:-2;background:url("../assets/dashboard-hero.jpeg") center right/cover no-repeat;transform:scale(1.04)}
-    .main__header.dashboard-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,13,12,.94) 0%,rgba(8,13,12,.7) 48%,rgba(8,13,12,.25) 100%),linear-gradient(0deg,rgba(8,13,12,.7),transparent 55%)}
-    .main__header .section-kicker{margin:0 0 6px;color:var(--orange);font-size:clamp(11px,1.1vw,15px);font-weight:700;letter-spacing:.22em;text-transform:uppercase}
-    .main__header h1{margin:0 0 10px;color:#fff;font-size:clamp(30px,4.4vw,58px);font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.5)}
-    .main__header .page-intro{margin:0;max-width:640px;color:#e1e9e4;font-size:clamp(13px,1.3vw,18px);line-height:1.5}
-    .main__header > div:first-child::after{content:"";display:block;width:clamp(70px,7vw,100px);height:5px;margin-top:18px;border-radius:3px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
-    .back-link{display:grid;place-items:center;flex:none;width:54px;height:54px;border:1.5px solid var(--line);border-radius:50%;background:rgba(10,16,13,.62);color:#fff;transition:transform 300ms var(--ease),border-color 200ms,background 200ms}
-    .back-link:hover{transform:translateY(-4px);border-color:var(--green-bright);background:rgba(18,161,80,.2)}
-    .back-link svg{width:24px;height:24px}
+    /* ===== hero ===== */
+    .hero{position:relative;display:flex;flex-direction:column;min-height:max(560px,calc(100svh - 270px));overflow:hidden;isolation:isolate;
+      padding:clamp(34px,11vh,140px) 0 clamp(22px,8vh,92px)}
+    .hero-bg{position:absolute;inset:0;z-index:-2;background:url("../assets/dashboard-hero.jpeg") center right/cover no-repeat;
+      transform:translate3d(calc(var(--px,0)*-12px),calc(var(--py,0)*-8px),0) scale(1.05);transition:transform 160ms linear}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+      background:linear-gradient(90deg,rgba(8,13,12,.9) 0%,rgba(8,13,12,.62) 42%,rgba(8,13,12,.08) 100%),
+                 linear-gradient(0deg,rgba(8,13,12,.78),transparent 48%),linear-gradient(180deg,rgba(8,13,12,.6),transparent 22%)}
+    .hero-copy{padding:0 clamp(16px,6.4vw,100px)}
+    .welcome{margin:0 0 8px;color:#cfd8d2;font-size:clamp(12px,1.4vw,21px);font-weight:600;letter-spacing:.22em;text-transform:uppercase}
+    .hero-title{margin:0 0 18px;font-size:clamp(32px,5.2vw,66px);font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+    .hero-title em{font-style:normal;color:var(--green-bright)}
+    .hero-lede{margin:0;max-width:none;color:#e8eee9;font-size:clamp(14px,1.7vw,22px);line-height:1.5;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+    .accent-bar{display:block;width:clamp(70px,7.2vw,110px);height:5px;margin-top:22px;border-radius:3px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
 
-    /* ===== sections ===== */
-    body.dashboard-page .main > .page-section{max-width:1500px;margin:0 auto;padding:36px clamp(14px,4vw,58px) 0}
-    body.dashboard-page .main > .page-section:last-of-type{padding-bottom:48px}
-    .section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:0 0 16px}
-    .section-heading h2{display:flex;align-items:center;gap:10px;margin:0;font-size:clamp(20px,2vw,27px);font-weight:700;letter-spacing:-.01em;color:#fff}
-    .section-heading .section-kicker{margin:0 0 4px;color:var(--orange);font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
-    .section-heading-icon,.section-heading h2 svg{width:24px;height:24px;color:var(--green-bright);flex:none}
-    .section-note{color:var(--muted);font-size:.86rem}
-    .panel{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:18px;color:var(--text);box-shadow:0 18px 36px rgba(0,0,0,.28)}
-    .jc-empty,.empty-state{color:var(--muted);text-align:center;padding:22px 12px}
-    .empty-state{display:table-cell}
+    .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1.8vw,27px);margin:auto clamp(14px,7vw,106px) 0;padding-top:34px;perspective:900px}
+    .tile{--c:var(--green);display:grid;place-items:center;aspect-ratio:243/157;padding:0;border:clamp(2px,.2vw,3px) solid var(--c);border-radius:clamp(10px,1vw,16px);
+      background:rgba(14,21,20,.84);color:#fff;text-decoration:none;cursor:pointer;font:inherit;box-shadow:0 14px 28px rgba(0,0,0,.35),inset 0 0 30px rgba(0,0,0,.25);
+      transition:transform 380ms var(--ease),box-shadow 380ms var(--ease),background 300ms}
+    .tile.grey{--c:var(--grey)} .tile.orange{--c:var(--orange)}
+    .tile svg{width:clamp(30px,6.2vw,96px);height:auto;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:transform 380ms var(--ease)}
+    .tile:hover{transform:translateY(-8px) rotateX(7deg);background:rgba(18,28,26,.94);box-shadow:0 26px 40px rgba(0,0,0,.5),0 0 28px color-mix(in srgb,var(--c) 40%,transparent)}
+    .tile:hover svg{transform:translateZ(30px) scale(1.07)}
+    .tile:active{transform:translateY(-2px) scale(.985)}
 
-    /* ===== forms ===== */
-    .form-grid{display:grid;gap:14px 16px}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label,.modal label{display:block;margin:0 0 6px;color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-    body.dashboard-page input:not([type=checkbox]):not([type=radio]),body.dashboard-page select,body.dashboard-page textarea{
-      color:var(--text);font:inherit;font-size:15px;background:rgba(10,16,13,.7);border:1.5px solid rgba(31,196,103,.3);border-radius:12px;padding:11px 14px;outline:0;
-      transition:border-color 200ms,box-shadow 300ms,transform 300ms var(--ease)}
-    .field input:not([type=checkbox]):not([type=radio]),.field select,.field textarea{width:100%}
-    body.dashboard-page input::placeholder,body.dashboard-page textarea::placeholder{color:#7f9187}
-    body.dashboard-page input:focus,body.dashboard-page select:focus,body.dashboard-page textarea:focus{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
-    body.dashboard-page input:disabled,body.dashboard-page select:disabled{opacity:.55}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:1px solid var(--line);border-radius:12px;background:rgba(10,16,13,.7);color:var(--text);font:inherit;font-size:.9rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 200ms,border-color 200ms,transform 250ms var(--ease),box-shadow 250ms}
-    .btn:hover{border-color:var(--green-bright);background:rgba(18,161,80,.16);transform:translateY(-2px)}
-    .btn svg{width:18px;height:18px}
-    .btn--primary{border-color:transparent;color:#fff;background:linear-gradient(180deg,var(--green-bright),var(--green));box-shadow:0 6px 0 #0b6b34,0 14px 22px rgba(0,0,0,.35)}
-    .btn--primary:hover{background:linear-gradient(180deg,var(--green-bright),var(--green));filter:brightness(1.08)}
-    .btn--primary:active{transform:translateY(5px);box-shadow:0 1px 0 #0b6b34,0 6px 10px rgba(0,0,0,.35)}
-    .form-message{color:var(--muted);font-size:.88rem}
+    /* ===== existing dashboard content (ids and classes untouched) ===== */
+    .dash-content{max-width:1500px;margin:0 auto;padding:38px clamp(14px,4vw,58px) 46px;display:grid;gap:30px;background:var(--ink)}
+    .dash-content .page-section,.dash-content .dashboard-section{margin:0;padding:0}
+    .dash-content .section-heading,.dash-content .section-inline-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:0 0 16px}
+    .dash-content h2{margin:0;font-size:clamp(20px,2vw,26px);font-weight:700;letter-spacing:-.01em;color:#fff}
+    .dash-content .section-kicker{margin:0 0 4px;color:var(--orange);font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .dash-content .section-note{color:var(--muted);font-size:.86rem;text-decoration:none}
+    .dash-content a.section-note:hover{color:var(--green-bright)}
+    .dash-content .panel{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:16px;padding:20px;color:var(--text);box-shadow:0 18px 36px rgba(0,0,0,.28)}
+    .dash-content .card-grid,.dash-content .objectives-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .dash-content .stat-card,.dash-content .objective-card{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--text);transition:transform 300ms var(--ease),border-color 200ms}
+    .dash-content .stat-card:hover,.dash-content .objective-card:hover{transform:translateY(-4px);border-color:var(--green-bright)}
+    .dash-content .stat-card__label{color:var(--muted);font-size:.76rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+    .dash-content .stat-card__value{margin-top:8px;font-size:clamp(24px,2.4vw,32px);font-weight:700;color:#fff}
+    .dash-content .attention-empty{padding:18px 0;color:var(--muted)}
+    .dash-content .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit;font-size:.88rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 200ms,border-color 200ms,transform 200ms}
+    .dash-content .btn:hover{border-color:var(--green-bright);background:rgba(18,161,80,.16)}
+    .dash-content .btn--primary{background:linear-gradient(180deg,var(--green-bright),var(--green));border-color:transparent;color:#fff}
+    .dash-content .btn svg{width:18px;height:18px}
+    .dash-content .global-search{position:relative}
+    .dash-content .global-search__icon{position:absolute;left:18px;top:26px;width:20px;height:20px;transform:translateY(-50%);color:#cbd6cf;pointer-events:none}
+    .dash-content #global-search-input{width:100%;height:52px;padding:0 18px 0 52px;color:var(--text);font:inherit;font-size:15px;background:rgba(10,16,13,.7);border:1.5px solid var(--line);border-radius:12px;outline:0;transition:border-color 200ms,box-shadow 300ms}
+    .dash-content #global-search-input::placeholder{color:#8fa197}
+    .dash-content #global-search-input:focus{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .dash-content .global-search__results{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:80;max-height:min(60vh,480px);overflow-y:auto;
+      padding:6px;background:#111a16;border:1px solid var(--line);border-radius:12px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .dash-content .global-search__results[hidden]{display:none}
+    .dash-content .global-search__group-label{padding:12px 12px 6px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .dash-content .global-search__item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid rgba(255,255,255,.07);border-radius:8px;color:var(--text);text-decoration:none;transition:background 180ms}
+    .dash-content .global-search__group-label+.global-search__item{border-top:0}
+    .dash-content .global-search__item:hover,.dash-content .global-search__item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .dash-content .global-search__item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .dash-content .global-search__item>span{min-width:0}
+    .dash-content .global-search__item-main{display:block;font-size:.9rem;font-weight:600}
+    .dash-content .global-search__item-sub{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .dash-content .global-search__empty{padding:20px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+    .dash-content table{width:100%;border-collapse:collapse;color:var(--text)}
+    .dash-content th{padding:10px 12px;text-align:left;color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+    .dash-content td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dash-content .panel:has(table){overflow-x:auto}
 
-    /* ===== mechanics' board: mechanic lanes and clickable job cards ===== */
-    .wl-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));gap:18px;align-items:start}
-    .wl-board>.wl-card{min-width:0;padding:16px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(11,17,15,.98));box-shadow:0 18px 36px rgba(0,0,0,.3)}
-    .wl-board>.jc-empty{grid-column:1/-1;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(20,30,27,.8);color:var(--muted);text-align:center}
-    .wl-card>header{display:flex;align-items:center;gap:12px;min-width:0;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.09)}
-    .wl-av{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid rgba(31,196,103,.35);border-radius:14px;background:rgba(31,196,103,.12);color:var(--green-bright);font-size:.88rem;font-weight:800}
-    .wl-name{display:grid;gap:3px;min-width:0}
-    .wl-name b{overflow:hidden;color:#fff;font-size:.98rem;text-overflow:ellipsis;white-space:nowrap}
-    .wl-name>span{color:var(--muted);font-size:.78rem}
-    .wl-n{display:grid;place-items:center;flex:none;min-width:30px;height:30px;margin-left:auto;padding:0 8px;border-radius:999px;background:rgba(31,196,103,.16);color:var(--green-bright);font-size:.82rem;font-weight:800}
-    .wl-n.zero{background:rgba(255,255,255,.07);color:var(--muted)}
-    .wl-jobs{display:grid;gap:9px;margin-top:13px}
-    .wl-job{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px 10px;width:100%;padding:12px;border:1px solid rgba(255,255,255,.09);border-left:3px solid var(--green-bright);border-radius:13px;background:rgba(8,14,12,.76);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:transform 180ms,border-color 180ms,background 180ms,box-shadow 180ms}
-    .wl-job:hover{transform:translateY(-2px);border-color:var(--orange);background:rgba(18,28,23,.98);box-shadow:0 10px 22px rgba(0,0,0,.3)}
-    .wl-cro{overflow:hidden;color:#fff;font-size:.88rem;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
-    .wl-veh{grid-column:1/-1;min-width:0;color:#d6e0d9;font-size:.82rem;line-height:1.4;overflow-wrap:anywhere}
-    .wl-veh small{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}
-    .wl-job .badge{grid-column:2;grid-row:1;padding:4px 8px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.07);color:#e9f0eb;font-size:.68rem;font-weight:700;white-space:nowrap}
-    .wl-none{border-color:rgba(255,122,18,.32)!important}
-    .wl-none .wl-av{border-color:rgba(255,122,18,.35);background:rgba(255,122,18,.12);color:var(--orange)}
 
-    /* ===== all repair jobs: rows become floating job cards ===== */
-    .panel:has(#repairs-table){padding:0;border:0;background:none;box-shadow:none;overflow-x:auto;perspective:1100px}
-    .panel:has(#repairs-table) table{width:100%;border-collapse:separate;border-spacing:0 12px}
-    .panel:has(#repairs-table) th{padding:4px 14px;border:0;color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:left;background:none}
-    #repairs-table tr{transition:transform 380ms var(--ease)}
-    #repairs-table td{padding:16px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#111b18;color:var(--text);vertical-align:middle;transition:background 250ms,box-shadow 380ms var(--ease)}
-    #repairs-table td:first-child{border-left:5px solid var(--st);border-radius:16px 0 0 16px;font-weight:700;letter-spacing:.02em}
-    #repairs-table td:last-child{border-right:1px solid var(--line);border-radius:0 16px 16px 0}
-    #repairs-table tr:has(td[colspan]) td{border-left:1px solid var(--line);border-radius:16px;text-align:center}
-    #repairs-table tr:not(:has(td[colspan])):hover{transform:translateY(-5px) rotateX(2deg)}
-    #repairs-table tr:not(:has(td[colspan])):hover td{background:#17261f;box-shadow:0 20px 26px rgba(0,0,0,.4)}
-    #repairs-table tr[data-status="new"]{--st:#ff7a12}
-    #repairs-table tr[data-status="diagnosis"]{--st:#e8b13a}
-    #repairs-table tr[data-status="progress"]{--st:#3aa6ff}
-    #repairs-table tr[data-status="ready"]{--st:#1fc467}
-    #repairs-table tr[data-status="done"]{--st:#6f7773}
-    #repairs-table tr[data-status="hold"]{--st:#ff6b6b}
-    .panel:has(#tiers-table){overflow-x:auto}
-    #tiers-table td,.panel th{padding:12px 14px}
-    #tiers-table td{border-bottom:1px solid rgba(255,255,255,.06)}
-    .panel:not(:has(#repairs-table)) th{color:var(--muted);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--line)}
+    /* ===== customer statements (top of dashboard) ===== */
+    .cs-tools{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+    .cs-tools input{flex:1 1 220px;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:rgba(10,16,13,.7);color:var(--text);font:inherit}
+    .cs-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .cs-chip{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--muted);font:600 .85rem var(--font);cursor:pointer}
+    .cs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);color:var(--text);border-color:var(--green-bright)}
+    .cs-list{display:grid;gap:8px}
+    .cs-cust{border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+    .cs-cust>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
+    .cs-cust>summary::-webkit-details-marker{display:none}
+    .cs-name{font-weight:700}
+    .cs-sub{color:var(--muted);font-size:.8rem;margin-top:2px}
+    .cs-bal{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .cs-bal.owe{color:#ff9a6b}.cs-bal.ok{color:var(--green-bright)}
+    .cs-body{padding:0 16px 16px}
+    .cs-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 12px}
+    .cs-facts div{padding:10px;border:1px solid var(--line);border-radius:10px;font-size:.8rem;color:var(--muted)}
+    .cs-facts b{display:block;color:var(--text);font-size:.95rem;font-variant-numeric:tabular-nums}
+    .cs-wrap{overflow-x:auto}
+    .cs-wrap table{min-width:520px;font-size:.85rem}
+    .cs-wrap td:nth-child(n+4),.cs-wrap th:nth-child(n+4){text-align:right;font-variant-numeric:tabular-nums}
+    .cs-st{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:700}
+    .cs-st.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+    .cs-st.part{background:rgba(242,193,78,.18);color:#f2c14e}
+    .cs-st.unpaid{background:rgba(255,107,107,.18);color:#ff6b6b}
+    .cs-msg{padding:16px;color:var(--muted)}
 
-    /* ===== job card editor (modal) ===== */
-    .modal-overlay{z-index:120;background:rgba(4,8,7,.74);backdrop-filter:blur(6px)}
-    .modal{width:680px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(160deg,#16241f,#0d1512);box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 60px rgba(18,161,80,.12);color:var(--text)}
-    .modal-overlay:not(.hidden) .modal{animation:cardIn .55s var(--ease)}
-    @keyframes cardIn{from{opacity:0;transform:translateY(40px) rotateX(10deg) scale(.96)}to{opacity:1;transform:none}}
-    .modal > h3{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 26px 18px;font-size:1.2rem;font-weight:700;letter-spacing:-.01em;color:#fff;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(18,161,80,.18),transparent 70%)}
-    .modal > h3::after{content:"";position:absolute;left:26px;bottom:-1px;width:72px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
-    #edit-job-number{color:var(--green-bright)}
-    #jc-close{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:rgba(10,16,13,.6);color:var(--text);cursor:pointer}
-    #jc-close svg{width:19px;height:19px}
-    .modal-body{padding:6px 26px 10px}
-    .jc-summary{padding:10px 0 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-    .jc-tags{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-    .jc-date{color:var(--muted);font-size:.8rem}
-    .jc-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
-    .jc-infocard{padding:14px;border:1px solid rgba(31,196,103,.2);border-radius:14px;background:rgba(8,14,12,.55)}
-    .jc-infocard h5{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--green-bright);font-size:.85rem}
-    .jc-infocard h5 svg{width:18px;height:18px}
-    .jc-kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
-    .jc-kv>div{min-width:0}
-    .jc-kv span{display:block;color:var(--muted);font-size:.67rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-    .jc-kv b{display:block;margin-top:2px;color:var(--text);font-size:.82rem;font-weight:600;overflow-wrap:anywhere}
-    .jc-none{color:var(--muted);font-weight:400}
-    .jc-fault{margin-top:12px;padding:12px 14px;border-left:3px solid var(--orange);border-radius:8px;background:rgba(255,122,18,.07)}
-    .jc-fault>span{display:flex;align-items:center;gap:8px;color:var(--orange);font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
-    .jc-fault svg{width:17px;height:17px}
-    .jc-fault p{margin:6px 0 0;color:var(--text);font-size:.88rem;white-space:pre-wrap;overflow-wrap:anywhere}
-    .modal-section{border-bottom:1px solid rgba(255,255,255,.08)}
-    .modal-section-title{color:var(--orange);font-size:.74rem;letter-spacing:.16em}
-    .modal-section-title svg{color:var(--green-bright)}
-    .modal-actions{padding:16px 26px;border-top:1px solid var(--line);background:#0b1210}
-    .modal-actions-secondary{border-top:1px dashed rgba(255,255,255,.14)}
-    #pickup-countdown-block{border:1px solid rgba(255,122,18,.5);border-radius:14px;background:rgba(255,122,18,.08)}
+    /* ===== bottom tab bar ===== */
+    .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;
+      height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0);
+      background:rgba(12,18,20,.97);border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:100%;border:0;background:none;color:#d6dfd9;text-decoration:none;cursor:pointer;font:inherit;font-size:.72rem;font-weight:600;transition:color 200ms}
+    .tab:hover{color:#fff}
+    .tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .tab[aria-current="page"]{color:#fff}
+    .tab[aria-current="page"] svg{fill:currentColor;stroke:none}
+    .tab[aria-current="page"]::after{content:"";position:absolute;left:50%;top:0;width:44px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright);transform:translateX(-50%)}
+    .tab-badge{position:absolute;top:6px;left:calc(50% + 12px);display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#1b8cff;color:#fff;font-size:11px;font-weight:700}
+    .tab-badge[hidden]{display:none}
 
-    /* ===== bottom nav (your existing one, restyled) ===== */
-    body.dashboard-page .bottom-nav{position:fixed!important;left:0;right:0;bottom:0;z-index:70;display:grid!important;grid-template-columns:repeat(5,1fr);align-items:stretch;
-      height:calc(76px + env(safe-area-inset-bottom,0px));margin:0;padding:6px 0 env(safe-area-inset-bottom,0);background:rgba(12,18,20,.97);border:0;border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
-    .bottom-nav__item{position:relative;display:grid;place-items:center;align-content:center;gap:4px;width:100%;height:100%;border:0;background:none;color:#c9d3cd;font:inherit;font-size:11px;font-weight:600;text-decoration:none;cursor:pointer;transition:color 200ms,transform 300ms var(--ease)}
-    .bottom-nav__item:hover{color:#fff}
-    .bottom-nav__item svg{width:24px;height:24px}
-    .bottom-nav__item[aria-current="page"]{color:var(--green-bright)}
-    .bottom-nav__item[aria-current="page"]::after{content:"";position:absolute;left:50%;top:0;width:44px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright);transform:translateX(-50%)}
-    .more-wrap{position:relative;height:100%}
-    .more-menu{position:absolute;right:8px;bottom:calc(100% + 12px);display:none;width:min(300px,calc(100vw - 24px));max-height:min(65vh,440px);overflow-y:auto;padding:6px;background:#111b18;border:1px solid var(--line);border-radius:16px;color:#dfe8e2;box-shadow:0 24px 50px rgba(0,0,0,.55)}
-    .more-menu.open{display:block}
-    .more-menu a{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px;border-radius:10px;color:#dfe8e2;text-decoration:none;font-size:.9rem}
-    .more-menu a:hover{background:rgba(255,255,255,.06);color:#fff}
-    .more-menu a svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
-    .more-menu .menu-divider{height:1px;margin:6px 4px;background:rgba(255,255,255,.1)}
-
-    .site-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:22px clamp(14px,3.8vw,58px);background:#0a0f10;color:#d3ddd6;font-size:clamp(11px,1vw,15px)}
+    .site-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:24px clamp(14px,3.8vw,58px);background:#0a0f10;color:#d3ddd6;font-size:clamp(11px,1vw,15px)}
     .site-foot a{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
     .site-foot svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
-    /* ===== slide-out module menu (your existing sidebar) ===== */
-    .menu-scrim{position:fixed;inset:0;z-index:90;background:rgba(5,9,8,.62);opacity:0;pointer-events:none;transition:opacity 300ms}
-    body.menu-open .menu-scrim{opacity:1;pointer-events:auto}
+    /* ===== hidden navigation source for the shared More menu ===== */
+    .menu-scrim{display:none}
     body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
       display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
       background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
       transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
-    body.menu-open .sidebar{transform:none;visibility:visible;transition:transform 420ms var(--ease),visibility 0s}
     .drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
     .drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer}
     .drawer-close:hover{background:rgba(255,255,255,.08)}
-    .sidebar .sidebar__brand{margin:0 0 18px}.sidebar .brand-logo{width:120px;height:auto}
+    .sidebar .sidebar__brand{margin:0 0 18px}
+    .sidebar .brand-logo{width:120px;height:auto}
     .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none;transition:background 200ms,color 200ms}
     .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
-    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
     .sidebar .nav-link svg{width:20px;height:20px;flex:none}
     .sidebar .nav-group{margin-top:8px}
-    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;color:var(--muted);font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
+    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
+    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
+    .sidebar .nav-grp{color:var(--muted)}
     .sidebar .nav-grp:hover,.sidebar .nav-group.open>.nav-grp{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.07)}
-    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright)}
+    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright);letter-spacing:normal}
     .sidebar .nav-grp>span:first-of-type{flex:1}
     .sidebar .nav-chev{width:8px;height:8px;margin-left:auto;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
     .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
@@ -283,45 +188,213 @@
     .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
     .sidebar .nav-grpwrap .nav-link{padding:10px 12px;font-size:.9rem}
 
-    /* ===== tablets & phones ===== */
-    @media (max-width:900px){
-      .form-grid{grid-template-columns:1fr 1fr!important}
-      .field[style*="span 3"]{grid-column:1/-1!important}
+    .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    .apr-bottom-nav>a,.apr-more-toggle{position:relative;display:grid;min-width:0;height:100%;place-items:center;align-content:center;gap:4px;border:0;background:none;color:#c9d3cd;font:600 11px Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none;cursor:pointer}
+    .apr-bottom-nav>a:hover,.apr-more-toggle:hover,.apr-bottom-nav [aria-current="page"]{color:#1fc467}
+    .apr-bottom-nav svg{width:23px;height:23px}
+    .apr-bottom-nav [aria-current="page"]::after{position:absolute;top:0;left:50%;width:42px;height:3px;border-radius:0 0 3px 3px;background:#1fc467;content:"";transform:translateX(-50%)}
+    .apr-more-wrap{position:relative;min-width:0;height:100%}
+    .apr-more-menu{position:absolute;right:8px;bottom:calc(100% + 12px);display:none;width:min(310px,calc(100vw - 24px));max-height:min(65vh,440px);padding:7px;overflow:auto;border:1px solid rgba(31,196,103,.24);border-radius:16px;background:#111b18;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .apr-more-menu.open{display:block}
+    .apr-more-menu a{display:flex;min-height:44px;align-items:center;gap:11px;padding:10px;border-radius:10px;color:#dfe8e2;font:500 .9rem Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none}
+    .apr-more-menu a:hover,.apr-more-menu [aria-current="page"]{background:rgba(255,255,255,.06);color:#fff}
+    .apr-more-menu a svg{width:19px;height:19px;flex:none;color:#1fc467}
+    @media print{.apr-bottom-nav{display:none!important}}
+
+    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .main,:root[data-theme="light"] body.dashboard-page .app-shell{background:#f1f2f3!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav{border-color:#d0d3d6;background:rgba(255,255,255,.98);box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav>a,:root[data-theme="light"] body.dashboard-page .apr-more-toggle{color:#222}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]::after{background:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu{border-color:#d0d3d6;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a{color:#111}
+    :root[data-theme="light"] body.dashboard-page .apr-more-menu a:hover,:root[data-theme="light"] body.dashboard-page .apr-more-menu [aria-current="page"]{background:#eceeef;color:#111}
+    :root[data-theme="light"] body.dashboard-page .hero{background:#f1f2f3}
+    :root[data-theme="light"] body.dashboard-page .hero-bg,:root[data-theme="light"] body.dashboard-page .hero::after{display:none}
+    :root[data-theme="light"] body.dashboard-page .welcome,:root[data-theme="light"] body.dashboard-page .hero-title,:root[data-theme="light"] body.dashboard-page .hero-lede,:root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__value,:root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content table,:root[data-theme="light"] body.dashboard-page .hdr-hello{color:#111!important;text-shadow:none}
+    :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
+    :root[data-theme="light"] body.dashboard-page .tile{border-color:#c9cdd1;background:#fff;color:#111;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+    :root[data-theme="light"] body.dashboard-page .tile:hover{background:#f5f6f7;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .dash-content{background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .section-note,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__label,:root[data-theme="light"] body.dashboard-page .dash-content .attention-empty,:root[data-theme="light"] body.dashboard-page .dash-content th,:root[data-theme="light"] body.dashboard-page .dash-content td{color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__results{border-color:#d9dcdf;background:#fff;color:#111;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .btn--primary{border-color:#111;background:#111;color:#fff}
+    :root[data-theme="light"] body.dashboard-page .dash-content #global-search-input{border-color:#c9cdd1;background:#fff;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content .global-search__icon,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__item{color:#111}
+
+    /* ===== phones ===== */
+    @media (max-width:760px){
+      body.dashboard-page .app-header{padding-bottom:30px}
+      .hdr-sub,.hdr-divider,.hdr-hello{display:none}
+      .hdr-time #dashboard-date{display:none}
+      .tiles{margin-inline:14px}
+    }
+    @media (max-width:430px){
+      .hero{padding-top:30px}
+      .tab-badge{min-width:22px;height:22px;font-size:12px}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{transition-duration:.001ms!important;animation:none!important}
+      .hero-bg{transform:none!important}
+    }
+    /* ===== header: search + top-right "more" menu ===== */
+    [hidden]{display:none!important}
+    body.dashboard-page .app-header{display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right menu";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px}
+    body.dashboard-page .hdr-brand{grid-area:brand}
+    body.dashboard-page .hdr-right{grid-area:right}
+    .hs{grid-area:search;position:relative;width:100%;max-width:640px;min-width:0;justify-self:center}
+    .hs-bar{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--text) 7%,transparent);transition:border-color 200ms,box-shadow 300ms}
+    .hs-bar:focus-within{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    .hs-bar>svg{width:20px;height:20px;flex:none;color:var(--muted)}
+    #hs-input{flex:1;min-width:0;height:100%;padding:0;border:0;outline:0;background:none;color:var(--text);font:inherit;font-size:15px}
+    #hs-input::placeholder{color:var(--muted)}
+    .hs-kbd{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:.75rem}
+    .hs-panel{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:90;max-height:min(70vh,540px);overflow-y:auto;padding:0 8px 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    .hs-chips{position:sticky;top:0;z-index:1;display:flex;gap:6px;overflow-x:auto;padding:10px 0;background:var(--panel);scrollbar-width:none}
+    .hs-chips::-webkit-scrollbar{display:none}
+    .hs-chip{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:600 .78rem var(--font);white-space:nowrap;cursor:pointer}
+    .hs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);border-color:var(--green-bright);color:var(--text)}
+    .hs-group{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 8px 4px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    .hs-more{border:0;background:none;color:var(--green-bright);font:600 .75rem var(--font);cursor:pointer;letter-spacing:0;text-transform:none}
+    .hs-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none}
+    .hs-item:hover,.hs-item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    .hs-item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .hs-item>span{min-width:0}
+    .hs-item b{display:block;font-size:.9rem;font-weight:600;overflow-wrap:anywhere}
+    .hs-item small{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    .hs-empty{padding:22px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+
+    .hdr-menu-wrap{grid-area:menu;position:relative;margin-right:56px}
+    .hdr-more{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);cursor:pointer;transition:background 200ms,border-color 200ms}
+    .hdr-more:hover,.hdr-more[aria-expanded="true"]{border-color:var(--green-bright);background:rgba(31,196,103,.16)}
+    .hdr-more svg{width:22px;height:22px;fill:currentColor}
+    .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:95;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .hdr-menu .m-head{padding:12px 10px 4px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .hdr-menu a{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px;border-radius:10px;color:var(--text);font-size:.92rem;font-weight:500;text-decoration:none}
+    .hdr-menu a:hover,.hdr-menu a:focus-visible,.hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
+    .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+
+    /* the More menu now lives in the header, so the bottom bar keeps only its four main links */
+    .apr-more-wrap{display:none!important}
+    .apr-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+    /* ===== system overview ===== */
+    .dash-content a.stat-card{display:block;text-decoration:none}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+    .kpi-sub{margin-top:6px;color:var(--muted);font-size:.78rem}
+    .ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+    .ov-grid .panel{padding:16px 18px}
+    .ov-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+    .ov-head h3{margin:0;font-size:1rem;font-weight:700}
+    .ov-head a{color:var(--muted);font-size:.8rem;text-decoration:none}
+    .ov-head a:hover{color:var(--green-bright)}
+    .ov-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);color:var(--text);text-decoration:none;font-size:.88rem}
+    .ov-row:last-child{border-bottom:0}
+    .ov-row:hover .ov-main{color:var(--green-bright)}
+    .ov-main{min-width:0;overflow-wrap:anywhere}
+    .ov-main small{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}
+    .ov-end{flex:none;font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+    .ov-end.bad{color:#ff6b6b}.ov-end.warn{color:#f2c14e}
+    .ov-bar{height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--text) 10%,transparent)}
+    .ov-bar i{display:block;height:100%;border-radius:4px;background:var(--green-bright)}
+    .ov-empty{padding:14px 0;color:var(--muted);font-size:.88rem}
+
+    @media (min-width:761px) and (max-width:1400px){
+      .hdr-right .hdr-divider,.hdr-hello{display:none} /* give the search bar the room */
     }
     @media (max-width:760px){
-      .hdr-sub,.hdr-divider,.hdr-date{display:none}
-      .form-grid{grid-template-columns:1fr!important}
-      .modal-row{grid-template-columns:1fr}
-      .modal-overlay{padding:10px}
-      .jc-kv{grid-template-columns:1fr}
-      body.dashboard-page .bottom-nav{height:calc(70px + env(safe-area-inset-bottom,0px))}
-      .panel:has(#repairs-table) thead{display:none}
-      #repairs-table,#repairs-table tr,#repairs-table td{display:block}
-      #repairs-table tr:not(:has(td[colspan])){margin:0 0 14px;padding:14px 16px 14px 20px;border:1px solid var(--line);border-left:5px solid var(--st);border-radius:18px;
-        background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));box-shadow:0 14px 26px rgba(0,0,0,.35)}
-      #repairs-table tr:not(:has(td[colspan])) td{padding:6px 0;border:0;border-radius:0;background:none;box-shadow:none}
-      #repairs-table td:not([colspan])::before{display:block;margin-bottom:2px;color:var(--muted);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-      #repairs-table td:nth-child(1)::before{content:"CRO"}#repairs-table td:nth-child(2)::before{content:"Customer"}
-      #repairs-table td:nth-child(3)::before{content:"Device"}#repairs-table td:nth-child(4)::before{content:"Fault"}
-      #repairs-table td:nth-child(5)::before{content:"Status"}#repairs-table td:nth-child(6)::before{content:"Mechanic"}
-      #repairs-table td:nth-child(7)::before{content:"Cost"}
-      #repairs-table td:first-child{font-size:1.1rem;border-radius:0}
-      #repairs-table tr:not(:has(td[colspan])):hover{transform:none}
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand right menu" "search search search"}
+      .hs{max-width:none;justify-self:stretch}
+      #hs-input{font-size:16px}
+      .hs-kbd{display:none}
     }
-    @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation:none!important}}
+    @media (max-width:560px){
+      .hdr-clock{display:none}
+    }
   </style>
+<style id="rc-design">
+.rc-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rc-tabs .seg{padding:10px 18px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+.rc-tabs .seg[aria-pressed="true"]{background:var(--green);color:#fff;border-color:transparent}
+.rc-tabs .grow{flex:1}
+.rc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.rc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);cursor:pointer}
+.rc-row:last-child{border-bottom:0}.rc-row:hover b{color:var(--green-bright)}
+.rc-row small{display:block;color:var(--muted);margin-top:2px}
+.rc-amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,122,18,.18);color:#ffb070}
+.pill.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+.rc-build{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:900px){.rc-build{grid-template-columns:1fr}}
+.rc-form{display:grid;gap:12px}.rc-form h3{margin:6px 0 0;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rc-form input,.rc-form select,.rc-form textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit;font-size:16px}
+.rc-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.li{display:grid;grid-template-columns:1fr 62px 86px 32px;gap:8px}
+.li button{border:0;background:none;color:#ff6b6b;font-size:20px;cursor:pointer}
+.rc-bar{display:flex;gap:10px;flex-wrap:wrap}
+.rc-bar .btn{flex:1 1 130px;justify-content:center}
+.btn.wa{background:#25d366!important;border-color:transparent!important;color:#06361a!important}
+.rc-doc-wrap{overflow-x:auto;padding:2px}
+#doc{background:#fff;color:#14181a;width:100%;max-width:794px;margin:0 auto;padding:36px;border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+#doc .top{display:flex;justify-content:space-between;gap:16px;border-bottom:4px solid #12a150;padding-bottom:14px}
+#doc .top img{height:56px;width:auto}#doc h1{margin:0;font-size:26px;letter-spacing:.04em;color:#12a150;text-align:right}
+#doc .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+#doc .meta small{color:#6b7570;text-transform:uppercase;letter-spacing:.08em;font-size:10px;display:block}
+#doc table{width:100%;border-collapse:collapse;margin-top:6px}
+#doc th{background:#0e1517;color:#fff;text-align:left;padding:8px;font-size:11px;text-transform:uppercase}
+#doc td{padding:8px;border-bottom:1px solid #e4e8e5}#doc .n{text-align:right;font-variant-numeric:tabular-nums}
+#doc .tot{margin-left:auto;width:260px;margin-top:12px}#doc .tot div{display:flex;justify-content:space-between;padding:4px 0}
+#doc .tot .g{border-top:3px solid #ff7a12;font-size:17px;font-weight:800;margin-top:4px;padding-top:8px}
+#doc .stamp{display:inline-block;border:3px solid #12a150;color:#12a150;padding:2px 12px;border-radius:6px;font-weight:800;transform:rotate(-6deg);margin-top:8px}
+#doc .foot{margin-top:26px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-size:.9rem}
+[hidden]{display:none!important}
+@media print{
+  @page{size:A4;margin:10mm}
+  body.dashboard-page{background:#fff!important;padding:0!important}
+  body.dashboard-page *{visibility:hidden}
+  #doc,#doc *{visibility:visible}
+  #doc{position:absolute;left:0;top:0;max-width:none;box-shadow:none;padding:0}
+}
+</style>
+<style>
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.chips .seg{padding:7px 14px;font-size:.85rem}
+.jc-grid{display:grid;gap:12px}
+#doc .box{border:1px solid #cfd6d2;border-radius:6px;padding:10px;margin-top:12px;min-height:54px}
+#doc .ruled{height:26px;border-bottom:1px solid #cfd6d2}
+#doc .sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:34px}
+#doc .sig div{border-top:1px solid #14181a;padding-top:4px;font-size:11px;color:#6b7570}
+.rc-form label{font-size:.78rem;color:var(--muted);margin-bottom:-6px}
+select.st{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit}
+select.st option{background:#10181a;color:#eef3ef}
+:root[data-theme="light"] body.dashboard-page select option{background:#fff!important;color:#17211b!important}
+:root[data-theme="dark"] body.dashboard-page select option{background:#10181a!important;color:#eef3ef!important}
+.apr-global-search:not(.hs){position:relative;grid-area:search;flex:1;min-width:220px}
+.apr-global-search:not(.hs) input{box-sizing:border-box;width:100%;height:46px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit}
+.apr-global-search-results{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:200;max-height:min(60vh,480px);overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);box-shadow:0 12px 30px rgba(0,0,0,.3)}
+.apr-global-search-results .global-search__group-label{padding:12px 12px 6px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.apr-global-search-results .global-search__item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-top:1px solid var(--line);color:var(--text);text-decoration:none}
+.apr-global-search-results .global-search__item-main{display:block;font-weight:600}
+.apr-global-search-results .global-search__item-sub{display:block;color:var(--muted);font-size:.8rem}
+:root[data-theme="light"] body.dashboard-page .apr-global-search-results{border-color:#d9dcdf;background:#fff;color:#111}
+:root[data-theme="light"] body.dashboard-page .apr-global-search-results .global-search__item{color:#111}
+</style>
 </head>
 <body class="dashboard-page">
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Work Orders</a>
+          <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
+          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
@@ -329,390 +402,345 @@
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
-          <a class="nav-link" href="receipts.html"><i data-lucide="receipt"></i> Invoices &amp; Receipts</a>
+          <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
           <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
         <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap"><a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a></div>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
+          <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
+          <a class="nav-link" href="payables.html"><i data-lucide="banknote"></i> Payables</a>
+          <a class="nav-link" href="cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
+          <a class="nav-link" href="commissions.html"><i data-lucide="percent"></i> Commissions</a>
+          <a class="nav-link" href="landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
+          <a class="nav-link" href="fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
+          <a class="nav-link" href="financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
+        </div>
       </div>
       <div class="nav-group" data-group="insights">
         <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap"><a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a></div>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+        </div>
       </div>
       <div class="nav-group" data-group="system">
         <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap"><a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a></div>
+        <div class="nav-grpwrap">
+          <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
+        </div>
       </div>
     </aside>
-
-    <main class="main">
-      <header class="app-header">
-        <div class="hdr-brand">
-          <img src="../assets/logo.png" alt="Centric Auto Mobile" />
+<main class="main">
+<header class="main__header dashboard-hero app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
           <span class="hdr-divider" aria-hidden="true"></span>
           <div>
             <p class="hdr-name">Centric <em>Auto Mobile</em></p>
             <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
           </div>
         </div>
+        <!-- Header search: searches the whole system, with filters -->
+        <div class="hs" id="hs">
+          <div class="hs-bar" role="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="hs-input" placeholder="Search job cards, plates, customers…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
+            <span class="hs-kbd" aria-hidden="true">/</span>
+          </div>
+          <div class="hs-panel" id="hs-panel" hidden>
+            <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
+            <div id="hs-results" aria-live="polite"></div>
+          </div>
+        </div>
         <div class="hdr-right">
-          <div>
-            <p class="hdr-date" id="hdr-date"></p>
+          <div class="hdr-time">
+            <p class="page-intro" id="dashboard-date">Loading…</p>
             <div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div>
             <div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div>
           </div>
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
         <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 24H1130" fill="none" stroke="#1fc467" stroke-width="3" vector-effect="non-scaling-stroke"/>
           <path d="M1130 24C1200 24 1230 7 1300 7H1536" fill="none" stroke="#ff7a12" stroke-width="3" vector-effect="non-scaling-stroke"/>
         </svg>
       </header>
+<div class="dash-content rc">
+  <section class="panel" id="v-list">
+    <div class="rc-tabs"><h2>Job Cards</h2><span class="grow"></span><button class="btn btn--primary" id="new-job"><i data-lucide="plus"></i> New job card</button></div>
+    <div class="rc-stats" style="margin-top:16px" id="stats"></div>
+    <div class="chips" id="chips"></div>
+    <div id="list"><div class="ov-empty">Loading…</div></div>
+  </section>
 
-      <div class="main__header dashboard-hero">
-        <div>
-          <p class="section-kicker">Workshop control</p>
-          <h1>Repair Jobs</h1>
-          <p class="page-intro">Track each vehicle from intake through diagnosis, repair, and collection.</p>
-        </div>
-        <a class="back-link" href="../index.html" aria-label="Back to dashboard"><i data-lucide="house"></i></a>
+  <section class="panel" id="v-build" hidden>
+    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New job card</h2></div>
+    <div class="rc-form" style="margin-top:18px;max-width:640px">
+      <h3>1 · Customer</h3>
+      <select id="f-cust"><option value="">+ New customer</option></select>
+      <input id="f-name" placeholder="Customer name" />
+      <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
+      <h3>2 · Vehicle</h3>
+      <select id="f-veh"><option value="">+ New vehicle</option></select>
+      <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
+      <div class="two"><input id="f-year" type="number" placeholder="Year" /><input id="f-plate" placeholder="Registration plate" style="text-transform:uppercase" /></div>
+      <h3>3 · Work</h3>
+      <textarea id="f-fault" rows="3" placeholder="Fault reported by customer"></textarea>
+      <label for="job-labour-mode">Labour charging method</label>
+      <select id="job-labour-mode">
+        <option value="time_based">Time-based rate tier</option>
+        <option value="provider_estimate">Provider-estimated task price</option>
+      </select>
+      <div id="job-time-fields">
+        <label for="job-rate-tier">Rate tier</label><select id="job-rate-tier"><option value="">Loading rates…</option></select>
+        <label for="job-labour-hours">Estimated hours</label><input id="job-labour-hours" type="number" min="0.01" step="0.01" value="1">
+        <p id="job-time-price" class="section-note"></p>
       </div>
-
-      <!-- ===================== New job card (intake) ===================== -->
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Intake</p><h2><i class="section-heading-icon" data-lucide="clipboard-plus"></i>Create Repair Job</h2></div><span class="section-note">Vehicle and fault details</span></div>
-        <form id="job-form" class="panel" style="padding:20px; margin-bottom:24px;">
-        <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
-          <div class="field">
-            <label>Customer</label>
-            <select id="job-customer" required></select>
-          </div>
-          <div id="new-customer-box" class="form-grid hidden" style="grid-column:span 3; grid-template-columns:repeat(3,1fr);">
-            <div class="field"><label for="job-new-customer-name">New customer name</label><input id="job-new-customer-name" /></div>
-            <div class="field"><label for="job-new-customer-phone">Phone</label><input id="job-new-customer-phone" type="tel" /></div>
-            <div class="field"><label for="job-new-customer-email">Email</label><input id="job-new-customer-email" type="email" /></div>
-          </div>
-          <div class="field">
-            <label>Registered Vehicle</label>
-            <select id="job-plate" required disabled>
-              <option value="">Select a customer first…</option>
-            </select>
-          </div>
-          <div class="field hidden" id="job-new-plate-field">
-            <label for="job-new-plate">New vehicle plate</label>
-            <input id="job-new-plate" />
-          </div>
-          <div class="field">
-            <label>Body Type</label>
-            <select id="job-body-type">
-              <option>Sedan</option>
-              <option>SUV</option>
-              <option>Hatchback</option>
-              <option>Pickup</option>
-              <option>Van</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Make</label>
-            <input type="text" id="job-make" placeholder="e.g. Toyota" required />
-          </div>
-          <div class="field">
-            <label>Model</label>
-            <input type="text" id="job-model" placeholder="e.g. Hilux" />
-          </div>
-          <div class="field">
-            <label>Year</label>
-            <input type="number" id="job-year" placeholder="e.g. 2019" min="1970" max="2030" />
-          </div>
-          <div class="field">
-            <label>Chassis Number</label>
-            <input type="text" id="job-chassis" placeholder="Required — plate alone isn't a reliable identifier" required />
-          </div>
-          <div class="field">
-            <label>Engine Number</label>
-            <input type="text" id="job-engine" placeholder="Required" required />
-          </div>
-          <div class="field">
-            <label>Fuel Level at Drop-off</label>
-            <select id="job-fuel-in">
-              <option value="">Not recorded</option>
-              <option>Empty</option>
-              <option>1/4</option>
-              <option>1/2</option>
-              <option>3/4</option>
-              <option>Full</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Odometer at Drop-off</label>
-            <input type="number" id="job-odometer-in" placeholder="e.g. 82000" min="0" />
-          </div>
-          <div class="field" style="grid-column: span 3;">
-            <label>Fault Reported</label>
-            <textarea id="job-fault" rows="2" placeholder="What the customer says is wrong" required></textarea>
-            <button type="button" id="voice-fault-btn" class="btn" style="margin-top:6px; display:none;"><i data-lucide="mic"></i> Speak Fault Description</button>
-          </div>
-        </div>
-        <fieldset class="field" style="margin-top:14px;">
-          <legend>Next step</legend>
-          <label><input type="radio" name="job-intake-path" value="quote" /> Create a quotation first</label>
-          <label><input type="radio" name="job-intake-path" value="direct" checked /> Open a draft job card directly</label>
-        </fieldset>
-        <div style="margin-top:14px;">
-          <button id="job-submit" type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Continue</button>
-          <p id="job-form-message" class="form-message" role="status" aria-live="polite"></p>
-        </div>
-        </form>
-      </section>
-
-      <!-- ===================== Mechanics' workload ===================== -->
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Who is working on what</p><h2><i class="section-heading-icon" data-lucide="hard-hat"></i>Mechanics &amp; their job cards</h2></div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><span class="section-note" id="workload-count"></span>
-            <select id="workload-scope" aria-label="Which job cards to show" style="width:auto; min-width:190px;"><option value="open">Open job cards</option><option value="all">Include ready &amp; unclaimed</option></select></div>
-        </div>
-        <div id="workload-board" class="wl-board"><div class="jc-empty">Loading…</div></div>
-      </section>
-
-      <!-- ===================== Queue ===================== -->
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Workshop queue</p><h2><i class="section-heading-icon" data-lucide="clipboard-list"></i>All Repair Jobs</h2></div><span class="section-note">Status, mechanic, and cost</span></div>
-        <div class="panel" style="padding:14px 16px; margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="jobs-search" placeholder="Search CRO, customer, engine number, make, model…" style="flex:1; min-width:220px;" />
-          <select id="jobs-filter-mechanic" style="min-width:160px;"><option value="">All Mechanics</option></select>
-          <select id="jobs-filter-type" style="min-width:150px;">
-            <option value="">Company + Personal</option>
-            <option value="company">Company Only</option>
-            <option value="individual">Personal Only</option>
-          </select>
-        </div>
-        <div class="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>CRO</th>
-              <th>Customer</th>
-              <th>Device</th>
-              <th>Fault</th>
-              <th>Status</th>
-              <th>Mechanic</th>
-              <th>Cost</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="repairs-table">
-            <tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
-          </tbody>
-        </table>
-        </div>
-      </section>
-
-      <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">Pricing setup</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Vehicle Rate Tiers</h2></div><span class="section-note">Auto-detected from make, overridable per job</span></div>
-        <form id="tier-form" class="panel" style="padding:20px; margin-bottom:16px;">
-          <div class="form-grid" style="max-width:none; grid-template-columns: 2fr 1fr 2fr auto;">
-            <div class="field"><label>Tier Name</label><input type="text" id="tier-name" placeholder="e.g. Electric / Hybrid" required /></div>
-            <div class="field"><label>Rate ($/hr)</label><input type="number" id="tier-rate" step="0.01" min="0" required /></div>
-            <div class="field"><label>Makes (comma-separated)</label><input type="text" id="tier-makes" placeholder="e.g. Tesla, BYD" /></div>
-            <div class="field" style="display:flex; align-items:flex-end;"><label style="display:flex; align-items:center; gap:6px; font-weight:normal;"><input type="checkbox" id="tier-default" style="width:auto;" /> Default tier</label></div>
-          </div>
-          <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Add Tier</button>
-          <p id="tier-form-message" class="form-message"></p>
-        </form>
-        <div class="panel">
-          <table>
-            <thead><tr><th>Tier</th><th>Rate</th><th>Auto-matches</th><th>Default</th><th></th></tr></thead>
-            <tbody id="tiers-table"><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Edit Job Modal -->
-  <div id="edit-modal" class="modal-overlay hidden">
-    <div class="modal">
-      <h3>Work Order <span id="edit-job-number"></span><button type="button" id="jc-close" aria-label="Close work order"><i data-lucide="x"></i></button></h3>
-      <div class="modal-body jc-mbody">
-        <section class="jc-summary" aria-label="Work order details">
-          <div id="jc-tags" class="jc-tags"></div>
-          <div id="jc-info" class="jc-info"></div>
-          <div id="jc-fault" class="jc-fault"></div>
-        </section>
-
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="clipboard-list"></i> Status &amp; Diagnosis</h4>
-          <div class="field">
-            <label>Status</label>
-            <select id="edit-status"></select>
-          </div>
-          <div class="field">
-            <label>Diagnosis</label>
-            <textarea id="edit-diagnosis" placeholder="Mechanic's findings"></textarea>
-            <button type="button" id="ai-suggest-causes-btn" class="btn" style="margin-top:6px;"><i data-lucide="sparkles"></i> Suggest Possible Causes</button>
-            <div id="ai-suggest-causes-result" style="display:none; margin-top:8px; padding:10px 12px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.85rem; white-space:pre-wrap; line-height:1.5;"></div>
-          </div>
-          <div class="field">
-            <label>Expected Diagnosis Completion</label>
-            <input type="datetime-local" id="edit-diagnosis-eta" />
-          </div>
-          <label class="bulk-delete-select-all"><input type="checkbox" id="edit-work-ready" /> Repair work is ready for pickup</label>
-        </div>
-
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="gauge"></i> Labour &amp; Billing</h4>
-          <div class="modal-row" style="margin-bottom:14px;">
-            <div class="field"><label>Vehicle Rate Tier</label><select id="edit-rate-tier"></select></div>
-            <div class="field"><label>Hours Worked</label><input type="number" id="edit-hours" step="0.25" min="0" placeholder="e.g. 2.5" /></div>
-          </div>
-          <div class="modal-row" style="margin-bottom:14px;">
-            <div class="field"><label>Labour Cost <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(auto from hours × rate)</span></label><input type="number" id="edit-labour" step="0.01" min="0" /></div>
-            <div class="field"><label>Parts Cost</label><input type="number" id="edit-parts" step="0.01" min="0" /></div>
-          </div>
-          <div id="zig-total" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;"></div>
-          <div class="field">
-            <label>Mechanic</label>
-            <select id="edit-technician"></select>
-          </div>
-
-          <div class="modal-section">
-            <h4 class="modal-section-title"><i data-lucide="wallet"></i> Split Payments</h4>
-            <div id="job-payment-summary" role="status">Loading payments…</div>
-            <div id="job-payment-history" class="jc-lines"></div>
-            <div class="modal-row">
-              <div class="field"><label for="job-payment-amount">Payment amount ($)</label><input id="job-payment-amount" type="number" min="0.01" step="0.01" /></div>
-              <div class="field"><label for="job-payment-method">Method</label><select id="job-payment-method"><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Mobile money</option><option>Other</option></select></div>
-            </div>
-            <button id="job-record-payment" type="button" class="btn"><i data-lucide="plus"></i> Record Payment</button>
-          </div>
-        </div>
-
-        <div class="modal-section">
-          <h4 class="modal-section-title"><i data-lucide="package"></i> Parts &amp; Incidentals</h4>
-          <div class="field">
-            <label>Add Part from Shop</label>
-            <div style="display:flex; gap:8px;">
-              <select id="job-part-select" style="flex:1;"></select>
-              <input type="number" id="job-part-qty" min="1" value="1" style="width:70px;" />
-              <button id="job-part-add" type="button" class="btn"><i data-lucide="plus"></i></button>
-            </div>
-            <div class="bulk-delete-toolbar">
-              <label class="bulk-delete-select-all"><input type="checkbox" id="job-parts-select-all" /> Select all used parts</label>
-              <button id="job-parts-delete-selected" class="btn btn--danger" type="button" disabled>Remove selected</button>
-              <span id="job-parts-delete-message" class="bulk-delete-message" role="status" aria-live="polite"></span>
-            </div>
-            <div id="job-parts-list" class="jc-lines"></div>
-          </div>
-          <div class="field">
-            <label>Add Incidental <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(oil, rags, misc consumables)</span></label>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="incidental-desc" placeholder="e.g. Engine cleaning degreaser" style="flex:1;" />
-              <input type="number" id="incidental-amount" step="0.01" min="0" placeholder="$" style="width:90px;" />
-              <button id="incidental-add" type="button" class="btn"><i data-lucide="plus"></i></button>
-            </div>
-          </div>
-          <div class="field">
-            <label>Incidentals</label>
-            <div class="bulk-delete-toolbar">
-              <label class="bulk-delete-select-all"><input type="checkbox" id="incidentals-select-all" /> Select all incidentals</label>
-              <button id="incidentals-delete-selected" class="btn btn--danger" type="button" disabled>Remove selected</button>
-              <span id="incidentals-delete-message" class="bulk-delete-message" role="status" aria-live="polite"></span>
-            </div>
-            <div id="incidentals-list" style="font-size:0.85rem;"></div>
-          </div>
-        </div>
-
-        <!-- Live pickup countdown / parking fee — only shown once a job has
-             been marked Ready for Pickup and hasn't been collected yet -->
-        <div id="pickup-countdown-block" class="modal-section hidden">
-          <h4 class="modal-section-title"><i data-lucide="alarm-clock"></i> Pickup Window</h4>
-          <div id="pickup-countdown" style="font-size:0.9rem;"></div>
-          <button id="apply-parking-fee" type="button" class="btn hidden" style="margin-top:8px;">
-            <i data-lucide="plus"></i> Add Parking Fee to Labour Cost
-          </button>
-        </div>
-
-        <div id="edit-collection-fields" class="modal-section hidden">
-          <h4 class="modal-section-title"><i data-lucide="check-check"></i> Collection Details</h4>
-          <div class="modal-row" style="margin-bottom:14px;">
-            <div class="field">
-              <label>Odometer at Collection</label>
-              <input type="number" id="edit-odometer" placeholder="e.g. 84200" />
-            </div>
-            <div id="picked-up-by-field" class="field hidden">
-              <label>Picked Up By <span style="font-weight:normal; color:var(--text-muted); font-size:.72rem;">(company vehicle)</span></label>
-              <input type="text" id="edit-picked-up-by" placeholder="Driver or staff member's name" />
-            </div>
-          </div>
-          <div class="field">
-            <label>Collection Notes</label>
-            <textarea id="edit-collection-notes" placeholder="Any final notes on handover"></textarea>
-          </div>
-        </div>
-
+      <div id="job-estimate-fields" hidden>
+        <label for="job-estimated-labour">Provider estimate ($)</label><input id="job-estimated-labour" type="number" min="0" step="0.01" value="0">
       </div>
-
-      <div class="modal-actions">
-        <button id="edit-save" class="btn btn--primary"><i data-lucide="check"></i> Save Work Order</button>
-        <button id="edit-mark-collected" class="btn hidden" type="button"><i data-lucide="check-check"></i> Mark as Collected</button>
-        <button id="edit-cancel" class="btn"><i data-lucide="x"></i> Cancel</button>
-        <div class="modal-actions-secondary">
-          <a id="edit-quote-link" class="btn" href="quotations.html"><i data-lucide="file-plus-2"></i> Create Quotation</a>
-          <a id="edit-receipt-link" class="btn hidden" href="receipts.html"><i data-lucide="receipt"></i> Generate Receipt</a>
-          <button id="edit-diagnosis-whatsapp" class="btn" type="button"><i data-lucide="message-circle"></i> WhatsApp Update</button>
-          <button id="edit-diagnosis-email" class="btn" type="button"><i data-lucide="mail"></i> Email Update</button>
-          <button id="edit-whatsapp" class="btn hidden" type="button"><i data-lucide="message-circle"></i> Notify Client</button>
-        </div>
-      </div>
+      <select id="f-tech"><option value="">Assign technician (optional)</option></select>
+      <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Create job card</button>
     </div>
-  </div>
+  </section>
 
-  <footer class="site-foot">
-    <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
-    <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
-  </footer>
+  <section class="panel" id="v-doc" hidden>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span>
+      <label for="d-status" class="sr-only">Status</label><select class="st" id="d-status"></select></div>
+    <div class="rc-bar" style="margin:16px 0">
+      <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp update</button>
+      <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
+      <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
+      <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+      <button class="btn btn--primary" id="s-inv"><i data-lucide="receipt"></i> Create invoice</button>
+    </div>
+    <section class="panel" id="job-payment-panel" aria-labelledby="job-payment-title">
+      <h2 id="job-payment-title">Payments &amp; account credit</h2>
+      <p class="section-note" id="job-payment-summary">Loading payment balance…</p>
+      <div class="two">
+        <label>Payment amount ($)<input id="job-payment-amount" type="number" min="0.01" step="0.01" inputmode="decimal"></label>
+        <label>Payment method<select id="job-payment-method"><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Mobile money</option><option>Other</option></select></label>
+      </div>
+      <button class="btn btn--primary" id="job-record-payment" type="button">Record payment</button>
+      <div id="job-payment-history" aria-live="polite"></div>
+    </section>
+    <div class="rc-doc-wrap"><div id="doc"></div></div>
+  </section>
+</div>
+<!-- BOTTOM TAB BAR -->
+      <nav class="tabbar" aria-label="Main">
+        <a class="tab" href="../index.html" aria-label="Home">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6L5 21v21h14V30h10v12h14V21z"/></svg><span>Home</span>
+        </a>
+        <button type="button" class="tab" id="tab-search" aria-label="Search">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="M30 30l11 11"/></svg><span>Search</span>
+        </button>
+        <a class="tab" href="customers.html" aria-label="Customers">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 41c0-9 6-15 14-15s14 6 14 15z"/><path d="M8 34c-2-5 0-9 5-11M40 34c2-5 0-9-5-11"/></svg>
+          <span>Customers</span>
+          <span class="tab-badge" id="tab-badge" hidden>0</span>
+        </a>
+        <a class="tab" aria-current="page" href="repairs.html" aria-label="Workshop and Job Cards">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 41V19L24 7l17 12v22"/><path d="M14 41V25h20v16"/><circle cx="24" cy="33" r="4"/><path d="M24 26v2M24 38v2M17 33h2M29 33h2"/></svg><span>Workshop</span>
+        </a>
+        <a class="tab" href="quotations.html" aria-label="Documents and Quotations">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h18l8 8v28H12z"/><path d="M30 6v8h8M18 22h14M18 29h14M18 36h8"/></svg><span>Quotes</span>
+        </a>
+      </nav>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-<script type="module" src="../js/repairs.js"></script>
+      <footer class="site-foot">
+        <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/app.js"></script>
+<script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
-<script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+<script>
+(()=>{const $=id=>document.getElementById(id);const c=$("hdr-clock"),l=$("hdr-live"),d=$("dashboard-date");
+const t=()=>{const n=new Date();c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};t();setInterval(t,1000);
+const o=()=>{l.dataset.state=navigator.onLine?"online":"offline";l.querySelector("span").textContent=navigator.onLine?"Live":"Offline"};addEventListener("online",o);addEventListener("offline",o);o()})();
+</script>
+<script type="module">
+import supabase from "../js/supabaseClient.js";
+const $=id=>document.getElementById(id);
+const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
+const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
+const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
+const DEFAULT_ST=["open","in progress","awaiting parts","completed","delivered"];
+let jobs=[],techs={},cur=null,filter="all",vehicles=[],labourTiers=[];
+const veh=v=>v?[v.year,v.make,v.model].filter(Boolean).join(" "):"";
+const jn=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
+const stClass=s=>/complet|deliver|closed|paid/i.test(s||"")?"paid":"";
+const money=v=>"$"+Number(v||0).toFixed(2);
+function updateLabourPreview(){
+ const mode=$("job-labour-mode").value,timeMode=mode==="time_based";
+ $("job-time-fields").hidden=!timeMode;$("job-estimate-fields").hidden=timeMode;
+ const tier=labourTiers.find(x=>x.id===$("job-rate-tier").value),hours=Number($("job-labour-hours").value)||0;
+ $("job-time-price").textContent=timeMode&&tier?`${hours} hour${hours===1?"":"s"} × ${money(tier.hourly_rate)}/hr = ${money(hours*Number(tier.hourly_rate))}`:"";
+}
+async function loadLabourTiers(){
+ if($("job-rate-tier").dataset.loaded)return;
+ const{data,error}=await supabase.from("vehicle_rate_tiers").select("id,tier_name,hourly_rate,is_default,is_active").order("sort_order");
+ if(error)throw error;
+ labourTiers=(data||[]).filter(t=>t.is_active!==false);
+ $("job-rate-tier").innerHTML=labourTiers.map(t=>`<option value="${esc(t.id)}">${esc(t.tier_name)} — ${money(t.hourly_rate)}/hr</option>`).join("")||'<option value="">No time-based rates configured</option>';
+ const preferred=labourTiers.find(t=>t.is_default)||labourTiers[0];
+ if(preferred)$("job-rate-tier").value=preferred.id;
+ $("job-rate-tier").dataset.loaded="true";
+ updateLabourPreview();
+}
+$("job-labour-mode").addEventListener("change",updateLabourPreview);
+$("job-rate-tier").addEventListener("change",updateLabourPreview);
+$("job-labour-hours").addEventListener("input",updateLabourPreview);
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
+function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
+const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(jobs.length?[]:DEFAULT_ST)])];
 
-  <!-- Visual-only helpers: clock, online dot, slide-out menu, status colour on job rows. No data, no auth. -->
-  <script>
-    (() => {
-      const $ = id => document.getElementById(id);
-      $("hdr-date").textContent = new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
-      const clock = $("hdr-clock"), live = $("hdr-live");
-      const tick = () => { clock.textContent = new Date().toLocaleTimeString("en-GB", { hour12: false }); };
-      tick(); setInterval(tick, 1000);
-      const net = () => { const on = navigator.onLine; live.dataset.state = on ? "online" : "offline"; live.querySelector("span").textContent = on ? "Live" : "Offline"; };
-      addEventListener("online", net); addEventListener("offline", net); net();
+/* ---------- list ---------- */
+async function load(){
+ const [j,t]=await Promise.all([
+  supabase.from("repair_jobs").select("*, customers(full_name,phone,email), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
+  supabase.from("technician_directory").select("id,full_name").limit(300)]);
+ if(j.error){$("list").innerHTML=`<div class="ov-empty">Couldn't load job cards: ${esc(j.error.message)}</div>`;return}
+ techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
+ const h=new URLSearchParams(location.search).get("highlight");render();
+ const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
+function render(){
+ const q=($("hs-input").value||"").toLowerCase(),sts=statuses();
+ const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.full_name,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
+ const active=jobs.filter(j=>!stClass(j.status)).length;
+ $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
+ $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
+ $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
+ $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)}">${esc(j.status||"open")}</span><small>${esc(j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||'<div class="ov-empty">No job cards match.</div>';
+ $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]))}
 
-      // colour-code each job row by its status text (decoration only: sets a data attribute)
-      const tbody = $("repairs-table");
-      const keyFor = t => {
-        t = (t || "").toLowerCase();
-        if (/hold|waiting|cancel|unclaimed|overdue/.test(t)) return "hold";
-        if (/collect|closed|complete|paid|deliver/.test(t)) return "done";
-        if (/ready|pickup|pick-up/.test(t)) return "ready";
-        if (/progress|repair|working|fix|service|assembl/.test(t)) return "progress";
-        if (/diagnos|inspect|assess|quote/.test(t)) return "diagnosis";
-        if (/new|received|intake|open|pending/.test(t)) return "new";
-        return "";
-      };
-      const paint = () => tbody.querySelectorAll("tr").forEach(tr => {
-        const c = tr.children[4]; if (!c || c.hasAttribute("colspan")) return;
-        const k = keyFor(c.textContent);
-        if (k) { if (tr.dataset.status !== k) tr.dataset.status = k; } else if (tr.dataset.status) delete tr.dataset.status;
-      });
-      new MutationObserver(paint).observe(tbody, { childList: true, subtree: true, characterData: true });
-      paint();
-    })();
-  </script>
+/* ---------- job card document ---------- */
+function docHTML(j){const c=j.customers||{},v=j.vehicles||{};
+return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs</div></div>
+<div><h1>JOB CARD</h1><div style="text-align:right"><b>${jn(j)}</b>${j.cro_number?`<br>CRO ${esc(j.cro_number)}`:""}<br>${dt(j.created_at)}</div></div></div>
+<div class="meta"><div><small>Customer</small><b>${esc(c.full_name||"—")}</b><br>${esc(c.phone||"")}<br>${esc(c.email||"")}</div>
+<div style="text-align:right"><small>Vehicle</small><b>${esc(veh(v)||"—")}</b><br>Reg: <b>${esc(v.license_plate||"—")}</b><br>Technician: ${esc(techs[j.technician_id]||"Unassigned")}</div></div>
+<div><small style="color:#6b7570;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Status</small> <span class="stamp" style="transform:none;margin:0 0 0 6px;font-size:12px">${esc((j.status||"open").toUpperCase())}</span></div>
+<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Fault reported</small><br>${esc(j.fault_reported||"—")}</div>
+<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Labour charge</small><br>${j.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based tier"} · ${money(j.labour_cost||0)}${j.labour_mode==="time_based"&&j.labour_hours?` (${Number(j.labour_hours)} hr${Number(j.labour_hours)===1?"":"s"})`:""}</div>
+<div class="box" style="min-height:130px"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work done / parts used</small>${'<div class="ruled"></div>'.repeat(5)}</div>
+<div class="sig"><div>Customer signature &amp; date</div><div>Technician signature &amp; date</div></div>
+<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
+function open(j){cur=j;$("doc").innerHTML=docHTML(j);
+ const s=[...new Set([...statuses(),...DEFAULT_ST])];$("d-status").innerHTML=s.map(x=>`<option ${x===j.status?"selected":""}>${esc(x)}</option>`).join("");show("doc");loadJobPayments(j)}
+function jobTotal(j){return Math.max(0,Number(j.labour_cost||0)+Number(j.parts_cost||0)+Number(j.incidentals_cost||0))}
+async function loadJobPayments(j){
+ const summary=$("job-payment-summary"),history=$("job-payment-history");
+ summary.textContent="Loading payment balance…";history.textContent="";
+ const{data:payments,error}=await supabase.from("repair_job_payments").select("id,amount,payment_method,paid_at").eq("repair_job_id",j.id).order("paid_at");
+ if(error){summary.textContent="Couldn't load payments: "+error.message;return}
+ const paid=(payments||[]).reduce((sum,p)=>sum+Number(p.amount||0),0);
+ let credit=0;
+ if(j.customer_id){
+  const{data:entries,error:accountError}=await supabase.from("customer_account_statement").select("source_id,balance_due").eq("customer_id",j.customer_id);
+  if(accountError){summary.textContent="Payments loaded, but account credit couldn't be checked: "+accountError.message;console.error("Couldn't check carry-forward account credit:",accountError);return}
+  credit=Math.max(0,-(entries||[]).reduce((sum,e)=>e.source_id===j.id?sum:sum+Number(e.balance_due||0),0));
+ }
+ const total=jobTotal(j),due=Math.max(0,total-paid-credit);
+ summary.textContent=`Total ${money(total)} · Paid ${money(paid)}${credit>.01?` · Available account credit ${money(credit)}`:""} · Balance ${money(due)}`;
+ history.innerHTML=(payments||[]).length?(payments||[]).map(p=>`<div class="rc-row"><span>${esc(p.payment_method)} · ${esc(new Date(p.paid_at).toLocaleString())}</span><b>${money(p.amount)}</b></div>`).join(""):'<p class="section-note">No payments recorded yet.</p>';
+}
+async function ensureJobReceipt(jobId,amount){
+ const{data:existing,error:lookupError}=await supabase.from("receipts").select("id").eq("repair_job_id",jobId).limit(1);
+ if(lookupError)throw new Error("Payment saved, but the job receipt could not be checked: "+lookupError.message);
+ if(existing?.length){
+  const{error}=await supabase.from("receipts").update({amount}).eq("id",existing[0].id);
+  if(error)throw new Error("Payment saved, but the cumulative receipt could not be updated: "+error.message);
+  return;
+ }
+ const{error}=await supabase.from("receipts").insert({repair_job_id:jobId,amount});
+ if(error)throw new Error("Payment saved, but a job receipt could not be created: "+error.message);
+}
+$("job-record-payment").onclick=async()=>{
+ if(!cur)return;
+ const amount=Number($("job-payment-amount").value),button=$("job-record-payment");
+ if(!Number.isFinite(amount)||amount<=0)return toast("Enter a payment amount greater than zero");
+ button.disabled=true;
+ try{
+  const{data:payments,error:lookupError}=await supabase.from("repair_job_payments").select("amount").eq("repair_job_id",cur.id);
+  if(lookupError)throw new Error("Couldn't check existing payments: "+lookupError.message);
+  const{error}=await supabase.from("repair_job_payments").insert({repair_job_id:cur.id,amount,payment_method:$("job-payment-method").value});
+  if(error)throw new Error("Couldn't record payment: "+error.message);
+  const paid=(payments||[]).reduce((sum,p)=>sum+Number(p.amount||0),0)+amount;
+  let receiptWarning="";
+  try{await ensureJobReceipt(cur.id,paid)}catch(receiptError){console.error(receiptError);receiptWarning=receiptError.message||String(receiptError)}
+  $("job-payment-amount").value="";
+  await loadJobPayments(cur);
+  toast(receiptWarning?`Payment recorded. ${receiptWarning}`:"Payment recorded");
+ }catch(error){console.error("Couldn't record repair payment:",error);toast(error.message||String(error))}
+ button.disabled=false;
+};
+$("d-status").onchange=async e=>{const{error}=await supabase.from("repair_jobs").update({status:e.target.value}).eq("id",cur.id);
+ if(error)return toast("Couldn't update: "+error.message);cur.status=e.target.value;$("doc").innerHTML=docHTML(cur);toast("Status updated — tap WhatsApp update to tell the customer");render()};
+
+/* ---------- create flow ---------- */
+async function openBuilder(){show("build");try{await loadLabourTiers()}catch(error){console.error("Couldn't load labour rates:",error);toast("Couldn't load labour rates: "+error.message);return}if($("f-cust").options.length>1)return;
+ const [c,t]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("technician_directory").select("id,full_name").limit(300)]);
+ $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option(x.full_name||"Unnamed",x.id),{_c:x})));
+ $("f-tech").append(...(t.data||[]).map(x=>new Option(x.full_name,x.id)))}
+$("f-cust").onchange=async e=>{const c=e.target.selectedOptions[0]._c;$("f-veh").length=1;
+ if(!c){["name","phone","email"].forEach(k=>$("f-"+k).value="");return}
+ $("f-name").value=c.full_name||"";$("f-phone").value=c.phone||"";$("f-email").value=c.email||"";
+ const{data}=await supabase.from("vehicles").select("id,make,model,year,license_plate").eq("customer_id",c.id);vehicles=data||[];
+ $("f-veh").append(...vehicles.map(v=>new Option(`${veh(v)} ${v.license_plate||""}`,v.id)))};
+$("f-veh").onchange=e=>{const v=vehicles.find(x=>String(x.id)===e.target.value)||{};$("f-make").value=v.make||"";$("f-model").value=v.model||"";$("f-year").value=v.year||"";$("f-plate").value=v.license_plate||""};
+$("save").onclick=async()=>{const b=$("save");
+ if(!$("f-name").value.trim())return toast("Add the customer name");if(!$("f-fault").value.trim())return toast("Describe the fault");
+ const labourMode=$("job-labour-mode").value,rateTier=labourTiers.find(t=>t.id===$("job-rate-tier").value),hours=Number($("job-labour-hours").value)||0;
+ if(labourMode==="time_based"&&(!rateTier||hours<=0))return toast("Choose a rate tier and enter valid labour hours");
+ const labourCost=labourMode==="time_based"?Number((Number(rateTier.hourly_rate)*hours).toFixed(2)):Number($("job-estimated-labour").value);
+ if(!Number.isFinite(labourCost)||labourCost<0)return toast("Enter a valid provider estimate");
+ b.disabled=true;try{
+  let cid=$("f-cust").value||null;
+  if(!cid){const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null}).select().single();if(r.error)throw r.error;cid=r.data.id}
+  let vid=$("f-veh").value||null;
+  if(!vid&&($("f-make").value||$("f-plate").value)){const r=await supabase.from("vehicles").insert({customer_id:cid,make:$("f-make").value||null,model:$("f-model").value||null,year:+$("f-year").value||null,license_plate:$("f-plate").value.toUpperCase()||null}).select().single();if(r.error)throw r.error;vid=r.data.id}
+  const row={customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null};if($("f-tech").value)row.technician_id=$("f-tech").value;
+  let r=await supabase.from("repair_jobs").insert(row).select().single();
+  if(r.error&&row.technician_id){delete row.technician_id;r=await supabase.from("repair_jobs").insert(row).select().single();if(!r.error)toast("Saved without technician (column differs)")}
+  if(r.error)throw r.error;
+  await load();open(jobs.find(x=>x.id===r.data.id)||jobs[0]);toast("Job card created")
+ }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
+
+/* ---------- share ---------- */
+const lib=s=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=s;e.onload=ok;e.onerror=no;document.head.append(e)});
+async function pdf(){if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+ const cv=await html2canvas($("doc"),{scale:2,backgroundColor:"#fff",useCORS:true}),p=new jspdf.jsPDF("p","mm","a4"),w=210,h=cv.height*w/cv.width;p.addImage(cv.toDataURL("image/jpeg",.92),"JPEG",0,0,w,Math.min(h,297));
+ return new File([p.output("blob")],`${jn(cur)}.pdf`,{type:"application/pdf"})}
+const msg=()=>`Hi ${cur.customers?.full_name||""}, update on your ${veh(cur.vehicles)||"vehicle"} ${cur.vehicles?.license_plate?`(${cur.vehicles.license_plate}) `:""}— job ${jn(cur)}: status is now "${cur.status||"open"}".\nCentric Auto Mobile`;
+const save=f=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;a.click()};
+const go=u=>{window.open(u,"_blank")||(location.href=u)};
+$("s-pdf").onclick=async()=>{try{save(await pdf())}catch{toast("PDF failed — use Print → Save as PDF")}};
+$("s-print").onclick=()=>print();
+$("s-wa").onclick=()=>go(`https://wa.me/${waNum(cur.customers?.phone)}?text=${encodeURIComponent(msg())}`);
+$("s-mail").onclick=async()=>{try{save(await pdf());toast("PDF downloaded — attach it to the email")}catch{}
+ go(`mailto:${cur.customers?.email||""}?subject=${encodeURIComponent("Job card "+jn(cur)+" — Centric Auto Mobile")}&body=${encodeURIComponent(msg())}`)};
+$("s-inv").onclick=()=>{const c=cur.customers||{};location.href="receipts.html?"+new URLSearchParams({new:1,name:c.full_name||"",phone:c.phone||"",email:c.email||"",ref:`${jn(cur)} ${cur.vehicles?.license_plate||""}`.trim()})};
+
+$("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
+$("hs-input").oninput=render;
+load();
+</script>
 </body>
 </html>

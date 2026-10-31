@@ -17,6 +17,7 @@ const orderModal = document.getElementById("order-edit-modal");
 let jobs = [];
 let customers = [];
 let parts = [];
+let rateTiers = [];
 let draftItems = [];
 let editingQuote = null;
 let editingOrder = null;
@@ -49,13 +50,14 @@ function itemTypeLabel(item) {
 }
 function itemDisplayName(item) {
   const type = itemType(item);
-  return type === "labour" ? "Labour" : type === "sundry" ? "Sundry" : item.part_name;
+  return type === "labour" ? (item.part_name || "Labour") : type === "sundry" ? "Sundry" : item.part_name;
 }
 function itemQuantityDisplay(item) {
-  return itemType(item) === "labour" ? `${item.quantity} hr` : item.quantity;
+  if (itemType(item) !== "labour") return item.quantity;
+  return /provider estimate/i.test(item.part_name || "") ? "Flat charge" : `${item.quantity} hr`;
 }
 function itemUnitPriceDisplay(item) {
-  return `${money(item.unit_price_usd)}${itemType(item) === "labour" ? "/hr" : ""}`;
+  return `${money(item.unit_price_usd)}${itemType(item) === "labour" && !/provider estimate/i.test(item.part_name || "") ? "/hr" : ""}`;
 }
 
 function vehicleLabel(vehicle) {
@@ -75,17 +77,27 @@ function resolveCustomer(record) {
 
 async function loadBaseData() {
   exchangeRate = await getRate();
-  const [jobsResult, partsResult, customersResult] = await Promise.all([
-    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
+  const [jobsResult, partsResult, customersResult, tiersResult] = await Promise.all([
+    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
-    supabase.from("customers").select("id, full_name, phone, email, vehicles(id, license_plate, make, model)").order("full_name"),
+    supabase.from("customers").select("id, full_name, phone, email, vehicles(id, license_plate, make, model)").is("deleted_at", null).order("full_name"),
+    supabase.from("vehicle_rate_tiers").select("id, tier_name, hourly_rate, is_default, is_active").order("sort_order"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
   if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
   if (customersResult.error) console.error("Quotation customers load failed:", customersResult.error);
+  if (tiersResult.error) console.error("Quotation labour rates load failed:", tiersResult.error);
   jobs = jobsResult.data || [];
   parts = partsResult.data || [];
   customers = customersResult.data || [];
+  rateTiers = (tiersResult.data || []).filter(tier => tier.is_active !== false);
+  const labourTierSelect = document.getElementById("quote-labour-tier");
+  if (labourTierSelect) {
+    labourTierSelect.innerHTML = rateTiers.map(tier => `<option value="${escapeHtml(tier.id)}">${escapeHtml(tier.tier_name)} — ${money(tier.hourly_rate)}/hr</option>`).join("")
+      || `<option value="">No time-based rates configured</option>`;
+    const defaultTier = rateTiers.find(tier => tier.is_default) || rateTiers[0];
+    if (defaultTier) labourTierSelect.value = defaultTier.id;
+  }
   jobSelect.innerHTML = `<option value="">No job card — walk-in customer</option>` + jobs.map(job => {
     const vehicle = vehicleLabel(job.vehicles);
     const plate = job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
@@ -146,6 +158,7 @@ function renderJobSummary(job) {
       ${cell("Engine no.", v.engine_number)}
       ${cell("Fuel in", job.fuel_level_in)}
       ${cell("Odometer in", job.odometer_in != null ? Number(job.odometer_in).toLocaleString() + " km" : "")}
+      ${cell("Labour charge", Number(job.labour_cost) > 0 ? `${job.labour_mode === "provider_estimate" ? "Provider-estimated task price" : "Time-based tier"} · ${money(job.labour_cost)}` : "")}
     </div>
     <div class="qjs-text"><span>Fault reported</span><p>${escapeHtml(job.fault_reported || "—")}</p></div>
     <div class="qjs-text"><span>Diagnosis</span><p>${escapeHtml(job.diagnosis || "Not diagnosed yet")}</p></div>`;
@@ -172,7 +185,15 @@ async function loadFromJob(jobId) {
   });
   if (Number(job.labour_cost) > 0) {
     const hours = Number(job.labour_hours) > 0 ? Number(job.labour_hours) : 1;
-    items.push({ kind: "labour", part_id: null, part_name: "Labour", quantity: hours, cost_price_usd: 0, unit_price_usd: Number((Number(job.labour_cost) / hours).toFixed(2)) });
+    const estimated = job.labour_mode === "provider_estimate";
+    items.push({
+      kind: "labour",
+      part_id: null,
+      part_name: estimated ? "Labour (provider estimate)" : "Labour (time-based tier)",
+      quantity: estimated ? 1 : hours,
+      cost_price_usd: 0,
+      unit_price_usd: Number((Number(job.labour_cost) / (estimated ? 1 : hours)).toFixed(2)),
+    });
   }
   (incRes.data || []).forEach(inc => {
     items.push({ kind: "sundry", part_id: null, part_name: "Sundry", quantity: 1, cost_price_usd: 0, unit_price_usd: Number(inc.amount) });
@@ -219,19 +240,42 @@ document.getElementById("quote-add-part").addEventListener("click", () => {
   renderDraft();
 });
 
+document.getElementById("quote-labour-mode")?.addEventListener("change", event => {
+  const timeBased = event.currentTarget.value === "time_based";
+  document.getElementById("quote-time-fields").hidden = !timeBased;
+  document.getElementById("quote-estimate-fields").hidden = timeBased;
+});
+
 document.getElementById("quote-add-labour")?.addEventListener("click", () => {
-  const rateInput = document.getElementById("quote-labour-rate");
-  const hoursInput = document.getElementById("quote-labour-hours");
-  const rawRate = rateInput.value.trim();
-  const rawHours = hoursInput.value.trim();
-  const rate = Number(rawRate);
-  const hours = Number(rawHours);
-  if (!rawRate || !Number.isFinite(rate) || rate < 0 || !rawHours || !Number.isFinite(hours) || hours <= 0) {
-    alert("Enter a valid labour rate per hour and the number of hours.");
+  const mode = document.getElementById("quote-labour-mode").value;
+  if (mode === "provider_estimate") {
+    const estimateInput = document.getElementById("quote-labour-estimate");
+    const estimate = Number(estimateInput.value);
+    if (!estimateInput.value.trim() || !Number.isFinite(estimate) || estimate < 0) {
+      alert("Enter a valid provider-estimated task price.");
+      return;
+    }
+    draftItems.push({
+      kind: "labour",
+      part_id: null,
+      part_name: "Labour (provider estimate)",
+      quantity: 1,
+      cost_price_usd: 0,
+      unit_price_usd: Number(estimate.toFixed(2)),
+    });
+    estimateInput.value = "";
+    renderDraft();
     return;
   }
-  draftItems.push({ kind: "labour", part_id: null, part_name: "Labour", quantity: hours, cost_price_usd: 0, unit_price_usd: Number(rate.toFixed(2)) });
-  rateInput.value = "";
+  const tier = rateTiers.find(item => item.id === document.getElementById("quote-labour-tier").value);
+  const hoursInput = document.getElementById("quote-labour-hours");
+  const rawHours = hoursInput.value.trim();
+  const hours = Number(rawHours);
+  if (!tier || !rawHours || !Number.isFinite(hours) || hours <= 0) {
+    alert("Choose a time-based rate tier and enter valid labour hours.");
+    return;
+  }
+  draftItems.push({ kind: "labour", part_id: null, part_name: "Labour (time-based tier)", quantity: hours, cost_price_usd: 0, unit_price_usd: Number(Number(tier.hourly_rate).toFixed(2)) });
   hoursInput.value = "";
   renderDraft();
 });
@@ -275,6 +319,7 @@ quoteForm.addEventListener("submit", async event => {
     const { data: existingCustomer, error: customerLookupError } = await supabase.from("customers")
       .select("id")
       .eq("phone", walk_in_phone)
+      .is("deleted_at", null)
       .limit(1);
     if (customerLookupError) {
       alert("Couldn't check the walk-in customer: " + customerLookupError.message);
@@ -366,7 +411,8 @@ async function fetchOrder(id) {
 async function renderEditor(container, totalNode, items, rate = exchangeRate) {
   container.innerHTML = items.map((item, index) => {
     const isLabour = itemType(item) === "labour";
-    return `<div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${isLabour ? "price per hour USD" : "unit price USD"}</small></span><input class="amend-qty" data-index="${index}" type="number" min="${isLabour ? "0.01" : "1"}" step="${isLabour ? "any" : "1"}" value="${item.quantity}" /><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" /></div>`;
+    const flatEstimate = isLabour && /provider estimate/i.test(item.part_name || "");
+    return `<div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${flatEstimate ? "flat estimate USD" : isLabour ? "price per hour USD" : "unit price USD"}</small></span><input class="amend-qty" data-index="${index}" type="number" min="${isLabour && !flatEstimate ? "0.01" : "1"}" step="${isLabour && !flatEstimate ? "any" : "1"}" value="${item.quantity}" ${flatEstimate ? "disabled" : ""} /><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" /></div>`;
   }).join("");
   const recalc = () => { const total = [...container.querySelectorAll(".amend-qty")].reduce((sum, input, index) => sum + Number(input.value || 0) * Number(container.querySelectorAll(".amend-price")[index].value || 0), 0); totalNode.textContent = `${money(total)} / ZiG ${Number(total * rate).toFixed(2)}`; };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));

@@ -381,7 +381,8 @@
   <div id="restock-modal" class="modal-overlay hidden">
     <div class="modal">
       <h3>Restock <span id="restock-part-name"></span></h3>
-      <div class="field"><label for="restock-supplier">Supplier</label><select id="restock-supplier"></select></div>
+      <div class="field"><label for="restock-supplier">Supplier</label><input id="restock-supplier" list="restock-supplier-options" placeholder="Type a supplier name or choose one"><datalist id="restock-supplier-options"></datalist></div>
+      <div class="field"><label for="restock-supplier-email">Supplier email (for new suppliers or ordering)</label><input type="email" id="restock-supplier-email" placeholder="supplier@example.com"></div>
       <div class="field"><label for="restock-quantity">Quantity</label><input type="number" id="restock-quantity" min="1" required /></div>
       <div class="field"><label for="restock-unit-cost">Unit Cost ($)</label><input type="number" id="restock-unit-cost" step="0.01" min="0" required /></div>
       <div class="field"><label for="restock-payment-status">Purchase payment</label><select id="restock-payment-status"><option value="paid">Paid now</option><option value="on_credit">Buy on credit</option></select></div>
@@ -389,8 +390,21 @@
       <p id="restock-invoice-note" class="section-note">Paid purchases are posted to cash/bank. Credit purchases create a supplier invoice in Payables.</p>
       <p id="restock-message" class="form-message" role="status"></p>
       <div class="restock-modal-actions">
+        <button id="restock-email-order" type="button" class="btn"><i data-lucide="mail"></i> Email parts order</button>
         <button id="restock-save" type="button" class="btn btn--primary"><i data-lucide="package-plus"></i> Save Restock</button>
         <button id="restock-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="purchase-print-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="purchase-print-title">
+    <div class="modal">
+      <h3 id="purchase-print-title">Purchase confirmed</h3>
+      <p id="purchase-print-summary" class="section-note"></p>
+      <div class="field"><label for="purchase-print-type">Printer format</label><select id="purchase-print-type"><option value="standard">Standard printer (A4)</option><option value="thermal">Thermal printer (80 mm)</option></select></div>
+      <div class="restock-modal-actions">
+        <button id="purchase-print-now" type="button" class="btn btn--primary"><i data-lucide="printer"></i> Print receipt</button>
+        <button id="purchase-print-close" type="button" class="btn">Done</button>
       </div>
     </div>
   </div>
