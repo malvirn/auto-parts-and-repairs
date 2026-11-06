@@ -153,7 +153,10 @@ addLineBtn.addEventListener("click", addJournalLine);
 
 journalForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (journalForm.dataset.submitting === "true") return;
+  journalForm.dataset.submitting = "true";
 
+  try {
   const lines = [...journalLinesContainer.querySelectorAll(".journal-line-row")].map(row => ({
     account_id: row.querySelector(".je-account").value,
     debit: Number(row.querySelector(".je-debit").value) || 0,
@@ -194,6 +197,10 @@ journalForm.addEventListener("submit", async (e) => {
   journalFormMessage.textContent = "Entry posted."; journalFormMessage.dataset.tone = "success";
   loadEntries();
   loadTrialBalance();
+  } finally {
+    delete journalForm.dataset.submitting;
+    recalcBalance();
+  }
 });
 
 // ---------- Recent entries ----------

@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>document.documentElement.style.visibility = "hidden";</script>
+  <script>
+    document.documentElement.style.visibility = "hidden";
+    (() => {
+      if (!window.location.pathname.endsWith("/login.html")) {
+        let hasSession = false;
+        try {
+          hasSession = Object.keys(sessionStorage).some(key =>
+            key.includes("-auth-token") && sessionStorage.getItem(key)
+          );
+        } catch (_) {}
+        if (!hasSession) window.location.replace("login.html");
+      }
+    })();
+  </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -21,7 +34,8 @@
 
   <!-- Dashboard styles stay local so shared application themes cannot alter its layout. -->
   <style id="dashboard-design">
-    html{background:#0b1012;color-scheme:dark}
+    html{background:#0b1012;color-scheme:dark;width:100%;height:100%;overflow-x:hidden}
+    html body.dashboard-page{width:100%;min-height:100vh;min-height:100svh;padding:0!important;overflow-y:auto!important;overflow-x:hidden!important}
     body.dashboard-page{
       --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
       --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
@@ -29,17 +43,17 @@
       /* re-point the variables your existing css/js use so generated content picks up the theme */
       --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
       --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
-      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
-      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;
-      padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));
+      margin:0; min-height:100vh; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
+      -webkit-font-smoothing:antialiased; height:auto;
+      padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));
     }
     body.dashboard-page *{box-sizing:border-box}
-    body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100svh;overflow:visible!important;background:none}
+    body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100vh;overflow:visible!important;background:none}
     body.dashboard-page .main{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:none}
     .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     /* ===== header ===== */
-    body.dashboard-page .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;
+    body.dashboard-page .app-header{position:sticky;top:0;z-index:1200;display:flex;align-items:center;justify-content:space-between;gap:18px;
       min-height:0;margin:0;padding:22px clamp(14px,3.8vw,58px) 34px;border:0;background:linear-gradient(180deg,#0e1517,#0a1011)}
     .app-header .curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:28px;pointer-events:none}
     .hdr-brand{display:flex;align-items:center;gap:clamp(12px,1.6vw,22px);min-width:0}
@@ -59,8 +73,8 @@
     .tile:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
     /* ===== hero ===== */
-    .hero{position:relative;display:flex;flex-direction:column;min-height:max(560px,calc(100svh - 270px));overflow:hidden;isolation:isolate;
-      padding:clamp(34px,11vh,140px) 0 clamp(22px,8vh,92px)}
+    .hero{position:relative;display:flex;flex-direction:column;min-height:auto;overflow:hidden;isolation:isolate;
+      padding:clamp(28px,6vh,90px) 0 clamp(20px,4vh,60px)}
     .hero-bg{position:absolute;inset:0;z-index:-2;background:url("assets/dashboard-hero.jpeg") center right/cover no-repeat;
       transform:translate3d(calc(var(--px,0)*-12px),calc(var(--py,0)*-8px),0) scale(1.05);transition:transform 160ms linear}
     .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
@@ -73,7 +87,7 @@
     .hero-lede{margin:0;max-width:none;color:#e8eee9;font-size:clamp(14px,1.7vw,22px);line-height:1.5;text-shadow:0 2px 12px rgba(0,0,0,.6)}
     .accent-bar{display:block;width:clamp(70px,7.2vw,110px);height:5px;margin-top:22px;border-radius:3px;background:linear-gradient(90deg,var(--green-bright) 0 52%,var(--orange) 52% 100%)}
 
-    .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(8px,1.8vw,27px);margin:auto clamp(14px,7vw,106px) 0;padding-top:34px;perspective:900px}
+    .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:560px;gap:clamp(8px,1.8vw,27px);margin:34px clamp(14px,7vw,106px) 0;padding-top:0;perspective:900px}
     .tile{--c:var(--green);display:grid;place-items:center;aspect-ratio:243/157;padding:0;border:clamp(2px,.2vw,3px) solid var(--c);border-radius:clamp(10px,1vw,16px);
       background:rgba(14,21,20,.84);color:#fff;text-decoration:none;cursor:pointer;font:inherit;box-shadow:0 14px 28px rgba(0,0,0,.35),inset 0 0 30px rgba(0,0,0,.25);
       transition:transform 380ms var(--ease),box-shadow 380ms var(--ease),background 300ms}
@@ -234,13 +248,13 @@
     :root[data-theme="light"] body.dashboard-page .dash-content .global-search__icon,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__item{color:#111}
 
     /* ===== phones ===== */
-    @media (max-width:760px){
+    @media (max-width:768px){
       body.dashboard-page .app-header{padding-bottom:30px}
       .hdr-sub,.hdr-divider,.hdr-hello{display:none}
       .hdr-time #dashboard-date{display:none}
       .tiles{margin-inline:14px}
     }
-    @media (max-width:430px){
+    @media (max-width:480px){
       .hero{padding-top:30px}
       .tab-badge{min-width:22px;height:22px;font-size:12px}
     }
@@ -250,7 +264,7 @@
     }
     /* ===== header: search + top-right "more" menu ===== */
     [hidden]{display:none!important}
-    body.dashboard-page .app-header{display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right menu";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px}
+    body.dashboard-page .app-header{display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right actions";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px}
     body.dashboard-page .hdr-brand{grid-area:brand}
     body.dashboard-page .hdr-right{grid-area:right}
     .hs{grid-area:search;position:relative;width:100%;max-width:640px;min-width:0;justify-self:center}
@@ -275,19 +289,43 @@
     .hs-item small{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
     .hs-empty{padding:22px 14px;color:var(--muted);font-size:.9rem;text-align:center}
 
-    .hdr-menu-wrap{grid-area:menu;position:relative;margin-right:56px}
+    .hdr-header-actions{grid-area:actions;display:flex;align-items:center;justify-self:end;gap:10px;min-width:0}
+    .hdr-header-actions .dashboard-toolbar-button,.hdr-header-actions .dashboard-connection-status{position:relative;display:inline-flex;width:38px;height:38px;flex:none;align-items:center;justify-content:center;padding:0;border:1px solid rgba(31,196,103,.34);border-radius:10px;background:rgba(238,243,239,.07);color:#eef3ef;text-decoration:none}
+    .hdr-header-actions .dashboard-toolbar-button{cursor:pointer}
+    .hdr-header-actions .dashboard-new-job[hidden]{display:none!important}
+    .hdr-header-actions .dashboard-toolbar-button:hover{border-color:#1fc467;background:rgba(31,196,103,.16)}
+    .hdr-header-actions .dashboard-toolbar-button svg,.hdr-header-actions .dashboard-connection-status>svg{width:17px;height:17px}
+    .hdr-header-actions .dashboard-connection-bars{display:inline-flex;height:12px;align-items:flex-end;gap:2px;margin-left:2px}
+    .hdr-header-actions .dashboard-connection-bars i{width:3px;border-radius:2px;background:currentColor}
+    .hdr-header-actions .dashboard-connection-bars i:nth-child(1){height:4px}.hdr-header-actions .dashboard-connection-bars i:nth-child(2){height:8px}.hdr-header-actions .dashboard-connection-bars i:nth-child(3){height:12px}
+    .hdr-header-actions .dashboard-connection-status[data-state="good"]{color:#29c66f}.hdr-header-actions .dashboard-connection-status[data-state="fair"]{color:#f0c84b}.hdr-header-actions .dashboard-connection-status[data-state="poor"]{color:#ff922e}.hdr-header-actions .dashboard-connection-status[data-state="offline"]{color:#ef5350}
+    .hdr-header-actions .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i:not(:first-child),.hdr-header-actions .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i:not(:first-child){opacity:.25}
+    .hdr-header-actions .dashboard-connection-status[data-state="fair"] .dashboard-connection-bars i:last-child{opacity:.35}
+    .hdr-header-actions #global-notif-bell,.hdr-header-actions .theme-toggle,.hdr-header-actions .hdr-more{width:38px;height:38px;border-radius:10px}
+    .hdr-header-actions #global-notif-bell{position:relative;top:auto;right:auto;z-index:auto;box-shadow:none}
+    .hdr-header-actions .hdr-more{display:grid;place-items:center;padding:0}
+    .hdr-header-actions .theme-toggle{position:static}
+    .hdr-header-actions>*{order:5}
+    .hdr-header-actions #global-notif-bell{order:1}
+    .hdr-header-actions .dashboard-connection-status{order:2}
+    .hdr-header-actions .dashboard-refresh{order:3}
+    .hdr-header-actions .dashboard-new-job{order:4}
+    .hdr-header-actions .theme-toggle{order:5}
+    .hdr-header-actions .hdr-menu-wrap{order:6}
+    :root[data-theme="light"] .hdr-header-actions .dashboard-toolbar-button,:root[data-theme="light"] .hdr-header-actions .dashboard-connection-status{border-color:#d0d3d6;background:#fff}
+    :root[data-theme="light"] .hdr-header-actions #global-notif-bell{color:#111}
+    .hdr-menu-wrap{position:relative;display:flex;align-items:center;gap:10px}
     .hdr-more{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);cursor:pointer;transition:background 200ms,border-color 200ms}
     .hdr-more:hover,.hdr-more[aria-expanded="true"]{border-color:var(--green-bright);background:rgba(31,196,103,.16)}
     .hdr-more svg{width:22px;height:22px;fill:currentColor}
-    .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:95;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:1201;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    body.dashboard-page .theme-toggle{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid rgba(31,196,103,.34);border-radius:50%;background:rgba(238,243,239,.07);color:#eef3ef;cursor:pointer}
+    body.dashboard-page .theme-toggle svg{width:20px;height:20px}
+    :root[data-theme="light"] body.dashboard-page .hdr-more,:root[data-theme="light"] body.dashboard-page .theme-toggle{border-color:#d0d3d6;background:#fff;color:#111}
     .hdr-menu .m-head{padding:12px 10px 4px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
     .hdr-menu a{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px;border-radius:10px;color:var(--text);font-size:.92rem;font-weight:500;text-decoration:none}
     .hdr-menu a:hover,.hdr-menu a:focus-visible,.hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
     .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
-
-    /* the More menu now lives in the header, so the bottom bar keeps only its four main links */
-    .apr-more-wrap{display:none!important}
-    .apr-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
 
     /* ===== system overview ===== */
     .dash-content a.stat-card{display:block;text-decoration:none}
@@ -310,69 +348,245 @@
     .ov-bar i{display:block;height:100%;border-radius:4px;background:var(--green-bright)}
     .ov-empty{padding:14px 0;color:var(--muted);font-size:.88rem}
 
-    @media (min-width:761px) and (max-width:1400px){
+    @media (min-width:769px) and (max-width:1400px){
       .hdr-right .hdr-divider,.hdr-hello{display:none} /* give the search bar the room */
     }
-    @media (max-width:760px){
-      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand right menu" "search search search"}
+    @media (max-width:768px){
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand actions" "search search"}
+      body.dashboard-page .hdr-right{display:none}
       .hs{max-width:none;justify-self:stretch}
       #hs-input{font-size:16px}
       .hs-kbd{display:none}
     }
-    @media (max-width:560px){
+    @media (max-width:480px){
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"brand brand" "search actions"!important;row-gap:8px}
+      .hdr-header-actions{justify-self:end;gap:3px}
+      .hdr-header-actions .dashboard-toolbar-button,.hdr-header-actions .dashboard-connection-status,.hdr-header-actions #global-notif-bell,.hdr-header-actions .theme-toggle,.hdr-header-actions .hdr-more{width:32px;height:32px;border-radius:8px}
+      .hdr-header-actions .dashboard-connection-status>svg{width:14px;height:14px}
+      .hdr-brand .dashboard-hero__logo{width:40px}
+      .hdr-brand{gap:8px}
+      .hdr-name{font-size:18px}
+      .hdr-more,body.dashboard-page .theme-toggle,body.dashboard-page #global-notif-bell{width:40px;height:40px}
+    }
+    @media (max-width:360px){
+      body.dashboard-page .hdr-header-actions{gap:2px}
+      body.dashboard-page .hdr-header-actions .dashboard-toolbar-button,body.dashboard-page .hdr-header-actions .dashboard-connection-status,body.dashboard-page .hdr-header-actions #global-notif-bell,body.dashboard-page .hdr-header-actions .theme-toggle,body.dashboard-page .hdr-header-actions .hdr-more{width:28px;height:28px}
+    }
+    @media (max-width:576px){
       .hdr-clock{display:none}
     }
+  
+    /* ===== footer: one bar, 4 icon buttons ===== */
+    .tabbar,.apr-bottom-nav{display:none!important}
+    .ftbar{position:fixed;left:0;right:0;bottom:0;z-index:900;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding-bottom:env(safe-area-inset-bottom,0);background:#080e10;border-top:1px solid rgba(255,255,255,.1)}
+    .ftbar a{position:relative;display:grid;place-items:center;height:62px;font-size:26px;color:#9fb0a6;text-decoration:none;transition:color .2s}
+    .ftbar a:hover,.ftbar a:focus-visible{color:#eef3ef;outline:none}
+    .ftbar svg{width:1em;height:1em;display:block;fill:currentColor;stroke:none}
+    .ftbar a[aria-current="page"]{color:#fff}
+    .ftbar a[aria-current="page"]::before{content:"";position:absolute;top:0;width:42px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright)}
+    .ftbar .tab-badge{display:none!important}
+    :root[data-theme="light"] .ftbar{background:rgba(255,255,255,.98);border-top-color:#d0d3d6;box-shadow:0 -6px 20px rgba(0,0,0,.1)}
+    :root[data-theme="light"] .ftbar a{color:#44484c}
+    :root[data-theme="light"] .ftbar a:hover,:root[data-theme="light"] .ftbar a[aria-current="page"]{color:#111}
+    @media print{.ftbar{display:none!important}}
+
+    /* ===== header three-dot menu: modules in categories ===== */
+    .hdr-menu .m-group{margin-top:2px}
+    .hdr-menu .m-grp{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:10px;border:0;border-radius:10px;background:none;color:var(--text);font:600 .92rem var(--font);text-align:left;cursor:pointer}
+    .hdr-menu .m-grp:hover,.hdr-menu .m-grp:focus-visible,.hdr-menu .m-grp[aria-expanded="true"]{background:rgba(31,196,103,.12);outline:none}
+    .hdr-menu .m-grp>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .hdr-menu .m-grp>span:first-of-type{flex:1}
+    .hdr-menu .m-chev{width:8px;height:8px;flex:none;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
+    .hdr-menu .m-grp[aria-expanded="true"] .m-chev{transform:rotate(225deg) translate(-2px,-1px)}
+    .hdr-menu .m-items{margin:2px 0 8px 19px;padding-left:8px;border-left:1px solid var(--line)}
+    .hdr-menu .m-items[hidden]{display:none!important}
+    .hdr-menu .m-items a{min-height:40px;font-size:.88rem}
+
+    /* Dashboard header responsive safety patch: scoped to this page only. */
+    @media (max-width: 768px) {
+      body.dashboard-page .app-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas: "brand actions" "search search" !important;
+        align-items: center;
+        gap: 8px;
+        padding: 16px clamp(14px, 3.8vw, 28px) 28px;
+      }
+      body.dashboard-page .hdr-brand { grid-area: brand; }
+      body.dashboard-page .hs { grid-area: search; width: 100%; min-width: 0; }
+      body.dashboard-page .hdr-header-actions { grid-area: actions; justify-self: end; }
+      body.dashboard-page .hdr-right { display: none; }
+    }
+    @media (max-width: 576px) {
+      body.dashboard-page .app-header { gap: 8px; padding-top: 12px; }
+      body.dashboard-page .hdr-brand .dashboard-hero__logo { width: 40px; }
+      body.dashboard-page .hdr-brand .hdr-divider { height: 34px; }
+      body.dashboard-page .hdr-name { font-size: 17px; }
+      body.dashboard-page .hdr-sub { font-size: 10px; }
+      body.dashboard-page .hdr-right { gap: 10px; }
+      body.dashboard-page .hdr-time { min-width: 0; }
+      body.dashboard-page .hdr-hello { font-size: 12px; }
+    }
+    /* Workshop shell: preserves existing IDs/data cards while replacing the dashboard chrome. */
+    body.dashboard-workshop{padding:0;background:#071112}
+    body.dashboard-workshop .app-shell{display:block!important;min-height:100svh;background:radial-gradient(circle at 72% 8%,rgba(18,161,80,.12),transparent 28%)}
+    body.dashboard-workshop .main{width:auto!important;min-width:0;margin:0 0 0 224px!important;padding:88px clamp(16px,3vw,46px) 48px!important;min-height:100svh;background:transparent!important;transition:margin-left .24s}
+    body.dashboard-workshop .app-header,body.dashboard-workshop .site-foot,body.dashboard-workshop .ftbar{display:none!important}
+    body.dashboard-workshop .dashboard-topbar{position:fixed;z-index:1200;top:12px;right:20px;left:244px;display:flex;align-items:center;gap:10px;height:52px;transition:left .24s}
+    body.dashboard-workshop .dashboard-topbar .hs{flex:1;width:auto;max-width:none;min-width:120px;justify-self:stretch}
+    body.dashboard-workshop .dashboard-topbar .hs-bar{height:44px;border-color:rgba(174,224,202,.22);border-radius:11px;background:rgba(16,33,36,.94)}
+    body.dashboard-workshop .dashboard-topbar #hs-input{font-size:14px}
+    body.dashboard-workshop .dashboard-topbar .theme-toggle{position:static;display:grid;flex:none;width:44px;height:44px;place-items:center;padding:0;border:1px solid rgba(174,224,202,.22);border-radius:11px;background:#102124;color:#eef5f1;cursor:pointer;box-shadow:none}
+    body.dashboard-workshop .dashboard-topbar .theme-toggle:hover{border-color:#1fc467;background:#18312a}
+    body.dashboard-workshop .dashboard-topbar #global-notif-bell{position:relative;top:auto;right:auto;z-index:auto;display:flex;flex:none;width:44px;height:44px;border-color:rgba(174,224,202,.22);border-radius:11px;background:#102124;color:#eef5f1;box-shadow:none}
+    body.dashboard-workshop .dashboard-topbar #global-notif-bell:hover{border-color:#1fc467;background:#18312a}
+    body.dashboard-workshop .dashboard-topbar #hs-panel{top:calc(100% + 8px);left:0;right:0;width:auto;max-height:min(70vh,560px)}
+    body.dashboard-workshop #global-notif-panel{top:64px;right:20px;width:min(340px,calc(100vw - 24px))}
+    body.dashboard-workshop .sidebar{position:fixed!important;z-index:1300!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;display:flex!important;flex-direction:column;width:224px!important;height:100vh!important;height:100dvh!important;margin:0!important;padding:20px 12px 16px!important;overflow-x:hidden!important;overflow-y:auto!important;visibility:visible!important;transform:none!important;border:0!important;border-right:1px solid rgba(174,224,202,.14)!important;background:linear-gradient(180deg,#071416,#0a1d1d)!important;box-shadow:18px 0 50px rgba(0,0,0,.24)!important;transition:width .24s,transform .24s!important}
+    body.dashboard-workshop .sidebar__brand{display:flex;align-items:center;justify-content:center;min-height:76px;margin:0 0 12px!important;padding:0 0 12px!important;border-bottom:1px solid rgba(255,255,255,.1)}
+    body.dashboard-workshop .brand-logo{width:124px!important;height:auto!important}
+    .dashboard-sidebar-toggle{position:fixed;z-index:1400;top:20px;left:204px;display:grid;width:36px;height:36px;place-items:center;border:1px solid rgba(174,224,202,.22);border-radius:9px;background:#122326;color:#dcebe2;cursor:pointer;transition:left .24s,transform .24s}.dashboard-sidebar-toggle svg{width:18px;height:18px}
+    .dashboard-sidebar-toggle:hover{border-color:#1fc467;background:#18312a}
+    body.dashboard-workshop .sidebar .nav-group{display:block;margin:5px 0}
+    body.dashboard-workshop .sidebar .nav-grp{display:flex!important;width:100%;min-height:40px;align-items:center;gap:10px;padding:8px 10px;border:1px solid transparent;border-radius:9px;background:none;color:#9fb0a6;font:700 11px Inter,"Segoe UI",system-ui,sans-serif;letter-spacing:.08em;text-align:left;text-transform:uppercase;cursor:pointer}
+    body.dashboard-workshop .sidebar .nav-grp:hover,body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.045);color:#fff}
+    body.dashboard-workshop .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:#1fc467}
+    body.dashboard-workshop .sidebar .nav-grp>span:first-of-type{flex:1}
+    body.dashboard-workshop .sidebar .nav-chev{width:8px;height:8px;margin:0 3px 4px 0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .18s}
+    body.dashboard-workshop .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
+    body.dashboard-workshop .sidebar .nav-grpwrap{display:none;padding:3px 0 5px 8px}
+    body.dashboard-workshop .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:2px}
+    body.dashboard-workshop .sidebar .nav-link{display:flex!important;min-height:39px;align-items:center;gap:12px;margin:1px 0;padding:9px 10px!important;border-radius:9px!important;color:#d8e7df!important;font-size:12px!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap}
+    body.dashboard-workshop .sidebar .nav-link:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
+    body.dashboard-workshop .sidebar .nav-link.active{background:linear-gradient(90deg,#0fa653,#08763c)!important;color:#fff!important}
+    body.dashboard-workshop .sidebar .nav-link svg{width:18px;height:18px;flex:none;color:#1fc467}
+    .dashboard-sidebar-backdrop{display:none}
+    body.dashboard-workshop .hero{min-height:164px;margin:0 0 20px;padding:0;border:1px solid rgba(115,210,156,.18);border-radius:14px;background:#0b1b1d;box-shadow:0 16px 34px rgba(0,0,0,.25)}body.dashboard-workshop .hero-bg{transform:none!important}body.dashboard-workshop .hero::after{background:linear-gradient(90deg,rgba(5,17,18,.98),rgba(5,17,18,.7) 46%,rgba(5,17,18,.08)),linear-gradient(135deg,transparent 62%,rgba(31,196,103,.42) 62% 67%,rgba(255,122,18,.8) 67% 70%,transparent 70%)}body.dashboard-workshop .hero-copy{padding:30px 34px}body.dashboard-workshop .welcome{margin:0 0 5px;font-size:14px;letter-spacing:0;text-transform:none}body.dashboard-workshop .hero-title{margin:0 0 7px;font-size:clamp(28px,3.2vw,42px)}body.dashboard-workshop .hero-lede{font-size:15px;line-height:1.4}
+    body.dashboard-workshop .tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 20px;padding:0}body.dashboard-workshop .tile{display:flex;min-height:86px;align-items:center;justify-content:flex-start;gap:14px;padding:16px;border:1px solid rgba(174,224,202,.12);border-radius:12px;background:#102124;box-shadow:0 12px 24px rgba(0,0,0,.18)}body.dashboard-workshop .tile svg{width:34px;height:34px;flex:none;color:#1fc467}body.dashboard-workshop .tile::after{color:#eef5f1;font-size:13px;font-weight:700;content:"Quick action"}body.dashboard-workshop .tile:nth-child(1)::after{content:"New work order"}body.dashboard-workshop .tile:nth-child(2)::after{content:"Search records"}body.dashboard-workshop .tile:nth-child(3)::after{content:"Add client"}body.dashboard-workshop .tile:nth-child(4)::after{content:"Parts & shop"}
+    body.dashboard-workshop .dash-content{max-width:none;margin:0;padding:0;gap:18px;background:transparent}body.dashboard-workshop .dash-content .panel,body.dashboard-workshop .dash-content .stat-card,body.dashboard-workshop .dash-content .objective-card{border-color:rgba(174,224,202,.13);border-radius:12px;background:#102124;box-shadow:0 12px 26px rgba(0,0,0,.16)}body.dashboard-workshop .dash-content .card-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    body.dashboard-workshop.sidebar-collapsed .sidebar{width:76px!important;padding-inline:9px!important}
+    body.dashboard-workshop.sidebar-collapsed .main{margin-left:76px!important}
+    body.dashboard-workshop.sidebar-collapsed .brand-logo{width:48px!important}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .sidebar__brand{min-height:58px}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{justify-content:center;padding-inline:8px;font-size:0}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span{display:none}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>svg{width:20px;height:20px}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-chev{display:none}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grpwrap{display:none!important}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:center;padding-inline:8px!important;font-size:0!important}
+    body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link svg{width:20px;height:20px}
+    body.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:58px;transform:rotate(180deg)}
+    body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar{border-right-color:#d8dee5!important;background:linear-gradient(180deg,#fff,#f2f5f8)!important;box-shadow:8px 0 28px rgba(20,35,50,.08)!important}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar__brand{border-bottom-color:#dce2e8}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp{color:#5d6875}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp:hover,:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{border-color:#e0e6eb;background:#eaf0f4;color:#17212b}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link{color:#283541!important}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link:hover{background:#e8eef2!important;color:#111b23!important}
+    :root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link.active{background:linear-gradient(90deg,#12a150,#0a7c40)!important;color:#fff!important}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-sidebar-toggle{border-color:#d5dde4;background:#fff;color:#25313c;box-shadow:0 4px 12px rgba(20,35,50,.12)}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar .hs-bar{border-color:#d5dde4;background:rgba(255,255,255,.96)}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar .hs-bar>svg,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar #hs-input{color:#202a33}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar #hs-input::placeholder{color:#6b7480}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar .hs-kbd{border-color:#d5dde4;color:#68727d}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar .theme-toggle,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar #global-notif-bell{border-color:#d5dde4;background:#fff;color:#25313c}
+    :root[data-theme="light"] body.dashboard-workshop .dashboard-topbar .theme-toggle:hover,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar #global-notif-bell:hover{border-color:#12a150;background:#eff8f2}
+    :root[data-theme="light"] body.dashboard-workshop #global-notif-panel{border-color:#d5dde4;background:#fff;color:#17212b;box-shadow:0 16px 40px rgba(20,35,50,.18)}
+    :root[data-theme="light"] body.dashboard-workshop #global-notif-panel h4,:root[data-theme="light"] body.dashboard-workshop .global-notif-empty{color:#596572}
+    :root[data-theme="light"] body.dashboard-workshop .global-notif-item:hover{background:#f0f4f6}
+    @media(max-width:768px){
+      body.dashboard-workshop .main,body.dashboard-workshop.sidebar-collapsed .main{margin-left:0!important;padding:76px 16px 30px!important}
+      body.dashboard-workshop .dashboard-topbar,body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{top:10px;right:12px;left:64px;height:48px}
+      body.dashboard-workshop .sidebar{width:min(280px,86vw)!important;transform:translateX(-102%)!important;box-shadow:18px 0 50px rgba(0,0,0,.4)!important}
+      body.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important}
+      body.dashboard-workshop .dashboard-sidebar-toggle{top:14px;left:14px}
+      body.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(250px,calc(86vw - 30px));transform:rotate(180deg)}
+      body.dashboard-workshop.sidebar-collapsed:not(.sidebar-open) .dashboard-sidebar-toggle{left:14px;transform:none}
+      body.dashboard-workshop .dashboard-sidebar-backdrop{position:fixed;z-index:1250;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:rgba(4,8,7,.68);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s linear .2s}
+      body.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .2s}
+      body.dashboard-workshop .tiles,body.dashboard-workshop .dash-content .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      body.dashboard-workshop.sidebar-collapsed .sidebar{width:min(280px,86vw)!important}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .sidebar__brand{min-height:76px}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .brand-logo{width:124px!important}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{justify-content:flex-start;padding-inline:10px;font-size:11px}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span{display:inline}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .nav-chev{display:block}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .nav-group.open .nav-grpwrap{display:grid!important}
+      body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:flex-start;padding-inline:10px!important;font-size:12px!important}
+    }
+    @media(max-width:576px){
+      body.dashboard-workshop .main{padding:72px 12px 28px!important}
+      body.dashboard-workshop .dashboard-topbar{right:10px;left:58px;gap:7px}
+      body.dashboard-workshop .dashboard-topbar .hs{min-width:0}
+      body.dashboard-workshop .dashboard-topbar .theme-toggle,body.dashboard-workshop .dashboard-topbar #global-notif-bell{width:40px;height:40px}
+      body.dashboard-workshop .dashboard-topbar .hs-bar{height:40px;gap:7px;padding-inline:10px}
+      body.dashboard-workshop .dashboard-topbar .hs-kbd{display:none}
+      body.dashboard-workshop .hero-copy{padding:25px 22px}
+      body.dashboard-workshop .hero-lede br{display:none}
+      body.dashboard-workshop .tiles,body.dashboard-workshop .dash-content .card-grid,body.dashboard-workshop .ov-grid{grid-template-columns:minmax(0,1fr)}
+    }
   </style>
+  <link rel="stylesheet" href="css/dashboard-shell.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page dashboard-workshop">
+  <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard tools">
+    <div class="hs" id="hs">
+      <div class="hs-bar" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
+        <span class="hs-kbd" aria-hidden="true">/</span>
+      </header>
+      <div class="hs-panel" id="hs-panel" hidden>
+        <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
+        <div id="hs-results" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
   <div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
+    <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
-      <a class="nav-link active" href="index.html"><i data-lucide="house"></i> Home</a>
+      <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
-          <a class="nav-link" href="pages/customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="pages/technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
+          <a class="nav-link" href="pages/repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
+          <a class="nav-link" href="pages/customers.html" title="Customers"><i data-lucide="users"></i> Customers</a>
+          <a class="nav-link" href="pages/technicians.html" data-level="2" title="Employees &amp; Staff"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
-          <a class="nav-link" href="pages/quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
-          <a class="nav-link" href="pages/receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
-          <a class="nav-link" href="pages/suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
+          <a class="nav-link" href="pages/shop.html" data-level="2" title="Parts &amp; Stock"><i data-lucide="store"></i> Parts &amp; Stock</a>
+          <a class="nav-link" href="pages/quotations.html" data-level="2" title="Quotations"><i data-lucide="file-text"></i> Quotations</a>
+          <a class="nav-link" href="pages/receipts.html" data-level="2" title="Receipts"><i data-lucide="receipt"></i> Receipts</a>
+          <a class="nav-link" href="pages/suppliers.html" data-level="2" title="Suppliers"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/accounting.html"><i data-lucide="landmark"></i> Overview</a>
-          <a class="nav-link" href="pages/ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
-          <a class="nav-link" href="pages/payables.html"><i data-lucide="banknote"></i> Payables</a>
-          <a class="nav-link" href="pages/cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
-          <a class="nav-link" href="pages/commissions.html"><i data-lucide="percent"></i> Commissions</a>
-          <a class="nav-link" href="pages/landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
-          <a class="nav-link" href="pages/fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
-          <a class="nav-link" href="pages/financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
-        </div>
-      </div>
-      <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
+          <a class="nav-link" href="pages/accounting.html" title="Overview"><i data-lucide="landmark"></i> Overview</a>
+          <a class="nav-link" href="pages/ledger.html" title="Ledger"><i data-lucide="book-open-check"></i> Ledger</a>
+          <a class="nav-link" href="pages/payables.html" title="Payables"><i data-lucide="banknote"></i> Payables</a>
+          <a class="nav-link" href="pages/analytics.html" title="Analytics"><i data-lucide="bar-chart-3"></i> Analytics</a>
+          <a class="nav-link" href="pages/cashbook.html" title="Cashbook"><i data-lucide="wallet"></i> Cashbook</a>
+          <a class="nav-link" href="pages/financial-statements.html" title="Financial Statements"><i data-lucide="file-bar-chart"></i> Financial Statements</a>
+          <a class="nav-link" href="pages/commissions.html" title="Commissions"><i data-lucide="percent"></i> Commissions</a>
+          <a class="nav-link" href="pages/fixed-assets.html" title="Fixed Assets"><i data-lucide="wrench"></i> Fixed Assets</a>
+          <a class="nav-link" href="pages/landed-cost.html" title="Landed Cost"><i data-lucide="ship"></i> Landed Cost</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/settings.html"><i data-lucide="settings"></i> Settings</a>
+          <a class="nav-link" href="pages/settings.html" title="Settings"><i data-lucide="settings"></i> Settings</a>
         </div>
       </div>
     </aside>
+    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><i data-lucide="chevrons-left"></i></button>
 
     <main class="main">
       <!-- HEADER (keeps the original header classes and the #dashboard-greeting / #dashboard-date hooks) -->
@@ -383,18 +597,6 @@
           <div>
             <p class="hdr-name">Centric <em>Auto Mobile</em></p>
             <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
-          </div>
-        </div>
-        <!-- Header search: searches the whole system, with filters -->
-        <div class="hs" id="hs">
-          <div class="hs-bar" role="search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-            <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
-            <span class="hs-kbd" aria-hidden="true">/</span>
-          </div>
-          <div class="hs-panel" id="hs-panel" hidden>
-            <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
-            <div id="hs-results" aria-live="polite"></div>
           </div>
         </div>
         <div class="hdr-right">
@@ -409,7 +611,7 @@
         <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
         <div class="hdr-menu-wrap">
           <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
@@ -423,28 +625,11 @@
       <section class="hero" aria-label="Welcome">
         <div class="hero-bg" aria-hidden="true"></div>
         <div class="hero-copy">
-          <p class="welcome">Welcome to</p>
-          <h1 class="hero-title">Centric <em>Auto Mobile</em></h1>
-          <p class="hero-lede">Your complete auto repair and parts management system.<br>Keep your workshop running smoothly.</p>
+            <p class="welcome">Centric Auto Mobile</p>
+            <h1 class="hero-title">Good <em>afternoon</em></h1>
+            <p class="hero-lede">Manage your workshop efficiently<br>with Centric Auto Mobile.</p>
           <span class="accent-bar" aria-hidden="true"></span>
         </div>
-        <nav class="tiles" aria-label="Quick actions">
-          <a class="tile quick-action quick-action--job" href="pages/repairs.html" title="New Job Card" aria-label="New Job Card">
-            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M27 38l5-13h32l5 13"/><rect x="12" y="38" width="72" height="26" rx="9"/><circle cx="26" cy="51" r="4"/><circle cx="70" cy="51" r="4"/><path d="M20 64v8h12v-8M64 64v8h12v-8"/><circle cx="74" cy="70" r="14" fill="#12a150" stroke="none"/><circle cx="74" cy="65.5" r="3.6" fill="#fff" stroke="none"/><path d="M67 78c.8-5 3.8-6.6 7-6.6s6.2 1.6 7 6.6z" fill="#fff" stroke="none"/></svg>
-          </a>
-          <button type="button" class="tile grey" id="tile-search" title="Search" aria-label="Search">
-            <svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="42" cy="42" r="21" stroke-width="5"/><path d="M58 58l20 20" stroke-width="6"/></svg>
-          </button>
-          <a class="tile orange quick-action quick-action--customer" href="pages/customers.html" title="Add Customer" aria-label="Add Customer">
-            <svg viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="26" r="8"/><circle cx="27" cy="35" r="7"/><circle cx="69" cy="35" r="7"/><path d="M33 62c0-9 6-15 15-15s15 6 15 15"/><path d="M12 66c0-8 5-14 12-14M84 66c0-8-5-14-12-14"/><circle cx="72" cy="68" r="14" fill="#ff7a12" stroke="none"/><path d="M72 61v14M65 68h14" stroke="#fff" stroke-width="4.5"/></svg>
-          </a>
-          <a class="tile quick-action quick-action--quote" href="pages/shop.html" title="Shop &amp; Stock" aria-label="Shop and Stock">
-            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M16 82V40l32-22 32 22v42"/><path d="M28 82V50h40v32"/><circle cx="48" cy="66" r="8" stroke="#ff7a12" stroke-width="5"/><path d="M48 53v5M48 74v5M35 66h5M56 66h5M39 57l3 3M54 72l3 3M57 57l-3 3M42 72l-3 3" stroke="#ff7a12" stroke-width="4"/></svg>
-          </a>
-          <a class="tile orange quick-action quick-action--receipt" href="pages/receipts.html" title="Receipts" aria-label="Receipts">
-            <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M24 14h32l16 16v52H24z"/><path d="M56 14v16h16M34 42h20M34 54h13M34 66h9"/><circle cx="68" cy="68" r="14" fill="#ff7a12" stroke="none"/><path d="M68 59v9.5h7" stroke="#fff" stroke-width="4"/></svg>
-          </a>
-        </nav>
       </section>
 
       <!-- EXISTING CONTENT: same ids / classes so js/app.js keeps filling it in -->
@@ -485,7 +670,6 @@
             <div class="panel"><div class="ov-head"><h3>Low stock parts</h3><a href="pages/shop.html">Open</a></div><div id="ov-lowstock"><div class="ov-empty">Loading…</div></div></div>
             <div class="panel"><div class="ov-head"><h3>Bills to pay</h3><a href="pages/payables.html">Open</a></div><div id="ov-payables"><div class="ov-empty">Loading…</div></div></div>
             <div class="panel"><div class="ov-head"><h3>Recent quotations</h3><a href="pages/quotations.html">Open</a></div><div id="ov-quotes"><div class="ov-empty">Loading…</div></div></div>
-            <div class="panel"><div class="ov-head"><h3>Recent receipts</h3><a href="pages/receipts.html">Open</a></div><div id="ov-receipts"><div class="ov-empty">Loading…</div></div></div>
           </div>
         </section>
         <section class="dashboard-section">
@@ -501,18 +685,6 @@
             <div class="stat-card"><div class="stat-card__label">Jobs Completed Today</div><div class="stat-card__value">&mdash;</div></div>
             <div class="stat-card"><div class="stat-card__label">Revenue Today</div><div class="stat-card__value">&mdash;</div></div>
             <div class="stat-card"><div class="stat-card__label">New Customers Today</div><div class="stat-card__value">&mdash;</div></div>
-          </div>
-        </section>
-        <section class="dashboard-section">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">S.M.A.R.T.</p>
-              <h2>Today's Objectives</h2>
-            </div>
-            <a class="section-note" href="pages/settings.html">Edit targets</a>
-          </div>
-          <div class="objectives-grid" id="objectives-grid">
-            <div class="objective-card">Loading...</div>
           </div>
         </section>
         <section class="dashboard-section" id="customer-statements">
@@ -565,24 +737,20 @@
         </section>
       </div>
 
-      <!-- BOTTOM TAB BAR -->
-      <nav class="tabbar" aria-label="Main">
-        <a class="tab" href="index.html" aria-current="page" aria-label="Home">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6L5 21v21h14V30h10v12h14V21z"/></svg><span>Home</span>
+      <!-- FOOTER: 4 buttons -->
+      <nav class="ftbar" aria-label="Main">
+        <a href="index.html" aria-label="Home" title="Home" aria-current="page">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"/></svg>
         </a>
-        <button type="button" class="tab" id="tab-search" aria-label="Search">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="M30 30l11 11"/></svg><span>Search</span>
-        </button>
-        <a class="tab" href="pages/customers.html" aria-label="Customers">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 41c0-9 6-15 14-15s14 6 14 15z"/><path d="M8 34c-2-5 0-9 5-11M40 34c2-5 0-9-5-11"/></svg>
-          <span>Customers</span>
+        <a href="pages/repairs.html" aria-label="Job Cards" title="Job Cards">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/><path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0M7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/></svg>
           <span class="tab-badge" id="tab-badge" hidden>0</span>
         </a>
-        <a class="tab" href="pages/repairs.html" aria-label="Workshop and Job Cards">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 41V19L24 7l17 12v22"/><path d="M14 41V25h20v16"/><circle cx="24" cy="33" r="4"/><path d="M24 26v2M24 38v2M17 33h2M29 33h2"/></svg><span>Workshop</span>
+        <a href="pages/repairs.html" aria-label="Workshop" title="Workshop">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M16 4.5a4.5 4.5 0 0 1-1.703 3.526L13 5l2.959-1.11q.04.3.041.61"/><path d="M11.5 9c.653 0 1.273-.139 1.833-.39L12 5.5 11 3l3.826-1.53A4.5 4.5 0 0 0 7.29 6.092l-6.116 5.096a2.583 2.583 0 1 0 3.638 3.638L9.908 8.71A4.5 4.5 0 0 0 11.5 9m-1.292-4.361-.596.893.809-.27a.25.25 0 0 1 .287.377l-.596.893.809-.27.158.475-1.5.5a.25.25 0 0 1-.287-.376l.596-.893-.809.27a.25.25 0 0 1-.287-.377l.596-.893-.809.27-.158-.475 1.5-.5a.25.25 0 0 1 .287.376M3 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/></svg>
         </a>
-        <a class="tab" href="pages/quotations.html" aria-label="Documents and Quotations">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h18l8 8v28H12z"/><path d="M30 6v8h8M18 22h14M18 29h14M18 36h8"/></svg><span>Quotes</span>
+        <a href="pages/quotations.html" aria-label="Quotes" title="Quotes">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M4.5 9a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM4 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1z"/></svg>
         </a>
       </nav>
 
@@ -593,7 +761,7 @@
     </main>
   </div>
 
-  <!-- supabase-js from jsDelivr (unpkg was the slow/blocking host); must stay before the module scripts -->
+  <!-- supabase-js from jsDelivr; must stay before the module scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
@@ -603,25 +771,72 @@
   <!-- Visual-only helpers: clock, online dot, slide-out menu, search shortcut, parallax. No data, no auth. -->
   <script>
     (() => {
-      const $ = id => document.getElementById(id);
-      const body = document.body;
+       const $ = id => document.getElementById(id);
+       const body = document.body;
 
-      // live clock + connection dot
+       // Dashboard-only collapsible navigation. Links and access filtering stay unchanged.
+       const sidebarToggle = $("dashboard-sidebar-toggle");
+       const sidebar = $("sidebar");
+       const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
+       const isMobile = () => matchMedia("(max-width: 768px)").matches;
+       try {
+         if (localStorage.getItem("apr-sidebar-collapsed") === "true") body.classList.add("sidebar-collapsed");
+       } catch (error) {
+         console.warn("Could not read saved sidebar state:", error);
+       }
+       const syncSidebar = () => {
+         const compact = body.classList.contains("sidebar-collapsed");
+         const open = isMobile() ? body.classList.contains("sidebar-open") : !compact;
+         sidebarToggle?.setAttribute("aria-expanded", String(open));
+         sidebarToggle?.setAttribute("aria-label", isMobile()
+           ? (open ? "Close navigation" : "Open navigation")
+           : (compact ? "Expand navigation" : "Collapse navigation"));
+         if (sidebar) sidebar.inert = !open;
+       };
+       sidebarToggle?.addEventListener("click", () => {
+         if (isMobile()) body.classList.toggle("sidebar-open");
+         else {
+           body.classList.toggle("sidebar-collapsed");
+           try { localStorage.setItem("apr-sidebar-collapsed", String(body.classList.contains("sidebar-collapsed"))); } catch (error) {
+             console.warn("Could not save sidebar state:", error);
+           }
+         }
+         syncSidebar();
+       });
+       const closeMobileSidebar = () => {
+         if (!isMobile()) return;
+         body.classList.remove("sidebar-open");
+         syncSidebar();
+       };
+       backdrop?.addEventListener("click", closeMobileSidebar);
+       sidebar?.addEventListener("click", event => {
+         if (event.target.closest("a.nav-link")) closeMobileSidebar();
+       });
+       document.addEventListener("keydown", event => {
+         if (event.key === "Escape" && body.classList.contains("sidebar-open")) closeMobileSidebar();
+       });
+       addEventListener("resize", () => {
+         if (!isMobile()) body.classList.remove("sidebar-open");
+         syncSidebar();
+       }, { passive: true });
+       document.addEventListener("apr:access-ready", () => setTimeout(syncSidebar, 0));
+       syncSidebar();
+
+       // live clock + connection dot
       const clock = $("hdr-clock"), live = $("hdr-live");
       const tick = () => { clock.textContent = new Date().toLocaleTimeString("en-GB", { hour12: false }); };
       tick(); setInterval(tick, 1000);
       const net = () => { const on = navigator.onLine; live.dataset.state = on ? "online" : "offline"; live.querySelector("span").textContent = on ? "Live" : "Offline"; };
       addEventListener("online", net); addEventListener("offline", net); net();
 
-      // Navigation is provided by the shared module bar.
       // search shortcuts jump to the existing global search box
       const goSearch = () => {
         const input = $("hs-input"); if (!input) return;
         window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
         setTimeout(() => input.focus({ preventScroll: true }), 350);
       };
-      $("tile-search").addEventListener("click", goSearch);
-      $("tab-search").addEventListener("click", goSearch);
+      $("tile-search")?.addEventListener("click", goSearch);
+      $("tab-search")?.addEventListener("click", goSearch);
 
       // gentle parallax on the hero photo
       if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -719,218 +934,7 @@
     });
     load();
   </script>
-  <!-- Header tools: debounced whole-system search with filters, and the top-right More menu. -->
-  <script type="module">
-    import supabase from "./js/supabaseClient.js";
-    const $ = id => document.getElementById(id);
-    const enc = encodeURIComponent;
-    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
-    const money = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
-    const pad = n => (n == null || n === "" ? "" : String(n).padStart(4, "0"));
-    const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-    const icons = () => { if (window.lucide) window.lucide.createIcons(); };
-
-    // ---------- data sources (each loads once, then is reused for 2 minutes) ----------
-    const memo = new Map();
-    function rows(key, build) {
-      const hit = memo.get(key);
-      if (hit && Date.now() - hit.t < 120000) return hit.p;
-      const p = (async () => {
-        try { const { data, error } = await build(); if (error) throw error; return data || []; }
-        catch (e) { console.warn(`Search source "${key}" unavailable:`, e.message || e); memo.delete(key); return []; }
-      })();
-      memo.set(key, { t: Date.now(), p });
-      return p;
-    }
-    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const flat = (o, out = []) => {
-      if (o == null) return out;
-      if (typeof o === "string") { if (!UUID.test(o)) out.push(o); }
-      else if (Array.isArray(o)) o.forEach(v => flat(v, out));
-      else if (typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "id" || /_id$|_at$|date$/i.test(k)) continue; flat(v, out); }
-      return out;
-    };
-    const mk = (title, sub, href, parts = []) => ({ title: title || "—", sub: sub || "", href, hay: [title, sub, ...parts].filter(Boolean).join(" ").toLowerCase() });
-    const veh = v => [v?.year, v?.make, v?.model].filter(Boolean).join(" ");
-    const jobsRows = () => rows("jobs", () => supabase.from("repair_jobs").select("id, job_number, cro_number, status, fault_reported, customers ( full_name, phone ), vehicles ( make, model, year, license_plate )").order("created_at", { ascending: false }).limit(1000));
-
-    const SOURCES = [
-      { key: "customers", label: "Customers", icon: "users", load: async () =>
-          (await rows("customers", () => supabase.from("customers").select("*").is("deleted_at", null).limit(1000)))
-            .map(c => mk(c.full_name || "Unnamed customer", [c.phone, c.email].filter(Boolean).join(" · "), `pages/customers.html?highlight=${enc(c.id)}`, flat(c))) },
-      { key: "jobs", label: "Job Cards", icon: "clipboard-list", load: async () =>
-          (await jobsRows()).map(j => mk(`#${pad(j.job_number)} — ${j.customers?.full_name || "Unknown customer"}`,
-            [veh(j.vehicles), j.vehicles?.license_plate, j.status].filter(Boolean).join(" · "), `pages/repairs.html?highlight=${enc(j.id)}`,
-            [String(j.job_number ?? ""), j.cro_number, j.fault_reported, j.customers?.phone, j.vehicles?.make, j.vehicles?.model])) },
-      { key: "vehicles", label: "Vehicles", icon: "car", load: async () => {
-          const seen = new Set(), out = [];
-          for (const j of await jobsRows()) {
-            const v = j.vehicles; if (!v) continue;
-            const k = [v.license_plate, v.make, v.model, v.year].join("|"); if (seen.has(k)) continue; seen.add(k);
-            out.push(mk(veh(v) || "Vehicle", [v.license_plate, j.customers?.full_name].filter(Boolean).join(" · "), `pages/repairs.html?highlight=${enc(j.id)}`, [v.license_plate, v.make, v.model]));
-          }
-          return out; } },
-      { key: "quotes", label: "Quotations", icon: "file-text", load: async () =>
-          (await rows("quotes", () => supabase.from("quotations").select("id, quotation_number, status, fault_reported, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)))
-            .map(q => mk(`Quote #${q.quotation_number}`, [q.customers?.full_name || q.walk_in_name || "Walk-in", q.status].filter(Boolean).join(" · "), `pages/quotations.html?highlight=${enc(q.id)}`, [String(q.quotation_number ?? ""), q.fault_reported])) },
-      { key: "orders", label: "Sales Orders", icon: "shopping-cart", load: async () =>
-          (await rows("orders", () => supabase.from("sales_orders").select("id, order_number, status, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)))
-            .map(o => mk(`Sales order #${o.order_number}`, [o.customers?.full_name || o.walk_in_name || "Walk-in", o.status].filter(Boolean).join(" · "), "pages/quotations.html", [String(o.order_number ?? "")])) },
-      { key: "receipts", label: "Receipts", icon: "receipt", load: async () =>
-          (await rows("receipts", () => supabase.from("receipts").select("id, receipt_number, amount, issued_at, repair_jobs ( job_number, customers ( full_name ) ), sales_orders ( order_number, walk_in_name, customers ( full_name ) )").order("issued_at", { ascending: false }).limit(1000)))
-            .map(r => { const who = r.repair_jobs?.customers?.full_name || r.sales_orders?.customers?.full_name || r.sales_orders?.walk_in_name || "";
-              return mk(`Receipt #${pad(r.receipt_number)}`, [who, money(r.amount)].filter(Boolean).join(" · "), "pages/receipts.html", [String(r.receipt_number ?? ""), Number(r.amount || 0).toFixed(2), String(r.repair_jobs?.job_number ?? ""), String(r.sales_orders?.order_number ?? "")]); }) },
-      { key: "credit", label: "Credit Notes", icon: "file-minus", load: async () =>
-          (await rows("credit", () => supabase.from("credit_notes").select("id, credit_note_number, reason, amount, customers ( full_name )").order("issued_at", { ascending: false }).limit(500)))
-            .map(c => mk(`Credit note #${c.credit_note_number}`, [c.customers?.full_name, money(c.amount)].filter(Boolean).join(" · "), "pages/receipts.html", [String(c.credit_note_number ?? ""), c.reason])) },
-      { key: "parts", label: "Parts", icon: "package", load: async () =>
-          (await rows("parts", () => supabase.from("parts").select("*").limit(1000)))
-            .map(p => mk(p.name, [p.part_number, p.category, `${p.quantity_in_stock ?? 0} in stock`].filter(Boolean).join(" · "), "pages/shop.html", flat(p))) },
-      { key: "suppliers", label: "Suppliers", icon: "truck", load: async () =>
-          (await rows("suppliers", () => supabase.from("suppliers").select("*").limit(1000)))
-            .map(s => mk(s.name, s.phone || "", `pages/suppliers.html?highlight=${enc(s.id)}`, flat(s))) },
-      { key: "staff", label: "Staff", icon: "hard-hat", load: async () =>
-          (await rows("staff", () => supabase.from("technician_directory").select("id, full_name, department, is_active").limit(500)))
-            .map(t => mk(t.full_name, [t.department, t.is_active === false ? "Inactive" : ""].filter(Boolean).join(" · "), "pages/technicians.html", [t.department])) },
-      { key: "bills", label: "Payables", icon: "banknote", load: async () =>
-          (await rows("bills", () => supabase.from("payables").select("id, bill_number, due_date, amount, amount_paid, suppliers ( name )").limit(1000)))
-            .map(b => mk(`Bill ${b.bill_number || ""}${b.suppliers?.name ? " — " + b.suppliers.name : ""}`.trim(), `${money((Number(b.amount) || 0) - (Number(b.amount_paid) || 0))} outstanding`, `pages/payables.html?highlight=${enc(b.id)}`, [b.bill_number, b.suppliers?.name])) },
-      { key: "accounts", label: "Accounts", icon: "book-open-check", load: async () =>
-          (await rows("accounts", () => supabase.from("accounts").select("id, code, name, type").limit(500)))
-            .map(a => mk(`${a.code} — ${a.name}`, a.type, "pages/ledger.html", [a.code, a.name])) },
-      { key: "journal", label: "Journal", icon: "notebook-pen", load: async () =>
-          (await rows("journal", () => supabase.from("journal_entries").select("id, entry_date, reference, description, source_type").order("entry_date", { ascending: false }).limit(1000)))
-            .map(e => mk(e.description || e.reference || "Journal entry", [e.entry_date, e.reference, e.source_type].filter(Boolean).join(" · "), "pages/ledger.html", [e.reference, e.source_type])) },
-      { key: "assets", label: "Assets", icon: "wrench", load: async () =>
-          (await rows("assets", () => supabase.from("fixed_assets").select("*").limit(500)))
-            .map(a => mk(a.name || "Asset", [a.category, a.status].filter(Boolean).join(" · "), "pages/fixed-assets.html", flat(a))) },
-      { key: "pages", label: "Pages", icon: "layout-grid", load: async () => {
-          const out = [];
-          document.querySelectorAll("#sidebar .nav-group").forEach(g => {
-            const grp = g.querySelector(".nav-grp span")?.textContent.trim() || "";
-            g.querySelectorAll("a.nav-link").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
-          });
-          return out; } },
-    ];
-    const BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
-
-    // ---------- search UI ----------
-    const input = $("hs-input"), panel = $("hs-panel"), chips = $("hs-chips"), out = $("hs-results");
-    if (input && panel && chips && out) {
-      let filter = "all", seq = 0, warmed = false;
-      chips.innerHTML = [{ key: "all", label: "All" }, ...SOURCES].map(s => `<button type="button" class="hs-chip" data-f="${s.key}" aria-pressed="${s.key === "all"}">${esc(s.label)}</button>`).join("");
-
-      const hint = () => { out.innerHTML = `<div class="hs-empty">Type at least 2 characters to search everything in the system.</div>`; };
-      const openPanel = () => { panel.hidden = false; };
-      const closePanel = () => { panel.hidden = true; };
-
-      function rank(items, tokens) {
-        const first = tokens[0], res = [];
-        for (const it of items) {
-          if (!tokens.every(t => it.hay.includes(t))) continue;
-          const title = it.title.toLowerCase();
-          res.push({ it, s: title.startsWith(first) ? 0 : title.includes(first) ? 1 : 2 });
-        }
-        return res.sort((a, b) => a.s - b.s).map(x => x.it);
-      }
-      function draw(term, results) {
-        const single = filter !== "all";
-        const total = results.reduce((n, r) => n + r.hits.length, 0);
-        if (!total) {
-          out.innerHTML = `<div class="hs-empty">No matches for “${esc(term)}”${single ? ` in ${esc(BY_KEY[filter].label)}` : ""}.${single ? " Try the <b>All</b> filter." : ""}</div>`;
-          return;
-        }
-        const cap = single ? 40 : 5;
-        out.innerHTML = results.filter(r => r.hits.length).map(r => {
-          const shown = r.hits.slice(0, cap), more = r.hits.length - shown.length;
-          return `<div class="hs-group"><span>${esc(r.s.label)} · ${r.hits.length}</span>${more > 0 ? `<button type="button" class="hs-more" data-f="${r.s.key}">Show all</button>` : ""}</div>`
-            + shown.map(i => `<a class="hs-item" href="${esc(i.href)}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
-        }).join("");
-        icons();
-      }
-      async function run() {
-        const term = input.value.trim();
-        const my = ++seq;
-        if (term.length < 2) { hint(); return; }
-        const tokens = term.toLowerCase().split(/\s+/).filter(Boolean);
-        const list = filter === "all" ? SOURCES : [BY_KEY[filter]];
-        const results = await Promise.all(list.map(async s => ({ s, hits: rank(await s.load(), tokens) })));
-        if (my !== seq) return; // a newer search replaced this one
-        draw(term, results);
-      }
-      const runDebounced = debounce(run, 250);
-      function setFilter(key) {
-        filter = key;
-        chips.querySelectorAll(".hs-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === key)));
-        if (input.value.trim().length >= 2) { out.innerHTML = `<div class="hs-empty">Searching…</div>`; run(); } else hint();
-        input.focus({ preventScroll: true });
-      }
-      const warm = () => { if (warmed) return; warmed = true; SOURCES.forEach(s => { if (s.key !== "pages") s.load(); }); };
-
-      hint();
-      input.addEventListener("focus", () => { openPanel(); warm(); });
-      input.addEventListener("input", () => {
-        openPanel();
-        if (input.value.trim().length < 2) { seq++; hint(); return; }
-        out.innerHTML = `<div class="hs-empty">Searching…</div>`;
-        runDebounced();
-      });
-      chips.addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) setFilter(b.dataset.f); });
-      out.addEventListener("click", e => { const b = e.target.closest(".hs-more"); if (b) setFilter(b.dataset.f); });
-      document.addEventListener("click", e => { if (!e.target.closest("#hs")) closePanel(); });
-      input.addEventListener("keydown", e => {
-        if (e.key === "ArrowDown") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); a.focus(); } }
-        else if (e.key === "Enter") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); window.location.href = a.href; } }
-      });
-      out.addEventListener("keydown", e => {
-        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-        const all = [...out.querySelectorAll(".hs-item")], i = all.indexOf(document.activeElement);
-        if (i < 0) return;
-        e.preventDefault();
-        if (e.key === "ArrowDown") all[Math.min(i + 1, all.length - 1)].focus();
-        else if (i === 0) input.focus(); else all[i - 1].focus();
-      });
-      document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && !panel.hidden) { closePanel(); input.blur(); }
-        else if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "") && !document.activeElement?.isContentEditable) { e.preventDefault(); input.focus(); }
-      });
-    }
-
-    // ---------- top-right More menu ----------
-    const btn = $("hdr-menu-btn"), menu = $("hdr-menu");
-    if (btn && menu) {
-      const here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-      const linkHtml = a => {
-        const href = a.getAttribute("href") || "#";
-        const icon = a.querySelector("[data-lucide]")?.getAttribute("data-lucide") || "circle";
-        const cur = href.split(/[?#]/)[0].split("/").pop().toLowerCase() === here ? ' aria-current="page"' : "";
-        return `<a role="menuitem" href="${esc(href)}"${cur}><i data-lucide="${esc(icon)}"></i><span>${esc(a.textContent.trim())}</span></a>`;
-      };
-      function build() {
-        let html = "";
-        [...($("sidebar")?.children || [])].forEach(el => {
-          if (el.matches("a.nav-link")) html += linkHtml(el);
-          else if (el.matches(".nav-group")) {
-            const links = [...el.querySelectorAll("a.nav-link")]; // links the role can't use were already removed
-            if (links.length) html += `<div class="m-head">${esc(el.querySelector(".nav-grp span")?.textContent.trim() || "")}</div>` + links.map(linkHtml).join("");
-          }
-        });
-        menu.innerHTML = html || `<div class="hs-empty">No modules available.</div>`;
-        icons();
-      }
-      const setOpen = (open, restore) => {
-        if (open) build();
-        menu.hidden = !open;
-        btn.setAttribute("aria-expanded", String(open));
-        if (open) menu.querySelector("a")?.focus({ preventScroll: true });
-        else if (restore) btn.focus({ preventScroll: true });
-      };
-      btn.addEventListener("click", () => setOpen(menu.hidden));
-      document.addEventListener("click", e => { if (!menu.hidden && !e.target.closest(".hdr-menu-wrap")) setOpen(false); });
-      document.addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) setOpen(false, true); });
-    }
-  </script>
-
+  <script type="module" src="js/dashboard-search.js"></script>
   <!-- System overview: KPI cards + key lists across the whole system. Each query fails on its own. -->
   <script type="module">
     import supabase from "./js/supabaseClient.js";
@@ -1034,13 +1038,6 @@
       else if (!quotes.length) $("ov-quotes").innerHTML = `<div class="ov-empty">No quotations yet.</div>`;
       else $("ov-quotes").innerHTML = quotes.slice(0, 5).map(x => `<a class="ov-row" href="pages/quotations.html?highlight=${enc(x.id)}"><div class="ov-main">Quote #${esc(x.quotation_number)} — ${esc(x.customers?.full_name || x.walk_in_name || "Walk-in")}<small>${esc(x.status || "")} · ${esc(shortDate(x.created_at))}</small></div><div class="ov-end">${usd(x.total_usd)}</div></a>`).join("");
 
-      // recent receipts
-      if (!receipts) $("ov-receipts").innerHTML = `<div class="ov-empty">Not available.</div>`;
-      else if (!receipts.length) $("ov-receipts").innerHTML = `<div class="ov-empty">No receipts yet.</div>`;
-      else $("ov-receipts").innerHTML = receipts.slice(0, 5).map(r => {
-        const who = r.repair_jobs?.customers?.full_name || r.sales_orders?.customers?.full_name || r.sales_orders?.walk_in_name || "—";
-        return `<a class="ov-row" href="pages/receipts.html"><div class="ov-main">Receipt #${esc(pad(r.receipt_number))} — ${esc(who)}<small>${esc(shortDate(r.issued_at))}</small></div><div class="ov-end">${usd(r.amount)}</div></a>`;
-      }).join("");
     }
 
     document.addEventListener("apr:owed", () => { if (last) render(last); });

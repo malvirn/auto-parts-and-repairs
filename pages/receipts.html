@@ -12,6 +12,8 @@
 <meta name="theme-color" content="#0b1012">
 <script src="../js/pwa.js" defer></script>
 <script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/dashboard-header.css">
+<link rel="stylesheet" href="../css/dashboard-shell.css">
 <style id="dashboard-design">
     html{background:#0b1012;color-scheme:dark}
     body.dashboard-page{
@@ -277,10 +279,6 @@
     .hdr-menu a:hover,.hdr-menu a:focus-visible,.hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
     .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
 
-    /* the More menu now lives in the header, so the bottom bar keeps only its four main links */
-    .apr-more-wrap{display:none!important}
-    .apr-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
-
     /* ===== system overview ===== */
     .dash-content a.stat-card{display:block;text-decoration:none}
     .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
@@ -320,13 +318,21 @@
 .rc-tabs .seg{padding:10px 18px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
 .rc-tabs .seg[aria-pressed="true"]{background:var(--green);color:#fff;border-color:transparent}
 .rc-tabs .grow{flex:1}
+.rc-document-footer{display:flex;justify-content:flex-end;margin-top:12px}
+.rc-void-action{min-height:30px!important;padding:4px 9px!important;font-size:.74rem!important;gap:5px!important}
+.rc-void-action svg{width:14px;height:14px}
 .rc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
 .rc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);cursor:pointer}
 .rc-row:last-child{border-bottom:0}.rc-row:hover b{color:var(--green-bright)}
 .rc-row small{display:block;color:var(--muted);margin-top:2px}
 .rc-amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.rc-row__actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.rc-delete{min-height:34px!important;padding:6px 10px!important;color:#ff8585!important}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,122,18,.18);color:#ffb070}
 .pill.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
+.pill.void{background:rgba(220,38,38,.2);color:#ff6969;border:1px solid rgba(255,80,80,.48)}
+#doc .void-banner{margin:18px 0;padding:12px;border:3px solid #c62828;border-radius:8px;color:#b71c1c;text-align:center;font-size:26px;font-weight:900;letter-spacing:.18em}
+#doc .void-reason{margin:0 0 16px;color:#8f1d1d;font-weight:700}
 .rc-build{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
 @media(max-width:900px){.rc-build{grid-template-columns:1fr}}
 .rc-form{display:grid;gap:12px}.rc-form h3{margin:6px 0 0;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -337,19 +343,50 @@
 .rc-bar{display:flex;gap:10px;flex-wrap:wrap}
 .rc-bar .btn{flex:1 1 130px;justify-content:center}
 .btn.wa{background:#25d366!important;border-color:transparent!important;color:#06361a!important}
+.invoice-billing-note{margin:12px 0 0;color:var(--muted);font-size:.9rem;line-height:1.5}
+.modal-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.68);overflow-y:auto}
+.modal-overlay.hidden{display:none!important}
+.invoice-payment-modal{width:min(100%,480px);max-height:90vh;overflow-y:auto;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.invoice-payment-modal h2{margin:0;color:var(--text);font-size:1.25rem}
+.invoice-payment-modal .field{display:grid;gap:7px;margin:14px 0}
+.invoice-payment-modal .field label{color:var(--muted);font-size:.78rem;font-weight:700}
+.invoice-payment-modal input,.invoice-payment-modal select{width:100%;min-height:44px;padding:10px 12px}
+.invoice-payment-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.invoice-payment-actions .btn{flex:1}
+.invoice-editor-modal{width:min(100%,560px)}
+.invoice-editor-modal textarea{width:100%;min-height:88px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit}
+.invoice-editor-modal .li{grid-template-columns:minmax(0,1fr) 70px 100px 32px}
 .rc-doc-wrap{overflow-x:auto;padding:2px}
-#doc{background:#fff;color:#14181a;width:100%;max-width:794px;margin:0 auto;padding:36px;border-radius:6px;font-size:13px;line-height:1.5;box-shadow:0 18px 40px rgba(0,0,0,.35)}
-#doc .top{display:flex;justify-content:space-between;gap:16px;border-bottom:4px solid #12a150;padding-bottom:14px}
-#doc .top img{height:56px;width:auto}#doc h1{margin:0;font-size:26px;letter-spacing:.04em;color:#12a150;text-align:right}
-#doc .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
-#doc .meta small{color:#6b7570;text-transform:uppercase;letter-spacing:.08em;font-size:10px;display:block}
-#doc table{width:100%;border-collapse:collapse;margin-top:6px}
-#doc th{background:#0e1517;color:#fff;text-align:left;padding:8px;font-size:11px;text-transform:uppercase}
-#doc td{padding:8px;border-bottom:1px solid #e4e8e5}#doc .n{text-align:right;font-variant-numeric:tabular-nums}
-#doc .tot{margin-left:auto;width:260px;margin-top:12px}#doc .tot div{display:flex;justify-content:space-between;padding:4px 0}
-#doc .tot .g{border-top:3px solid #ff7a12;font-size:17px;font-weight:800;margin-top:4px;padding-top:8px}
-#doc .stamp{display:inline-block;border:3px solid #12a150;color:#12a150;padding:2px 12px;border-radius:6px;font-weight:800;transform:rotate(-6deg);margin-top:8px}
-#doc .foot{margin-top:26px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px}
+.receipt-list-filters{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(2,minmax(150px,.7fr)) auto;gap:12px;align-items:end;margin:16px 0}
+.receipt-list-filters label{display:grid;gap:6px;color:var(--muted);font-size:.76rem;font-weight:700}
+.receipt-list-filters input{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#0c1210;color:var(--text);font:inherit}
+.receipt-list-filters .btn{min-height:42px}
+@media(max-width:1100px){.receipt-list-filters{grid-template-columns:1fr 1fr}.receipt-list-filters label:first-child{grid-column:1/-1}.receipt-list-filters .btn{grid-column:1/-1}}
+#doc{position:relative;overflow:hidden;background:#fff;color:#17211b;width:100%;max-width:794px;min-height:500px;margin:0 auto;padding:clamp(22px,4vw,44px);border:1px solid #e3e9e5;border-radius:16px;font-size:13px;line-height:1.55;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+#doc::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#12a150 0 70%,#ff7a12 70%)}
+#doc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #dfe7e1;padding:8px 0 20px}
+#doc .top>div:first-child{min-width:0;color:#526058}
+#doc .top img{height:62px;width:auto;object-fit:contain}#doc h1{margin:0 0 7px;font-size:clamp(21px,3vw,30px);letter-spacing:.1em;color:#12783d;text-align:right}
+#doc .top b{font-size:15px;color:#17211b}
+#doc .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;padding:16px;border-radius:12px;background:#f3f7f4}
+#doc .job-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0 0 18px;padding:14px 16px;border:1px solid #dfe7e1;border-radius:10px;background:#fbfcfb}
+#doc .job-meta small{display:block;color:#66756c;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+#doc .job-meta p{margin:3px 0 0;overflow-wrap:anywhere}
+#doc .meta small{color:#66756c;text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:700;display:block;margin-bottom:4px}
+#doc .meta b{display:inline-block;margin-bottom:2px;color:#17211b}
+#doc table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:8px;color:#111}
+#doc th{background:#e3f2e8;color:#111;text-align:left;padding:12px 10px;border:1px solid #68786d;border-bottom:3px solid #12a150;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#doc th:first-child{border-radius:8px 0 0 0}#doc th:last-child{border-radius:0 8px 0 0}
+#doc th:first-child,#doc td:first-child{width:48%}
+#doc th:nth-child(2),#doc td:nth-child(2){width:10%}
+#doc th:nth-child(3),#doc td:nth-child(3){width:20%}
+#doc th:nth-child(4),#doc td:nth-child(4){width:22%}
+#doc td{padding:12px 10px;border:1px solid #9aa49d;color:#111;font-size:13px;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+#doc .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#doc .tot{margin-left:auto;width:min(300px,100%);margin-top:18px;padding:12px 14px;border:1px solid #e3e9e5;border-radius:12px;background:#fbfcfb}#doc .tot div{display:flex;justify-content:space-between;gap:18px;padding:5px 0}
+#doc .tot .g{border-top:2px solid #ff7a12;font-size:17px;font-weight:800;margin-top:6px;padding-top:12px;color:#145c31}
+#doc .stamp{display:inline-block;border:2px solid #12a150;color:#12783d;padding:2px 12px;border-radius:999px;font-weight:800;letter-spacing:.08em;margin-top:8px}
+#doc .foot{margin-top:30px;padding-top:14px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px;text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-size:.9rem}
 select.st option{background:#10181a;color:#eef3ef}
 :root[data-theme="light"] body.dashboard-page select option{background:#fff!important;color:#17211b!important}
@@ -368,24 +405,74 @@ select.st option{background:#10181a;color:#eef3ef}
   @page{size:A4;margin:10mm}
   body.dashboard-page{background:#fff!important;padding:0!important}
   body.dashboard-page *{visibility:hidden}
+  body.dashboard-page #v-doc{display:block!important;visibility:visible!important}
+  body.dashboard-page #v-doc *{visibility:visible}
   #doc,#doc *{visibility:visible}
   #doc{position:absolute;left:0;top:0;max-width:none;box-shadow:none;padding:0}
   @page receiptStandard{size:A4;margin:10mm}
   @page receiptThermal{size:80mm auto;margin:3mm}
   body[data-print-mode="standard"] #doc{page:receiptStandard}
-  body[data-print-mode="thermal"] #doc{page:receiptThermal;width:74mm;max-width:74mm;padding:3mm;font-size:10px;line-height:1.35;box-shadow:none}
+  body[data-print-mode="thermal"] #doc{page:receiptThermal;width:74mm;max-width:74mm;min-height:0;padding:3mm;font-size:10px;line-height:1.35;box-shadow:none}
   body[data-print-mode="thermal"] #doc .top{gap:6px;border-bottom-width:2px}
   body[data-print-mode="thermal"] #doc .top img{height:30px}
   body[data-print-mode="thermal"] #doc h1{font-size:16px}
   body[data-print-mode="thermal"] #doc .meta{grid-template-columns:1fr;gap:6px}
-  body[data-print-mode="thermal"] #doc table{font-size:9px}
-  body[data-print-mode="thermal"] #doc th,body[data-print-mode="thermal"] #doc td{padding:4px 2px}
+  body[data-print-mode="thermal"] #doc table{font-size:10px}
+  body[data-print-mode="thermal"] #doc th{padding:5px 2px;font-size:10px;letter-spacing:0}
+  body[data-print-mode="thermal"] #doc td{padding:5px 2px;font-size:10px}
   body[data-print-mode="thermal"] #doc .tot{width:100%}
   body[data-print-mode="thermal"] #doc .foot{font-size:9px}
 }
+
+/* ===== footer: one bar, 4 icon buttons ===== */
+.tabbar,.apr-bottom-nav{display:none!important}
+.ftbar{position:fixed;left:0;right:0;bottom:0;z-index:900;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding-bottom:env(safe-area-inset-bottom,0);background:#080e10;border-top:1px solid rgba(255,255,255,.1)}
+.ftbar a{position:relative;display:grid;place-items:center;height:62px;font-size:26px;color:#9fb0a6;text-decoration:none;transition:color .2s}
+.ftbar a:hover,.ftbar a:focus-visible{color:#eef3ef;outline:none}
+.ftbar svg{width:1em;height:1em;display:block;fill:currentColor;stroke:none}
+.ftbar a[aria-current="page"]{color:#fff}
+.ftbar a[aria-current="page"]::before{content:"";position:absolute;top:0;width:42px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright)}
+.ftbar .tab-badge{display:none!important}
+:root[data-theme="light"] .ftbar{background:rgba(255,255,255,.98);border-top-color:#d0d3d6;box-shadow:0 -6px 20px rgba(0,0,0,.1)}
+:root[data-theme="light"] .ftbar a{color:#44484c}
+:root[data-theme="light"] .ftbar a:hover,:root[data-theme="light"] .ftbar a[aria-current="page"]{color:#111}
+@media print{.ftbar{display:none!important}}
+
+/* ===== header three-dot menu: modules in categories ===== */
+.hdr-menu .m-group{margin-top:2px}
+.hdr-menu .m-grp{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:10px;border:0;border-radius:10px;background:none;color:var(--text);font:600 .92rem var(--font);text-align:left;cursor:pointer}
+.hdr-menu .m-grp:hover,.hdr-menu .m-grp:focus-visible,.hdr-menu .m-grp[aria-expanded="true"]{background:rgba(31,196,103,.12);outline:none}
+.hdr-menu .m-grp>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+.hdr-menu .m-grp>span:first-of-type{flex:1}
+.hdr-menu .m-chev{width:8px;height:8px;flex:none;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
+.hdr-menu .m-grp[aria-expanded="true"] .m-chev{transform:rotate(225deg) translate(-2px,-1px)}
+.hdr-menu .m-items{margin:2px 0 8px 19px;padding-left:8px;border-left:1px solid var(--line)}
+.hdr-menu .m-items[hidden]{display:none!important}
+.hdr-menu .m-items a{min-height:40px;font-size:.88rem}
+
+/* ===== invoice builder: edit details on the left, document on the right ===== */
+.rc-build{align-items:start}
+.rc-form{padding:18px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)}
+.rc-form h3{padding-top:6px;color:var(--orange);font-size:.72rem;letter-spacing:.14em}
+.rc-form h3:first-child{padding-top:0}
+.rc-form textarea{resize:vertical}
+#f-notes{min-height:130px;line-height:1.5}
+.rc-doc-wrap{min-width:0}
+.pane-switch{display:none;gap:8px;margin-top:14px}
+.pane-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--muted);font:600 .9rem var(--font);cursor:pointer}
+.pane-btn[aria-pressed="true"]{background:var(--green);color:#fff;border-color:transparent}
+@media(min-width:1101px){.rc-build{grid-template-columns:minmax(290px,400px) minmax(0,1fr)!important}}
+@media(max-width:1100px){
+  .rc-build{grid-template-columns:1fr}
+  .pane-switch{display:flex}
+  .rc-build[data-pane="form"] .rc-doc-wrap{display:none}
+  .rc-build[data-pane="doc"] .rc-form{display:none}
+}
+/* job card notes keep their line breaks (Customer concern / Diagnosis / Work completed / Work still missing) */
+#doc p{white-space:pre-line}
 </style>
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
@@ -467,7 +554,7 @@ select.st option{background:#10181a;color:#eef3ef}
         <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
         <div class="hdr-menu-wrap">
           <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
@@ -482,15 +569,23 @@ select.st option{background:#10181a;color:#eef3ef}
       <button class="seg" data-tab="receipts" aria-pressed="true">Receipts</button>
       <button class="seg" data-tab="invoices" aria-pressed="false">Invoices</button>
       <span class="grow"></span>
-      <button class="btn btn--primary" id="new-inv"><i data-lucide="plus"></i> New invoice</button>
+      <button class="btn btn--primary" id="new-inv"><i data-lucide="plus"></i> Create customer invoice</button>
     </div>
+    <p class="invoice-billing-note">Create a bill for a customer here. Open an unpaid invoice to record a full or partial payment and see the remaining balance.</p>
     <div class="rc-stats" style="margin:18px 0" id="stats"></div>
+    <div class="receipt-list-filters" role="search" aria-label="Filter receipts and invoices">
+      <label for="receipt-filter-search">Search name, receipt number, phone or reference<input id="receipt-filter-search" type="search" placeholder="e.g. customer name or R-00012" autocomplete="off"></label>
+      <label for="receipt-filter-from">From date<input id="receipt-filter-from" type="date"></label>
+      <label for="receipt-filter-to">To date<input id="receipt-filter-to" type="date"></label>
+      <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
+    </div>
     <div id="list"><div class="ov-empty">Loading…</div></div>
   </section>
 
   <section class="panel" id="v-build" hidden>
-    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New invoice</h2></div>
-    <div class="rc-build" style="margin-top:18px">
+    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 id="build-title" style="margin-left:6px">New invoice</h2></div>
+    <div class="pane-switch" role="group" aria-label="Show details or invoice"><button type="button" class="pane-btn" data-pane="form" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="doc" aria-pressed="false">Invoice</button></div>
+    <div class="rc-build" id="rc-build" data-pane="form" style="margin-top:18px">
       <div class="rc-form">
         <h3>1 · Customer</h3>
         <select id="f-cust"><option value="">Walk-in / type details below</option></select>
@@ -500,7 +595,7 @@ select.st option{background:#10181a;color:#eef3ef}
         <div id="items" style="display:grid;gap:8px"></div>
         <datalist id="parts-dl"></datalist>
         <button class="btn" id="add-li" type="button"><i data-lucide="plus"></i> Add line</button>
-        <div class="two"><input id="f-vat" type="number" min="0" step="0.5" value="15" placeholder="VAT %" title="VAT %" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
+        <div class="two"><input id="f-vat" type="hidden" value="5" aria-hidden="true" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
         <div class="two"><input id="f-due" type="date" title="Due date" /><input id="f-ref" placeholder="Job card / vehicle reg (optional)" /></div>
         <textarea id="f-notes" rows="2" placeholder="Notes / payment instructions (EcoCash, bank, cash)"></textarea>
         <h3>3 · Save &amp; send</h3>
@@ -511,7 +606,7 @@ select.st option{background:#10181a;color:#eef3ef}
   </section>
 
   <section class="panel" id="v-doc" hidden>
-    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-paid" hidden><i data-lucide="badge-check"></i> Mark paid</button></div>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button></div>
     <div class="rc-bar" style="margin:16px 0">
       <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp</button>
       <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
@@ -521,28 +616,62 @@ select.st option{background:#10181a;color:#eef3ef}
       <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
     </div>
     <div class="rc-doc-wrap"><div id="doc"></div></div>
+    <div class="rc-document-footer" hidden><button class="btn btn--danger rc-void-action" id="d-void" type="button" hidden><i data-lucide="ban"></i> Void receipt</button></div>
   </section>
 </div>
-<!-- BOTTOM TAB BAR -->
-      <nav class="tabbar" aria-label="Main">
-        <a class="tab" href="../index.html" aria-label="Home">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6L5 21v21h14V30h10v12h14V21z"/></svg><span>Home</span>
-        </a>
-        <button type="button" class="tab" id="tab-search" aria-label="Search">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="M30 30l11 11"/></svg><span>Search</span>
-        </button>
-        <a class="tab" href="customers.html" aria-label="Customers">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="7"/><path d="M10 41c0-9 6-15 14-15s14 6 14 15z"/><path d="M8 34c-2-5 0-9 5-11M40 34c2-5 0-9-5-11"/></svg>
-          <span>Customers</span>
-          <span class="tab-badge" id="tab-badge" hidden>0</span>
-        </a>
-        <a class="tab" href="repairs.html" aria-label="Workshop and Job Cards">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 41V19L24 7l17 12v22"/><path d="M14 41V25h20v16"/><circle cx="24" cy="33" r="4"/><path d="M24 26v2M24 38v2M17 33h2M29 33h2"/></svg><span>Workshop</span>
-        </a>
-        <a class="tab" href="quotations.html" aria-label="Documents and Quotations">
-          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h18l8 8v28H12z"/><path d="M30 6v8h8M18 22h14M18 29h14M18 36h8"/></svg><span>Quotes</span>
-        </a>
-      </nav>
+<div class="modal-overlay hidden" id="invoice-payment-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-payment-title">
+  <div class="modal invoice-payment-modal">
+    <h2 id="invoice-payment-title">Record customer payment</h2>
+    <p id="invoice-payment-summary" class="section-note"></p>
+    <div class="field"><label for="invoice-payment-percent">Payment percentage of original invoice</label><select id="invoice-payment-percent"><option value="">Enter a fixed amount instead</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option></select></div>
+    <div class="field"><label for="invoice-payment-amount">Amount received ($)</label><input id="invoice-payment-amount" type="number" min="0.01" step="0.01" required></div>
+    <p id="invoice-payment-breakdown" class="section-note"></p>
+    <div class="field"><label for="invoice-payment-date">Payment date</label><input id="invoice-payment-date" type="date" required></div>
+    <div class="field"><label for="invoice-payment-method">Payment method</label><select id="invoice-payment-method" required><option value="">Choose Cash, Card, EcoCash or Bank…</option><option value="Cash">Cash</option><option value="Card">Card / POS</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank transfer</option></select></div>
+    <div class="field"><label for="invoice-payment-account">Post payment to account</label><select id="invoice-payment-account" required><option value="">Choose a payment method first…</option></select></div>
+    <p class="section-note">The payment is added to the customer invoice and recorded in the ledger as money received.</p>
+    <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="invoice-payment-save">Save payment</button><button type="button" class="btn" id="invoice-payment-cancel">Cancel</button></div>
+    <p id="invoice-payment-message" class="form-message" role="status" aria-live="polite"></p>
+  </div>
+  <div class="modal-overlay hidden" id="receipt-edit-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-edit-title">
+    <div class="modal invoice-payment-modal">
+      <h2 id="receipt-edit-title">Correct receipt amount</h2>
+      <p id="receipt-edit-summary" class="section-note"></p>
+      <div class="field"><label for="receipt-edit-amount">Correct total paid ($)</label><input id="receipt-edit-amount" type="number" min="0.01" step="0.01" required></div>
+      <p class="section-note">The linked job-card payment history or sales-order receipt total will be updated too.</p>
+      <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="receipt-edit-save">Save correction</button><button type="button" class="btn" id="receipt-edit-cancel">Cancel</button></div>
+      <p id="receipt-edit-message" class="form-message" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+  <div class="modal-overlay hidden" id="receipt-void-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-void-title">
+    <div class="modal invoice-payment-modal">
+      <h2 id="receipt-void-title">Void receipt</h2>
+      <p class="section-note" id="receipt-void-warning"></p>
+      <div class="field"><label for="receipt-void-reason">Reason for voiding</label><textarea id="receipt-void-reason" rows="3" required></textarea></div>
+      <p class="form-message" id="receipt-void-message" role="alert" aria-live="assertive"></p>
+      <div class="invoice-payment-actions">
+        <button type="button" class="btn btn--danger" id="receipt-void-confirm">Void receipt</button>
+        <button type="button" class="btn" id="receipt-void-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FOOTER: 4 buttons -->
+<nav class="ftbar" aria-label="Main">
+  <a href="../index.html" aria-label="Home" title="Home">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"/></svg>
+  </a>
+  <a href="repairs.html" aria-label="Job Cards" title="Job Cards">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/><path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0M7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/></svg>
+    <span class="tab-badge" id="tab-badge" hidden>0</span>
+  </a>
+  <a href="repairs.html" aria-label="Workshop" title="Workshop">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M16 4.5a4.5 4.5 0 0 1-1.703 3.526L13 5l2.959-1.11q.04.3.041.61"/><path d="M11.5 9c.653 0 1.273-.139 1.833-.39L12 5.5 11 3l3.826-1.53A4.5 4.5 0 0 0 7.29 6.092l-6.116 5.096a2.583 2.583 0 1 0 3.638 3.638L9.908 8.71A4.5 4.5 0 0 0 11.5 9m-1.292-4.361-.596.893.809-.27a.25.25 0 0 1 .287.377l-.596.893.809-.27.158.475-1.5.5a.25.25 0 0 1-.287-.376l.596-.893-.809.27a.25.25 0 0 1-.287-.377l.596-.893-.809.27-.158-.475 1.5-.5a.25.25 0 0 1 .287.376M3 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/></svg>
+  </a>
+  <a href="quotations.html" aria-label="Quotes" title="Quotes">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M4.5 9a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM4 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1z"/></svg>
+  </a>
+</nav>
 
       <footer class="site-foot">
         <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
@@ -556,105 +685,732 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/app.js"></script>
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
 <script>
-(()=>{const $=id=>document.getElementById(id);const c=$("hdr-clock"),l=$("hdr-live"),d=$("dashboard-date");
-const t=()=>{const n=new Date();c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};t();setInterval(t,1000);
-const o=()=>{l.dataset.state=navigator.onLine?"online":"offline";l.querySelector("span").textContent=navigator.onLine?"Live":"Offline"};addEventListener("online",o);addEventListener("offline",o);o()})();
+window.addEventListener("unhandledrejection",event=>{
+ console.error("Unhandled receipt-page promise rejection:",event.reason);
+});
+window.addEventListener("error",event=>{
+ console.error("Receipt-page error:",event.error||event.message);
+});
+</script>
+<script>
+/* Invoice builder on phones: Details | Invoice switch (side by side on wider screens). */
+(()=>{
+  const b=document.getElementById("rc-build"),v=document.getElementById("v-build");
+  if(!b||!v)return;
+  const set=p=>{b.dataset.pane=p;document.querySelectorAll(".pane-btn").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.pane===p)))};
+  document.querySelectorAll(".pane-btn").forEach(x=>x.addEventListener("click",()=>{set(x.dataset.pane);scrollTo(0,0)}));
+  new MutationObserver(()=>{if(!v.hidden)set("form")}).observe(v,{attributes:true,attributeFilter:["hidden"]});
+})();
 </script>
 <script type="module">
-import supabase from "../js/supabaseClient.js";
+let supabase;
+try{supabase=(await import("../js/supabaseClient.js")).default}
+catch(error){console.error("Couldn't load ../js/supabaseClient.js:",error);document.getElementById("list").innerHTML=`<div class="ov-empty">Couldn't load ../js/supabaseClient.js: ${String(error?.message||error)}</div>`;throw error}
+let confirmTypedDelete=async()=>false,isSuperAdmin=()=>false;
+try{const bulk=await import("../js/bulk-delete.js");if(typeof bulk.confirmTypedDelete==="function")confirmTypedDelete=bulk.confirmTypedDelete;if(typeof bulk.isSuperAdmin==="function")isSuperAdmin=bulk.isSuperAdmin}
+catch(error){console.warn("../js/bulk-delete.js unavailable; delete buttons disabled:",error)}
 const $=id=>document.getElementById(id);
 const usd=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const CO={email:"malvirngomo8@gmail.com"};
-let tab="receipts",rows={receipts:[],invoices:[]},cur=null,parts=[];
+let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1";
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
 function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
-const calc=o=>{const sub=o.items.reduce((s,i)=>s+i.q*i.p,0),disc=Math.min(+o.discount||0,sub),vat=(sub-disc)*(+o.vat||0)/100;return{sub,disc,vat,total:sub-disc+vat}};
+const calc=o=>{const sub=o.items.reduce((s,i)=>s+i.q*i.p,0),disc=Math.min(+o.discount||0,sub),vatBase=Math.max(0,Number(o.vatBase??sub)-disc),vat=vatBase*(+o.vat||0)/100;return{sub,disc,vat,total:sub-disc+vat}};
+const totalPaid=o=>o.kind==="receipt"?Number(o.receiptAmount??calc(o).total):calc(o).total;
 
 /* ---------- the document (invoice or receipt) ---------- */
-function docHTML(o){const t=calc(o),inv=o.kind==="invoice";
+function docHTML(o){const t=calc(o),inv=o.kind==="invoice",balance=Math.max(0,t.total-Number(o.amountPaid||0)),showSubtotal=inv||Boolean(o.salesOrderId)||Boolean(o.invoicePaymentReceipt)||Boolean(o.jobCard);
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
 <div><h1>${inv?"INVOICE":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
+${o.voidedAt?`<div class="void-banner">VOID</div><p class="void-reason">Reason: ${esc(o.voidReason||"Not provided")}</p>`:""}
 <div class="meta"><div><small>${inv?"Billed to":"Received from"}</small><b>${esc(o.customer.name||"Walk-in customer")}</b><br>${esc(o.customer.phone||"")}<br>${esc(o.customer.email||"")}</div>
-<div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${o.status==="paid"||!inv?'<br><span class="stamp">PAID</span>':""}</div></div>
+<div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
+${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
 <table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
-<div class="tot"><div><span>Subtotal</span><span>${usd(t.sub)}</span></div>${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${+o.vat?`<div><span>VAT ${o.vat}%</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Total due":"Total paid"}</span><span>${usd(t.total)}</span></div></div>
+<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":"Items total"}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>`:""}${!inv&&o.jobPayment?`<div><span>Original job / invoice total</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>Previous payments</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>Remaining balance</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
 ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 
 /* ---------- load lists ---------- */
+async function loadAllReceipts(){
+ const all=[];
+ for(let offset=0;;offset+=1000){
+  let{data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,voided_at,void_reason,repair_job_id,sales_order_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999);
+  // Older deployments may not yet have the receipt-voiding migration.
+  // Retry without its optional columns so one ledger payment cannot blank the
+  // whole Receipts screen.
+  if(error&&/voided_at|void_reason/i.test(error.message||"")){
+   ({data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_job_id,sales_order_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999));
+  }
+  if(error)return{data:null,error};
+  all.push(...(data||[]));
+  if(!data||data.length<1000)return{data:all,error:null};
+ }
+}
+async function loadRepairJobPayments(jobIds){
+ let result=await supabase.from("repair_job_payments").select("*").in("repair_job_id",jobIds).is("voided_at",null);
+ // `voided_at` was introduced after the original repair-payment table. Keep
+ // receipts readable for databases that have not applied that migration yet.
+ if(result.error&&/voided_at/i.test(result.error.message||"")){
+  result=await supabase.from("repair_job_payments").select("*").in("repair_job_id",jobIds);
+ }
+ return result;
+}
 async function load(){
- const [r,i]=await Promise.all([
-  supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,customers(full_name,phone,email))").order("issued_at",{ascending:false}).limit(300),
-  supabase.from("invoices").select("*").order("issued_at",{ascending:false}).limit(300)]);
+ const [r,i,a]=await Promise.all([
+ loadAllReceipts(),
+  supabase.from("invoices").select("*").order("issued_at",{ascending:false}).limit(300),
+  supabase.from("accounts").select("id,code,name").eq("is_active",true).eq("type","asset").like("code","10%").order("code")]);
+ invoiceAccounts=a.data||[];
+ $("invoice-payment-account").innerHTML=a.error
+  ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
+  : `<option value="">Choose a payment method first…</option>`;
+ if(a.error)console.error("Couldn't load accounts for customer invoice payments:",a.error);
+ rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=Array.isArray(x.items)?x.items:[],discount=Number(x.discount)||0,subtotal=items.reduce((sum,item)=>sum+(Number(item.q)||0)*(Number(item.p)||0),0),vat=Math.round(Math.max(0,subtotal-discount)*0.05*100)/100,total=Math.round((subtotal-discount+vat)*100)/100,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items,discount,vat:5,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
+ const jobIds=[...new Set((r.data||[]).map(x=>x.repair_job_id).filter(Boolean))];
+ const [paymentResult,jobResult,jobPartsResult,jobExtrasResult]=jobIds.length?await Promise.all([
+  loadRepairJobPayments(jobIds),
+  supabase.from("repair_jobs").select("id,job_number,cro_number,total_cost,labour_cost,labour_hours,job_description,work_done,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number),customers(full_name,phone,email)").in("id",jobIds),
+  supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time,parts(description)").in("job_id",jobIds),
+  supabase.from("job_incidentals").select("job_id,description,amount").in("job_id",jobIds)
+ ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null}];
+ if(paymentResult.error)console.error("Couldn't load repair-job payments for receipts:",paymentResult.error);
+ const jobDetailsError=jobResult.error||jobPartsResult.error||jobExtrasResult.error;
+ if(jobDetailsError){
+  console.error("Couldn't load all repair-job details for receipts:",jobDetailsError);
+  $("list").dataset.detailsErr=`Some job-card details may be missing: ${jobDetailsError.message}`;
+ }else delete $("list").dataset.detailsErr;
+ const jobsById=new Map((jobResult.data||[]).map(job=>[String(job.id),job]));
+ const jobPartsById=new Map(),jobExtrasById=new Map();
+ (jobPartsResult.data||[]).forEach(item=>{
+  const key=String(item.job_id);
+  if(!jobPartsById.has(key))jobPartsById.set(key,[]);
+  jobPartsById.get(key).push(item);
+ });
+ (jobExtrasResult.data||[]).forEach(item=>{
+  const key=String(item.job_id);
+  if(!jobExtrasById.has(key))jobExtrasById.set(key,[]);
+  jobExtrasById.get(key).push(item);
+ });
+ const paymentTotals=new Map(),paymentsByJob=new Map();
+ (paymentResult.data||[]).forEach(p=>{
+  const key=String(p.repair_job_id);paymentTotals.set(key,(paymentTotals.get(key)||0)+Number(p.amount||0));
+  if(!paymentsByJob.has(key))paymentsByJob.set(key,[]);paymentsByJob.get(key).push(p);
+ });
  rows.receipts=(r.data||[]).map(x=>{const c=x.repair_jobs?.customers||x.sales_orders?.customers||{};const ref=x.repair_jobs?`Job #${x.repair_jobs.job_number}`:x.sales_orders?`Order #${x.sales_orders.order_number}`:"";
-  return{kind:"receipt",id:x.id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref,items:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:Number(x.amount)||0}],discount:0,vat:0,status:"paid"}});
- rows.invoices=(i.data||[]).map(x=>({kind:"invoice",id:x.id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items:x.items||[],discount:x.discount,vat:x.vat_rate,notes:x.notes,status:x.status}));
- if(i.error)$("list").dataset.err="Invoices table missing — run supabase/migrations/invoices.sql";
- render()}
+ const saleItems=x.sales_orders?.sales_order_items||[];
+ const invoice=rows.invoices.find(inv=>String(inv.repairJobId)===String(x.repair_job_id));
+ const currentPaid=Number(x.amount)||0,totalPaid=paymentTotals.get(String(x.repair_job_id))||currentPaid;
+ const job=jobsById.get(String(x.repair_job_id))||{},jobTotal=invoice?calc(invoice).total:Number(job.total_cost)||0;
+ const previousPaid=Math.max(0,totalPaid-currentPaid),jobBalance=Math.max(0,jobTotal-totalPaid);
+ const jobStatus=jobTotal>0?(jobBalance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid"):"unavailable";
+ const context=x.repair_job_id?{jobTotal,previousPaid,currentPaid,totalPaid,balance:jobBalance,status:jobStatus}:null;
+ const vehicle=job.vehicles||{};
+ const jobParts=jobPartsById.get(String(x.repair_job_id))||[];
+ const jobExtras=jobExtrasById.get(String(x.repair_job_id))||[];
+ const jobItems=invoice
+  ?(invoice.items||[]).map(item=>({d:item.d||item.description||"Invoice item",q:Number(item.q??item.quantity)||1,p:Number(item.p??item.price)||0}))
+  :[
+    ...jobParts.map(item=>({d:item.parts?.description||item.part_name||"Part",q:Number(item.quantity)||1,p:Number(item.price_at_time)||0})),
+    ...jobExtras.map(item=>({d:item.description||"Additional job cost",q:1,p:Number(item.amount)||0})),
+    ...(Number(job.labour_cost)>0?[{d:job.work_done||job.job_description||"Labour",q:1,p:Number(job.labour_cost)}]:[])
+   ];
+ const vehicleLabel=[vehicle.year,vehicle.make,vehicle.model,vehicle.license_plate].filter(Boolean).join(" · ");
+ const jobCard=x.repair_job_id?{
+  vehicle:vehicleLabel,
+  chassis:vehicle.chassis_number||"",
+  engine:vehicle.engine_number||"",
+  odometer:job.odometer_in!=null?`${Number(job.odometer_in).toLocaleString()} km`:"",
+  fuel:job.fuel_level_in||"",
+  driver:[job.driver_name,job.driver_phone].filter(Boolean).join(" · "),
+  fault:job.fault_reported||"",
+  work:[job.work_done,job.diagnosis].filter(Boolean).join(" · ")
+ }:null;
+ const paymentCandidates=paymentsByJob.get(String(x.repair_job_id))||[];
+ const matchingPayment=paymentCandidates.find(p=>Math.abs(Number(p.amount||0)-currentPaid)<0.005);
+ const accountId=matchingPayment?.account_id||matchingPayment?.payment_account_id||matchingPayment?.cash_account_id;
+ const linkedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
+ const storedMethod=matchingPayment?.payment_method||matchingPayment?.method||matchingPayment?.account_name||(linkedAccount?`${linkedAccount.code} — ${linkedAccount.name}`:null);
+ return{kind:"receipt",id:x.id,repairJobId:x.repair_job_id,salesOrderId:x.sales_order_id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,voidedAt:x.voided_at,voidReason:x.void_reason,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref:x.repair_job_id?(job.cro_number||`Job #${job.job_number||x.repair_jobs?.job_number}`):ref,receiptAmount:currentPaid,paymentMethod:storedMethod||x.sales_orders?.payment_method||"Not recorded",jobPayment:context,jobCard,items:saleItems.length?saleItems.map(item=>({d:item.part_name,q:Number(item.quantity)||1,p:Number(item.unit_price_usd)||0})):jobItems.length?jobItems:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:currentPaid}],discount:Number(x.sales_orders?.discount_usd)||0,vat:0,status:jobStatus||"paid"}});
+ if(r.error||paymentResult.error){
+  const loadError=r.error||paymentResult.error;
+  console.error("Couldn't load complete receipt details:",loadError);
+  $("list").dataset.receiptsErr=`Couldn't load complete receipt details: ${loadError.message}`;
+ }
+ else delete $("list").dataset.receiptsErr;
+ if(i.error){console.error("Couldn't load invoices:",i.error);$("list").dataset.err=`Couldn't load invoices: ${i.error.message}. Apply supabase/migrations/customer-invoice-payments.sql if this feature is not installed.`}
+ else delete $("list").dataset.err;
+ if(a.error)$("list").dataset.paymentErr="Customer payment recording is unavailable until accounts can be loaded.";
+ render();
+ if($("list").dataset.detailsErr)toast($("list").dataset.detailsErr);
+ document.querySelectorAll(".seg").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.tab===tab)));
+ const params=new URLSearchParams(location.search),requestedJob=params.get("job"),requestedOrder=params.get("order"),requestedInvoicePayment=params.get("invoicePayment");
+ if(requestedInvoicePayment){
+  try{await openInvoicePaymentReceipt(requestedInvoicePayment,params.get("paymentMethod"))}
+  catch(error){console.error("Couldn't open the invoice payment receipt:",error);toast(`Couldn't open payment receipt: ${error.message||String(error)}`)}
+ }else if(params.get("new")==="1"){
+  await openBuilder(requestedJob);
+ }else if(requestedJob||requestedOrder){
+  const receipt=rows.receipts.find(item=>requestedJob?String(item.repairJobId)===requestedJob:String(item.salesOrderId)===requestedOrder);
+  if(receipt)open(receipt);
+  else toast(`No receipt found for this ${requestedJob?"job card":"sales order"}.`);
+ }}
 function render(){
- const q=($("hs-input").value||"").toLowerCase(),L=rows[tab].filter(o=>!q||(o.number+o.customer.name+o.ref).toLowerCase().includes(q));
- const inv=rows.invoices,out=inv.filter(o=>o.status!=="paid").reduce((s,o)=>s+calc(o).total,0),paid=inv.filter(o=>o.status==="paid").reduce((s,o)=>s+calc(o).total,0),rec=rows.receipts.reduce((s,o)=>s+calc(o).total,0);
+ const queries=[$("hs-input").value,$("receipt-filter-search").value].map(value=>value.trim().toLocaleLowerCase()).filter(Boolean);
+ const from=$("receipt-filter-from").value,to=$("receipt-filter-to").value;
+ const dateKey=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?"":`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`};
+ const L=rows[tab].filter(o=>{
+  const searchText=[o.number,o.customer.name,o.customer.phone,o.customer.email,o.ref].filter(Boolean).join(" ").toLocaleLowerCase();
+  const date=dateKey(o.date);
+  return queries.every(query=>searchText.includes(query))&&(!from||date>=from)&&(!to||date<=to);
+ });
+ document.querySelectorAll(".seg").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.tab===tab)));
+ const inv=rows.invoices,out=inv.reduce((s,o)=>s+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((s,o)=>s+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt).reduce((s,o)=>s+totalPaid(o),0);
  $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${usd(b)}</div></div>`).join("");
- $("list").innerHTML=(L.map((o,i)=>`<div class="rc-row" data-i="${i}"><div><b>${o.number}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status||"unpaid"}</span>`:""}<small>${esc(o.customer.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}</small></div><div class="rc-amt">${usd(calc(o).total)}</div></div>`).join(""))||`<div class="ov-empty">${$("list").dataset.err&&tab==="invoices"?$("list").dataset.err:"Nothing here yet."}</div>`;
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]))}
-function open(o){cur=o;$("doc").innerHTML=docHTML(o);$("d-paid").hidden=!(o.kind==="invoice"&&o.status!=="paid");show("doc")}
+ $("list").innerHTML=(L.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to)?"No receipts or invoices match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
+ $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[el.dataset.i])});
+ window.lucide?.createIcons();}
+ function signalDocumentChange(table,label){
+  try{localStorage.setItem("apr:data-changed",JSON.stringify({table,label,time:Date.now()}))}
+  catch(error){console.warn("Couldn't broadcast document change:",error)}
+ }
+ async function deleteDocument(table,id,label){
+ if(!isSuperAdmin()||!(await confirmTypedDelete(label)))return;
+ try{
+  const{error}=await supabase.rpc("admin_delete_business_document",{p_table:table,p_id:id});
+  if(error)throw error;
+  signalDocumentChange(table,label);
+  toast(`${label} deleted.`);
+  const params=new URLSearchParams(location.search);params.delete("job");params.delete("order");params.delete("new");
+  const query=params.toString();
+  history.replaceState(null,"",`${location.pathname}${query?`?${query}`:""}`);
+  show("list");await load();
+ }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
+}
+function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
+function updateDocumentActions(){if(!cur)return;$("d-delete").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=!(cur.kind==="invoice"&&Number(cur.amountPaid||0)<calc(cur).total-.005)}
+function open(o){cur=o;$("doc").innerHTML=docHTML(o);updateDocumentActions();show("doc")}
+async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
+ const{data:payment,error:paymentError}=await supabase.from("invoice_payments")
+  .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id")
+  .eq("journal_entry_id",journalEntryId).maybeSingle();
+ if(paymentError)throw new Error(paymentError.message);
+ if(!payment)throw new Error("No saved invoice payment matches this receipt link.");
+ const{data:invoice,error:invoiceError}=await supabase.from("invoices").select("*").eq("id",payment.invoice_id).maybeSingle();
+ if(invoiceError)throw new Error(invoiceError.message);
+ if(!invoice)throw new Error("The invoice for this payment could not be found.");
+ let jobCard=null;
+ if(invoice.repair_job_id){
+  const{data:job,error:jobError}=await supabase.from("repair_jobs")
+   .select("job_number,cro_number,work_done,job_description,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number)")
+   .eq("id",invoice.repair_job_id).maybeSingle();
+  if(jobError)throw new Error(`Couldn't load the repair-job details: ${jobError.message}`);
+  if(job){
+   const vehicle=job.vehicles||{};
+   jobCard={
+    vehicle:[vehicle.year,vehicle.make,vehicle.model,vehicle.license_plate].filter(Boolean).join(" · "),
+    chassis:vehicle.chassis_number||"",
+    engine:vehicle.engine_number||"",
+    odometer:job.odometer_in!=null?`${Number(job.odometer_in).toLocaleString()} km`:"",
+    fuel:job.fuel_level_in||"",
+    driver:[job.driver_name,job.driver_phone].filter(Boolean).join(" · "),
+    fault:job.fault_reported||"",
+    work:[job.work_done,job.diagnosis].filter(Boolean).join(" · ")
+   };
+  }
+ }
+ const invoiceNumber=`INV-${String(invoice.invoice_number).padStart(5,"0")}`;
+ const amount=Number(payment.amount)||0,total=Number(invoice.total)||0;
+ const totalPaid=Math.max(Number(invoice.amount_paid)||0,amount);
+ const balance=Math.max(0,total-totalPaid);
+ const status=balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid";
+ const items=(Array.isArray(invoice.items)?invoice.items:[]).map(item=>({
+  d:item.d||item.description||"Invoice item",
+  q:Number(item.q??item.quantity)||1,
+  p:Number(item.p??item.price)||0
+ }));
+ tab="receipts";
+ open({
+  kind:"receipt",
+  id:null,
+  invoicePaymentReceipt:true,
+  number:`PAY-${String(invoice.invoice_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
+  date:payment.payment_date,
+  customer:{name:invoice.customer_name,phone:invoice.customer_phone,email:invoice.customer_email},
+  ref:invoice.reference||invoiceNumber,
+  jobCard,
+  receiptAmount:amount,
+  paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
+  jobPayment:{
+   jobTotal:total,
+   previousPaid:Math.max(0,totalPaid-amount),
+   currentPaid:amount,
+   totalPaid,
+   balance,
+   status
+  },
+  items,
+  discount:Number(invoice.discount)||0,
+  vat:5,
+  status
+ });
+}
+function closeVoidModal(){$("receipt-void-modal").classList.add("hidden")}
+async function voidReceipt(){
+ if(!cur||cur.kind!=="receipt"||cur.voidedAt||!canVoidReceipt())return;
+ $("receipt-void-warning").textContent=`Void ${cur.number}? Linked job payments will be reversed, or the sales order will be cancelled and its stock returned. This does not record a cash refund.`;
+ $("receipt-void-reason").value="";
+ $("receipt-void-message").textContent="";
+ $("receipt-void-modal").classList.remove("hidden");
+ $("receipt-void-reason").focus();
+ const reason=await new Promise(resolve=>{
+  $("receipt-void-cancel").onclick=()=>{closeVoidModal();resolve(null)};
+  $("receipt-void-modal").onclick=event=>{if(event.target===$("receipt-void-modal")){$("receipt-void-cancel").click()}};
+  $("receipt-void-confirm").onclick=()=>{
+   const value=$("receipt-void-reason").value.trim();
+   if(!value){$("receipt-void-message").textContent="Enter a reason before voiding this receipt.";return}
+   closeVoidModal();resolve(value);
+  };
+ });
+ if(reason===null)return;
+ const button=$("d-void"),receiptId=cur.id,receiptNumber=cur.number;
+ button.disabled=true;
+ try{
+  const{error}=await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
+  if(error)throw new Error(error.message);
+  signalDocumentChange("receipts",receiptNumber);
+  await load();
+  const updated=rows.receipts.find(receipt=>receipt.id===receiptId);
+  if(updated)open(updated);
+  toast(`${receiptNumber} was voided. Its amount is excluded from financial totals.`);
+ }catch(error){console.error("Couldn't void receipt:",error);toast(`Couldn't void receipt: ${error.message||String(error)}`)}
+ finally{button.disabled=false}
+}
+function openReceiptEditor(){
+ if(!cur||cur.kind!=="receipt")return;
+ $("receipt-edit-summary").textContent=`${cur.number} · ${cur.customer.name||"Customer"}${cur.ref?` · ${cur.ref}`:""}`;
+ $("receipt-edit-amount").value=totalPaid(cur).toFixed(2);
+ $("receipt-edit-message").textContent="";
+ $("receipt-edit-modal").classList.remove("hidden");
+ $("receipt-edit-amount").focus();
+}
+function closeReceiptEditor(){$("receipt-edit-modal").classList.add("hidden")}
+function populatePaymentAccounts(method){
+ const select=$("invoice-payment-account"),key=String(method||"").toLowerCase();
+ const tokens={cash:["cash","till","drawer"],card:["card","pos","point of sale"],ecocash:["ecocash","eco cash"],bank:["bank","transfer"]}[key]||[];
+ const matches=invoiceAccounts.filter(account=>tokens.some(token=>`${account.code||""} ${account.name||""}`.toLowerCase().includes(token)));
+ select.innerHTML=matches.length?`<option value="">Select ${esc(method)} account…</option>`+matches.map(account=>`<option value="${esc(account.id)}">${esc(account.code)} — ${esc(account.name)}</option>`).join(""):`<option value="">No ${esc(method)} account configured — add one in Chart of Accounts</option>`;
+}
+$("invoice-payment-method").addEventListener("change",()=>populatePaymentAccounts($("invoice-payment-method").value));
+function openInvoicePayment(){
+ if(!cur||cur.kind!=="invoice")return;
+ const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
+ if(balance<=0.005){toast("This invoice is already fully paid.");return}
+ $("invoice-payment-summary").textContent=`${cur.number} · ${cur.customer.name||"Customer"} · ${usd(balance)} still due`;
+ $("invoice-payment-percent").value="";
+ $("invoice-payment-amount").value=balance.toFixed(2);
+ $("invoice-payment-amount").max=balance.toFixed(2);
+ $("invoice-payment-breakdown").textContent=`Original invoice: ${usd(calc(cur).total)} · Previously paid: ${usd(cur.amountPaid||0)} · Remaining: ${usd(balance)}. Percentages are calculated from the original invoice total.`;
+ $("invoice-payment-date").value=new Date().toISOString().slice(0,10);
+ $("invoice-payment-message").textContent="";
+ $("invoice-payment-method").value="";
+ $("invoice-payment-account").innerHTML='<option value="">Choose a payment method first…</option>';
+ $("invoice-payment-modal").classList.remove("hidden");
+ $("invoice-payment-amount").focus();
+}
+function closeInvoicePayment(){ $("invoice-payment-modal").classList.add("hidden"); }
+$("invoice-payment-percent").addEventListener("change",()=>{
+ const percent=Number($("invoice-payment-percent").value);
+ if(!percent||!cur||cur.kind!=="invoice")return;
+ const amount=calc(cur).total*percent/100;
+ $("invoice-payment-amount").value=amount.toFixed(2);
+ $("invoice-payment-breakdown").textContent=`${percent}% of original invoice ${usd(calc(cur).total)} = ${usd(amount)}. Previously paid: ${usd(cur.amountPaid||0)}. Remaining before this payment: ${usd(Math.max(0,calc(cur).total-Number(cur.amountPaid||0)))}.`;
+});
+$("invoice-payment-amount").addEventListener("input",()=>{if($("invoice-payment-percent").value)$("invoice-payment-percent").value="";});
 
 /* ---------- builder ---------- */
 function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="1" step="1" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
  r.querySelector("button").onclick=()=>{r.remove();prev()};r.oninput=e=>{if(e.target===r.children[0]){const m=parts.find(x=>x.name===e.target.value);if(m)r.children[2].value=m.price}prev()};$("items").append(r)}
-function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:$("f-vat").value,
- customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value},
+function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:5,
+ vatBase:invoiceVatBase,customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value},
  items:[...$("items").children].map(r=>({d:r.children[0].value.trim(),q:+r.children[1].value||1,p:+r.children[2].value||0})).filter(i=>i.d||i.p)}}
 const prev=()=>{$("doc-new").innerHTML=`<div id="doc" style="box-shadow:none">${docHTML(collect())}</div>`};
-async function openBuilder(){show("build");if(!$("items").children.length){addLine();const d=new Date();d.setDate(d.getDate()+7);$("f-due").value=d.toISOString().slice(0,10)}prev();
-if($("f-cust").options.length<2){const [c,p]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
+async function ensureBuilderOptions(){if($("f-cust").options.length>=2)return;const [c,p]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
+  if(c.error){console.error("Couldn't load customers for invoice billing:",c.error);toast(`Couldn't load customer list: ${c.error.message}`)}
+  if(p.error){console.error("Couldn't load parts for invoice billing:",p.error);toast(`Couldn't load parts list: ${p.error.message}`)}
   $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option(x.full_name||"Unnamed",x.id),{_c:x})));
   parts=(p.data||[]).map(x=>({name:x.name,price:x.selling_price??x.unit_price??x.sale_price??x.price??""})).filter(x=>x.name);
  $("parts-dl").innerHTML=parts.map(x=>`<option value="${esc(x.name)}">`).join("")}
+async function openBuilder(jobId=""){editingInvoiceId=null;invoiceRepairJobId=jobId||null;if(jobId){const existing=rows.invoices.find(invoice=>invoice.repairJobId===jobId);if(existing){open(existing);toast(`This job already has invoice ${existing.number}.`);if(payAfterSave)setTimeout(openInvoicePayment,0);return}}$("build-title").textContent="New invoice";$("save").innerHTML='<i data-lucide="check"></i> Save invoice &amp; share';show("build");await ensureBuilderOptions();$("items").replaceChildren();addLine();const dueDate=new Date();dueDate.setDate(dueDate.getDate()+7);$("f-due").value=dueDate.toISOString().slice(0,10);prev();
+if(jobId){
+ try{
+  const{data:job,error:jobError}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,total_cost,fault_reported,diagnosis,job_description,work_done,work_missing,labour_mode,labour_cost,labour_hours,vehicles(make,model,year,license_plate),customers(full_name,phone,email)").eq("id",jobId).single();
+  if(jobError)throw new Error(`Couldn't load the job card: ${jobError.message}`);
+  const[partsResult,extrasResult,paymentsResult]=await Promise.all([
+   supabase.from("job_parts").select("part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",jobId),
+   supabase.from("job_incidentals").select("description,amount").eq("job_id",jobId),
+   supabase.from("repair_job_payments").select("amount").eq("repair_job_id",jobId),
+  ]);
+  if(partsResult.error)throw new Error(`Couldn't load the job-card parts: ${partsResult.error.message}`);
+  if(extrasResult.error)throw new Error(`Couldn't load the job-card extra costs: ${extrasResult.error.message}`);
+  if(paymentsResult.error)throw new Error(`Couldn't check payments already recorded for this job: ${paymentsResult.error.message}`);
+  if((partsResult.data||[]).some(item=>item.awaiting_accounting_price))throw new Error("This job has typed-in parts still awaiting Accounting prices. Price them in Ledger before creating an invoice.");
+  const paid=(paymentsResult.data||[]).reduce((sum,payment)=>sum+Number(payment.amount||0),0);
+  let credit=0;
+  if(job.customer_id){
+   const{data:accountEntries,error:accountError}=await supabase.from("customer_account_statement").select("source_id,balance_due").eq("customer_id",job.customer_id);
+   if(accountError)throw new Error(`Couldn't check customer account credit: ${accountError.message}`);
+   const otherBalances=(accountEntries||[]).filter(item=>item.source_id!==job.id).reduce((sum,item)=>sum+Number(item.balance_due||0),0);
+   credit=Math.max(0,-otherBalances);
+  }
+  const taxableSubtotal=Math.max(0,Number(job.total_cost||0));
+const partsSubtotal=(partsResult.data||[]).reduce((sum,item)=>sum+Number(item.quantity||0)*Number(item.price_at_time||0),0);invoiceVatBase=partsSubtotal;
+  const vat=Math.round(partsSubtotal*0.05*100)/100;
+  const balance=Math.max(0,taxableSubtotal+vat-paid-credit);
+  if(balance<=0.005){show("list");toast("No outstanding job balance — an invoice was not opened");return}
+  $("f-cust").value=job.customer_id||"";
+  $("f-name").value=job.customers?.full_name||"";
+  $("f-phone").value=job.customers?.phone||"";
+  $("f-email").value=job.customers?.email||"";
+  const vehicle=job.vehicles||{};
+  $("f-ref").value=[job.cro_number||`JC-${String(job.job_number||"").padStart(5,"0")}`,vehicle.license_plate].filter(Boolean).join(" · ");
+  $("f-notes").value=[job.fault_reported&&`Customer concern: ${job.fault_reported}`,job.diagnosis&&`Diagnosis: ${job.diagnosis}`,job.work_done&&`Work completed: ${job.work_done}`,job.work_missing&&`Work still missing: ${job.work_missing}`,job.job_description&&!job.work_done&&`Work completed: ${job.job_description}`].filter(Boolean).join("\n");
+  $("items").replaceChildren();
+  (partsResult.data||[]).forEach(item=>addLine(item.parts?.description||item.part_name,item.quantity,item.price_at_time));
+  const labour=Number(job.labour_cost)||0;
+  if(labour>0){
+   const hours=Number(job.labour_hours)||1,flat=job.labour_mode==="provider_estimate";
+   addLine(job.job_description||"Labour",flat?1:hours,flat?labour:labour/hours);
+  }
+  (extrasResult.data||[]).forEach(item=>addLine(item.description,1,item.amount));
+  if(!$("items").children.length)addLine();
+  prev();
+ }catch(error){console.error("Couldn't prefill invoice from job card:",error);show("list");toast(error.message||String(error))}
+}
 const params=new URLSearchParams(location.search);
 if(params.get("name"))$("f-name").value=params.get("name");
 if(params.get("phone"))$("f-phone").value=params.get("phone");
 if(params.get("email"))$("f-email").value=params.get("email");
 if(params.get("ref"))$("f-ref").value=params.get("ref");
 prev()}
-$("f-cust").onchange=e=>{const c=e.target.selectedOptions[0]._c;if(c){$("f-name").value=c.full_name||"";$("f-phone").value=c.phone||"";$("f-email").value=c.email||""}prev()};
+async function openInvoiceEditor(invoice){editingInvoiceId=invoice.id;await ensureBuilderOptions();$("build-title").textContent=`Edit ${invoice.number}`;$("save").innerHTML='<i data-lucide="save"></i> Save changes';$("f-cust").value=invoice.customerId||"";$("f-name").value=invoice.customer.name||"";$("f-phone").value=invoice.customer.phone||"";$("f-email").value=invoice.customer.email||"";$("f-vat").value="5";$("f-disc").value=Number(invoice.discount)||0;$("f-due").value=invoice.due||"";$("f-ref").value=invoice.ref||"";$("f-notes").value=invoice.notes||"";$("items").replaceChildren();(invoice.items||[]).forEach(item=>addLine(item.d,item.q,item.p));if(!$("items").children.length)addLine();prev();show("build")}
+function startNewInvoice(){editingInvoiceId=null;invoiceRepairJobId=null;$("f-cust").value="";$("f-name").value="";$("f-phone").value="";$("f-email").value="";$("f-vat").value="5";$("f-disc").value="0";$("f-due").value="";$("f-ref").value="";$("f-notes").value="";$("items").replaceChildren();openBuilder()}
+$("f-cust").onchange=e=>{const c=e.target.selectedOptions[0]?._c;if(c){$("f-name").value=c.full_name||"";$("f-phone").value=c.phone||"";$("f-email").value=c.email||""}prev()};
 $("v-build").addEventListener("input",prev);
-$("save").onclick=async()=>{const o=collect();if(!o.items.length)return toast("Add at least one item");if(!o.customer.name)return toast("Add a customer name");
- const t=calc(o),{data,error}=await supabase.from("invoices").insert({customer_id:$("f-cust").value||null,customer_name:o.customer.name,customer_phone:o.customer.phone,customer_email:o.customer.email,items:o.items,discount:+o.discount||0,vat_rate:+o.vat||0,subtotal:t.sub,total:t.total,notes:o.notes,reference:o.ref,due_date:o.due||null}).select().single();
- if(error){console.error(error);return toast("Couldn't save: "+error.message)}
- await load();open(rows.invoices.find(x=>x.id===data.id)||rows.invoices[0]);toast("Saved — choose how to send it")};
+$("save").onclick=async()=>{const o=collect();if(!o.items.length)return toast("Add at least one item");if(!o.customer.name.trim())return toast("Add a customer name");
+ const button=$("save"),t=calc(o),editing=editingInvoiceId;button.disabled=true;
+ try{
+  let invoiceId=editing,savedInvoiceNumber=null;
+  if(editing){
+   const{error}=await supabase.rpc("edit_customer_invoice",{p_invoice_id:editing,p_customer_id:$("f-cust").value||null,p_customer_name:o.customer.name.trim(),p_customer_phone:o.customer.phone.trim()||null,p_customer_email:o.customer.email.trim()||null,p_items:o.items,p_discount:+o.discount||0,p_vat_rate:+o.vat||0,p_due_date:o.due||null,p_reference:o.ref.trim()||null,p_notes:o.notes.trim()||null});
+   if(error)throw new Error(error.message);
+   signalDocumentChange("invoices",cur?.number||"Invoice");
+  }else{
+   const{data,error}=await supabase.from("invoices").insert({repair_job_id:invoiceRepairJobId,customer_id:$("f-cust").value||null,customer_name:o.customer.name.trim(),customer_phone:o.customer.phone.trim()||null,customer_email:o.customer.email.trim()||null,items:o.items,discount:+o.discount||0,vat_rate:+o.vat||0,subtotal:t.sub,total:t.total,notes:o.notes,reference:o.ref,due_date:o.due||null}).select().single();
+   if(error)throw new Error(error.message);
+   invoiceId=data.id;
+   savedInvoiceNumber=data.invoice_number;
+   signalDocumentChange("invoices","New invoice");
+  }
+  editingInvoiceId=null;await load();let saved=rows.invoices.find(x=>x.id===invoiceId);
+  if(!saved){
+   saved={kind:"invoice",id:invoiceId,repairJobId:invoiceRepairJobId,customerId:$("f-cust").value||null,number:editing?cur?.number||"Invoice":"INV-"+String(savedInvoiceNumber||"NEW").padStart(5,"0"),date:new Date().toISOString(),due:o.due,customer:o.customer,ref:o.ref,items:o.items,discount:+o.discount||0,vat:5,notes:o.notes,status:"unpaid",amountPaid:0};
+  }
+  if(saved){open(saved);toast(editing?"Invoice updated.":"Invoice created.");if(!editing&&payAfterSave)setTimeout(openInvoicePayment,0)}
+ }catch(error){console.error(editing?"Couldn't update customer invoice:":"Couldn't save customer invoice:",error);toast(`Couldn't ${editing?"update":"save"} invoice: ${error.message||String(error)}${editing?". Apply supabase/migrations/edit-receipts-invoices.sql if the edit feature is not installed.":""}`)}
+ finally{button.disabled=false}
+};
 
 /* ---------- share: WhatsApp / email / print / PDF ---------- */
 const lib=s=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=s;e.onload=ok;e.onerror=no;document.head.append(e)});
-async function pdf(){if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
- const cv=await html2canvas($("doc"),{scale:2,backgroundColor:"#fff",useCORS:true}),p=new jspdf.jsPDF("p","mm","a4"),w=210,h=cv.height*w/cv.width;p.addImage(cv.toDataURL("image/jpeg",.92),"JPEG",0,0,w,Math.min(h,297));
- return new File([p.output("blob")],`${cur.number}.pdf`,{type:"application/pdf"})}
-const msg=()=>{const t=calc(cur).total;return `Hi ${cur.customer.name||""}, here is your ${cur.kind} ${cur.number} from Centric Auto Mobile.\nTotal: ${usd(t)}${cur.kind==="invoice"&&cur.due?`\nDue: ${dt(cur.due)}`:""}\nThank you!`}
+function exportStylesCompact(thermal=false,capture=false){return `<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#17211b;font:13px/1.55 Arial,sans-serif}
+#doc{position:relative;display:block;overflow:visible;background:#fff;color:#17211b;width:${thermal?"74mm":capture?"794px":"190mm"};max-width:none;min-height:0;margin:0 auto;padding:${thermal?"3mm":"32px"};border:1px solid #e3e9e5;font-size:${thermal?"10px":"13px"};line-height:1.55;box-shadow:none}
+#doc::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#12a150 0 70%,#ff7a12 70%)}
+#doc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #dfe7e1;padding:8px 0 20px}
+#doc .top>div:first-child{min-width:0;color:#526058}
+#doc .top img{height:${thermal?"30px":"62px"};width:auto;object-fit:contain}
+#doc h1{margin:0 0 7px;font-size:${thermal?"16px":"28px"};letter-spacing:.1em;color:#12783d;text-align:right}
+#doc .top b{font-size:15px;color:#17211b}
+#doc .meta{display:grid;grid-template-columns:${thermal?"1fr":"1fr 1fr"};gap:12px;margin:18px 0;padding:14px;border-radius:10px;background:#f3f7f4}
+#doc .meta small,#doc .job-meta small{display:block;color:#66756c;text-transform:uppercase;letter-spacing:.06em;font-size:10px;font-weight:700}
+#doc .meta b{display:inline-block;margin-bottom:2px;color:#17211b}
+#doc .job-meta{display:grid;grid-template-columns:${thermal?"1fr":"repeat(2,minmax(0,1fr))"};gap:10px 16px;margin:0 0 18px;padding:14px 16px;border:1px solid #dfe7e1;border-radius:10px;background:#fbfcfb}
+#doc .job-meta p{margin:3px 0 0;overflow-wrap:anywhere}
+#doc table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:8px;color:#111}
+#doc th{background:#e3f2e8;color:#111;text-align:left;padding:${thermal?"5px 2px":"10px 8px"};border:1px solid #68786d;border-bottom:3px solid #12a150;font-size:${thermal?"9px":"12px"};font-weight:800;text-transform:uppercase}
+#doc th:first-child,#doc td:first-child{width:48%}
+#doc th:nth-child(2),#doc td:nth-child(2){width:10%}
+#doc th:nth-child(3),#doc td:nth-child(3){width:20%}
+#doc th:nth-child(4),#doc td:nth-child(4){width:22%}
+#doc td{padding:${thermal?"5px 2px":"10px 8px"};border:1px solid #9aa49d;color:#111;font-size:${thermal?"10px":"13px"};font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+#doc .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#doc .tot{margin-left:auto;width:min(300px,100%);margin-top:16px;padding:12px 14px;border:1px solid #e3e9e5;border-radius:10px;background:#fbfcfb}
+#doc .tot div{display:flex;justify-content:space-between;gap:18px;padding:5px 0}
+#doc .tot .g{border-top:2px solid #ff7a12;font-size:16px;font-weight:800;margin-top:6px;padding-top:10px;color:#145c31}
+#doc .stamp{display:inline-block;border:2px solid #12a150;color:#12783d;padding:2px 12px;border-radius:999px;font-weight:800;margin-top:8px}
+#doc .foot{margin-top:24px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px;text-align:center}
+@page{size:${thermal?"80mm auto":"A4"};margin:${thermal?"3mm":"10mm"}}
+@media print{html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}#doc{break-inside:avoid}}
+</style>`}
+function exportStyles(thermal=false,capture=false){
+const extra=`
+#doc .void-banner{margin:18px 0;padding:12px;border:3px solid #c62828;border-radius:8px;color:#b71c1c;text-align:center;font-size:26px;font-weight:900;letter-spacing:.18em}
+#doc .void-reason{margin:0 0 16px;color:#8f1d1d;font-weight:700}
+#doc p{white-space:pre-line}
+`;
+if(thermal)return exportStylesCompact(true,capture).replace("</style>",extra+"</style>");
+return `<style>${capture?"":'@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");'}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#17211b;font:13px/1.55 "Inter","Segoe UI",system-ui,sans-serif}
+#doc{position:relative;overflow:hidden;background:#fff;color:#17211b;width:${capture?"794px":"190mm"};max-width:none;min-height:0;margin:0 auto;padding:44px;border:1px solid #e3e9e5;border-radius:16px;font-size:13px;line-height:1.55;box-shadow:none}
+#doc::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#12a150 0 70%,#ff7a12 70%)}
+#doc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #dfe7e1;padding:8px 0 20px}
+#doc .top>div:first-child{min-width:0;color:#526058}
+#doc .top img{height:62px;width:auto;object-fit:contain}#doc h1{margin:0 0 7px;font-size:30px;letter-spacing:.1em;color:#12783d;text-align:right}
+#doc .top b{font-size:15px;color:#17211b}
+#doc .meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;padding:16px;border-radius:12px;background:#f3f7f4}
+#doc .job-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0 0 18px;padding:14px 16px;border:1px solid #dfe7e1;border-radius:10px;background:#fbfcfb}
+#doc .job-meta small{display:block;color:#66756c;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+#doc .job-meta p{margin:3px 0 0;overflow-wrap:anywhere}
+#doc .meta small{color:#66756c;text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:700;display:block;margin-bottom:4px}
+#doc .meta b{display:inline-block;margin-bottom:2px;color:#17211b}
+#doc table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:8px;color:#111}
+#doc th{background:#e3f2e8;color:#111;text-align:left;padding:12px 10px;border:1px solid #68786d;border-bottom:3px solid #12a150;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#doc th:first-child{border-radius:8px 0 0 0}#doc th:last-child{border-radius:0 8px 0 0}
+#doc th:first-child,#doc td:first-child{width:48%}
+#doc th:nth-child(2),#doc td:nth-child(2){width:10%}
+#doc th:nth-child(3),#doc td:nth-child(3){width:20%}
+#doc th:nth-child(4),#doc td:nth-child(4){width:22%}
+#doc td{padding:12px 10px;border:1px solid #9aa49d;color:#111;font-size:13px;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+#doc .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#doc .tot{margin-left:auto;width:min(300px,100%);margin-top:18px;padding:12px 14px;border:1px solid #e3e9e5;border-radius:12px;background:#fbfcfb}#doc .tot div{display:flex;justify-content:space-between;gap:18px;padding:5px 0}
+#doc .tot .g{border-top:2px solid #ff7a12;font-size:17px;font-weight:800;margin-top:6px;padding-top:12px;color:#145c31}
+#doc .stamp{display:inline-block;border:2px solid #12a150;color:#12783d;padding:2px 12px;border-radius:999px;font-weight:800;letter-spacing:.08em;margin-top:8px}
+#doc .foot{margin-top:30px;padding-top:14px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px;text-align:center}
+${extra}
+@page{size:A4;margin:10mm}
+@media print{html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}#doc{break-inside:avoid}}
+</style>`}
+function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
+</head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
+window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
+<\/scr${"ipt"}></bo${"dy"}></html>`}
+function printDocument(){
+ if(!cur)return;
+ const thermal=$("receipt-printer-type").value==="thermal",printWindow=window.open("","_blank");
+ if(!printWindow){toast("Allow pop-ups to print this receipt.");return}
+ printWindow.document.open();
+ printWindow.document.write(buildExportHtml(thermal));
+ printWindow.document.close();
+}
+async function pdf(){
+ if(!cur)throw new Error("Open a receipt or invoice before saving a PDF.");
+ if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+ if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+ const stage=document.createElement("div");
+ stage.id="receipt-export-stage";
+ stage.setAttribute("aria-hidden","true");
+ stage.style.cssText="position:absolute;left:-10000px;top:0;z-index:2147483647;width:794px;opacity:1;pointer-events:none;background:#fff";
+ stage.innerHTML=`${exportStyles(false,true)}<div id="doc">${docHTML(cur)}</div>`;
+ document.body.append(stage);
+ try{
+  await Promise.all([...stage.querySelectorAll("img")].map(image=>image.decode().catch(()=>undefined)));
+  if(document.fonts?.ready)await document.fonts.ready;
+  const cv=await window.html2canvas(stage,{scale:2,backgroundColor:"#fff",useCORS:true,windowWidth:794,scrollX:0,scrollY:0});
+  const jsPDF=window.jspdf?.jsPDF;
+  if(!jsPDF)throw new Error("The PDF generator did not load correctly.");
+  const doc=new jsPDF("p","mm","a4"),margin=10,contentWidth=190,contentHeight=277;
+  const sliceHeight=Math.max(1,Math.floor(cv.width*contentHeight/contentWidth));
+  for(let y=0;y<cv.height;y+=sliceHeight){
+   if(y>0)doc.addPage();
+   const height=Math.min(sliceHeight,cv.height-y),slice=document.createElement("canvas");
+   slice.width=cv.width;slice.height=height;
+   const context=slice.getContext("2d");
+   if(!context)throw new Error("Couldn't prepare the receipt image for PDF.");
+   context.fillStyle="#fff";context.fillRect(0,0,slice.width,slice.height);
+   context.drawImage(cv,0,y,cv.width,height,0,0,cv.width,height);
+   doc.addImage(slice.toDataURL("image/jpeg",.96),"JPEG",margin,margin,contentWidth,height*contentWidth/cv.width);
+  }
+  const unsafeFileNameCharacters='<>:"/\\|?*';
+  const receiptFileBase=[...String(cur.number||"receipt")]
+   .map(character=>unsafeFileNameCharacters.includes(character)?"-":character)
+   .join("");
+  const fileName=receiptFileBase+".pdf";
+  return new File([doc.output("blob")],fileName,{type:"application/pdf"});
+ }finally{stage.remove()}
+}
+const msg=()=>{
+ const amount=totalPaid(cur),customer=(cur.customer?.name||"").trim(),greeting=customer?`Dear ${customer},`:"Dear Customer,";
+ if(cur.voidedAt)return `${greeting}\n\n${cur.kind==="invoice"?"Invoice":"Receipt"} ${cur.number} from Centric Auto Mobile has been voided and is no longer valid. Voided amount: ${usd(amount)}.\n\nPlease contact us if you have any questions.\n\nKind regards,\nCentric Auto Mobile`;
+ const lines=(cur.items||[]).map((item,index)=>
+  `${index+1}. ${item.d||"Item"} — ${Number(item.q)||1} × ${usd(item.p)} = ${usd((Number(item.q)||1)*(Number(item.p)||0))}`
+ );
+ const details=[
+  greeting,
+  "",
+  `Please find the details of your ${cur.kind==="invoice"?"invoice":"receipt"} from Centric Auto Mobile below.`,
+  `Document: ${cur.number}`,
+  `Date: ${dt(cur.date)}`,
+  cur.ref?`Reference: ${cur.ref}`:null,
+  cur.kind==="invoice"&&cur.due?`Due date: ${dt(cur.due)}`:null,
+  cur.jobCard?.vehicle?`Vehicle: ${cur.jobCard.vehicle}`:null,
+  cur.jobCard?.odometer?`Odometer: ${cur.jobCard.odometer}`:null,
+  cur.jobCard?.fault?`Customer concern: ${cur.jobCard.fault}`:null,
+  cur.jobCard?.work?`Work / diagnosis: ${cur.jobCard.work}`:null,
+  "",
+  "Items:",
+  ...(lines.length?lines:["No item details are available."]),
+ ];
+ if(cur.kind==="invoice"){
+  const totals=calc(cur),paid=Number(cur.amountPaid)||0;
+  details.push(
+   "",
+   `Subtotal: ${usd(totals.sub)}`,
+   ...(totals.disc?[`Discount: -${usd(totals.disc)}`]:[]),
+   `VAT (5%): ${usd(totals.vat)}`,
+   `Invoice total: ${usd(totals.total)}`,
+   `Paid to date: ${usd(paid)}`,
+   `Balance due: ${usd(Math.max(0,totals.total-paid))}`,
+  );
+ }else{
+  details.push("",`Amount received: ${usd(amount)}`,`Payment method: ${cur.paymentMethod||"Not recorded"}`,`Receipt date: ${dt(cur.date)}`);
+  if(cur.discount)details.push(`Discount: -${usd(cur.discount)}`);
+  if(cur.salesOrderId)details.push(`Receipt total: ${usd(amount)}`);
+  if(cur.jobPayment)details.push(
+   `Job total: ${usd(cur.jobPayment.jobTotal)}`,
+   `Previously paid: ${usd(cur.jobPayment.previousPaid)}`,
+   `This payment: ${usd(cur.jobPayment.currentPaid)}`,
+   `Total paid to date: ${usd(cur.jobPayment.totalPaid)}`,
+   `Remaining balance: ${usd(cur.jobPayment.balance)}`,
+   `Payment status: ${cur.jobPayment.status.replace("_"," ")}`
+  );
+ }
+ details.push("","Thank you for your business.","Kind regards,","Centric Auto Mobile");
+ return details.filter(line=>line!==null).join("\n");
+}
 const save=f=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;a.click()};
-$("s-pdf").onclick=async()=>{try{save(await pdf())}catch{toast("PDF failed — use Print → Save as PDF")}};
-$("s-print").onclick=()=>{
- const mode=$("receipt-printer-type").value;
- document.body.dataset.printMode=mode;
- window.addEventListener("afterprint",()=>delete document.body.dataset.printMode,{once:true});
- print();
+async function fileBase64(file){const bytes=new Uint8Array(await file.arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary)}
+$("s-pdf").onclick=async()=>{
+ const button=$("s-pdf");button.disabled=true;
+ try{save(await pdf());toast("Receipt PDF downloaded.")}
+ catch(error){console.error("Couldn't generate receipt PDF:",error);toast(`Couldn't create the PDF: ${error.message||String(error)}`)}
+ finally{button.disabled=false}
 };
-$("s-wa").onclick=async()=>{try{const f=await pdf();if(navigator.canShare?.({files:[f]}))return await navigator.share({files:[f],text:msg()})}catch(e){if(e.name==="AbortError")return}
- open2(`https://wa.me/${waNum(cur.customer.phone)}?text=${encodeURIComponent(msg())}`);toast("Tap PDF to attach the file in WhatsApp")};
-$("s-mail").onclick=async()=>{try{save(await pdf());toast("PDF downloaded — attach it to the email")}catch{}
- open2(`mailto:${cur.customer.email||""}?subject=${encodeURIComponent(cur.kind[0].toUpperCase()+cur.kind.slice(1)+" "+cur.number+" — Centric Auto Mobile")}&body=${encodeURIComponent(msg())}`)};
+$("s-print").onclick=printDocument;
+$("s-wa").onclick=async()=>{
+ if(!waNum(cur.customer.phone))return toast("Add a customer WhatsApp number before sharing this document.");
+ const tab=window.open("about:blank","_blank");
+ try{
+  const file=await pdf();
+  if(navigator.canShare?.({files:[file]})&&navigator.share){
+   try{await navigator.share({files:[file],text:msg()});if(tab&&!tab.closed)tab.close();return}
+   catch(error){if(error.name==="AbortError"){if(tab&&!tab.closed)tab.close();return}}
+  }
+  save(file);
+  const url=`https://wa.me/${waNum(cur.customer.phone)}?text=${encodeURIComponent(msg())}`;
+  if(tab&&!tab.closed)tab.location.href=url;else open2(url);
+  toast("The PDF was downloaded. Attach it in WhatsApp, then tap Send.");
+ }catch(error){if(tab&&!tab.closed)tab.close();console.error("Couldn't prepare receipt or invoice for WhatsApp:",error);toast(`Couldn't prepare the document: ${error.message||String(error)}`)}
+};
+$("s-mail").onclick=async()=>{
+ if(!cur.customer.email)return toast("Add a customer email address before sharing this document.");
+ try{
+  const file=await pdf();
+  const subject=`${cur.kind[0].toUpperCase()+cur.kind.slice(1)} ${cur.number} — Centric Auto Mobile`;
+  const{error}=await supabase.functions.invoke("send-receipt-email",{body:{to:cur.customer.email,subject,text:msg(),fileName:file.name,mimeType:file.type,fileBase64:await fileBase64(file),jobNumber:cur.number}});
+  if(error)throw error;
+  toast(`${cur.kind} emailed to ${cur.customer.email}`);
+ }catch(error){
+  console.error("Couldn't send receipt or invoice email:",error);
+  try{
+   const file=await pdf();save(file);
+   open2(`mailto:${encodeURIComponent(cur.customer.email)}?subject=${encodeURIComponent(cur.kind[0].toUpperCase()+cur.kind.slice(1)+" "+cur.number+" — Centric Auto Mobile")}&body=${encodeURIComponent(msg()+"\n\nThe PDF was downloaded. Attach it to this email before sending.")}`);
+   toast(`Automatic email failed (${error.message||String(error)}). A draft is open; attach the downloaded PDF.`);
+  }catch(fallbackError){console.error("Couldn't prepare email fallback:",fallbackError);toast(`Couldn't email or prepare this document: ${fallbackError.message||String(fallbackError)}`)}
+ }
+};
 const open2=u=>{window.open(u,"_blank")||(location.href=u)};
-$("d-paid").onclick=async()=>{const{error}=await supabase.from("invoices").update({status:"paid"}).eq("id",cur.id);if(error)return toast(error.message);cur.status="paid";$("doc").innerHTML=docHTML(cur);$("d-paid").hidden=true;load();toast("Marked as paid")};
+$("d-edit").onclick=()=>{if(!cur||!isSuperAdmin())return;if(cur.kind==="invoice")openInvoiceEditor(cur);else openReceiptEditor()};
+$("d-void").onclick=voidReceipt;
+$("receipt-edit-cancel").onclick=closeReceiptEditor;
+$("receipt-edit-modal").addEventListener("click",event=>{if(event.target===$("receipt-edit-modal"))closeReceiptEditor()});
+$("receipt-edit-save").onclick=async()=>{
+ if(!cur||cur.kind!=="receipt"||!isSuperAdmin())return;
+ const amount=Number($("receipt-edit-amount").value),message=$("receipt-edit-message"),button=$("receipt-edit-save");
+ if(!Number.isFinite(amount)||amount<=0){message.textContent="Enter a receipt total greater than zero.";message.dataset.tone="error";return}
+ button.disabled=true;message.textContent="Updating the receipt and linked payment totals…";message.dataset.tone="info";
+ try{
+  const receiptId=cur.id;
+  const{error}=await supabase.rpc("edit_business_receipt",{p_receipt_id:receiptId,p_amount:amount});
+  if(error)throw new Error(error.message);
+  signalDocumentChange("receipts",cur.number);
+  closeReceiptEditor();await load();const updated=rows.receipts.find(receipt=>receipt.id===receiptId);if(updated)open(updated);toast("Receipt and linked payment totals updated.");
+ }catch(error){console.error("Couldn't correct receipt amount:",error);message.textContent=`Couldn't correct receipt: ${error.message||String(error)}. Apply supabase/migrations/edit-receipts-invoices.sql if this feature is not installed.`;message.dataset.tone="error"}
+ finally{button.disabled=false}
+};
+$("d-paid").onclick=openInvoicePayment;
+$("invoice-payment-cancel").onclick=closeInvoicePayment;
+$("invoice-payment-modal").addEventListener("click",event=>{if(event.target===$("invoice-payment-modal"))closeInvoicePayment()});
+$("invoice-payment-save").onclick=async()=>{
+ if(!cur||cur.kind!=="invoice")return;
+ const amount=Number($("invoice-payment-amount").value),paymentDate=$("invoice-payment-date").value,accountId=$("invoice-payment-account").value,paymentMethod=$("invoice-payment-method").value;
+ const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
+ const message=$("invoice-payment-message"),saveButton=$("invoice-payment-save");
+ if(!Number.isFinite(amount)||amount<=0||amount>balance+.005){message.textContent=`Enter a payment greater than zero and no more than ${usd(balance)}.`;message.dataset.tone="error";return}
+ if(!paymentDate||!paymentMethod||!accountId){message.textContent="Choose a payment date, payment method (Cash, Card, EcoCash or Bank), and the matching ledger account.";message.dataset.tone="error";return}
+ saveButton.disabled=true;message.textContent="Recording payment…";message.dataset.tone="info";
+ try{
+  const invoiceId=cur.id,jobId=cur.repairJobId;
+  const previousReceiptIds=new Set(rows.receipts.filter(r=>String(r.repairJobId)===String(jobId)).map(r=>String(r.id)));
+  const selectedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
+  const{error}=await supabase.rpc("record_customer_invoice_payment",{p_invoice_id:invoiceId,p_amount:amount,p_account_id:accountId,p_payment_date:paymentDate});
+  if(error)throw new Error(error.message);
+  signalDocumentChange("invoices",cur.number);
+  lastPaymentContext={jobId,amount,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
+  closeInvoicePayment();
+  const cleanParams=new URLSearchParams(location.search);cleanParams.delete("new");cleanParams.delete("job");cleanParams.delete("pay");payAfterSave=false;
+  history.replaceState(null,"",`${location.pathname}${cleanParams.toString()?"?"+cleanParams.toString():""}`);
+  await load();
+  const newReceipt=rows.receipts.find(r=>String(r.repairJobId)===String(jobId)&&!previousReceiptIds.has(String(r.id)));
+  if(newReceipt){if(lastPaymentContext)newReceipt.paymentMethod=lastPaymentContext.method;tab="receipts";render();open(newReceipt);toast(`Payment recorded. Receipt ${newReceipt.number} is ready.`)}
+  else{const updated=rows.invoices.find(invoice=>invoice.id===invoiceId);if(updated)open(updated);toast("Payment recorded. The backend did not return a new linked receipt, so the invoice remains open.")}
+ }catch(error){console.error("Couldn't record customer invoice payment:",error);message.textContent=`Couldn't record payment: ${error.message||String(error)}.`;message.dataset.tone="error"}
+ finally{saveButton.disabled=false}
+};
 
 /* ---------- wiring ---------- */
+$("new-inv").onclick=startNewInvoice;$("add-li").onclick=()=>addLine();$("b-back").onclick=()=>{const returningToDocument=Boolean(editingInvoiceId);editingInvoiceId=null;if(returningToDocument&&cur?.kind==="invoice")open(cur);else show("list")};
+$("d-delete").onclick=()=>cur&&deleteDocument(cur.kind==="invoice"?"invoices":"receipts",cur.id,cur.number);
+$("list").addEventListener("click",event=>{const button=event.target.closest("[data-delete-document]");if(!button)return;event.stopPropagation();deleteDocument(button.dataset.deleteDocument,button.dataset.documentId,button.dataset.documentNumber)});
+document.addEventListener("apr:access-ready",()=>{render();updateDocumentActions()});
+const receiptOrigin=new URLSearchParams(location.search).get("from"),receiptBack=$("d-back");
+if(receiptOrigin==="shop")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Shop';
+else if(receiptOrigin==="repairs")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Job Cards';
+else if(receiptOrigin==="quotations")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Quotations';
+else if(receiptOrigin==="ledger")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Ledger';
+else if(receiptOrigin==="accounting")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Accounting';
+window.lucide?.createIcons();
 document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
-$("new-inv").onclick=openBuilder;$("add-li").onclick=()=>addLine();$("b-back").onclick=$("d-back").onclick=()=>show("list");
+receiptBack.onclick=()=>{
+ const from=receiptOrigin;
+ if(from==="shop")location.href="shop.html";
+ else if(from==="repairs")location.href="repairs.html";
+ else if(from==="quotations")location.href="quotations.html";
+ else if(from==="ledger")location.href="ledger.html";
+ else if(from==="accounting")location.href="accounting.html";
+ else show("list");
+};
 $("hs-input").oninput=render;
-const sp=new URLSearchParams(location.search);if(sp.get("new"))openBuilder();
-load();
+["receipt-filter-search","receipt-filter-from","receipt-filter-to"].forEach(id=>$(id).addEventListener("input",render));
+$("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","hs-input"].forEach(id=>$(id).value="");render()};
+load().catch(error=>{console.error("Receipts page failed to load:",error);$("list").innerHTML=`<div class="ov-empty">Couldn't load receipts: ${esc(error?.message||String(error))}</div>`});
 </script>
 </body>
 </html>

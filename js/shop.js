@@ -12,7 +12,6 @@ installBulkDelete({
   foreignKeyMessage: "Parts may still be linked to purchasing history. Apply supabase/migrations/part-history-delete.sql to preserve purchase snapshots and allow safe deletion.",
 });
 const restocksTableBody = document.getElementById("restocks-table");
-const partSuppliersList = document.getElementById("part-suppliers-list");
 const PART_CATEGORIES = ["Suspension", "Body Parts", "Engine Parts", "Interior", "Auto Electrical Parts", "Air Bags", "Other"];
 
 const editModal = document.getElementById("edit-part-modal");
@@ -26,7 +25,6 @@ const editCost = document.getElementById("edit-part-cost");
 const editPrice = document.getElementById("edit-part-price");
 const editVatRate = document.getElementById("edit-part-vat-rate");
 const vatRate = document.getElementById("part-vat-rate");
-const editSuppliersList = document.getElementById("edit-part-suppliers-list");
 const editSaveBtn = document.getElementById("edit-part-save");
 const editDeleteBtn = document.getElementById("edit-part-delete");
 const editCancelBtn = document.getElementById("edit-part-cancel");
@@ -46,10 +44,6 @@ const restockEmailOrderBtn = document.getElementById("restock-email-order");
 const purchasePrintModal = document.getElementById("purchase-print-modal");
 const purchasePrintSummary = document.getElementById("purchase-print-summary");
 const purchasePrintType = document.getElementById("purchase-print-type");
-const partPurchaseSupplier = document.getElementById("part-purchase-supplier");
-const partPaymentStatus = document.getElementById("part-payment-status");
-const partPaymentAccountField = document.getElementById("part-payment-account-field");
-const partPaymentAccount = document.getElementById("part-payment-account");
 const totalUnitsEl = document.getElementById("shop-total-units");
 const costValueEl = document.getElementById("shop-cost-value");
 const retailValueEl = document.getElementById("shop-retail-value");
@@ -58,12 +52,14 @@ const salesValueEl = document.getElementById("shop-sales-value");
 
 let currentEditId = null;
 let currentRestockPart = null;
+let restockSubmissionInProgress = false;
+let partSubmissionInProgress = false;
 let completedPurchase = null;
 let allSuppliers = [];              // [{id, name}]
 let purchaseAccounts = [];
 let currentPartSuppliers = {};      // part_id -> [{id, name, is_preferred}]
 let MARKUP_RATE = 0.15;
-const VAT_RATE = 5;
+const DEFAULT_VAT_RATE = 5;
 let settingsRowId = null;
 
 function escapeHtml(str) {
@@ -74,11 +70,28 @@ function escapeHtml(str) {
 function formatMoney(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
-function sellingPriceFor(cost) {
-  return (Math.max(0, Number(cost) || 0) * (1 + MARKUP_RATE) * (1 + VAT_RATE / 100)).toFixed(2);
+function roundMoney(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
-function updateSellingPrice(costInput, priceInput) {
-  if (costInput && priceInput) priceInput.value = sellingPriceFor(costInput.value);
+function sellingPriceFor(cost, markupRate = MARKUP_RATE, vatRate = DEFAULT_VAT_RATE) {
+  return (Math.max(0, Number(cost) || 0) * (1 + markupRate) * (1 + vatRate / 100)).toFixed(2);
+}
+function updateSellingPrice(costInput, priceInput, markupInput, vatInput) {
+  if (costInput && priceInput) {
+    const markupPercent = markupInput?.value === "" || !markupInput ? MARKUP_RATE * 100 : Number(markupInput.value);
+    priceInput.value = sellingPriceFor(
+      costInput.value,
+      (Number.isFinite(markupPercent) ? markupPercent : MARKUP_RATE * 100) / 100,
+      Number(vatInput?.value || DEFAULT_VAT_RATE),
+    );
+  }
+}
+function updateMarkupFromPrice(costInput, priceInput, markupInput, vatInput) {
+  const cost = Number(costInput?.value);
+  const price = Number(priceInput?.value);
+  if (!markupInput || !Number.isFinite(cost) || cost <= 0 || !Number.isFinite(price)) return;
+  const vat = Number(vatInput?.value || DEFAULT_VAT_RATE);
+  markupInput.value = ((price / (cost * (1 + vat / 100)) - 1) * 100).toFixed(1);
 }
 
 // ---- Configurable markup ----
@@ -89,6 +102,7 @@ async function loadMarkupRate() {
     settingsRowId = data.id;
   }
   document.getElementById("markup-rate-input").value = (MARKUP_RATE * 100).toFixed(1);
+  document.getElementById("part-markup-rate").value = (MARKUP_RATE * 100).toFixed(1);
 }
 
 document.getElementById("save-markup-btn")?.addEventListener("click", async () => {
@@ -99,8 +113,8 @@ document.getElementById("save-markup-btn")?.addEventListener("click", async () =
     const { error } = await supabase.from("settings").update({ markup_rate: MARKUP_RATE }).eq("id", settingsRowId);
     if (error) { alert("Failed to save markup rate: " + error.message); return; }
   }
-  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"));
-  updateSellingPrice(editCost, editPrice);
+  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
+  updateSellingPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate);
   alert("Markup rate updated. New parts and edits use it from now on — use \"Apply to All Existing Parts\" if you also want it applied retroactively.");
 });
 
@@ -111,44 +125,13 @@ document.getElementById("apply-markup-all-btn")?.addEventListener("click", async
   for (const p of parts || []) {
     const { error: updateError } = await supabase.from("parts").update({
       selling_price: Number(sellingPriceFor(p.cost_price)),
-      vat_rate: VAT_RATE,
+      vat_rate: DEFAULT_VAT_RATE,
     }).eq("id", p.id);
     if (updateError) { alert(`Failed to update a part's price: ${updateError.message}`); return; }
   }
   alert("Selling prices updated.");
   await loadParts();
 });
-
-// ---- Multi-supplier checklist (a part can have more than one) ----
-function buildSupplierChecklist(container, suppliers, checkedIds = [], preferredId = null) {
-  if (!container) return;
-  container.innerHTML = suppliers.map(s => `
-    <div class="supplier-check-row" data-supplier-id="${s.id}">
-      <input type="checkbox" class="supplier-check" ${checkedIds.includes(s.id) ? "checked" : ""} />
-      <span style="flex:1;">${escapeHtml(s.name)}</span>
-      <button type="button" class="star-btn ${preferredId === s.id ? "active" : ""}" title="Set as preferred supplier">★</button>
-    </div>
-  `).join("");
-
-  container.querySelectorAll(".star-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const row = btn.closest(".supplier-check-row");
-      row.querySelector(".supplier-check").checked = true; // preferred implies linked
-      container.querySelectorAll(".star-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    });
-  });
-}
-
-function readSupplierChecklist(container) {
-  const rows = [...container.querySelectorAll(".supplier-check-row")];
-  const checked = rows.filter(r => r.querySelector(".supplier-check").checked).map(r => r.dataset.supplierId);
-  const preferredRow = rows.find(r => r.querySelector(".star-btn").classList.contains("active"));
-  let preferredId = preferredRow ? preferredRow.dataset.supplierId : null;
-  if (preferredId && !checked.includes(preferredId)) checked.push(preferredId);
-  if (!preferredId && checked.length) preferredId = checked[0];
-  return { supplierIds: checked, preferredId };
-}
 
 async function loadSuppliersIntoSelect() {
   const [{ data, error }, { data: accountData, error: accountError }] = await Promise.all([
@@ -160,12 +143,8 @@ async function loadSuppliersIntoSelect() {
   allSuppliers = data || [];
   purchaseAccounts = accountData || [];
   if (restockSupplier) document.getElementById("restock-supplier-options").innerHTML = allSuppliers.map(s => `<option value="${escapeHtml(s.name)}"></option>`).join("");
-  const options = allSuppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
-  if (partPurchaseSupplier) partPurchaseSupplier.innerHTML = `<option value="">Select supplier…</option>${options}`;
   const paymentOptions = purchaseAccounts.filter(account => ["1000", "1010"].includes(account.code));
   if (restockPaymentAccount) restockPaymentAccount.innerHTML = `<option value="">Select cash or bank account…</option>${paymentOptions.map(account => `<option value="${account.id}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("")}`;
-  if (partPaymentAccount) partPaymentAccount.innerHTML = `<option value="">Select cash or bank account…</option>${paymentOptions.map(account => `<option value="${account.id}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("")}`;
-  buildSupplierChecklist(partSuppliersList, allSuppliers, [], null);
 }
 
 async function loadPartSuppliersMap() {
@@ -404,9 +383,22 @@ async function loadRestocks() {
     restocksTableBody.innerHTML = `<tr><td colspan="7" style="color:var(--danger)">Failed to load restocks: ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
-  restocksTableBody.innerHTML = data?.length ? data.map(restock => `
-    <tr id="restock-${restock.id}"><td>${escapeHtml(restock.parts?.name || restock.part_name || "—")}</td><td>${restock.suppliers?.id ? `<a href="suppliers.html#supplier-${encodeURIComponent(restock.suppliers.id)}">${escapeHtml(restock.suppliers.name)}</a>` : "No supplier"}</td><td>${restock.quantity}</td><td>$${Number(restock.unit_cost).toFixed(2)}</td><td>${restock.payables?.id ? `<a href="payables.html#payable-${encodeURIComponent(restock.payables.id)}">${escapeHtml(restock.invoice_number || "View bill")}</a>` : escapeHtml(restock.invoice_number || "—")}</td><td>${restock.payment_status === "on_credit" ? "On credit" : "Paid"}</td><td>${new Date(restock.restocked_at).toLocaleDateString()}</td></tr>
-  `).join("") : `<tr><td colspan="7" style="color:var(--text-muted)">No restocks recorded yet</td></tr>`;
+  restocksTableBody.innerHTML = data?.length ? data.map(restock => {
+    const date = new Date(restock.restocked_at);
+    const dateLabel = Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const onCredit = restock.payment_status === "on_credit";
+    return `
+      <tr id="restock-${restock.id}">
+        <td><strong>${escapeHtml(restock.part_name || "Unnamed part")}</strong></td>
+        <td>${restock.suppliers?.id ? `<a href="suppliers.html#supplier-${encodeURIComponent(restock.suppliers.id)}">${escapeHtml(restock.suppliers.name)}</a>` : "No supplier"}</td>
+        <td><span class="restock-quantity">+${Number(restock.quantity || 0)}</span></td>
+        <td><strong>$${Number(restock.unit_cost || 0).toFixed(2)}</strong></td>
+        <td>${restock.payables?.id ? `<a href="payables.html#payable-${encodeURIComponent(restock.payables.id)}">${escapeHtml(restock.invoice_number || "View bill")}</a>` : escapeHtml(restock.invoice_number || "—")}</td>
+        <td><span class="restock-payment ${onCredit ? "credit" : "paid"}"><i data-lucide="${onCredit ? "clock-3" : "circle-check"}"></i>${onCredit ? "On credit" : "Paid"}</span></td>
+        <td><time class="restock-date" datetime="${escapeHtml(restock.restocked_at || "")}">${dateLabel}</time></td>
+      </tr>`;
+  }).join("") : `<tr><td colspan="7" style="color:var(--text-muted)">No restocks recorded yet</td></tr>`;
+  if (window.lucide) lucide.createIcons();
   const targetId = window.location.hash.match(/^#restock-(\d+)$/)?.[1];
   if (targetId) document.getElementById(`restock-${targetId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
@@ -595,7 +587,8 @@ restockPaymentStatus?.addEventListener("change", () => {
 });
 
 restockSaveBtn?.addEventListener("click", async () => {
-  if (!currentRestockPart) return;
+  if (!currentRestockPart || restockSubmissionInProgress) return;
+  const part = currentRestockPart;
   const quantity = parseInt(restockQuantity.value, 10);
   const unitCost = parseFloat(restockUnitCost.value);
   const paymentStatus = restockPaymentStatus.value;
@@ -630,6 +623,11 @@ restockSaveBtn?.addEventListener("click", async () => {
     alert("Enter a valid supplier email address.");
     return;
   }
+  restockSubmissionInProgress = true;
+  restockSaveBtn.disabled = true;
+  restockMessage.textContent = "Recording stock purchase…";
+  restockMessage.dataset.tone = "info";
+  try {
   let supplier = allSuppliers.find(item => item.id === supplierName || item.name.toLowerCase() === supplierName.toLowerCase());
   if (!supplier) {
     const { data: createdSupplier, error: supplierError } = await supabase.from("suppliers")
@@ -653,16 +651,11 @@ restockSaveBtn?.addEventListener("click", async () => {
     }
     supplier.email = supplierEmail;
   }
-  restockSaveBtn.disabled = true;
-  restockMessage.textContent = "Recording stock purchase…";
-  restockMessage.dataset.tone = "info";
-
   const purchase = await createShopPurchase({
-    part: currentRestockPart, quantity, unitCost, supplierId: supplier.id, paymentStatus,
+    part, quantity, unitCost, supplierId: supplier.id, paymentStatus,
     cashAccountId, purchaseDate: new Date().toISOString().slice(0, 10),
   });
   if (purchase.error) {
-    restockSaveBtn.disabled = false;
     restockMessage.textContent = `Failed to record purchase: ${purchase.error.message}`;
     restockMessage.dataset.tone = "error";
     return;
@@ -670,20 +663,24 @@ restockSaveBtn?.addEventListener("click", async () => {
 
   // Existing stock PLUS the restocked quantity — never overwritten.
   const { error: partError } = await supabase.from("parts").update({
-    quantity_in_stock: Number(currentRestockPart.quantity_in_stock || 0) + quantity,
+    quantity_in_stock: Number(part.quantity_in_stock || 0) + quantity,
     cost_price: unitCost,
     selling_price: Number(sellingPriceFor(unitCost)),
-    vat_rate: VAT_RATE,
-  }).eq("id", currentRestockPart.id);
+    vat_rate: DEFAULT_VAT_RATE,
+  }).eq("id", part.id);
   if (partError) {
-    await rollbackShopPurchase(purchase.restock.id);
-    restockSaveBtn.disabled = false;
-    restockMessage.textContent = "Purchase failed and was rolled back: " + partError.message;
+    try {
+      await rollbackShopPurchase(purchase.restock.id);
+      restockMessage.textContent = "Purchase failed and was rolled back: " + partError.message;
+    } catch (rollbackError) {
+      console.error("Shop restock rollback failed:", rollbackError);
+      restockMessage.textContent = `Purchase stock update failed: ${partError.message}. Its ledger records also need attention: ${rollbackError.message || String(rollbackError)}. Contact an administrator before retrying.`;
+    }
     restockMessage.dataset.tone = "error";
     return;
   }
 
-  const purchasedPartName = currentRestockPart.name;
+  const purchasedPartName = part.name;
   closeRestockModal();
   await loadParts();
   await loadRestocks();
@@ -696,6 +693,14 @@ restockSaveBtn?.addEventListener("click", async () => {
     date: new Date().toLocaleDateString(),
     total: quantity * unitCost,
   });
+  } catch (error) {
+    console.error("Couldn't complete shop restock:", error);
+    restockMessage.textContent = `Couldn't complete the purchase: ${error.message || String(error)}. Check the restock history before retrying.`;
+    restockMessage.dataset.tone = "error";
+  } finally {
+    restockSubmissionInProgress = false;
+    restockSaveBtn.disabled = false;
+  }
 });
 
 // ---- Edit modal ----
@@ -709,12 +714,12 @@ function openEditModal(part) {
   editQty.value = part.quantity_in_stock;
   editMinimumStock.value = part.minimum_stock || 0;
   editCost.value = part.cost_price;
-  editVatRate.value = "5";
-  updateSellingPrice(editCost, editPrice);
-
-  const linked = currentPartSuppliers[part.id] || [];
-  const preferredId = linked.find(l => l.is_preferred)?.id || part.supplier_id || null;
-  buildSupplierChecklist(editSuppliersList, allSuppliers, linked.map(l => l.id), preferredId);
+  editVatRate.value = String(Number(part.vat_rate) || DEFAULT_VAT_RATE);
+  editPrice.value = Number(part.selling_price || 0).toFixed(2);
+  const markup = Number(part.cost_price) > 0
+    ? ((Number(part.selling_price) / (Number(part.cost_price) * (1 + Number(editVatRate.value) / 100)) - 1) * 100)
+    : MARKUP_RATE * 100;
+  document.getElementById("edit-part-markup-rate").value = Math.max(0, markup).toFixed(1);
 
   editModal.classList.remove("hidden");
   editModal.style.display = "flex";
@@ -731,17 +736,23 @@ if (editCancelBtn) editCancelBtn.addEventListener("click", (e) => { e.preventDef
 if (editModal) editModal.addEventListener("click", (e) => { if (e.target === editModal) closeEditModal(); });
 
 document.getElementById("part-cost")?.addEventListener("input", () => {
-  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"));
+  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
 });
-vatRate?.addEventListener("change", () => updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price")));
-editCost?.addEventListener("input", () => updateSellingPrice(editCost, editPrice));
-editVatRate?.addEventListener("change", () => updateSellingPrice(editCost, editPrice));
+document.getElementById("part-markup-rate")?.addEventListener("input", () => {
+  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
+});
+document.getElementById("part-price")?.addEventListener("input", () => {
+  updateMarkupFromPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
+});
+vatRate?.addEventListener("change", () => updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate));
+editCost?.addEventListener("input", () => updateSellingPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate));
+document.getElementById("edit-part-markup-rate")?.addEventListener("input", () => updateSellingPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate));
+editPrice?.addEventListener("input", () => updateMarkupFromPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate));
+editVatRate?.addEventListener("change", () => updateSellingPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate));
 
 if (editSaveBtn) editSaveBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   if (!currentEditId) return;
-  const { supplierIds, preferredId } = readSupplierChecklist(editSuppliersList);
-
   const { data: updatedRows, error } = await supabase.from("parts").update({
     name: editName.value.trim(),
     part_number: editPartNumber.value.trim() || null,
@@ -751,8 +762,7 @@ if (editSaveBtn) editSaveBtn.addEventListener("click", async (e) => {
     minimum_stock: Number(editMinimumStock.value) || 0,
     cost_price: parseFloat(editCost.value) || 0,
     selling_price: Number(editPrice.value),
-    vat_rate: 5,
-    supplier_id: preferredId || null,
+    vat_rate: Number(editVatRate.value),
   }).eq("id", currentEditId).select();
 
   if (error) { alert("Failed to update part: " + error.message); return; }
@@ -763,15 +773,9 @@ if (editSaveBtn) editSaveBtn.addEventListener("click", async (e) => {
     return;
   }
 
-  await supabase.from("part_suppliers").delete().eq("part_id", currentEditId);
-  if (supplierIds.length) {
-    const rows = supplierIds.map(sid => ({ part_id: currentEditId, supplier_id: sid, is_preferred: sid === preferredId }));
-    const { error: linkError } = await supabase.from("part_suppliers").insert(rows);
-    if (linkError) console.error("Error linking suppliers:", linkError);
-  }
-
   closeEditModal();
-  loadParts();
+  await loadParts();
+  await loadQuickSaleData();
 });
 
 async function deletePart(partId, partName) {
@@ -803,60 +807,40 @@ if (editDeleteBtn) editDeleteBtn.addEventListener("click", async (e) => {
 
 if (form) form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (partSubmissionInProgress) return;
+  partSubmissionInProgress = true;
+  const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
   const quantity = parseInt(document.getElementById("part-qty").value, 10) || 0;
   const unitCost = parseFloat(document.getElementById("part-cost").value) || 0;
-  const supplierId = partPurchaseSupplier.value;
-  const paymentStatus = partPaymentStatus.value;
-  const cashAccountId = partPaymentAccount.value;
-  if (quantity > 0 && !supplierId) { alert("Select the supplier for the opening stock purchase."); return; }
-  if (quantity > 0 && paymentStatus === "paid" && !cashAccountId) { alert("Select the cash or bank account used to pay for opening stock."); return; }
-  if (quantity > 0 && !purchaseAccounts.find(account => account.code === "1200")) { alert("Parts Inventory account (code 1200) is missing from the Chart of Accounts."); return; }
-  if (quantity > 0 && paymentStatus === "on_credit" && !purchaseAccounts.find(account => account.code === "2000")) { alert("Accounts Payable account (code 2000) is missing from the Chart of Accounts."); return; }
-  const { supplierIds, preferredId } = readSupplierChecklist(partSuppliersList);
+  const sellingPrice = Number(document.getElementById("part-price").value);
+  const partName = document.getElementById("part-name").value.trim();
+  if (!Number.isInteger(quantity) || quantity < 0 || !partName) { alert("Enter a part name and a valid opening quantity."); return; }
+  if (!Number.isFinite(sellingPrice) || sellingPrice < 0) { alert("Enter a valid selling price."); return; }
   const { data: newPart, error } = await supabase.from("parts").insert([{
-    name: document.getElementById("part-name").value.trim(),
+    name: partName,
     part_number: document.getElementById("part-number").value.trim() || null,
     description: document.getElementById("part-description").value.trim() || null,
     category: document.getElementById("part-category").value,
-    quantity_in_stock: parseInt(document.getElementById("part-qty").value) || 0,
+    quantity_in_stock: quantity,
     minimum_stock: Number(document.getElementById("part-minimum-stock").value) || 0,
-    cost_price: parseFloat(document.getElementById("part-cost").value) || 0,
-    selling_price: Number(sellingPriceFor(document.getElementById("part-cost").value)),
-    vat_rate: VAT_RATE,
-    supplier_id: preferredId || null,
+    cost_price: unitCost,
+    selling_price: sellingPrice,
+    vat_rate: Number(vatRate.value),
   }]).select("id").single();
 
   if (error) { alert("Failed to add part: " + error.message); return; }
-
-  if (quantity > 0) {
-    const purchase = await createShopPurchase({
-      part: { id: newPart.id, name: document.getElementById("part-name").value.trim() },
-      quantity, unitCost, supplierId, paymentStatus, cashAccountId,
-      purchaseDate: new Date().toISOString().slice(0, 10),
-    });
-    if (purchase.error) {
-      await supabase.from("parts").delete().eq("id", newPart.id);
-      alert(`Part was not added because its opening stock purchase failed: ${purchase.error.message}`);
-      return;
-    }
-  }
-
-  if (supplierIds.length) {
-    const rows = supplierIds.map(sid => ({ part_id: newPart.id, supplier_id: sid, is_preferred: sid === preferredId }));
-    const { error: linkError } = await supabase.from("part_suppliers").insert(rows);
-    if (linkError) console.error("Error linking suppliers:", linkError);
-  }
-
   form.reset();
-  vatRate.value = "5";
-  partPaymentStatus.value = "paid";
-  partPaymentAccountField.hidden = false;
-  partPaymentAccount.required = true;
-  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"));
-  buildSupplierChecklist(partSuppliersList, allSuppliers, [], null);
+  vatRate.value = String(DEFAULT_VAT_RATE);
+  document.getElementById("part-markup-rate").value = (MARKUP_RATE * 100).toFixed(1);
+  updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
   await loadParts();
-  await loadRestocks();
   await loadQuickSaleData();
+  } finally {
+    partSubmissionInProgress = false;
+    if (submitButton) submitButton.disabled = false;
+  }
 });
 
 // ---- Quick Sale: a walk-in counter sale, reusing the same
@@ -868,154 +852,362 @@ if (form) form.addEventListener("submit", async (e) => {
 // path at least). ----
 let quickSaleParts = [];
 let quickSaleSalespeople = [];
+let quickSaleCustomers = [];
+
+function zimbabweBusinessDate() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Harare", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+async function loadQuickSaleCustomers() {
+  const customers = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase.from("customers")
+      .select("id, full_name, phone")
+      .is("deleted_at", null)
+      .order("full_name")
+      .range(offset, offset + 999);
+    if (error) return { data: null, error };
+    customers.push(...(data || []));
+    if (!data || data.length < 1000) return { data: customers, error: null };
+  }
+}
 
 async function loadQuickSaleData() {
-  const [{ data: partsData }, { data: peopleData }] = await Promise.all([
-    supabase.from("parts").select("id, name, selling_price, quantity_in_stock").order("name"),
+  const [partsResult, peopleResult, customerResult] = await Promise.all([
+    supabase.from("parts").select("id, name, part_number, description, category, selling_price, quantity_in_stock").order("name"),
     supabase.from("technician_directory").select("id, full_name").eq("is_active", true).order("full_name"),
+    loadQuickSaleCustomers(),
   ]);
+  const { data: partsData, error: partsError } = partsResult;
+  const { data: peopleData, error: peopleError } = peopleResult;
+  const { data: customerData, error: customerError } = customerResult;
+  if (partsError) {
+    const message = document.getElementById("quick-sale-message");
+    message.textContent = `Couldn't load products: ${partsError.message}`;
+    message.dataset.tone = "error";
+    console.error("Couldn't load Quick Sale products:", partsError);
+    return;
+  }
+  if (peopleError) console.error("Couldn't load salespeople:", peopleError);
+  if (customerError) {
+    const message = document.getElementById("quick-sale-message");
+    message.textContent = `Couldn't load registered customers: ${customerError.message}`;
+    message.dataset.tone = "error";
+    console.error("Couldn't load Quick Sale customers:", customerError);
+  }
   quickSaleParts = partsData || [];
   quickSaleSalespeople = peopleData || [];
+  quickSaleCustomers = customerData || [];
 
-  const partSelect = document.getElementById("quick-sale-part");
-  if (partSelect) {
-    partSelect.innerHTML = quickSaleParts.map(p =>
-      `<option value="${p.id}" data-price="${p.selling_price}" data-stock="${p.quantity_in_stock}" ${Number(p.quantity_in_stock) < 1 ? "disabled" : ""}>${escapeHtml(p.name)} — ${formatMoney(p.selling_price)} (${p.quantity_in_stock} in stock)</option>`
-    ).join("");
+  const categoryFilter = document.getElementById("quick-sale-category");
+  if (categoryFilter) {
+    const selectedCategory = categoryFilter.value;
+    const categories = [...new Set(quickSaleParts.map(part => String(part.category || "").trim()).filter(Boolean))]
+      .sort((left, right) => left.localeCompare(right));
+    categoryFilter.innerHTML = `<option value="">All categories</option>${categories.map(category =>
+      `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`
+    ).join("")}`;
+    if (categories.includes(selectedCategory)) categoryFilter.value = selectedCategory;
   }
+
   const salespersonSelect = document.getElementById("quick-sale-salesperson");
   if (salespersonSelect) {
     salespersonSelect.innerHTML = `<option value="">No salesperson — no commission</option>` + quickSaleSalespeople.map(s => `<option value="${s.id}">${escapeHtml(s.full_name)}</option>`).join("");
   }
+  const customerSelect = document.getElementById("quick-sale-customer-id");
+  if (customerSelect) {
+    customerSelect.innerHTML = `<option value="">Walk-in / no account</option>` + quickSaleCustomers.map(customer =>
+      `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.full_name)}${customer.phone ? ` · ${escapeHtml(customer.phone)}` : ""}</option>`
+    ).join("");
+  }
+  if (!document.getElementById("quick-sale-items").children.length) addQuickSaleLine();
+  updateQuickSaleTotal();
+}
+
+function addQuickSaleLine() {
+  const cart = document.getElementById("quick-sale-items");
+  const row = document.createElement("div");
+  row.className = "quick-sale-line";
+  const productField = document.createElement("div");
+  productField.className = "field quick-sale-product-field";
+  productField.innerHTML = `<label>Search product</label><input class="quick-sale-product-search" type="search" autocomplete="off" placeholder="Name, part number or description" aria-label="Search products by name, part number or description"><div class="quick-sale-selected" hidden></div><div class="quick-sale-product-results" role="list" aria-live="polite" hidden></div>`;
+  const quantityField = document.createElement("div");
+  quantityField.className = "field";
+  quantityField.innerHTML = `<label>Quantity</label><input type="number" min="1" step="1" value="1" required>`;
+  const priceField = document.createElement("div");
+  priceField.className = "field";
+  priceField.innerHTML = `<label>Selling price ($)</label><input type="number" min="0.01" step="0.01" placeholder="0.00" required>`;
+  const lineTotalField = document.createElement("div");
+  lineTotalField.className = "field";
+  lineTotalField.innerHTML = `<label>Line total</label><output>$0.00</output>`;
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "btn quick-sale-remove";
+  removeButton.setAttribute("aria-label", "Remove product");
+  removeButton.innerHTML = '<i data-lucide="trash-2"></i>';
+  row.append(productField, quantityField, priceField, lineTotalField, removeButton);
+  cart.append(row);
+  const search = row.querySelector(".quick-sale-product-search");
+  const selectedProduct = row.querySelector(".quick-sale-selected");
+  const results = row.querySelector(".quick-sale-product-results");
+  search.addEventListener("input", () => {
+    delete row.dataset.partId;
+    selectedProduct.hidden = true;
+    selectedProduct.innerHTML = "";
+    row.querySelector('input[type="number"][step="0.01"]').value = "";
+    renderQuickSaleProductResults(row);
+  });
+  search.addEventListener("focus", () => {
+    if (search.value.trim()) renderQuickSaleProductResults(row);
+  });
+  results.addEventListener("click", event => {
+    const addButton = event.target.closest("[data-quick-sale-part-id]");
+    if (!addButton) return;
+    const part = quickSaleParts.find(item => item.id === addButton.dataset.quickSalePartId);
+    if (!part || Number(part.quantity_in_stock) < 1) return;
+    row.dataset.partId = part.id;
+    search.value = part.name;
+    results.hidden = true;
+    selectedProduct.innerHTML = `<span class="quick-sale-selected-check" aria-hidden="true">✓</span><span><strong>${escapeHtml(part.name)}</strong><small>${Number(part.quantity_in_stock)} available in stock</small></span><button type="button" class="quick-sale-change-product" aria-label="Change selected product">Change</button>`;
+    selectedProduct.hidden = false;
+    row.querySelector('input[type="number"][step="0.01"]').value = Number(part.selling_price || 0).toFixed(2);
+    updateQuickSaleTotal();
+    row.querySelector('input[type="number"][step="1"]').focus();
+  });
+  selectedProduct.addEventListener("click", event => {
+    if (!event.target.closest(".quick-sale-change-product")) return;
+    delete row.dataset.partId;
+    selectedProduct.hidden = true;
+    search.value = "";
+    search.focus();
+    results.hidden = true;
+    row.querySelector('input[type="number"][step="0.01"]').value = "";
+    updateQuickSaleTotal();
+  });
+  row.addEventListener("input", updateQuickSaleTotal);
+  row.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
+    if (event.target === search) {
+      event.preventDefault();
+      const firstAddButton = results.querySelector("[data-quick-sale-part-id]:not(:disabled)");
+      firstAddButton?.click();
+      return;
+    }
+    event.preventDefault();
+    if (event.target.matches('input[type="number"][step="1"]')) {
+      row.querySelector('input[type="number"][step="0.01"]').focus();
+    } else {
+      addQuickSaleLine();
+    }
+  });
+  removeButton.addEventListener("click", () => {
+    row.remove();
+    if (!cart.children.length) addQuickSaleLine();
+    updateQuickSaleTotal();
+  });
+  if (window.lucide) lucide.createIcons();
+  search.focus();
+}
+
+function normalizeProductSearch(value) {
+  return String(value || "").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function spellingDistance(left, right, maxDistance) {
+  if (Math.abs(left.length - right.length) > maxDistance) return maxDistance + 1;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex++) {
+    const current = [leftIndex];
+    let rowMinimum = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex++) {
+      const cost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+      const distance = Math.min(
+        previous[rightIndex] + 1,
+        current[rightIndex - 1] + 1,
+        previous[rightIndex - 1] + cost,
+      );
+      current.push(distance);
+      rowMinimum = Math.min(rowMinimum, distance);
+    }
+    previous = current;
+  }
+  return previous[right.length];
+}
+
+function productSearchScore(query, part) {
+  const name = normalizeProductSearch(part.name);
+  const partNumber = normalizeProductSearch(part.part_number);
+  const description = normalizeProductSearch(part.description);
+  const category = normalizeProductSearch(part.category);
+  const searchable = `${name} ${partNumber} ${description} ${category}`;
+  if (searchable.includes(query)) return 0;
+  const queryWords = query.split(" ").filter(Boolean);
+  const nameWords = name.split(" ");
+  const numberWords = partNumber.split(" ");
+  const descriptionWords = description.split(" ");
+  const categoryWords = category.split(" ");
+  let score = 0;
+  for (const word of queryWords) {
+    if (searchable.split(" ").some(candidate => candidate.startsWith(word))) {
+      score += 1;
+      continue;
+    }
+    const maxDistance = word.length < 4 ? 0 : Math.min(2, Math.floor(word.length / 4));
+    if (!maxDistance) return Infinity;
+    const distance = Math.min(...[...nameWords, ...numberWords, ...descriptionWords, ...categoryWords]
+      .filter(candidate => Math.abs(candidate.length - word.length) <= maxDistance)
+      .map(candidate => spellingDistance(word, candidate, maxDistance)));
+    if (!Number.isFinite(distance) || distance > maxDistance) return Infinity;
+    score += 2 + distance;
+  }
+  return score;
+}
+
+function renderQuickSaleProductResults(row) {
+  const search = row.querySelector(".quick-sale-product-search");
+  const results = row.querySelector(".quick-sale-product-results");
+  const query = normalizeProductSearch(search.value);
+  const category = document.getElementById("quick-sale-category")?.value || "";
+  results.replaceChildren();
+  if (!query) {
+    results.hidden = true;
+    return;
+  }
+  const rankedMatches = quickSaleParts
+    .filter(part => !category || String(part.category || "").trim() === category)
+    .map(part => ({ part, score: productSearchScore(query, part) }))
+    .filter(match => Number.isFinite(match.score))
+    .sort((left, right) => left.score - right.score || left.part.name.localeCompare(right.part.name))
+    .slice(0, 30);
+  const hasExactMatch = rankedMatches.some(match => match.score === 0);
+  const matches = rankedMatches.map(match => match.part);
+  if (!matches.length) {
+    results.innerHTML = '<div class="quick-sale-product-empty">No close matches found. Check the spelling or try a shorter search.</div>';
+    results.hidden = false;
+    return;
+  }
+  results.innerHTML = `${hasExactMatch ? '<div class="quick-sale-results-heading">Matching products</div>' : '<div class="quick-sale-results-heading">Closest spelling matches</div>'}${matches.map(part => {
+    const unavailable = Number(part.quantity_in_stock) < 1;
+    const productDetails = [
+      part.part_number,
+      part.description,
+      `${Number(part.quantity_in_stock)} in stock`,
+      formatMoney(part.selling_price),
+    ].filter(Boolean).join(" · ");
+    return `<div class="quick-sale-product-result"><span class="quick-sale-product-result-name">${escapeHtml(part.name)}<small>${escapeHtml(productDetails)}</small></span><button type="button" class="btn btn--primary" data-quick-sale-part-id="${escapeHtml(part.id)}" aria-label="Add ${escapeHtml(part.name)}" ${unavailable ? "disabled" : ""}>${unavailable ? "Out of stock" : "Add"}</button></div>`;
+  }).join("")}`;
+  results.hidden = false;
 }
 
 function updateQuickSaleTotal() {
-  const partSelect = document.getElementById("quick-sale-part");
-  const opt = partSelect?.options[partSelect.selectedIndex];
-  const price = parseFloat(opt?.dataset.price || 0);
-  const qty = parseInt(document.getElementById("quick-sale-qty")?.value) || 0;
-  const totalEl = document.getElementById("quick-sale-total");
-  if (totalEl) totalEl.textContent = `Total: ${formatMoney(price * qty)}`;
+  const rows = [...document.querySelectorAll("#quick-sale-items .quick-sale-line")];
+  const subtotal = roundMoney(rows.reduce((sum, row) => {
+    const quantity = Number(row.querySelector('input[type="number"][step="1"]').value) || 0;
+    const price = Number(row.querySelector('input[type="number"][step="0.01"]').value) || 0;
+    const lineTotal = roundMoney(quantity * price);
+    row.querySelector("output").textContent = formatMoney(lineTotal);
+    return sum + lineTotal;
+  }, 0));
+  const discountInput = document.getElementById("quick-sale-discount");
+  const discount = Math.max(0, Number(discountInput?.value) || 0);
+  const total = roundMoney(Math.max(0, subtotal - discount));
+  document.getElementById("quick-sale-total").innerHTML = `Subtotal ${formatMoney(subtotal)} <span aria-hidden="true">−</span> Discount ${formatMoney(discount)} <strong>Total ${formatMoney(total)}</strong>`;
 }
-document.getElementById("quick-sale-part")?.addEventListener("change", updateQuickSaleTotal);
-document.getElementById("quick-sale-qty")?.addEventListener("input", updateQuickSaleTotal);
+document.getElementById("quick-sale-add-item")?.addEventListener("click", addQuickSaleLine);
+document.getElementById("quick-sale-discount")?.addEventListener("input", updateQuickSaleTotal);
+document.getElementById("quick-sale-category")?.addEventListener("change", () => {
+  document.querySelectorAll(".quick-sale-line").forEach(row => {
+    const search = row.querySelector(".quick-sale-product-search");
+    if (search?.value.trim()) renderQuickSaleProductResults(row);
+  });
+});
 
 document.getElementById("quick-sale-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const message = document.getElementById("quick-sale-message");
-  const partSelect = document.getElementById("quick-sale-part");
-  const partId = partSelect.value;
-  const opt = partSelect.options[partSelect.selectedIndex];
-  const price = parseFloat(opt?.dataset.price || 0);
-  const stock = parseInt(opt?.dataset.stock || 0);
-  const qty = parseInt(document.getElementById("quick-sale-qty").value) || 0;
   const salespersonId = document.getElementById("quick-sale-salesperson").value || null;
-  const customerName = document.getElementById("quick-sale-customer").value.trim() || "Walk-in Sale";
-  const partName = opt?.textContent.split(" — ")[0].trim();
-
-  if (!partId || qty < 1) { message.textContent = "Select a part and a valid quantity."; message.dataset.tone = "error"; return; }
-  if (qty > stock) { message.textContent = `Only ${stock} in stock — can't sell ${qty}.`; message.dataset.tone = "error"; return; }
-
-  message.textContent = "Processing…"; message.dataset.tone = "info";
-  const rate = await getRate();
-  const total = qty * price;
-
-  const { data: order, error: orderError } = await supabase.from("sales_orders").insert([{
-    walk_in_name: customerName, usd_to_zig_rate: rate, total_usd: total, total_zig: total * rate,
-    status: "Confirmed", salesperson_id: salespersonId,
-  }]).select().single();
-  if (orderError) { message.textContent = "Failed: " + orderError.message; message.dataset.tone = "error"; return; }
-
-  const { error: itemError } = await supabase.from("sales_order_items").insert([{
-    sales_order_id: order.id, part_id: partId, part_name: partName, quantity: qty,
-    unit_price_usd: price, total_usd: total, unit_price_zig: price * rate, total_zig: total * rate,
-  }]);
-  if (itemError) {
-    await supabase.from("sales_orders").delete().eq("id", order.id);
-    message.textContent = "Failed: " + itemError.message; message.dataset.tone = "error";
+  const customerId = document.getElementById("quick-sale-customer-id").value || null;
+  const selectedCustomer = quickSaleCustomers.find(customer => customer.id === customerId);
+  const customerName = selectedCustomer?.full_name || document.getElementById("quick-sale-customer").value.trim() || "Walk-in Sale";
+  const lines = [...document.querySelectorAll("#quick-sale-items .quick-sale-line")].map(row => {
+    const partId = row.dataset.partId;
+    const part = quickSaleParts.find(item => item.id === partId);
+    return {
+      part,
+      quantity: Number(row.querySelector('input[type="number"][step="1"]').value),
+      price: Number(row.querySelector('input[type="number"][step="0.01"]').value),
+    };
+  });
+  const subtotal = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.quantity * line.price), 0));
+  const discount = Number(document.getElementById("quick-sale-discount").value);
+  const paymentMethod = document.getElementById("quick-sale-payment-method").value;
+  if (!lines.length || lines.some(line => !line.part || !Number.isInteger(line.quantity) || line.quantity < 1 || !Number.isFinite(line.price) || line.price <= 0)) {
+    message.textContent = "Choose a product and enter a valid quantity and selling price for every line.";
+    message.dataset.tone = "error";
     return;
   }
-
-  // The actual stock deduction — this is the part the regular Sales
-  // Order confirmation flow is currently missing entirely.
-  const { error: stockError } = await supabase.from("parts").update({ quantity_in_stock: stock - qty }).eq("id", partId);
-  if (stockError) console.error("Sale recorded, but stock deduction failed:", stockError);
-
-  const { error: receiptError } = await supabase.from("receipts").insert([{ sales_order_id: order.id, amount: total }]);
-  if (receiptError) console.error("Sale recorded, but receipt creation failed:", receiptError);
-
-  document.getElementById("quick-sale-form").reset();
-  document.getElementById("quick-sale-total").textContent = "";
-  message.innerHTML = `Sale complete — ${formatMoney(total)}${salespersonId ? " · commission will show after the next Generate Commissions scan" : ""}. <a href="receipts.html?order=${encodeURIComponent(order.id)}" target="_blank" style="text-decoration:underline;">View / Print Receipt</a>`;
-  message.dataset.tone = "success";
-  await loadQuickSaleData();
-  await loadParts();
-  await loadSalesAnalysis();
-});
-
-// ---- Smart Reorder Suggestions ----
-// Weighs total historical usage (from both repair jobs AND direct sales)
-// against current stock, rather than the flat "below 3 units" rule the
-// Low Stock alert uses. Uses Gemini to turn the raw numbers into a
-// prioritized, readable writeup — the actual ranking/math happens here
-// in plain JS first, so the AI is explaining real numbers, not inventing
-// its own analysis from scratch.
-document.getElementById("reorder-suggest-btn")?.addEventListener("click", async () => {
-  const btn = document.getElementById("reorder-suggest-btn");
-  const resultEl = document.getElementById("reorder-suggest-result");
-  const original = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<i data-lucide="loader-circle"></i> Analyzing…`;
-  if (window.lucide) lucide.createIcons();
-
-  try {
-    const [{ data: currentParts }, { data: jobPartsUsage }, { data: saleItemsUsage }] = await Promise.all([
-      supabase.from("parts").select("id, name, quantity_in_stock"),
-      supabase.from("job_parts").select("part_id, quantity"),
-      supabase.from("sales_order_items").select("part_id, quantity"),
-    ]);
-
-    const usageByPartId = {};
-    (jobPartsUsage || []).forEach(row => { if (row.part_id) usageByPartId[row.part_id] = (usageByPartId[row.part_id] || 0) + Number(row.quantity || 0); });
-    (saleItemsUsage || []).forEach(row => { if (row.part_id) usageByPartId[row.part_id] = (usageByPartId[row.part_id] || 0) + Number(row.quantity || 0); });
-
-    const candidates = (currentParts || [])
-      .map(p => {
-        const usage = usageByPartId[p.id] || 0;
-        const stock = Number(p.quantity_in_stock || 0);
-        return { name: p.name, usage, stock, priority: usage / Math.max(stock, 1) };
-      })
-      .filter(c => c.usage > 0)
-      .sort((a, b) => b.priority - a.priority)
-      .slice(0, 10);
-
-    if (!candidates.length) {
-      resultEl.textContent = "Not enough sales/usage history yet to make a meaningful suggestion.";
-      resultEl.style.display = "block";
+  if (!Number.isFinite(discount) || discount < 0 || discount >= subtotal) {
+    message.textContent = "Enter a discount of $0 or more that is less than the sale subtotal.";
+    message.dataset.tone = "error";
+    return;
+  }
+  if (paymentMethod === "Credit" && !selectedCustomer) {
+    message.textContent = "Choose a registered customer before completing a credit sale.";
+    message.dataset.tone = "error";
+    return;
+  }
+  if (customerId && !selectedCustomer) {
+    message.textContent = "The selected customer is no longer available. Refresh the customer list and try again.";
+    message.dataset.tone = "error";
+    return;
+  }
+  const quantitiesByPart = new Map();
+  lines.forEach(line => quantitiesByPart.set(line.part.id, (quantitiesByPart.get(line.part.id) || 0) + line.quantity));
+  for (const [partId, quantity] of quantitiesByPart) {
+    const part = quickSaleParts.find(item => item.id === partId);
+    if (quantity > Number(part.quantity_in_stock || 0)) {
+      message.textContent = `Only ${part.quantity_in_stock} of ${part.name} in stock; the cart needs ${quantity}.`;
+      message.dataset.tone = "error";
       return;
     }
+  }
 
-    const prompt = candidates.map(c => `${c.name}: ${c.usage} used historically, ${c.stock} currently in stock`).join("\n");
-
-    const { data, error } = await supabase.functions.invoke("ai-assist", {
-      body: {
-        provider: "gemini",
-        systemPrompt: "You help an auto parts shop owner decide what to reorder. You're given each part's total historical usage (from repairs and sales combined) and its current stock level, already sorted by urgency (highest usage-relative-to-stock first). Write a short, prioritized list of what to reorder and roughly how much, in plain language — a few sentences or a short list, not a table. Focus on the parts where usage is high relative to what's left. If a part shows high usage but healthy stock, it's fine to not mention it at all.",
-        prompt: `Parts ranked by reorder urgency (most urgent first):\n${prompt}`,
-      },
+  const button = document.querySelector('#quick-sale-form button[type="submit"]');
+  button.disabled = true;
+  message.textContent = "Processing sale…";
+  message.dataset.tone = "info";
+  try {
+    const rate = await getRate();
+    const { data: order, error } = await supabase.rpc("complete_quick_sale", {
+      p_customer_id: customerId,
+      p_customer_name: customerName,
+      p_salesperson_id: salespersonId,
+      p_usd_to_zig_rate: rate,
+      p_discount_usd: discount,
+      p_payment_method: paymentMethod,
+      p_payment_date: zimbabweBusinessDate(),
+      p_items: lines.map(line => ({
+        part_id: line.part.id,
+        quantity: line.quantity,
+        unit_price_usd: roundMoney(line.price),
+      })),
     });
-    if (error) throw error;
-    if (!data?.text) throw new Error(data?.error || "No suggestion returned.");
-    resultEl.textContent = data.text;
-    resultEl.style.display = "block";
-  } catch (err) {
-    console.error("Reorder suggestion failed:", err);
-    resultEl.textContent = "Couldn't generate suggestions: " + err.message;
-    resultEl.style.display = "block";
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = original;
-    if (window.lucide) lucide.createIcons();
+    if (error) throw new Error(error.message);
+    if (!order?.id) throw new Error("The sale could not be confirmed. Refresh the sales history before trying again.");
+    if (paymentMethod === "Credit") {
+      window.location.href = "ledger.html#customer-accounts";
+    } else {
+      window.location.href = `receipts.html?order=${encodeURIComponent(order.id)}&from=shop`;
+    }
+  } catch (error) {
+    console.error("Quick Sale failed:", error);
+    message.textContent = error.message || "The sale could not be completed. Please verify the sale history before retrying.";
+    message.dataset.tone = "error";
+    button.disabled = false;
   }
 });
 
@@ -1027,9 +1219,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderTopSellers();
   loadQuickSaleData();
   loadSalesAnalysis();
-});
-partPaymentStatus?.addEventListener("change", () => {
-  const paidNow = partPaymentStatus.value === "paid";
-  partPaymentAccountField.hidden = !paidNow;
-  partPaymentAccount.required = paidNow;
 });

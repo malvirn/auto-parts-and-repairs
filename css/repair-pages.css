@@ -61,19 +61,27 @@ body.dashboard-page .main {
 }
 
 body.dashboard-page .main__header {
-  position: relative;
+  position: sticky !important;
+  top: 0;
+  z-index: 60;
   display: flex !important;
   align-items: center;
   justify-content: space-between;
   min-height: clamp(160px, 21vw, 230px);
   margin: 0 0 28px !important;
   padding: clamp(28px, 5vw, 56px) clamp(18px, 7vw, 100px) !important;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
   border: 0 !important;
   border-radius: 0 !important;
   background: #0b1012 !important;
   box-shadow: none !important;
+}
+
+body.dashboard-page .site-masthead {
+  position: sticky;
+  top: 0;
+  z-index: 60;
 }
 
 body.dashboard-page .main__header::before {
@@ -640,11 +648,69 @@ body.dashboard-page.sidebar-open .sidebar-backdrop {
   text-transform: uppercase;
 }
 
+.ftbar {
+  position: fixed;
+  z-index: 900;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  background: #080e10;
+}
+
+.ftbar a {
+  position: relative;
+  display: grid;
+  height: 62px;
+  place-items: center;
+  color: #9fb0a6;
+  font-size: 26px;
+  text-decoration: none;
+  transition: color .2s;
+}
+
+.ftbar a:hover,
+.ftbar a:focus-visible,
+.ftbar a[aria-current="page"] {
+  color: #eef3ef;
+}
+
+.ftbar a:focus-visible {
+  outline: 2px solid #1fc467;
+  outline-offset: -4px;
+}
+
+.ftbar svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+.ftbar .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 760px) {
   body.dashboard-page .main__header {
     min-height: 170px;
     margin-top: 0 !important;
     padding: 34px 20px !important;
+  }
+
+  body.dashboard-page .modal-overlay {
+    z-index: 1300;
   }
 
   body.dashboard-page .main > .page-section,

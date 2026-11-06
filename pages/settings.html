@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <link rel="stylesheet" href="../css/settings-oneui.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,10 +23,11 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="AUTO PARTS &amp; REPAIRS"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -72,25 +75,44 @@
     </aside>
 
     <main class="main">
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">Preferences</p>
-          <h1>Settings</h1>
-          <p class="page-intro">Your account, how the app looks, business details, labour charges and access.</p>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
         </div>
-      </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Settings</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+      </header>
+
+      <section class="settings-welcome" aria-label="Settings overview">
+        <p class="section-kicker">Preferences and system controls</p>
+        <h1>Settings</h1>
+        <p>Organized by account security, appearance, business operations, and app controls. Choose a section to jump directly to it.</p>
+      </section>
 
       <nav class="sjump" aria-label="Settings sections">
         <a href="#account">Account</a>
-        <a href="#fingerprint">Biometric sign-in</a>
-        <a href="#app">App</a>
+        <a href="#access-control">Access control</a>
+        <a href="#fingerprint">Device sign-in</a>
         <a href="#appearance">Appearance</a>
         <a href="#about">Business</a>
+        <a href="#currency">Currency</a>
         <a href="#labour">Labour charges</a>
         <a href="#daily-goals">Daily goals</a>
-        <a href="#currency">Currency</a>
         <a href="#notifications">Notifications</a>
-        <a href="#access-control">Access control</a>
+        <a href="#app">Install app</a>
         <a href="#guide">User guide</a>
       </nav>
 
@@ -245,5 +267,6 @@
   <script type="module" src="../js/access-control.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
-</body>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  </body>
 </html>

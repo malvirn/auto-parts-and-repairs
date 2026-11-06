@@ -2,41 +2,92 @@
 <html lang="en">
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
-  
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Centric Auto Mobile | Customers</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="../js/theme.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1012">
+  <meta name="theme-color" content="#0a1120">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
   <style id="customers-design">
-    body.customer-page .main__header { min-height: clamp(160px,21vw,230px); }
-    body.customer-page .back-link {
-      display: grid;
-      width: 50px;
-      height: 50px;
-      flex: none;
-      place-items: center;
-      border: 1px solid rgba(31,196,103,.35);
-      border-radius: 50%;
-      background: rgba(10,16,13,.72);
-      color: #fff;
-      text-decoration: none;
-      transition: transform 180ms,border-color 180ms,background 180ms;
+    /* ===== shared look: same blue palette as the dashboard ===== */
+    html { background: #0a1120; }
+    body.customer-page {
+      --green: #2a6fdb; --green-bright: #4da3ff; --orange: #ff7a12;
+      --ink: #0a1120; --panel: #0f1a2d; --line: rgba(77,163,255,.34);
+      --text: #eef3fb; --muted: #9db0cc; --text-muted: #9db0cc;
+      --bg: var(--ink); --surface: var(--panel); --surface-2: #0b1426;
+      --accent: var(--green-bright); --accent-dim: var(--green);
+      --font: "Inter","Segoe UI",system-ui,sans-serif;
+      background: var(--ink); color: var(--text); font-family: var(--font);
+      padding-bottom: calc(82px + env(safe-area-inset-bottom,0px));
     }
-    body.customer-page .back-link:hover { transform: translateY(-2px); border-color: #1fc467; background: rgba(31,196,103,.16); }
-    body.customer-page .back-link svg { width: 23px; height: 23px; }
+    body.customer-page .app-shell,
+    body.customer-page .main { background: transparent !important; color: var(--text); }
+
+    /* header: same as the dashboard */
+    body.customer-page .app-header { position: relative; border: 0; background: linear-gradient(180deg,#0d1628,#091020) !important; }
+    body.customer-page .app-header .curve { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 28px; pointer-events: none; }
+    body.customer-page .hdr-name em { font-style: normal; color: var(--green-bright); }
+    body.customer-page #dashboard-greeting { color: var(--green-bright); }
+    body.customer-page .hdr-live { color: #4ade80; }
+    body.customer-page .hdr-live i { background: #4ade80; box-shadow: 0 0 10px #4ade80; }
+    body.customer-page .hs-bar:focus-within { border-color: var(--green-bright); box-shadow: 0 0 0 4px rgba(77,163,255,.16); }
+    body.customer-page .hdr-more:hover,
+    body.customer-page .hdr-more[aria-expanded="true"] { border-color: var(--green-bright); background: rgba(77,163,255,.16); }
+    body.customer-page .hs-chip[aria-pressed="true"] { background: rgba(77,163,255,.16); border-color: var(--green-bright); }
+    body.customer-page .hs-item:hover,
+    body.customer-page .hs-item:focus-visible,
+    body.customer-page .hdr-menu a:hover,
+    body.customer-page .hdr-menu a:focus-visible,
+    body.customer-page .hdr-menu a[aria-current="page"] { background: rgba(77,163,255,.14); }
+    body.customer-page .hs-item > svg,
+    body.customer-page .hdr-menu a > svg,
+    body.customer-page .hs-more { color: var(--green-bright); }
+
+    /* page title row + New customer button */
+    body.customer-page .page-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    body.customer-page .page-top h1 { margin: 0; color: var(--text); font: 700 clamp(26px,3.4vw,40px)/1.1 var(--font); letter-spacing: -.02em; }
+    body.customer-page .page-top .page-intro { margin: 8px 0 0; max-width: 60ch; color: var(--muted); font-size: clamp(13px,1.3vw,15px); line-height: 1.5; }
+
+    /* panels, fields, buttons */
+    body.customer-page .section-kicker { color: var(--orange); }
+    body.customer-page .section-heading-icon { color: var(--green-bright); }
+    body.customer-page .section-note { color: var(--muted); }
+    body.customer-page .panel {
+      background: linear-gradient(160deg,rgba(19,30,54,.96),rgba(11,19,38,.98));
+      border: 1px solid var(--line); border-radius: 16px; color: var(--text);
+      box-shadow: 0 18px 36px rgba(0,0,0,.28);
+    }
+    body.customer-page .field label { color: var(--muted); }
+    body.customer-page .field input:not([type="checkbox"]):not([type="radio"]),
+    body.customer-page .field select,
+    body.customer-page .field textarea {
+      background: rgba(9,16,33,.7); border: 1.5px solid var(--line); border-radius: 10px; color: var(--text);
+    }
+    body.customer-page .field input:focus,
+    body.customer-page .field select:focus,
+    body.customer-page .field textarea:focus { border-color: var(--green-bright); box-shadow: 0 0 0 4px rgba(77,163,255,.16); outline: 0; }
+    body.customer-page .btn { border-color: var(--line); background: rgba(9,16,33,.7); color: var(--text); }
+    body.customer-page .btn:hover { border-color: var(--green-bright); background: rgba(42,111,219,.16); }
+    body.customer-page .btn--primary { border-color: transparent; background: linear-gradient(180deg,#2f78e8,#1c58c7); color: #fff; }
+    body.customer-page .btn--primary:hover { filter: brightness(1.08); background: linear-gradient(180deg,#2f78e8,#1c58c7); }
+    body.customer-page table th { color: var(--muted); border-bottom: 1px solid var(--line); }
+
+    /* ===== customers page ===== */
     body.customer-page .customer-form {
       display: grid;
       grid-template-columns: repeat(6,minmax(0,1fr)) !important;
@@ -58,8 +109,17 @@
       border-top: 1px solid rgba(255,255,255,.08);
     }
     body.customer-page .customer-form__actions .form-message { margin: 0; }
+    body.customer-page .customer-form__saved-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 2px;
+    }
+    body.customer-page .customer-form__saved-actions[hidden] { display: none; }
     body.customer-page .customer-optional {
-      color: #9fb0a6;
+      color: #9db0cc;
       font-size: .68rem;
       font-weight: 500;
       letter-spacing: 0;
@@ -74,7 +134,7 @@
     body.customer-page .customer-directory-toolbar p { margin:0; color:var(--text-muted); font-size:.88rem; }
     body.customer-page .customer-restore { min-height:34px; padding:6px 10px; }
     body.customer-page #customers-table td:first-child { color: #fff; font-weight: 700; }
-    body.customer-page #customers-table td:nth-child(4) { color: #d8e5dc; }
+    body.customer-page #customers-table td:nth-child(4) { color: #d6e0f1; }
     body.customer-page .customer-type,
     body.customer-page .customer-repeat {
       display: inline-flex;
@@ -82,10 +142,10 @@
       gap: 6px;
       min-height: 27px;
       padding: 4px 9px;
-      border: 1px solid rgba(31,196,103,.22);
+      border: 1px solid rgba(77,163,255,.22);
       border-radius: 999px;
-      background: rgba(31,196,103,.1);
-      color: #bde8ce;
+      background: rgba(77,163,255,.1);
+      color: #c6defa;
       font-size: .76rem;
       font-weight: 700;
       white-space: nowrap;
@@ -98,7 +158,7 @@
     body.customer-page .customer-repeat.is-new {
       border-color: rgba(255,255,255,.1);
       background: rgba(255,255,255,.055);
-      color: #aebbb3;
+      color: #b3c0d6;
     }
     body.customer-page .customer-empty {
       padding: 28px 16px !important;
@@ -115,9 +175,9 @@
         grid-template-columns: minmax(0,1fr) auto;
         gap: 12px;
         padding: 16px;
-        border: 1px solid rgba(31,196,103,.22);
+        border: 1px solid rgba(77,163,255,.22);
         border-radius: 16px;
-        background: linear-gradient(160deg,rgba(20,30,27,.97),rgba(12,18,16,.99));
+        background: linear-gradient(160deg,rgba(19,30,54,.97),rgba(11,19,38,.99));
         box-shadow: 0 12px 28px rgba(0,0,0,.22);
       }
       body.customer-page .customer-directory tbody tr:has(td[colspan]) { display: block; }
@@ -132,7 +192,7 @@
       }
       body.customer-page .customer-directory td::before {
         content: attr(data-label);
-        color: #9fb0a6;
+        color: #9db0cc;
         font-size: .66rem;
         font-weight: 700;
         letter-spacing: .08em;
@@ -161,52 +221,102 @@
       body.customer-page .customer-form .field:nth-child(n) { grid-column: 1 / -1; }
       body.customer-page .customer-form__actions { align-items: stretch; flex-direction: column; }
       body.customer-page .customer-form__actions .btn { width: 100%; }
+      body.customer-page .page-top .btn { width: 100%; }
     }
+
+    /* ===== footer: same as the dashboard ===== */
+    body.customer-page .site-foot { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 30px; padding: 24px clamp(14px,3.8vw,58px); background: #080e1c; color: #d1dbec; font-size: clamp(11px,1vw,15px); }
+    body.customer-page .site-foot a { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+    body.customer-page .site-foot svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ===== bottom navigation: same as the dashboard (built by repair-pages-navigation.js) ===== */
+    body.customer-page .apr-bottom-nav { position: fixed; z-index: 1000; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); height: calc(76px + env(safe-area-inset-bottom,0px)); padding: 6px 0 env(safe-area-inset-bottom,0px); border-top: 1px solid rgba(255,255,255,.12); background: rgba(10,17,33,.97); box-shadow: 0 -14px 28px rgba(0,0,0,.35); backdrop-filter: blur(16px); }
+    body.customer-page .apr-bottom-nav > a,
+    body.customer-page .apr-more-toggle { position: relative; display: grid; min-width: 0; height: 100%; place-items: center; align-content: center; gap: 4px; border: 0; background: none; color: #c7d2e6; font: 600 11px Inter,"Segoe UI",system-ui,sans-serif; text-decoration: none; cursor: pointer; }
+    body.customer-page .apr-bottom-nav > a:hover,
+    body.customer-page .apr-bottom-nav [aria-current="page"] { color: #4da3ff; }
+    body.customer-page .apr-bottom-nav svg { width: 23px; height: 23px; }
+    body.customer-page .apr-bottom-nav [aria-current="page"]::after { position: absolute; top: 0; left: 50%; width: 42px; height: 3px; border-radius: 0 0 3px 3px; background: #4da3ff; content: ""; transform: translateX(-50%); }
+    body.customer-page .apr-more-wrap { display: none !important; }
+
+    /* ===== light mode ===== */
+    :root[data-theme="light"] { background: #eef2f8; }
+    :root[data-theme="light"] body.customer-page { --green-bright: #1f66d6; --green: #1a54b4; --ink: #eef2f8; --panel: #fff; --line: #d5deec; --text: #111; --muted: #3f4a5e; --text-muted: #3f4a5e; --surface: #fff; --surface-2: #f5f8fc; background: #eef2f8; color: #111; }
+    :root[data-theme="light"] body.customer-page .app-header,
+    :root[data-theme="light"] body.customer-page .site-foot { background: #fff !important; color: #111 !important; }
+    :root[data-theme="light"] body.customer-page .hdr-name,
+    :root[data-theme="light"] body.customer-page .hdr-sub,
+    :root[data-theme="light"] body.customer-page .hdr-clock,
+    :root[data-theme="light"] body.customer-page #dashboard-date,
+    :root[data-theme="light"] body.customer-page .hdr-hello { color: #111; }
+    :root[data-theme="light"] body.customer-page .panel { background: #fff; border-color: #d5deec; color: #111; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+    :root[data-theme="light"] body.customer-page .field input:not([type="checkbox"]):not([type="radio"]),
+    :root[data-theme="light"] body.customer-page .field select,
+    :root[data-theme="light"] body.customer-page .field textarea { background: #fff; border-color: #c5d0e2; color: #111; }
+    :root[data-theme="light"] body.customer-page .btn { background: #fff; border-color: #c5d0e2; color: #111; }
+    :root[data-theme="light"] body.customer-page .btn--primary { background: linear-gradient(180deg,#2f78e8,#1c58c7); border-color: transparent; color: #fff; }
+    :root[data-theme="light"] body.customer-page .customer-form__actions { border-top-color: #d5deec; }
+    :root[data-theme="light"] body.customer-page #customers-table td:first-child { color: #111; }
+    :root[data-theme="light"] body.customer-page #customers-table td:nth-child(4) { color: #3f4a5e; }
+    :root[data-theme="light"] body.customer-page .customer-type,
+    :root[data-theme="light"] body.customer-page .customer-repeat { color: #1a54b4; background: rgba(42,111,219,.1); border-color: rgba(42,111,219,.25); }
+    :root[data-theme="light"] body.customer-page .customer-type[data-type="company"] { color: #a24a00; }
+    :root[data-theme="light"] body.customer-page .customer-repeat.is-new { color: #3f4a5e; background: #eef2f8; border-color: #d5deec; }
+    :root[data-theme="light"] body.customer-page .apr-bottom-nav { border-color: #cbd5e6; background: rgba(255,255,255,.98); box-shadow: 0 -6px 20px rgba(15,28,51,.12); }
+    :root[data-theme="light"] body.customer-page .apr-bottom-nav > a { color: #44546d; }
+    :root[data-theme="light"] body.customer-page .apr-bottom-nav [aria-current="page"] { color: #0f1c33; }
+    :root[data-theme="light"] body.customer-page .apr-bottom-nav [aria-current="page"]::after { background: #1f66d6; }
+    @media (max-width:760px) {
+      :root[data-theme="light"] body.customer-page .customer-directory tbody tr:not(:has(td[colspan])) { background: #fff; border-color: #d5deec; box-shadow: 0 6px 16px rgba(15,28,51,.08); }
+      :root[data-theme="light"] body.customer-page .customer-directory td::before { color: #3f4a5e; }
+    }
+    @media print { body.customer-page .apr-bottom-nav { display: none !important; } }
   </style>
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page customer-page">
+<body class="dashboard-page system-page customer-page dashboard-workshop">
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
-          <a class="nav-link active" href="customers.html"><i data-lucide="users"></i> Customers</a>
+          <a class="nav-link active" href="customers.html" aria-current="page"><i data-lucide="users"></i> Customers</a>
           <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
-          <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
-          <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
+          <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
+          <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="calculator"></i> Quotations</a>
+          <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Invoices &amp; Receipts</a>
           <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
-          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
+          <a class="nav-link" href="accounting.html"><i data-lucide="layout-dashboard"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
           <a class="nav-link" href="payables.html"><i data-lucide="banknote"></i> Payables</a>
           <a class="nav-link" href="cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
           <a class="nav-link" href="commissions.html"><i data-lucide="percent"></i> Commissions</a>
           <a class="nav-link" href="landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
-          <a class="nav-link" href="fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
+          <a class="nav-link" href="fixed-assets.html"><i data-lucide="building-2"></i> Fixed Assets</a>
           <a class="nav-link" href="financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -214,17 +324,43 @@
     </aside>
 
     <main class="main">
-      <div class="main__header dashboard-hero">
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
+        </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" />
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+        <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 24H1130" fill="none" stroke="#4da3ff" stroke-width="3" vector-effect="non-scaling-stroke"/>
+          <path d="M1130 24C1200 24 1230 7 1300 7H1536" fill="none" stroke="#ff7a12" stroke-width="3" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </header>
+
+      <section class="page-section page-top">
         <div>
           <p class="section-kicker">Relationship management</p>
           <h1>Customers</h1>
           <p class="page-intro">Keep customer contact details and vehicle records together so the workshop can prepare for diagnostics, repairs and servicing.</p>
         </div>
-        <a class="back-link" href="../index.html" aria-label="Back to Home"><i data-lucide="house"></i></a>
-      </div>
+        <a class="btn btn--primary" id="new-customer-btn" href="#customer-form"><i data-lucide="user-plus"></i> New customer</a>
+      </section>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">New record</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Customer</h2></div><span class="section-note">Customer details and vehicle registration</span></div>
+        <div class="section-heading"><div><p class="section-kicker" id="customer-form-kicker">New record</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i><span id="customer-form-heading">Add Customer</span></h2></div><span class="section-note">Customer details and vehicle registration</span></div>
         <form id="customer-form" class="customer-form panel">
         <div class="field">
           <label for="cust-name">Full Name</label>
@@ -256,8 +392,13 @@
           <input type="email" id="customer-email" placeholder="customer@gmail.com" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" />
         </div>
         <div class="customer-form__actions">
-          <button type="submit" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
+          <button type="submit" id="customer-submit-button" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
+          <button type="button" id="customer-cancel-edit" class="btn" hidden>Cancel edit</button>
           <p id="customer-form-message" class="form-message" role="status" aria-live="polite"></p>
+        </div>
+        <div id="customer-saved-actions" class="customer-form__saved-actions" hidden>
+          <button type="button" id="customer-open-job" class="btn btn--primary"><i data-lucide="clipboard-plus"></i> Open job card</button>
+          <button type="button" id="customer-edit-saved" class="btn"><i data-lucide="pencil"></i> Edit customer details</button>
         </div>
         </form>
       </section>
@@ -274,11 +415,16 @@
             <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th><th>Action</th></tr>
           </thead>
           <tbody id="customers-table">
-            <tr><td colspan="7" class="empty-state customer-empty"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr>
+            <tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading customers</strong><p>Fetching the latest customer directory…</p></div></div></td></tr>
           </tbody>
         </table>
         </div>
       </section>
+
+      <footer class="site-foot">
+        <span>© <span id="foot-year">2026</span> Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
     </main>
   </div>
 
@@ -288,7 +434,23 @@
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/customers.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) lucide.createIcons();
+      const year = document.getElementById("foot-year");
+      if (year) year.textContent = new Date().getFullYear();
+      // "New customer": jump to the form and put the cursor in the name box
+      document.getElementById("new-customer-btn")?.addEventListener("click", event => {
+        event.preventDefault();
+        const form = document.getElementById("customer-form");
+        if (!form) return;
+        form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+        setTimeout(() => document.getElementById("cust-name")?.focus({ preventScroll: true }), 350);
+      });
+    });
+  </script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+    <script src="../js/header-extras.js" defer></script>
 </body>
 </html>

@@ -17,16 +17,68 @@
        stylesheet's .modal-overlay/.modal have no real positioning on their
        own, so this is needed on every new page that uses a modal. */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
-      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
+      position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh;
+      background: rgba(15, 23, 42, 0.45);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 24px; z-index: 2000;
+      overflow-y: auto; overscroll-behavior: contain;
     }
+    /* While any dialog is open the page behind it cannot scroll. */
+    html.modal-open, html.modal-open body { overflow: hidden !important; }
+    html.modal-open .main, html.modal-open .app-shell { overflow: hidden !important; }
     .modal-overlay.hidden { display: none !important; }
-    .modal-overlay:not(.hidden) { display: flex; }
+    .modal-overlay:not(.hidden) { display: flex !important; }
     .modal {
       background: #fff; width: 100%; max-width: 560px; max-height: 88vh;
       border-radius: 14px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
       display: flex; flex-direction: column; overflow-y: auto; margin: auto;
       padding: 22px 24px; gap: 12px;
+    }
+
+
+    /* Compact ledger dialogs: centred in the viewport, with the content kept
+       inside the screen rather than extending below it. */
+    #job-part-pricing-modal .modal,
+    #jb-payment-modal .modal {
+      width: min(760px, calc(100vw - 28px)) !important;
+      max-width: 760px;
+      max-height: min(86vh, 760px);
+      overflow: auto;
+      padding: 16px 18px;
+      gap: 9px;
+    }
+    #job-part-pricing-modal .panel { max-height: 34vh; overflow: auto; }
+    #job-part-pricing-modal table { margin: 0; }
+    #job-part-pricing-modal th,
+    #job-part-pricing-modal td { padding: 6px 8px; }
+    #job-part-pricing-modal .customer-account-summary { margin: 8px 0 !important; gap: 8px; }
+    #job-part-pricing-modal .customer-account-stat { padding: 8px 10px; }
+    #job-part-pricing-modal .section-note { margin: 0; }
+    #job-part-pricing-modal h2,
+    #jb-payment-modal h2 { margin: 0; }
+    #jb-payment-modal .payment-grid {
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;
+    }
+    #jb-payment-modal label { display:block; font-weight:600; font-size:.88rem; }
+    #jb-payment-modal input,
+    #jb-payment-modal select { width:100%; margin-top:4px; }
+    #jb-payment-modal .payment-summary {
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+      padding:10px; border:1px solid var(--border); border-radius:10px;
+      background:rgba(0,0,0,.025);
+    }
+    #jb-payment-modal .payment-summary span { display:block; color:var(--text-muted); font-size:.76rem; }
+    #jb-payment-modal .payment-summary strong { display:block; margin-top:3px; font-variant-numeric:tabular-nums; }
+    #jb-payment-modal .change-due { color:var(--success,#16834a); }
+    #jb-load-more-wrap { display:flex; justify-content:center; margin-top:12px; }
+    #jb-load-more-wrap[hidden] { display:none; }
+    @media(max-width:560px) {
+      #job-part-pricing-modal { padding:10px; }
+      #job-part-pricing-modal .modal,
+      #jb-payment-modal .modal { width:calc(100vw - 20px) !important; padding:13px; max-height:90vh; }
+      #jb-payment-modal .payment-grid { grid-template-columns:1fr; }
+      #jb-payment-modal .payment-summary { grid-template-columns:1fr 1fr; }
+      #jb-payment-modal .payment-summary > :first-child { grid-column:1/-1; }
     }
 
     .journal-line-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -38,6 +90,45 @@
     #trial-balance-table td:nth-child(3), #trial-balance-table td:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
     #trial-balance-table th:nth-child(3), #trial-balance-table th:nth-child(4) { text-align: right; }
     .tb-totals td { font-weight: 700; border-top: 2px solid var(--border); }
+
+    /* Closed job billing cards — readable in both light and dark themes */
+    .jb-list{display:grid;gap:10px}
+    .jb-job{
+      border:1px solid var(--border,#e2e8f0);
+      border-radius:12px;
+      background:var(--surface,#fff);
+      color:var(--text,#0f172a);
+      overflow:hidden;
+      box-shadow:0 1px 3px rgba(15,23,42,.06);
+      transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+    }
+    .jb-job:hover{border-color:var(--accent,#64748b);box-shadow:0 3px 10px rgba(15,23,42,.09)}
+    .jb-job.flash{outline:3px solid #1fc467}
+    .jb-head{
+      display:grid;grid-template-columns:1.2fr 1.4fr auto auto;
+      gap:10px;align-items:center;padding:12px 14px;cursor:pointer;
+      background:color-mix(in srgb,var(--surface,#fff) 94%,var(--accent,#64748b));
+    }
+    .jb-head:hover{background:color-mix(in srgb,var(--surface,#fff) 88%,var(--accent,#64748b))}
+    .jb-head small{display:block;color:var(--text-muted,#64748b);margin-top:3px}
+    .jb-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:var(--text,#0f172a)}
+    .jb-pill{
+      font-size:.72rem;padding:4px 10px;border-radius:999px;font-weight:700;
+      white-space:nowrap;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;
+    }
+    .jb-pill.paid{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+    .jb-body{display:none;padding:4px 14px 14px;border-top:1px solid var(--border,#e2e8f0);background:var(--surface,#fff)}
+    .jb-job.open .jb-body{display:block}
+    .jb-lines{width:100%;border-collapse:collapse;margin:8px 0;color:var(--text,#0f172a)}
+    .jb-lines td,.jb-lines th{padding:6px 4px;text-align:left;font-size:.9rem}
+    .jb-lines th{color:var(--text-muted,#64748b);font-weight:600}
+    .jb-lines td:last-child,.jb-lines th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+    .jb-lines tr.tot td{font-weight:700;border-top:2px solid var(--border,#e2e8f0)}
+    .jb-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .adv-accounting{margin-top:24px}
+    .adv-accounting>summary{cursor:pointer;font-weight:700;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:rgba(0,0,0,.03)}
+    .adv-accounting[open]>summary{margin-bottom:16px}
+    @media(max-width:640px){.jb-head{grid-template-columns:1fr auto}.jb-head>:nth-child(2){grid-column:1/-1;order:3}}
     .customer-account-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
     .customer-account-stat { padding:12px 14px; border-left:3px solid var(--border); background:rgba(0,0,0,.025); }
     .customer-account-stat span { display:block; color:var(--text-muted); font-size:.78rem; }
@@ -55,14 +146,48 @@
     .customer-account-actions .btn { width:32px; height:32px; min-width:32px; min-height:32px; padding:0; display:inline-grid; place-items:center; }
     .customer-account-actions .btn i { width:15px; height:15px; }
     .customer-transaction-list { display:grid; gap:6px; padding:8px 4px; }
-    .customer-transaction { display:grid; grid-template-columns:minmax(160px,1.4fr) repeat(3,minmax(90px,1fr)); gap:10px; align-items:center; font-size:.82rem; }
+    .customer-transaction { display:grid; grid-template-columns:minmax(160px,1.4fr) repeat(5,minmax(90px,1fr)); gap:10px; align-items:center; font-size:.82rem; }
     .customer-transaction span:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+    .customer-directory-layout { display:grid; grid-template-columns:minmax(280px,.8fr) minmax(0,1.5fr); gap:14px; align-items:start; }
+    #customer-directory-table { min-width:540px; }
+    #customer-directory-table tr[data-customer-id] { cursor:pointer; }
+    #customer-directory-table tr.is-selected { background:rgba(46,125,79,.1); }
+    #customer-directory-table button { padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+    .customer-directory-detail { min-width:0; padding:16px; }
+    .customer-profile-grid,.customer-history-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:12px 0; }
+    .customer-profile-item,.customer-history-stat { padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
+    .customer-history-stat { text-align:left; color:inherit; font:inherit; background:var(--surface,#fff); cursor:pointer; }
+    .customer-history-stat:hover,.customer-history-stat[aria-pressed="true"] { border-color:var(--accent,var(--success)); background:rgba(46,125,79,.08); }
+    .customer-history-stat:focus-visible,.customer-activity-trigger:focus-visible { outline:2px solid var(--accent,var(--success)); outline-offset:2px; }
+    .customer-history-stat small { display:block; margin-top:5px; color:var(--text-muted); font-size:.72rem; }
+    .customer-profile-item small,.customer-history-stat span { display:block; color:var(--text-muted); font-size:.75rem; }
+    .customer-profile-item strong,.customer-history-stat strong { display:block; margin-top:4px; overflow-wrap:anywhere; }
+    .customer-vehicle-list { display:grid; gap:8px; margin:12px 0 18px; }
+    .customer-vehicle-item { padding:10px 12px; border-left:3px solid var(--accent,var(--success)); background:rgba(0,0,0,.025); }
+    .customer-activity-list { display:grid; gap:8px; margin-top:10px; }
+    .customer-activity-item { border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    .customer-activity-trigger { width:100%; display:grid; grid-template-columns:minmax(120px,.35fr) minmax(0,1fr) auto; gap:12px; align-items:start; padding:12px; border:0; color:inherit; font:inherit; text-align:left; background:transparent; cursor:pointer; }
+    .customer-activity-trigger:hover { background:rgba(0,0,0,.035); }
+    .customer-activity-item small { display:block; color:var(--text-muted); margin-top:4px; }
+    .customer-activity-item__amount { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .customer-activity-item.is-voided { border-color:var(--danger,#b23b3b); color:var(--danger,#b23b3b); }
+    .customer-activity-expanded { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px 14px; padding:12px; border-top:1px solid var(--border); background:rgba(0,0,0,.025); }
+    .customer-activity-expanded p { display:grid; gap:3px; margin:0; overflow-wrap:anywhere; }
+    .customer-activity-expanded p strong { font-size:.76rem; }
+    .customer-activity-expanded p span { font-size:.84rem; }
+    .customer-activity-warnings { color:var(--danger,#b23b3b); }
+    @media (max-width:1100px) {
+      .customer-directory-layout { grid-template-columns:1fr; }
+    }
     @media (max-width:700px) {
       .customer-account-summary { grid-template-columns:1fr; gap:6px; }
       .customer-account-stat { display:flex; justify-content:space-between; align-items:center; gap:12px; }
       .customer-account-stat strong { margin-top:0; }
       .customer-transaction { grid-template-columns:1fr 1fr; }
       .customer-transaction span:first-child { grid-column:1 / -1; }
+      .customer-directory-layout { grid-template-columns:1fr; }
+      .customer-activity-trigger { grid-template-columns:1fr auto; }
+      .customer-activity-trigger time { grid-column:1 / -1; }
     }
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
@@ -74,10 +199,12 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -89,7 +216,7 @@
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -111,13 +238,13 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -136,15 +263,160 @@
       <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
       </div>
 
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">Financial core</p>
-          <h1>General Ledger</h1>
-          <p class="page-intro">This is the financial record behind workshop sales, repair costs, parts purchases and payments. Other accounting sections post their transactions here.</p>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
+        </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">General Ledger</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+      </header>
+
+      <section class="page-section" id="job-billing" aria-labelledby="job-billing-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Billing</p><h2 id="job-billing-heading"><i class="section-heading-icon" data-lucide="receipt"></i>Closed Job Cards — Ready to Bill</h2></div>
+          <button id="jb-refresh" type="button" class="btn" aria-label="Refresh billing list"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">Every job card you close lands here with its parts and services. Tap a job to see the charges, then send the invoice or notify the customer.</p>
+        <div class="customer-account-summary">
+          <div class="customer-account-stat"><span>Jobs owing</span><strong id="jb-count">0</strong></div>
+          <div class="customer-account-stat"><span>Total to collect</span><strong id="jb-owed">$0.00</strong></div>
+          <div class="customer-account-stat"><span>Collected on closed jobs</span><strong id="jb-paid">$0.00</strong></div>
+        </div>
+        <div class="customer-account-controls">
+          <input id="jb-search" type="search" placeholder="Search job, customer or plate" aria-label="Search closed jobs">
+          <select id="jb-filter" aria-label="Filter closed jobs"><option value="owing">Owing</option><option value="paid">Paid</option><option value="all">All</option></select>
+        </div>
+        <p id="jb-message" class="form-message" role="status" aria-live="polite"></p>
+        <div id="jb-list" class="jb-list"><p class="empty-state">Loading closed jobs…</p></div>
+        <div id="jb-load-more-wrap" hidden><button id="jb-load-more" type="button" class="btn">Load more jobs</button></div>
+      </section>
+      <section class="page-section" id="unpriced-job-parts" aria-labelledby="unpriced-job-parts-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Action required</p><h2 id="unpriced-job-parts-heading"><i class="section-heading-icon" data-lucide="triangle-alert"></i>Typed-in Job Parts Awaiting Price</h2></div>
+          <button id="refresh-unpriced-job-parts" type="button" class="btn" aria-label="Refresh unpriced job parts"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">These job-card parts were entered without an inventory item. Add the accounting price here before invoicing the customer.</p>
+        <p id="unpriced-job-parts-message" class="form-message" role="status" aria-live="polite"></p>
+        <div class="panel customer-accounts-table-wrap">
+          <table>
+            <thead><tr><th>Job</th><th>Customer</th><th>Typed-in part</th><th>Quantity</th><th>Accounting price ($)</th><th>Action</th></tr></thead>
+            <tbody id="unpriced-job-parts-body"><tr><td colspan="6" class="empty-state">Loading unpriced job parts…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <div class="modal-overlay hidden" id="jb-payment-modal" role="dialog" aria-modal="true" aria-labelledby="jb-payment-title">
+        <div class="modal">
+          <h2 id="jb-payment-title">Bill &amp; collect payment</h2>
+          <p id="jb-payment-job" class="section-note"></p>
+          <div class="payment-summary">
+            <div><span>Job total</span><strong id="jb-pay-total">$0.00</strong></div>
+            <div><span>Paid so far</span><strong id="jb-pay-paid">$0.00</strong></div>
+            <div><span>Balance due</span><strong id="jb-pay-balance">$0.00</strong></div>
+          </div>
+          <div class="payment-grid">
+            <label for="jb-pay-received">Amount received ($)
+              <input id="jb-pay-received" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Enter amount received">
+            </label>
+            <label for="jb-pay-method">Payment method
+              <select id="jb-pay-method">
+                <option value="Cash">Cash</option>
+                <option value="Card/POS">Card / POS</option>
+                <option value="EcoCash">EcoCash</option>
+                <option value="Bank Transfer">Bank transfer</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label for="jb-pay-date">Payment date
+              <input id="jb-pay-date" type="date">
+            </label>
+          </div>
+          <div class="payment-summary">
+            <div><span>Amount applied to job</span><strong id="jb-pay-applied">$0.00</strong></div>
+            <div><span>Change to return</span><strong id="jb-pay-change" class="change-due">$0.00</strong></div>
+          </div>
+          <p id="jb-payment-message" class="form-message" role="status" aria-live="polite"></p>
+          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+            <button id="jb-payment-cancel" type="button" class="btn">Cancel</button>
+            <button id="jb-payment-save" type="button" class="btn btn--primary">Confirm payment &amp; issue receipt</button>
+          </div>
         </div>
       </div>
 
-      <section class="page-section" aria-labelledby="customer-accounts-heading">
+      <div class="modal-overlay hidden" id="job-part-pricing-modal" role="dialog" aria-modal="true" aria-labelledby="job-part-pricing-title">
+        <div class="modal" style="width:min(900px,100%)">
+          <h2 id="job-part-pricing-title">Price job-card parts</h2>
+          <p id="job-part-pricing-subtitle" class="section-note"></p>
+          <div class="panel customer-accounts-table-wrap">
+            <table>
+              <thead><tr>
+                <th>Part</th>
+                <th>Quantity</th>
+                <th>Cost unit ($)</th>
+                <th>Markup (%)</th>
+                <th>Selling unit ($)</th>
+                <th>Cost total ($)</th>
+                <th>Profit ($)</th>
+              </tr></thead>
+              <tbody id="job-part-pricing-lines"></tbody>
+            </table>
+          </div>
+          <div class="customer-account-summary" style="margin-top:14px">
+            <div class="customer-account-stat"><span>Parts total</span><strong id="job-part-pricing-parts-total">$0.00</strong></div>
+            <div class="customer-account-stat"><span>Total cost</span><strong id="job-part-pricing-cost-total">$0.00</strong></div>
+            <div class="customer-account-stat"><span>Expected profit</span><strong id="job-part-pricing-profit">$0.00</strong></div>
+            <div class="customer-account-stat"><span>Labour</span><strong id="job-part-pricing-labour">$0.00</strong></div>
+            <div class="customer-account-stat"><span>Updated job total*</span><strong id="job-part-pricing-job-total">$0.00</strong></div>
+          </div>
+          <p class="section-note">*The job's parts cost is saved to the job card. Your existing database logic remains responsible for the final job total and accounting postings. Existing stocked-part prices are shown and are not changed here.</p>
+          <p id="job-part-pricing-message" class="form-message" role="status" aria-live="polite"></p>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+            <button id="job-part-pricing-cancel" type="button" class="btn">Cancel</button>
+            <button id="job-part-pricing-save" type="button" class="btn btn--primary">Save prices</button>
+          </div>
+        </div>
+      </div>
+
+      <details class="adv-accounting">
+        <summary>More accounting — customer history, chart of accounts, journal entries, trial balance</summary>
+      <section class="page-section" id="customer-directory" aria-labelledby="customer-directory-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Customer records</p><h2 id="customer-directory-heading"><i class="section-heading-icon" data-lucide="users-round"></i>Customer Details &amp; History</h2></div>
+          <button id="refresh-customer-directory" type="button" class="btn" title="Refresh customer directory" aria-label="Refresh customer directory"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">Search every registered customer, select a name, and review their contact and vehicle details, quotations, job cards, parts sales, invoices, receipts, payments, and outstanding balances in date order.</p>
+        <div class="customer-account-controls">
+          <input id="customer-directory-search" type="search" placeholder="Search name, phone, email, or vehicle plate" aria-label="Search customer records">
+        </div>
+        <p id="customer-directory-message" class="form-message" role="status" aria-live="polite"></p>
+        <div class="customer-directory-layout">
+          <div class="panel customer-accounts-table-wrap">
+            <table id="customer-directory-table">
+              <thead><tr><th>Customer</th><th>Type</th><th>Customer since</th><th>Status</th></tr></thead>
+              <tbody id="customer-directory-body"><tr><td colspan="4" class="empty-state">Loading customers…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="customer-directory-detail" class="panel customer-directory-detail" aria-live="polite">
+            <p class="empty-state">Select a customer to review their details and history.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-section" id="customer-accounts" aria-labelledby="customer-accounts-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Accounts receivable</p><h2 id="customer-accounts-heading"><i class="section-heading-icon" data-lucide="contact-round"></i>Customer Accounts</h2></div>
           <button id="refresh-customer-accounts" type="button" class="btn" title="Refresh customer balances" aria-label="Refresh customer balances"><i data-lucide="refresh-cw"></i></button>
@@ -253,6 +525,7 @@
           </table>
         </div>
       </section>
+      </details>
     </main>
   </div>
 
@@ -267,13 +540,557 @@
     </div>
   </div>
 
+  <div id="quick-sale-payment-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quick-sale-payment-title">
+    <div class="modal">
+      <h3 id="quick-sale-payment-title">Record Quick Sale payment</h3>
+      <p id="quick-sale-payment-summary" class="section-note"></p>
+      <div class="field"><label for="quick-sale-payment-amount">Amount received ($)</label><input id="quick-sale-payment-amount" type="number" min="0.01" step="0.01" required></div>
+      <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option></select></div>
+      <div class="field"><label for="quick-sale-payment-date">Payment date</label><input id="quick-sale-payment-date" type="date" required></div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button id="quick-sale-payment-save" type="button" class="btn btn--primary">Record payment</button>
+        <button id="quick-sale-payment-cancel" type="button" class="btn">Cancel</button>
+      </div>
+      <p id="quick-sale-payment-message" class="form-message" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/ledger.js"></script>
   <script type="module" src="../js/customer-accounts.js"></script>
+  <script type="module" src="../js/customer-directory.js"></script>
+  <script type="module">
+    import supabase from "../js/supabaseClient.js";
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const money = v => "$" + Number(v || 0).toFixed(2);
+    const jn = j => "JC-" + String(j.job_number ?? "").padStart(5, "0");
+    const dt = v => v ? new Date(v).toLocaleDateString("en-GB", {day:"2-digit", month:"short", year:"numeric"}) : "—";
+    const veh = v => v ? [v.year, v.make, v.model].filter(Boolean).join(" ") : "";
+    const waNum = p => { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0")) d = "263" + d.slice(1); return d; };
+    let rows = [];
+    let visibleJobCount = 5;
+    const focusJob = new URLSearchParams(location.search).get("job");
+
+    function build(job, parts, paid, invoicePaid = 0) {
+      const lines = parts.map(p => ({ name: p.parts?.description || p.part_name, qty: Number(p.quantity || 0), price: Number(p.price_at_time || 0) }))
+                         .map(l => ({ ...l, total: l.qty * l.price }));
+      const partsTotal = lines.reduce((s, l) => s + l.total, 0);
+      const labour = Number(job.labour_cost || 0);
+      const taxableSubtotal = job.total_cost != null ? Number(job.total_cost) : partsTotal + labour;
+      const vat = Math.round(partsTotal * 0.05 * 100) / 100;
+      const total = Math.round((taxableSubtotal + vat) * 100) / 100;
+      paid = Math.max(paid, Number(invoicePaid || 0));
+      return { job, lines, partsTotal, labour, taxableSubtotal, vat, total, paid, balance: Math.max(0, total - paid) };
+    }
+
+    async function load() {
+      $("jb-message").textContent = "";
+      const { data: jobs, error } = await supabase.from("repair_jobs")
+        .select("*, customers(full_name,phone,email), vehicles(make,model,year,license_plate)")
+        .not("closed_at", "is", null).order("closed_at", { ascending: false }).limit(200);
+      if (error) { $("jb-message").textContent = "Couldn't load closed jobs: " + error.message; $("jb-list").innerHTML = ""; return; }
+      const ids = (jobs || []).map(j => j.id);
+      let parts = [], pays = [], invoices = [];
+      if (ids.length) {
+        const [p, y, i] = await Promise.all([
+          supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time,parts(description)").in("job_id", ids),
+          supabase.from("repair_job_payments").select("repair_job_id,amount").in("repair_job_id", ids).is("voided_at", null),
+          supabase.from("invoices").select("repair_job_id,amount_paid").in("repair_job_id", ids)
+        ]);
+        if (p.error) $("jb-message").textContent = "Couldn't load parts: " + p.error.message;
+        if (y.error) { $("jb-message").textContent = "Couldn't load job payments: " + y.error.message; $("jb-list").innerHTML = ""; return; }
+        if (i.error) { $("jb-message").textContent = "Couldn't load linked invoice payments: " + i.error.message; $("jb-list").innerHTML = ""; return; }
+        parts = p.data || []; pays = y.data || []; invoices = i.data || [];
+      }
+      rows = (jobs || []).map(j => build(j,
+        parts.filter(p => String(p.job_id) === String(j.id)),
+        pays.filter(y => String(y.repair_job_id) === String(j.id)).reduce((s, y) => s + Number(y.amount || 0), 0),
+        invoices.filter(i => String(i.repair_job_id) === String(j.id)).reduce((paid, i) => Math.max(paid, Number(i.amount_paid || 0)), 0)));
+      render();
+    }
+
+    function message(r) {
+      const j = r.job, name = j.customers?.full_name || "";
+      const car = [veh(j.vehicles), j.vehicles?.license_plate].filter(Boolean).join(" ") || "your vehicle";
+      return `Hello${name ? " " + name : ""}, ${car} (${jn(j)}) is ready. Subtotal ${money(r.taxableSubtotal)} + VAT 5% ${money(r.vat)} = ${money(r.total)}. Amount due: ${money(r.balance)}. Thank you.\nCentric Auto Mobile`;
+    }
+
+    function render() {
+      const q = ($("jb-search").value || "").toLowerCase(), f = $("jb-filter").value;
+      const owing = rows.filter(r => r.balance > 0.005);
+      $("jb-count").textContent = owing.length;
+      $("jb-owed").textContent = money(owing.reduce((s, r) => s + r.balance, 0));
+      $("jb-paid").textContent = money(rows.reduce((s, r) => s + r.paid, 0));
+      const list = rows.filter(r => (f === "all" || (f === "owing") === (r.balance > 0.005)) &&
+        (!q || [jn(r.job), r.job.customers?.full_name, r.job.vehicles?.license_plate].join(" ").toLowerCase().includes(q)));
+      const shown = list.slice(0, visibleJobCount);
+      $("jb-list").innerHTML = shown.map(r => {
+        const j = r.job, paid = r.balance <= 0.005;
+        return `<div class="jb-job" data-id="${esc(j.id)}">
+          <div class="jb-head">
+            <div><b>${esc(jn(j))}</b><small>Closed ${dt(j.closed_at)}</small></div>
+            <div>${esc(j.customers?.full_name || "—")}<small>${esc([veh(j.vehicles), j.vehicles?.license_plate].filter(Boolean).join(" · "))}</small></div>
+            <div class="jb-amt">${money(r.balance)}<small>of ${money(r.total)}</small></div>
+            <span class="jb-pill ${paid ? "paid" : ""}">${paid ? "Paid" : "Owing"}</span>
+          </div>
+          <div class="jb-body">
+            <table class="jb-lines">
+              <tr><th>Parts used</th><th>Qty × price</th><th>Amount</th></tr>
+              ${r.lines.map(l => `<tr><td>${esc(l.name)}</td><td>${l.qty} × ${money(l.price)}</td><td>${money(l.total)}</td></tr>`).join("") || `<tr><td colspan="3">No parts</td></tr>`}
+              <tr><th>Services rendered</th><th></th><th></th></tr>
+              <tr><td>${esc(j.work_done || j.fault_reported || "Labour")}</td><td>Labour</td><td>${money(r.labour)}</td></tr>
+              <tr><td colspan="2">Subtotal</td><td>${money(r.taxableSubtotal)}</td></tr>
+              <tr><td colspan="2">VAT (5%)</td><td>${money(r.vat)}</td></tr>
+              <tr class="tot"><td colspan="2">Total including VAT</td><td>${money(r.total)}</td></tr>
+              <tr><td colspan="2">Paid so far</td><td>${money(r.paid)}</td></tr>
+              <tr class="tot"><td colspan="2">Balance due</td><td>${money(r.balance)}</td></tr>
+            </table>
+            <div class="jb-actions">
+              <a class="btn btn--primary" href="receipts.html?new=1&job=${encodeURIComponent(j.id)}&from=ledger"><i data-lucide="receipt"></i> Invoice</a>
+              <a class="btn" href="repairs.html?edit=${encodeURIComponent(j.id)}"><i data-lucide="pencil"></i> Edit job card</a>
+              <button class="btn btn--primary" type="button" data-collect="${esc(j.id)}"><i data-lucide="wallet"></i> Bill &amp; collect payment</button>
+              <button class="btn" type="button" data-wa="${esc(j.id)}"><i data-lucide="message-circle"></i> Notify on WhatsApp</button>
+              <button class="btn" type="button" data-mail="${esc(j.id)}"><i data-lucide="mail"></i> Email</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("") || `<p class="empty-state">${f === "owing" ? "Nothing waiting to be billed." : "No closed jobs found."}</p>`;
+      const more = $("jb-load-more-wrap");
+      if (more) {
+        more.hidden = list.length <= visibleJobCount;
+        const lm = $("jb-load-more");
+        if (lm) lm.textContent = `Load more jobs (${list.length - visibleJobCount} remaining)`;
+      }
+      window.lucide?.createIcons();
+      const hit = focusJob && $("jb-list").querySelector(`[data-id="${CSS.escape(focusJob)}"]`);
+      if (hit && !hit.dataset.done) { hit.dataset.done = 1; hit.classList.add("open", "flash"); hit.scrollIntoView({ block: "center" }); }
+    }
+
+    $("jb-list").addEventListener("click", e => {
+      const wa = e.target.closest("[data-wa]"), ml = e.target.closest("[data-mail]"), collect = e.target.closest("[data-collect]");
+      const find = id => rows.find(r => String(r.job.id) === String(id));
+      if (collect) {
+        e.preventDefault(); e.stopPropagation();
+        const r = find(collect.dataset.collect);
+        if (r) openJobPayment(r).catch(err => { $("jb-message").textContent = "Couldn't open billing: " + (err.message || err); });
+      } else if (wa) {
+        const r = find(wa.dataset.wa), n = waNum(r.job.customers?.phone);
+        if (!n) { $("jb-message").textContent = "This customer has no phone number on file."; return; }
+        window.open(`https://wa.me/${n}?text=${encodeURIComponent(message(r))}`, "_blank");
+      } else if (ml) {
+        const r = find(ml.dataset.mail), to = r.job.customers?.email || "";
+        if (!to) { $("jb-message").textContent = "This customer has no email on file."; return; }
+        location.href = `mailto:${to}?subject=${encodeURIComponent("Invoice " + jn(r.job) + " — Centric Auto Mobile")}&body=${encodeURIComponent(message(r))}`;
+      } else if (!e.target.closest("a,button")) {
+        e.target.closest(".jb-job")?.classList.toggle("open");
+      }
+    });
+
+    /* Invoice payments update the linked invoice; the job list reads that amount
+       alongside any payments recorded directly against the repair job. */
+    let activePaymentJob = null;
+    let paymentAccounts = [];
+
+    function closeJobPayment() {
+      $("jb-payment-modal").classList.add("hidden");
+      $("jb-payment-modal").style.display = "none";
+      activePaymentJob = null;
+    }
+
+    function refreshPaymentPreview() {
+      if (!activePaymentJob) return;
+      const received = Number($("jb-pay-received").value);
+      const balance = Number(activePaymentJob.balance || 0);
+      const valid = Number.isFinite(received) && received > 0;
+      const applied = valid ? Math.min(received, balance) : 0;
+      const change = valid ? Math.max(0, received - balance) : 0;
+      $("jb-pay-applied").textContent = money(applied);
+      $("jb-pay-change").textContent = money(change);
+    }
+
+    function derivePaymentAccountId(method) {
+      const wantedCode = method === "Cash" ? "1000"
+        : method === "EcoCash" ? "1020"
+        : method === "Card/POS" || method === "Bank Transfer" ? "1010"
+        : null;
+      const exact = wantedCode && paymentAccounts.find(account => String(account.code).trim() === wantedCode);
+      return exact?.id || paymentAccounts.find(account => String(account.code).startsWith("10"))?.id || null;
+    }
+
+    async function openJobPayment(row) {
+      activePaymentJob = row;
+      $("jb-payment-message").textContent = "";
+      $("jb-payment-job").textContent =
+        `${jn(row.job)} · ${row.job.customers?.full_name || "Customer"} · ${row.job.vehicles?.license_plate || "Vehicle"}`;
+      $("jb-pay-total").textContent = money(row.total);
+      $("jb-pay-paid").textContent = money(row.paid);
+      $("jb-pay-balance").textContent = money(row.balance);
+      $("jb-pay-received").value = row.balance > 0 ? row.balance.toFixed(2) : "";
+      $("jb-pay-date").value = new Date().toISOString().slice(0, 10);
+      $("jb-pay-method").value = "Cash";
+      $("jb-pay-applied").textContent = money(row.balance);
+      $("jb-pay-change").textContent = money(0);
+      $("jb-payment-modal").classList.remove("hidden");
+      $("jb-payment-modal").style.display = "flex";
+      try {
+        const { data, error } = await supabase.from("accounts")
+          .select("id,code,name")
+          .eq("is_active", true)
+          .eq("type", "asset")
+          .like("code", "10%")
+          .order("code");
+        if (error) throw new Error(error.message);
+        paymentAccounts = data || [];
+        if (!paymentAccounts.length) $("jb-payment-message").textContent =
+          "No active cash/bank asset accounts were found. Add or activate a payment account first.";
+      } catch (error) {
+        $("jb-payment-message").textContent = `Could not load payment accounts: ${error.message || error}`;
+      }
+      refreshPaymentPreview();
+    }
+
+    $("jb-pay-received").addEventListener("input", refreshPaymentPreview);
+    $("jb-payment-cancel").addEventListener("click", closeJobPayment);
+    $("jb-payment-modal").addEventListener("click", event => {
+      if (event.target === $("jb-payment-modal")) closeJobPayment();
+    });
+
+    $("jb-payment-save").addEventListener("click", async () => {
+      if (!activePaymentJob) return;
+      const button = $("jb-payment-save");
+      const message = $("jb-payment-message");
+      const received = Number($("jb-pay-received").value);
+      const paymentDate = $("jb-pay-date").value;
+      const paymentMethod = $("jb-pay-method").value;
+      const accountId = derivePaymentAccountId(paymentMethod);
+      const balance = Number(activePaymentJob.balance || 0);
+      if (!Number.isFinite(received) || received <= 0) {
+        message.textContent = "Enter an amount received greater than zero."; return;
+      }
+      if (balance <= 0.005) {
+        message.textContent = "This job has no outstanding balance."; return;
+      }
+      if (!paymentDate || !accountId || !paymentMethod) {
+        message.textContent = accountId
+          ? "Choose the payment date and payment method."
+          : "The receiving cash/bank ledger account could not be found. Activate a matching account in the chart of accounts."; return;
+      }
+
+      // Overpayment is accepted as cash tendered, but only the amount owed is
+      // posted against the invoice. The difference is change returned, not income.
+      const amountApplied = Math.min(received, balance);
+      const change = Math.max(0, received - balance);
+      button.disabled = true;
+      message.textContent = "Preparing the job invoice and recording payment…";
+      try {
+        const jobId = activePaymentJob.job.id;
+        const { data: job, error: jobError } = await supabase.from("repair_jobs")
+          .select("id,job_number,cro_number,customer_id,total_cost,labour_cost,labour_hours,labour_mode,job_description,fault_reported,work_done,customers(full_name,phone,email),vehicles(license_plate)")
+          .eq("id", jobId).single();
+        if (jobError) throw new Error(`Couldn't reload the job card: ${jobError.message}`);
+
+        const [partsResult, extrasResult, paymentsResult, invoiceResult] = await Promise.all([
+          supabase.from("job_parts").select("part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id", jobId),
+          supabase.from("job_incidentals").select("description,amount").eq("job_id", jobId),
+          supabase.from("repair_job_payments").select("amount").eq("repair_job_id", jobId),
+          supabase.from("invoices").select("*").eq("repair_job_id", jobId).order("issued_at", { ascending: false }).limit(1)
+        ]);
+        if (partsResult.error) throw new Error(`Couldn't load job parts: ${partsResult.error.message}`);
+        if (extrasResult.error) throw new Error(`Couldn't load job extras: ${extrasResult.error.message}`);
+        if (paymentsResult.error) throw new Error(`Couldn't load existing payments: ${paymentsResult.error.message}`);
+        if (invoiceResult.error) throw new Error(`Couldn't check for an existing invoice: ${invoiceResult.error.message}`);
+        const parts = partsResult.data || [];
+        if (parts.some(part => part.awaiting_accounting_price)) {
+          throw new Error("This job still has parts awaiting prices. Price those parts before billing.");
+        }
+
+        const previouslyPaid = (paymentsResult.data || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        let invoice = invoiceResult.data?.[0] || null;
+        if (!invoice) {
+          const subtotal = Number(job.total_cost || 0);
+          const partsSubtotal = parts.reduce((sum, part) => sum + Number(part.quantity || 0) * Number(part.price_at_time || 0), 0);
+          const vat = Math.round(partsSubtotal * 0.05 * 100) / 100;
+          const total = Math.round((subtotal + vat) * 100) / 100;
+          if (!(total > 0)) throw new Error("The job total must be greater than zero before billing.");
+          const items = parts.map(part => ({
+            d: part.parts?.description || part.part_name || "Part",
+            q: Number(part.quantity || 1),
+            p: Number(part.price_at_time || 0)
+          }));
+          const labour = Number(job.labour_cost || 0);
+          if (labour > 0) items.push({ d: job.job_description || "Labour", q: 1, p: labour });
+          (extrasResult.data || []).forEach(extra => items.push({
+            d: extra.description || "Additional job cost", q: 1, p: Number(extra.amount || 0)
+          }));
+          const itemTotal = items.reduce((sum, item) => sum + item.q * item.p, 0);
+          if (Math.abs(itemTotal - subtotal) > 0.01) {
+            items.push({ d: "Job card total adjustment", q: 1, p: subtotal - itemTotal });
+          }
+          const dueDate = new Date(); dueDate.setDate(dueDate.getDate() + 7);
+          const { data: created, error: createError } = await supabase.from("invoices").insert({
+            repair_job_id: job.id,
+            customer_id: job.customer_id || null,
+            customer_name: job.customers?.full_name || "Customer",
+            customer_phone: job.customers?.phone || null,
+            customer_email: job.customers?.email || null,
+            items,
+            discount: 0,
+            vat_rate: 5,
+            subtotal,
+            total,
+            amount_paid: previouslyPaid,
+            notes: `Created from ${jn(job)} in General Ledger. ${job.fault_reported || ""}`,
+            reference: job.cro_number || jn(job),
+            due_date: dueDate.toISOString().slice(0, 10)
+          }).select().single();
+          if (createError) throw new Error(`Couldn't create the invoice: ${createError.message}`);
+          invoice = created;
+        }
+
+        const invoiceBalance = Math.max(0, Number(invoice.total || 0) - Number(invoice.amount_paid || 0));
+        const appliedNow = Math.min(received, invoiceBalance);
+        if (appliedNow <= 0.005) throw new Error("The invoice has no outstanding balance to collect.");
+        const { data: journalEntryId, error: paymentError } = await supabase.rpc("record_customer_invoice_payment", {
+          p_invoice_id: invoice.id,
+          p_amount: appliedNow,
+          p_account_id: accountId,
+          p_payment_date: paymentDate
+        });
+        if (paymentError) throw new Error(paymentError.message);
+        closeJobPayment();
+        if (!journalEntryId) {
+          $("jb-message").textContent = "Payment was recorded, but the Ledger did not return a receipt reference. Open Receipts and select the invoice to verify the payment.";
+          await load();
+          return;
+        }
+        const receiptUrl = new URL("receipts.html", window.location.href);
+        receiptUrl.searchParams.set("invoicePayment", journalEntryId);
+        receiptUrl.searchParams.set("paymentMethod", paymentMethod);
+        receiptUrl.searchParams.set("from", "ledger");
+        window.location.href = receiptUrl.href;
+      } catch (error) {
+        console.error("Ledger job payment failed:", error);
+        message.textContent = `Payment was not completed: ${error.message || error}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("jb-search").addEventListener("input", () => { visibleJobCount = 5; render(); });
+    $("jb-filter").addEventListener("change", () => { visibleJobCount = 5; render(); });
+    $("jb-load-more")?.addEventListener("click", () => { visibleJobCount += 5; render(); });
+    $("jb-refresh").addEventListener("click", load);
+    load();
+  </script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  
+<script type="module">
+import supabase from "../js/supabaseClient.js";
+(()=>{
+ const $=id=>document.getElementById(id);
+ const money=n=>"$"+Number(n||0).toFixed(2);
+ const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ const fmtJob=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
+ let activeJob=null,activeParts=[];
+ const modal=$("job-part-pricing-modal"),body=$("unpriced-job-parts-body"),message=$("unpriced-job-parts-message");
+ if(!modal||!body)return;
+
+ async function loadPricingQueue(){
+  message.textContent="Loading jobs that need part prices…";
+  body.innerHTML='<tr><td colspan="6" class="empty-state">Loading…</td></tr>';
+  let pending=[],jobsById=new Map(),partsById=new Map();
+  // Load the unpriced lines first, without relying on optional nested relationships.
+  let result=await supabase.from("job_parts")
+   .select("id,job_id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price")
+   .eq("awaiting_accounting_price",true);
+  if(result.error){message.textContent="Couldn't load unpriced job parts: "+result.error.message;body.innerHTML="";return}
+  pending=result.data||[];
+  const jobIds=[...new Set(pending.map(p=>p.job_id).filter(Boolean))];
+  const partIds=[...new Set(pending.map(p=>p.part_id).filter(Boolean))];
+  const [jobsResult,partsResult]=await Promise.all([
+   jobIds.length?supabase.from("repair_jobs").select("id,job_number,closed_at,customers(full_name)").in("id",jobIds):Promise.resolve({data:[],error:null}),
+   partIds.length?supabase.from("parts").select("id,description").in("id",partIds):Promise.resolve({data:[],error:null})
+  ]);
+  if(jobsResult.error){message.textContent="Couldn't load job details: "+jobsResult.error.message;body.innerHTML="";return}
+  if(partsResult.error)console.warn("Part descriptions could not be loaded; using job-part names",partsResult.error);
+  jobsById=new Map((jobsResult.data||[]).map(j=>[String(j.id),j]));
+  partsById=new Map((partsResult.data||[]).map(part=>[String(part.id),part]));
+  activeParts=pending.map(part=>({...part,repair_jobs:jobsById.get(String(part.job_id))||{},parts:partsById.get(String(part.part_id))||{}}));
+  if(!activeParts.length){body.innerHTML='<tr><td colspan="6" class="empty-state">No job cards are waiting for part prices.</td></tr>';message.textContent="All caught up.";return}
+  // One selectable row per job card, even when several parts on that job are unpriced.
+  const grouped=new Map();
+  activeParts.forEach(part=>{const key=String(part.job_id);if(!grouped.has(key))grouped.set(key,{job:part.repair_jobs,jobId:part.job_id,lines:[]});grouped.get(key).lines.push(part)});
+  body.innerHTML=[...grouped.values()].map(group=>{
+   const j=group.job||{},closed=Boolean(j.closed_at),labels=group.lines.slice(0,2).map(p=>p.parts?.description||p.parts?.name||p.part_name||"Unnamed part");
+   return `<tr>
+    <td><b>${esc(j.job_number?fmtJob(j):String(group.jobId).slice(0,8))}</b><small>${closed?"Closed job":"Open job"}</small></td>
+    <td>${esc(j.customers?.full_name||"—")}</td>
+    <td>${esc(labels.join(", "))}${group.lines.length>2?` <small>+${group.lines.length-2} more</small>`:""}</td>
+    <td>${group.lines.length} unpriced line(s)</td>
+    <td><span class="pill">Price required</span></td>
+    <td><button type="button" class="btn btn--primary" data-open-job-pricing="${esc(group.jobId)}">Open job / price parts</button></td>
+   </tr>`;
+  }).join("");
+  message.textContent=`${grouped.size} job card(s) have ${activeParts.length} part line(s) awaiting Accounting prices.`;
+  window.lucide?.createIcons();
+ }
+
+ async function openPricing(jobId){
+  const [jobResult,partsResult]=await Promise.all([
+   supabase.from("repair_jobs").select("id,job_number,closed_at,labour_cost,total_cost,parts_cost,customers(full_name)").eq("id",jobId).single(),
+   supabase.from("job_parts").select("id,job_id,part_id,part_name,quantity,price_at_time,cost_price,markup_pct,awaiting_accounting_price").eq("job_id",jobId)
+  ]);
+  if(jobResult.error)throw new Error("Couldn't open job: "+jobResult.error.message);
+  if(partsResult.error)throw new Error("Couldn't load job parts: "+partsResult.error.message);
+  activeJob=jobResult.data;activeParts=partsResult.data||[];
+  const partIds=[...new Set(activeParts.map(p=>p.part_id).filter(Boolean))];
+  if(partIds.length){
+   const lookup=await supabase.from("parts").select("id,description").in("id",partIds);
+   if(!lookup.error){const byId=new Map((lookup.data||[]).map(p=>[String(p.id),p]));activeParts=activeParts.map(p=>({...p,parts:byId.get(String(p.part_id))||{}}))}
+  }
+  const extrasResult=await supabase.from("job_incidentals").select("description,amount").eq("job_id",jobId);
+  const extras=extrasResult.error?0:(extrasResult.data||[]).reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const settingsResult=await supabase.from("settings").select("markup_rate").maybeSingle();
+  const defaultMarkup=settingsResult.error||settingsResult.data?.markup_rate==null
+   ?15:Number(settingsResult.data.markup_rate)*100;
+  $("job-part-pricing-title").textContent=`Price parts — ${fmtJob(activeJob)}`;
+  $("job-part-pricing-subtitle").textContent=`${activeJob.customers?.full_name||"Customer"} · ${activeParts.filter(p=>p.awaiting_accounting_price).length} unpriced line(s). Enter cost, markup, or your own selling price; profit is calculated from the selling value.`;
+  $("job-part-pricing-lines").innerHTML=activeParts.map((p,i)=>{
+   const unpriced=Boolean(p.awaiting_accounting_price),sell=Number(p.price_at_time||0),name=p.parts?.description||p.parts?.name||p.part_name||"Unnamed part",qty=Number(p.quantity||0);
+   return `<tr data-price-line="${i}">
+    <td>${esc(name)}${unpriced?'<small class="pill">Price required</small>':'<small>Stock / already priced</small>'}</td>
+    <td>${qty}</td>
+     <td>${unpriced?`<input type="number" min="0.01" step="0.01" required data-cost-price="${i}" value="${Number(p.cost_price)>0?Number(p.cost_price).toFixed(2):""}" placeholder="Cost" style="width:110px">`:money(Number(p.cost_price||0))}</td>
+    <td>${unpriced?`<input type="number" min="-100" max="1000" step="0.01" required data-markup-pct="${i}" value="${p.markup_pct != null && Number.isFinite(Number(p.markup_pct))?Number(p.markup_pct).toFixed(2):defaultMarkup.toFixed(2)}" style="width:90px">`:Number(p.markup_pct||0).toFixed(2)+"%"}</td>
+     <td>${unpriced?`<input type="number" min="0.01" step="0.01" required data-selling-price="${i}" value="${Number(p.cost_price)>0?(Number(p.cost_price)*(1+Number(p.markup_pct||defaultMarkup)/100)).toFixed(2):""}" placeholder="Selling" style="width:110px">`:money(sell)}</td>
+    <td data-cost-total="${i}">${unpriced?"Awaiting cost":money(Number(p.cost_price||0)*qty)}</td>
+    <td data-profit-total="${i}">${unpriced?"Awaiting cost":money((sell-Number(p.cost_price||0))*qty)}</td>
+   </tr>`;
+  }).join("")||'<tr><td colspan="7">No parts recorded.</td></tr>';
+  const labour=Number(activeJob.labour_cost||0);
+  const recalc=()=>{
+   const totals=activeParts.reduce((acc,p,i)=>{
+    const qty=Number(p.quantity||0),costInput=document.querySelector(`[data-cost-price="${i}"]`),markupInput=document.querySelector(`[data-markup-pct="${i}"]`),sellingInput=document.querySelector(`[data-selling-price="${i}"]`);
+    if(!p.awaiting_accounting_price){
+     const cost=Number(p.cost_price||0),selling=Number(p.price_at_time||0);
+     acc.parts+=selling*qty;acc.cost+=cost*qty;acc.profit+=(selling-cost)*qty;return acc;
+    }
+    const cost=Number(costInput?.value),markup=Number(markupInput?.value);
+    let selling=Number(sellingInput?.value);
+    if(!sellingInput?.dataset.manual){
+     selling=Number.isFinite(cost)&&cost>0&&Number.isFinite(markup)&&markup>=-100&&markup<=1000?cost*(1+markup/100):NaN;
+     if(Number.isFinite(selling)&&sellingInput)sellingInput.value=selling.toFixed(2);
+    }
+    document.querySelector(`[data-cost-total="${i}"]`).textContent=Number.isFinite(cost)&&cost>0?money(cost*qty):"Awaiting cost";
+    document.querySelector(`[data-profit-total="${i}"]`).textContent=Number.isFinite(selling)&&cost>0?money((selling-cost)*qty):"Awaiting cost";
+    if(Number.isFinite(selling)&&cost>0){acc.parts+=selling*qty;acc.cost+=cost*qty;acc.profit+=(selling-cost)*qty}
+    return acc;
+   },{parts:0,cost:0,profit:0});
+   $("job-part-pricing-parts-total").textContent=money(totals.parts);
+   $("job-part-pricing-cost-total").textContent=money(totals.cost);
+   $("job-part-pricing-profit").textContent=money(totals.profit);
+   $("job-part-pricing-labour").textContent=money(labour);
+   $("job-part-pricing-job-total").textContent=money(totals.parts+labour+extras);
+  };
+  activeParts.forEach((p,i)=>{
+   const costInput=document.querySelector(`[data-cost-price="${i}"]`);
+   const markupInput=document.querySelector(`[data-markup-pct="${i}"]`);
+   const sellingInput=document.querySelector(`[data-selling-price="${i}"]`);
+   if(!p.awaiting_accounting_price)return;
+   costInput?.addEventListener("input",()=>{
+    delete sellingInput.dataset.manual;
+    recalc();
+   });
+   markupInput?.addEventListener("input",()=>{
+    delete sellingInput.dataset.manual;
+    recalc();
+   });
+   sellingInput?.addEventListener("input",()=>{
+    sellingInput.dataset.manual="true";
+    const cost=Number(costInput?.value);
+    const selling=Number(sellingInput.value);
+    if(Number.isFinite(cost)&&cost>0&&Number.isFinite(selling)&&selling>0&&markupInput){
+     markupInput.value=((selling/cost-1)*100).toFixed(2);
+    }
+    recalc();
+   });
+  });
+  recalc();$("job-part-pricing-message").textContent="";
+  // Reveal the dialog only after all required job data is ready.
+  modal.classList.remove("hidden");modal.style.display="flex";
+ }
+ async function savePrices(){
+  if(!activeJob)return;
+  const button=$("job-part-pricing-save"),msg=$("job-part-pricing-message");
+  const setMsg=(text,isError)=>{msg.textContent=text;msg.style.color=isError?"#b23b3b":"";msg.style.fontWeight=isError?"600":"";if(isError)msg.scrollIntoView({block:"nearest"})};
+  const updates=[];
+  for(let i=0;i<activeParts.length;i++){
+   const p=activeParts[i];if(!p.awaiting_accounting_price)continue;
+   const costInput=document.querySelector(`[data-cost-price="${i}"]`);
+   const markupInput=document.querySelector(`[data-markup-pct="${i}"]`);
+   const sellingInput=document.querySelector(`[data-selling-price="${i}"]`);
+   const cost=Number(costInput?.value),markup=Number(markupInput?.value),selling=Number(sellingInput?.value);
+   if(!costInput||costInput.value.trim()===""||!Number.isFinite(cost)||cost<=0){
+    setMsg(`Enter a valid cost price greater than zero for "${p.parts?.description||p.part_name}".`,true);costInput?.focus();return;
+   }
+   if(!markupInput||markupInput.value.trim()===""||!Number.isFinite(markup)||markup<-100||markup>1000){
+    setMsg(`Enter a markup percentage from -100% to 1000% for "${p.parts?.description||p.part_name}".`,true);markupInput?.focus();return;
+   }
+   if(!sellingInput||sellingInput.value.trim()===""||!Number.isFinite(selling)||selling<=0){
+    setMsg(`Enter a valid selling price greater than zero for "${p.parts?.description||p.part_name}".`,true);sellingInput?.focus();return;
+   }
+   updates.push({id:p.id,cost_price:cost.toFixed(2),markup_pct:markup.toFixed(2),selling_price:selling.toFixed(2)});
+  }
+  if(!updates.length){modal.classList.add("hidden");return}
+  button.disabled=true;setMsg("Saving part prices…");
+  try{
+   const {error}=await supabase.rpc("price_job_card_parts",{p_job_id:activeJob.id,p_lines:updates});
+   if(error)throw new Error(error.message||"Could not save the job-card pricing.");
+   setMsg("Prices saved. Refreshing the Ledger…");
+   modal.classList.add("hidden");modal.style.display="none";
+   await loadPricingQueue();
+   const pending=activeParts.filter(p=>p.awaiting_accounting_price).length;
+   if(!pending)message.textContent="All part prices saved. The job is now ready for invoicing, subject to your existing invoice checks.";
+  }catch(error){console.error("Job part pricing failed:",error);setMsg(error.message||String(error),true)}
+  finally{button.disabled=false}
+ }
+ body.addEventListener("click",async event=>{
+  const button=event.target.closest("[data-open-job-pricing]");if(!button)return;
+  try{await openPricing(button.dataset.openJobPricing)}catch(error){message.textContent=error.message||String(error)}
+ });
+ $("job-part-pricing-save").addEventListener("click",savePrices);
+ $("job-part-pricing-cancel").addEventListener("click",()=>{modal.classList.add("hidden");modal.style.display="none"});
+ modal.addEventListener("click",event=>{if(event.target===modal){modal.classList.add("hidden");modal.style.display="none"}});
+ $("refresh-unpriced-job-parts")?.addEventListener("click",loadPricingQueue);
+ loadPricingQueue();
+})();
+</script>
+
+<script>
+/* Dialogs: render on <body> (so position:fixed always means "the viewport", not an
+   ancestor), blur the page behind, and stop the page scrolling while one is open. */
+(function(){
+  var ids=["job-part-pricing-modal","jb-payment-modal","entry-modal","quick-sale-payment-modal"];
+  var root=document.documentElement;
+  function isOpen(el){return !el.classList.contains("hidden")&&el.style.display!=="none"}
+  function sync(){root.classList.toggle("modal-open",ids.some(function(id){var el=document.getElementById(id);return el&&isOpen(el)}))}
+  ids.forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    if(el.parentNode!==document.body)document.body.appendChild(el);
+    new MutationObserver(sync).observe(el,{attributes:true,attributeFilter:["class","style"]});
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Escape")return;
+    ids.forEach(function(id){var el=document.getElementById(id);if(el&&isOpen(el)){var c=el.querySelector("[id$='-cancel'],[id$='-close']");if(c)c.click()}});
+  });
+  sync();
+})();
+</script>
 </body>
 </html>

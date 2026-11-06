@@ -34,10 +34,12 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -49,7 +51,7 @@
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -71,13 +73,13 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -96,13 +98,12 @@
       <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
       </div>
 
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">Where money actually moved</p>
-          <h1>Cash Book &amp; Petty Cash</h1>
-          <p class="page-intro">See money coming into and going out of the workshop, with live cash and bank balances. Petty cash is shown separately for small day-to-day expenses.</p>
-        </div>
-      </div>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div>
+        <div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Cash Book</span></div></div>
+        <div class="hdr-menu-wrap"><button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div>
+      </header>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Record a movement</p><h2><i class="section-heading-icon" data-lucide="arrow-left-right"></i>New Cash Transaction</h2></div><span class="section-note">For anything not already covered by Payables or Receipts</span></div>
@@ -127,20 +128,21 @@
 
       <section class="page-section">
         <div class="section-heading">
-          <div><p class="section-kicker">Morning check-in, end-of-day close</p><h2><i class="section-heading-icon" data-lucide="sunrise"></i>Daily Float</h2></div>
-          <input type="date" id="float-date" style="min-height:38px;" />
+          <div><p class="section-kicker">Zimbabwe business date</p><h2><i class="section-heading-icon" data-lucide="calendar-days"></i>Daily Cash Activity</h2></div>
+          <label for="float-date">Business date <input type="date" id="float-date" style="min-height:38px;" /></label>
         </div>
-        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">The opening balance, money received, money paid out and closing balance for the selected date. Totals combine cash on hand and bank activity from the ledger.</p>
+        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">The selected date filters the cash book, cash drawer, petty-cash activity and reconciliation. All dates use Africa/Harare (Zimbabwe) time.</p>
         <div class="card-grid" id="daily-float-summary"></div>
       </section>
 
       <section class="page-section">
         <div class="section-heading">
-          <div><p class="section-kicker">Live report</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Cash Book</h2></div>
+          <div><p class="section-kicker">Allocated ledger movements</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Cash Book</h2></div>
           <select id="cashbook-filter" style="min-height:38px;">
-            <option value="all">Cash on Hand + Bank</option>
+            <option value="all">Cash on Hand + Bank + EcoCash</option>
             <option value="1000">Cash on Hand only</option>
             <option value="1010">Bank Account only</option>
+            <option value="1020">EcoCash only</option>
           </select>
         </div>
         <div class="card-grid" id="cashbook-summary"></div>
@@ -149,6 +151,34 @@
             <thead><tr><th>Date</th><th>Description</th><th>Money In</th><th>Money Out</th><th>Running Balance</th></tr></thead>
             <tbody><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Physical cash drawer</p><h2><i class="section-heading-icon" data-lucide="banknote"></i>Cash Drawer · Selected Day</h2></div></div>
+        <div class="card-grid" id="cash-drawer-summary"></div>
+        <div class="panel">
+          <table id="cash-drawer-table">
+            <thead><tr><th>Time (Zimbabwe)</th><th>Transaction</th><th>Money In</th><th>Money Out</th><th>Drawer Balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state">Select a business date.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">End-of-day control</p><h2><i class="section-heading-icon" data-lucide="clipboard-check"></i>Cash Reconciliation</h2></div></div>
+        <div class="panel" style="padding:18px;">
+          <p class="section-note">Expected drawer cash includes the opening balance, cash receipts, and cash paid out for the selected Zimbabwe business date.</p>
+          <div class="form-grid" style="max-width:none;grid-template-columns:repeat(3,minmax(0,1fr));">
+            <div class="field"><label>Expected drawer cash</label><output id="reconciliation-expected">$0.00</output></div>
+            <div class="field"><label for="reconciliation-counted">Actual cash counted ($)</label><input id="reconciliation-counted" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter counted total"></div>
+            <div class="field"><label for="reconciliation-notes">Notes (optional)</label><input id="reconciliation-notes" type="text" maxlength="500" placeholder="Explain any overage or shortage"></div>
+          </div>
+          <button type="button" class="btn btn--primary" id="reconciliation-save"><i data-lucide="save"></i> Save daily reconciliation</button>
+          <p id="reconciliation-message" class="form-message" role="status" aria-live="polite"></p>
+          <div id="reconciliation-history" aria-live="polite"></div>
+          <button type="button" class="btn" id="generate-daily-summary" style="margin-top:12px;"><i data-lucide="file-text"></i> Generate Summary</button>
+          <pre id="daily-summary-output" class="panel" style="margin-top:12px;white-space:pre-wrap;display:none;"></pre>
         </div>
       </section>
 
@@ -177,7 +207,8 @@
             <h3 style="font-size:.85rem; margin-bottom:10px;">Top Up Float</h3>
             <div class="field"><label>Date</label><input type="date" id="pt-date" required /></div>
             <div class="field"><label>Amount ($)</label><input type="number" id="pt-amount" step="0.01" min="0.01" required /></div>
-            <div class="field"><label>Funded From</label><select id="pt-account" required></select></div>
+            <div class="field"><label>Money supplied by</label><input type="text" id="pt-supplier" maxlength="120" required placeholder="Person or organization"></div>
+            <div class="field"><label>Issuing account / source</label><select id="pt-account" required></select></div>
             <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Top Up</button>
             <p id="pt-form-message" class="form-message"></p>
           </form>
@@ -187,6 +218,35 @@
           <table id="petty-cash-table">
             <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
             <tbody><tr><td colspan="3" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Staff cash advances</p><h2><i class="section-heading-icon" data-lucide="hand-coins"></i>Advanced Cash Balances</h2></div></div>
+        <div class="card-grid" id="staff-advances-summary"></div>
+        <div class="analytics-grid" style="grid-template-columns:1fr 1fr;margin-top:16px;">
+          <form id="staff-advance-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem;margin-bottom:10px;">Issue a cash advance</h3>
+            <div class="field"><label for="staff-advance-name">Staff member</label><input id="staff-advance-name" type="text" maxlength="120" required placeholder="Staff member name"></div>
+            <div class="field"><label for="staff-advance-date">Date</label><input id="staff-advance-date" type="date" required></div>
+            <div class="field"><label for="staff-advance-amount">Amount ($)</label><input id="staff-advance-amount" type="number" min="0.01" step="0.01" required></div>
+            <button type="submit" class="btn btn--primary"><i data-lucide="hand-coins"></i> Issue advance</button>
+            <p id="staff-advance-message" class="form-message" role="status"></p>
+          </form>
+          <form id="staff-advance-repayment-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem;margin-bottom:10px;">Record repayment</h3>
+            <div class="field"><label for="staff-advance-repayment-id">Advance to repay</label><select id="staff-advance-repayment-id" required></select></div>
+            <div class="field"><label for="staff-advance-repayment-date">Date</label><input id="staff-advance-repayment-date" type="date" required></div>
+            <div class="field"><label for="staff-advance-repayment-amount">Amount ($)</label><input id="staff-advance-repayment-amount" type="number" min="0.01" step="0.01" required></div>
+            <button type="submit" class="btn"><i data-lucide="corner-down-left"></i> Record repayment</button>
+            <p id="staff-advance-repayment-message" class="form-message" role="status"></p>
+          </form>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <table id="staff-advances-table">
+            <thead><tr><th>Staff member</th><th>Date issued</th><th>Advanced</th><th>Repaid</th><th>Outstanding balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state">Loading staff advances…</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -200,5 +260,6 @@
   <script type="module" src="../js/cashbook.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
-</body>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  </body>
 </html>

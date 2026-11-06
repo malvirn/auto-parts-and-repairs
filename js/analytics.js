@@ -15,6 +15,49 @@ const partsBoard = document.getElementById("parts-leaderboard");
 const turnaroundStat = document.getElementById("turnaround-stat");
 let revenueChart = null;
 let payrollChart = null;
+let payrollProcessing = false;
+
+function analyticsBusinessDate(value = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Harare", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(value instanceof Date ? value : new Date(value));
+  const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${map.year}-${map.month}-${map.day}`;
+}
+
+function renderDateOverview(jobs, receipts, jobParts) {
+  const cards = document.getElementById("analytics-date-cards");
+  const summary = document.getElementById("analytics-date-summary");
+  const fromInput = document.getElementById("analytics-from");
+  const toInput = document.getElementById("analytics-to");
+  if (!cards || !fromInput || !toInput) return;
+  const today = analyticsBusinessDate();
+  fromInput.value ||= today;
+  toInput.value ||= today;
+  const from = fromInput.value;
+  const to = toInput.value;
+  const inRange = (value, start, end) => {
+    const date = analyticsBusinessDate(value);
+    return date >= start && date <= end;
+  };
+  const rangeJobs = jobs.filter(job => inRange(job.created_at, from, to));
+  const completed = rangeJobs.filter(job => FINISHED.includes(job.status));
+  const rangeReceipts = receipts.filter(receipt => inRange(receipt.issued_at, from, to));
+  const billed = completed.reduce((sum, job) => sum + Number(job.total_cost || 0), 0);
+  const collected = rangeReceipts.reduce((sum, receipt) => sum + Number(receipt.amount || 0), 0);
+  const labour = rangeJobs.reduce((sum, job) => sum + Number(job.labour_cost || 0), 0);
+  const partsCost = rangeJobs.reduce((sum, job) => sum + Number(job.parts_cost || 0), 0);
+  const rangePartLines = jobParts.filter(() => true).length;
+  cards.innerHTML = `
+    <div class="stat-card"><div class="stat-card__label">Jobs Received</div><div class="stat-card__value">${rangeJobs.length}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Jobs Completed</div><div class="stat-card__value">${completed.length}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Money Billed</div><div class="stat-card__value">$${billed.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Money Collected</div><div class="stat-card__value">$${collected.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Labour Value</div><div class="stat-card__value">$${labour.toFixed(2)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Parts Value</div><div class="stat-card__value">$${partsCost.toFixed(2)}</div></div>`;
+  summary.textContent = `${from === to ? `Today (${from})` : `Custom range ${from} to ${to}`}: ${rangeJobs.length} jobs received, ${completed.length} completed, $${collected.toFixed(2)} collected, $${Math.max(0, billed - collected).toFixed(2)} outstanding from completed billings.`;
+  void rangePartLines;
+}
 
 async function loadAnalytics() {
   // technician_directory (Phase 0 security) is the safe, no-salary view —
@@ -28,7 +71,7 @@ async function loadAnalytics() {
     supabase.from("technician_directory").select("id, full_name, department, is_active"),
     supabase.from("technicians").select("id, full_name, department, is_active, salary, deductions"),
     supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),
-    supabase.from("receipts").select("id, amount, issued_at, repair_job_id"),
+    supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at"),
     supabase.from("payroll_runs").select("id, year, month, pay_date, total_amount, processed_at").order("year", { ascending: false }).order("month", { ascending: false }).limit(6),
   ]);
 
@@ -43,7 +86,7 @@ async function loadAnalytics() {
   const techDirectory = techDirRes.data || [];
   const technicians = techniciansRes.data || []; // empty array for non-admins, by design
   const parts = partsRes.data || [];
-  const receipts = receiptsRes.data || [];
+  const receipts = (receiptsRes.data || []).filter(receipt => !receipt.voided_at);
   const payrollRuns = (payrollRunsRes.data || []).slice().reverse(); // oldest→newest for charting
 
   const mechanics = techDirectory.filter(t => t.department === "Mechanics");
@@ -59,6 +102,9 @@ async function loadAnalytics() {
   renderTurnaround(jobs);
   renderPayrollChart(payrollRuns);
   renderPayrollHistory(payrollRuns);
+  renderDateOverview(jobs, receipts, jobParts);
+  document.getElementById("analytics-from")?.addEventListener("change", () => renderDateOverview(jobs, receipts, jobParts));
+  document.getElementById("analytics-to")?.addEventListener("change", () => renderDateOverview(jobs, receipts, jobParts));
   await loadPayrollSection(technicians);
   if (window.lucide) lucide.createIcons();
 }
@@ -271,16 +317,47 @@ async function loadPayrollSection(technicians) {
     banner.classList.remove("processed");
     note.textContent = `Payroll for ${now.toLocaleString("default", { month: "long" })} hasn't been processed yet.`;
     btn.disabled = false;
-    btn.innerHTML = `<i data-lucide="banknote"></i> Process This Month's Payroll`;
-    btn.onclick = () => processPayroll(technicians, now.getFullYear(), now.getMonth() + 1, dueDate);
+    btn.innerHTML = `<i data-lucide="settings-2"></i> Configure Payroll &amp; Create Payslips`;
+    btn.onclick = () => { window.location.href = "technicians.html#payroll-management"; };
   }
   if (window.lucide) lucide.createIcons();
 }
 
 async function processPayroll(technicians, year, month, payDate) {
+  if (payrollProcessing) return;
+  payrollProcessing = true;
+  const button = document.getElementById("process-payroll-btn");
+  if (button) button.disabled = true;
+  try {
+    await processPayrollOnce(technicians, year, month, payDate);
+  } catch (error) {
+    console.error("Payroll processing failed:", error);
+    alert("Couldn't process payroll: " + (error.message || String(error)));
+  } finally {
+    payrollProcessing = false;
+    if (button?.isConnected) button.disabled = false;
+  }
+}
+
+async function processPayrollOnce(technicians, year, month, payDate) {
   const active = technicians.filter(t => t.is_active !== false);
   if (!active.length) { alert("No active employees to pay."); return; }
   if (!confirm(`Process payroll for ${active.length} active employee(s), payable ${payDate.toLocaleDateString()}? This can't be undone from here.`)) return;
+
+  const { data: existingRun, error: existingRunError } = await supabase.from("payroll_runs")
+    .select("id")
+    .eq("year", year)
+    .eq("month", month)
+    .maybeSingle();
+  if (existingRunError) {
+    alert("Couldn't verify whether this month's payroll was already processed: " + existingRunError.message);
+    return;
+  }
+  if (existingRun) {
+    alert("Payroll for this month has already been processed. Refresh the Analytics page to see the run.");
+    await loadAnalytics();
+    return;
+  }
 
   // Pull in any unpaid commissions so they go out with the same payroll
   // run, the way most shops actually pay commission — not as a separate
@@ -341,7 +418,20 @@ async function processPayroll(technicians, year, month, payDate) {
     .from("payroll_runs")
     .insert([{ year, month, pay_date: payDate.toISOString().slice(0, 10), total_amount: totalNet, journal_entry_id: entry.id }])
     .select().single();
-  if (error) { alert("Ledger entry posted, but payroll run record failed to save: " + error.message); return; }
+  if (error) {
+    if (error.code === "23505") {
+      const { error: cleanupError } = await supabase.from("journal_entries").delete().eq("id", entry.id);
+      if (cleanupError) {
+        console.error("Could not remove duplicate payroll journal entry:", cleanupError);
+        alert(`Payroll was already processed in another session, but this duplicate ledger entry could not be removed: ${cleanupError.message}. Contact an administrator.`);
+      } else {
+        alert("Payroll was processed in another session. The duplicate ledger entry was removed; refresh Analytics before continuing.");
+      }
+      return;
+    }
+    alert("Ledger entry posted, but payroll run record failed to save: " + error.message);
+    return;
+  }
 
   const { error: paymentsError } = await supabase
     .from("payroll_payments")

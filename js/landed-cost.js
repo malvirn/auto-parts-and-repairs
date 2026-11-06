@@ -24,6 +24,7 @@ let suppliers = [];
 let parts = [];
 let accounts = [];
 let markupRate = 0.15;
+let shipmentSubmissionInProgress = false;
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -144,7 +145,12 @@ function recalcAllocation() {
 
 shipmentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (shipmentSubmissionInProgress) return;
+  shipmentSubmissionInProgress = true;
+  const submitButton = shipmentForm.querySelector('button[type="submit"], input[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
 
+  try {
   const supplierId = supplierSelect.value;
   const shipmentDate = document.getElementById("ship-date").value;
   const reference = document.getElementById("ship-reference").value.trim() || null;
@@ -263,6 +269,10 @@ shipmentForm.addEventListener("submit", async (e) => {
   resetShipmentForm();
   await loadReferenceData(); // refresh part stock levels used in the line selects
   loadShipments();
+  } finally {
+    shipmentSubmissionInProgress = false;
+    if (submitButton) submitButton.disabled = false;
+  }
 });
 
 function resetShipmentForm() {

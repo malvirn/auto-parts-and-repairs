@@ -24,6 +24,8 @@ let editingOrder = null;
 let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
+let quoteSubmissionInProgress = false;
+const busyActions = new WeakSet();
 
 const SHOP_LOGO_PATH = "../assets/logo.png";
 
@@ -35,6 +37,13 @@ function escapeHtml(value) {
 
 function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
 function totalOf(items) { return items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0); }
+function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0); }
+function quotationTotals(items) {
+  const subtotal = Number(totalOf(items || []).toFixed(2));
+  const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
+  const vat = Number((partsSubtotal * 0.05).toFixed(2));
+  return { subtotal, partsSubtotal, vat, total: Number((subtotal + vat).toFixed(2)) };
+}
 async function zigTotal(usd) { return Number((usd * await getRate()).toFixed(2)); }
 function itemType(item) {
   if (item.item_type) return item.item_type;
@@ -65,6 +74,66 @@ function vehicleLabel(vehicle) {
   return [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ");
 }
 
+function populateVehicleDetails(vehicle = {}) {
+  const values = { "quote-vehicle-make": vehicle.make, "quote-vehicle-model": vehicle.model };
+  Object.entries(values).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = value ?? "";
+  });
+}
+
+function quotationVehicleDetails() {
+  const read = id => document.getElementById(id)?.value.trim() || null;
+  return {
+    make: read("quote-vehicle-make"),
+    model: read("quote-vehicle-model"),
+  };
+}
+
+function highlightMissingQuotationFields() {
+  const name = document.getElementById("quote-walkin-name");
+  const phone = document.getElementById("quote-walkin-phone");
+  const missing = [];
+  [[name, "name"], [phone, "phone"]].forEach(([input, label]) => {
+    const isMissing = !input.value.trim();
+    input.setAttribute("data-missing", String(isMissing));
+    if (isMissing) missing.push(label);
+  });
+  const warning = document.getElementById("quote-missing-fields");
+  warning.hidden = missing.length === 0;
+  warning.textContent = missing.length ? `Enter the customer's ${missing.join(" and ")} before saving.` : "";
+  return missing;
+}
+
+function findMatchingCustomer(name, phone, email) {
+  const normalizedName = name.trim().toLocaleLowerCase();
+  if (!normalizedName) return null;
+  let matches = customers.filter(customer => String(customer.full_name || "").trim().toLocaleLowerCase() === normalizedName);
+  const normalizedPhone = phone.replace(/\D/g, "");
+  const normalizedEmail = email.trim().toLocaleLowerCase();
+  if (normalizedPhone) matches = matches.filter(customer => (customer.phone || "").replace(/\D/g, "") === normalizedPhone);
+  if (normalizedEmail) matches = matches.filter(customer => (customer.email || "").trim().toLocaleLowerCase() === normalizedEmail);
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function fillWalkinDetails(customer) {
+  if (!customer) return;
+  document.getElementById("quote-walkin-name").value = customer.full_name || "";
+  document.getElementById("quote-walkin-phone").value = customer.phone || "";
+  document.getElementById("quote-walkin-email").value = customer.email || "";
+}
+
+document.getElementById("quote-walkin-name").addEventListener("change", event => {
+  const typedName = event.currentTarget.value.trim().toLocaleLowerCase();
+  const matches = customers.filter(customer => String(customer.full_name || "").trim().toLocaleLowerCase() === typedName);
+  if (matches.length !== 1) return;
+  const customer = matches[0];
+  const phone = document.getElementById("quote-walkin-phone");
+  const email = document.getElementById("quote-walkin-email");
+  if (!phone.value.trim()) phone.value = customer.phone || "";
+  if (!email.value.trim()) email.value = customer.email || "";
+});
+
 // A quotation/order's customer is either a linked registered customer, or
 // a walk-in entered directly on the form — this resolves whichever applies.
 function resolveCustomer(record) {
@@ -80,8 +149,8 @@ async function loadBaseData() {
   const [jobsResult, partsResult, customersResult, tiersResult] = await Promise.all([
     supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
-    supabase.from("customers").select("id, full_name, phone, email, vehicles(id, license_plate, make, model)").is("deleted_at", null).order("full_name"),
-    supabase.from("vehicle_rate_tiers").select("id, tier_name, hourly_rate, is_default, is_active").order("sort_order"),
+    supabase.from("customers").select("id, full_name, phone, email, customer_type, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
+    supabase.from("vehicle_rate_tiers").select("*").order("sort_order"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
   if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
@@ -105,6 +174,12 @@ async function loadBaseData() {
   }).join("");
   partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${money(part.selling_price)} · ${part.quantity_in_stock} in shop</option>`).join("");
   customerSelect.innerHTML = `<option value="">Select a customer or enter a walk-in below…</option>` + customers.map(customer => `<option value="${customer.id}">${escapeHtml(customer.full_name)}${customer.phone ? ` — ${escapeHtml(customer.phone)}` : ""}</option>`).join("");
+  const suggestions = document.getElementById("quote-customer-suggestions");
+  if (suggestions) {
+    suggestions.innerHTML = customers.map(customer =>
+      `<option value="${escapeHtml(customer.full_name)}" label="${escapeHtml([customer.phone, customer.email].filter(Boolean).join(" · "))}"></option>`
+    ).join("");
+  }
   renderQuoteVehicles();
 }
 
@@ -114,21 +189,25 @@ function jobRef(job) {
 }
 
 function toggleWalkinFields() {
-  const linkedJob = !!jobSelect.value;
-  document.getElementById("quote-walkin-fields").classList.toggle("hidden", linkedJob || !!customerSelect.value);
-  document.getElementById("quote-customer-field").classList.toggle("hidden", linkedJob);
-  document.getElementById("quote-vehicle-field").classList.toggle("hidden", linkedJob);
-  document.getElementById("quote-fault-field").classList.toggle("hidden", linkedJob);
+  document.getElementById("quote-walkin-fields").classList.remove("hidden");
+  document.getElementById("quote-fault-field").classList.remove("hidden");
 }
 function renderQuoteVehicles(selectedId = "") {
   const customer = customers.find(candidate => candidate.id === customerSelect.value);
   const vehicles = customer?.vehicles || [];
   vehicleSelect.innerHTML = `<option value="">No vehicle selected</option>` + vehicles.map(vehicle => `<option value="${vehicle.id}">${escapeHtml(vehicle.license_plate || "No plate")} — ${escapeHtml([vehicle.make, vehicle.model].filter(Boolean).join(" "))}</option>`).join("");
   vehicleSelect.value = selectedId;
+  populateVehicleDetails(vehicles.find(vehicle => vehicle.id === selectedId) || {});
 }
 customerSelect.addEventListener("change", () => {
   renderQuoteVehicles();
   toggleWalkinFields();
+  const customer = customers.find(candidate => candidate.id === customerSelect.value);
+  fillWalkinDetails(customer);
+});
+vehicleSelect.addEventListener("change", () => {
+  const customer = customers.find(candidate => candidate.id === customerSelect.value);
+  populateVehicleDetails(customer?.vehicles?.find(vehicle => vehicle.id === vehicleSelect.value) || {});
 });
 jobSelect.addEventListener("change", () => {
   toggleWalkinFields();
@@ -168,7 +247,10 @@ function renderJobSummary(job) {
 async function loadFromJob(jobId) {
   const job = jobs.find(candidate => candidate.id === jobId) || null;
   renderJobSummary(job);
-  if (!job) { draftItems = []; renderDraft(); return; }
+  if (!job) { populateVehicleDetails({}); draftItems = []; renderDraft(); return; }
+  customerSelect.value = job.customer_id || "";
+  renderQuoteVehicles(job.vehicle_id || "");
+  fillWalkinDetails(job.customers);
   const [partsRes, incRes] = await Promise.all([
     supabase.from("job_parts").select("part_id, part_name, quantity, price_at_time").eq("job_id", jobId),
     supabase.from("job_incidentals").select("description, amount").eq("job_id", jobId).order("created_at"),
@@ -204,7 +286,7 @@ async function loadFromJob(jobId) {
 
 function markupPctFor(item) {
   const cost = Number(item.cost_price_usd) || 0;
-  if (!item.part_id || cost <= 0) return 0;
+  if (cost <= 0) return 0;
   return Number(((Number(item.unit_price_usd) / cost - 1) * 100).toFixed(2));
 }
 
@@ -213,11 +295,12 @@ function renderDraft() {
     draftList.innerHTML = `<div class="empty-state"><i data-lucide="package-open"></i><span>Add labour, parts or sundries to build the quotation.</span></div>`;
   } else {
     draftList.innerHTML = draftItems.map((item, index) => `
-      <div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${itemQuantityDisplay(item)} × ${itemUnitPriceDisplay(item)}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
+      <div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${itemQuantityDisplay(item)} × ${itemUnitPriceDisplay(item)}${item.part_id == null && item.kind === "part" ? ` · Cost ${money(item.cost_price_usd)} · Markup ${Number(markupPctFor(item)).toFixed(2)}% · Profit ${money((Number(item.unit_price_usd) - Number(item.cost_price_usd)) * Number(item.quantity))}` : ""}</small></span><strong>${money(item.quantity * item.unit_price_usd)}</strong><button type="button" class="btn remove-quote-line" data-index="${index}"><i data-lucide="x"></i></button></div>
     `).join("");
     draftList.querySelectorAll(".remove-quote-line").forEach(button => button.addEventListener("click", () => { draftItems.splice(Number(button.dataset.index), 1); renderDraft(); }));
   }
-  quoteTotal.textContent = `${money(totalOf(draftItems))} / ZiG ${Number(totalOf(draftItems) * exchangeRate).toFixed(2)}`;
+  const totals = quotationTotals(draftItems);
+  quoteTotal.textContent = `${money(totals.total)} incl. VAT (${money(totals.vat)} on parts) / ZiG ${Number(totals.total * exchangeRate).toFixed(2)}`;
   if (window.lucide) lucide.createIcons();
 }
 
@@ -240,10 +323,100 @@ document.getElementById("quote-add-part").addEventListener("click", () => {
   renderDraft();
 });
 
+const customCostInput = document.getElementById("quote-custom-cost");
+const customSellingInput = document.getElementById("quote-custom-selling");
+const customMarkupInput = document.getElementById("quote-custom-markup");
+const customProfitInput = document.getElementById("quote-custom-profit");
+
+function recalculateCustomPartPricing(changedField) {
+  const cost = Number(customCostInput?.value);
+  const selling = Number(customSellingInput?.value);
+  const markup = Number(customMarkupInput?.value);
+
+  if (changedField === "selling" && Number.isFinite(cost) && cost >= 0 && Number.isFinite(selling) && cost > 0) {
+    customMarkupInput.value = (((selling - cost) / cost) * 100).toFixed(2);
+  } else if ((changedField === "markup" || changedField === "cost") && Number.isFinite(cost) && cost >= 0 && Number.isFinite(markup)) {
+    customSellingInput.value = (cost * (1 + markup / 100)).toFixed(2);
+  }
+
+  const finalCost = Number(customCostInput?.value) || 0;
+  const finalSelling = Number(customSellingInput?.value) || 0;
+  if (customProfitInput) customProfitInput.value = (finalSelling - finalCost).toFixed(2);
+}
+customCostInput?.addEventListener("input", () => recalculateCustomPartPricing("cost"));
+customSellingInput?.addEventListener("input", () => recalculateCustomPartPricing("selling"));
+customMarkupInput?.addEventListener("input", () => recalculateCustomPartPricing("markup"));
+
+document.getElementById("quote-add-custom")?.addEventListener("click", () => {
+  const nameInput = document.getElementById("quote-custom-name");
+  const quantityInput = document.getElementById("quote-custom-qty");
+  const name = nameInput.value.trim();
+  const quantity = Number(quantityInput.value);
+  const cost = Number(customCostInput?.value);
+  const selling = Number(customSellingInput?.value);
+  const markup = Number(customMarkupInput?.value);
+
+  if (!name) {
+    alert("Enter the typed part name.");
+    nameInput.focus();
+    return;
+  }
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    alert("Enter a valid quantity.");
+    quantityInput.focus();
+    return;
+  }
+  if (!Number.isFinite(cost) || cost < 0) {
+    alert("Enter a valid unit cost price.");
+    customCostInput?.focus();
+    return;
+  }
+  if (!Number.isFinite(selling) || selling <= 0) {
+    alert("Enter a valid selling price.");
+    customSellingInput?.focus();
+    return;
+  }
+  if (!Number.isFinite(markup) || markup < -100 || markup > 999.99) {
+    alert("Enter a markup percentage from -100% to 999.99%.");
+    customMarkupInput?.focus();
+    return;
+  }
+
+  const existing = draftItems.find(item =>
+    item.part_id == null &&
+    item.kind === "part" &&
+    String(item.part_name || "").trim().toLowerCase() === name.toLowerCase() &&
+    Number(item.cost_price_usd) === cost &&
+    Number(item.unit_price_usd) === selling
+  );
+  if (existing) existing.quantity += quantity;
+  else draftItems.push({
+    kind: "part",
+    part_id: null,
+    part_name: name,
+    quantity,
+    cost_price_usd: Number(cost.toFixed(2)),
+    markup_pct: Number(markup.toFixed(2)),
+    unit_price_usd: Number(selling.toFixed(2)),
+  });
+
+  nameInput.value = "";
+  quantityInput.value = 1;
+  customCostInput.value = "";
+  customSellingInput.value = "";
+  customMarkupInput.value = "";
+  customProfitInput.value = "";
+  nameInput.focus();
+  renderDraft();
+});
+
 document.getElementById("quote-labour-mode")?.addEventListener("change", event => {
   const timeBased = event.currentTarget.value === "time_based";
+  const providerEstimate = event.currentTarget.value === "provider_estimate";
+  const customRate = event.currentTarget.value === "custom";
   document.getElementById("quote-time-fields").hidden = !timeBased;
-  document.getElementById("quote-estimate-fields").hidden = timeBased;
+  document.getElementById("quote-estimate-fields").hidden = !providerEstimate;
+  document.getElementById("quote-custom-fields").hidden = !customRate;
 });
 
 document.getElementById("quote-add-labour")?.addEventListener("click", () => {
@@ -264,6 +437,37 @@ document.getElementById("quote-add-labour")?.addEventListener("click", () => {
       unit_price_usd: Number(estimate.toFixed(2)),
     });
     estimateInput.value = "";
+    renderDraft();
+    return;
+  }
+  if (mode === "custom") {
+    const descriptionInput = document.getElementById("quote-custom-labour-desc");
+    const hoursInput = document.getElementById("quote-custom-labour-hours");
+    const rateInput = document.getElementById("quote-custom-labour-rate");
+    const description = descriptionInput.value.trim();
+    const hours = Number(hoursInput.value);
+    const rate = Number(rateInput.value.trim());
+    if (!hoursInput.value.trim() || !Number.isFinite(hours) || hours <= 0) {
+      alert("Enter valid labour hours.");
+      hoursInput.focus();
+      return;
+    }
+    if (!rateInput.value.trim() || !Number.isFinite(rate) || rate < 0) {
+      alert("Enter a valid custom labour rate.");
+      rateInput.focus();
+      return;
+    }
+    draftItems.push({
+      kind: "labour",
+      part_id: null,
+      part_name: description ? `Labour - ${description}` : "Labour (custom rate)",
+      quantity: hours,
+      cost_price_usd: 0,
+      unit_price_usd: Number(rate.toFixed(2)),
+    });
+    descriptionInput.value = "";
+    hoursInput.value = 1;
+    rateInput.value = "";
     renderDraft();
     return;
   }
@@ -294,70 +498,88 @@ document.getElementById("quote-add-sundry")?.addEventListener("click", () => {
 
 quoteForm.addEventListener("submit", async event => {
   event.preventDefault();
+  if (quoteSubmissionInProgress) return;
+  quoteSubmissionInProgress = true;
+  const submitButton = quoteForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+  const missingFields = highlightMissingQuotationFields();
+  if (missingFields.length) {
+    document.getElementById("quote-walkin-name").focus();
+    return;
+  }
   if (!draftItems.length) { alert("Add at least one line to the quotation."); return; }
 
   const job = jobs.find(candidate => candidate.id === jobSelect.value) || null;
-  let customer_id = null, walk_in_name = null, walk_in_phone = null, walk_in_email = null;
-  let vehicle_id = null;
-  let fault_reported = document.getElementById("quote-fault").value.trim() || null;
-  if (job) {
-    customer_id = job.customer_id;
-    vehicle_id = job.vehicle_id || null;
-    fault_reported = job.fault_reported || fault_reported;
-  } else if (customerSelect.value) {
-    customer_id = customerSelect.value;
-    vehicle_id = vehicleSelect.value || null;
-  } else {
-    walk_in_name = document.getElementById("quote-walkin-name").value.trim();
-    if (!walk_in_name) { alert("Enter the customer's name, or select a job card."); return; }
-    walk_in_phone = document.getElementById("quote-walkin-phone").value.trim() || null;
-    walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
-    if (!walk_in_phone) {
-      alert("Enter the walk-in customer's phone number so the quotation can be linked to a customer record.");
-      return;
-    }
-    const { data: existingCustomer, error: customerLookupError } = await supabase.from("customers")
-      .select("id")
-      .eq("phone", walk_in_phone)
-      .is("deleted_at", null)
-      .limit(1);
-    if (customerLookupError) {
-      alert("Couldn't check the walk-in customer: " + customerLookupError.message);
-      return;
-    }
-    if (existingCustomer?.length) {
-      customer_id = existingCustomer[0].id;
-    } else {
-      const { data: createdCustomer, error: customerInsertError } = await supabase.from("customers").insert([{
-        full_name: walk_in_name,
-        phone: walk_in_phone,
-        email: walk_in_email,
-        customer_type: "individual",
-      }]).select("id").single();
-      if (customerInsertError) {
-        alert("Couldn't register the walk-in customer: " + customerInsertError.message);
-        return;
-      }
-      customer_id = createdCustomer.id;
-    }
+  const walk_in_name = document.getElementById("quote-walkin-name").value.trim();
+  const walk_in_phone = document.getElementById("quote-walkin-phone").value.trim();
+  const walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
+  const matchedCustomer = findMatchingCustomer(walk_in_name, walk_in_phone, walk_in_email || "");
+  const customer_id = job?.customer_id || matchedCustomer?.id || null;
+  const vehicle_id = job?.vehicle_id || (matchedCustomer?.id === customerSelect.value ? vehicleSelect.value || null : null);
+  const fault_reported = document.getElementById("quote-fault").value.trim() || job?.fault_reported || null;
+  if (walk_in_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(walk_in_email)) {
+    alert("Enter a valid email address.");
+    document.getElementById("quote-walkin-email").focus();
+    return;
   }
 
   const rate = await getRate();
-  const totalUsd = totalOf(draftItems);
-  const notes = job ? [`Fault reported: ${job.fault_reported || "—"}`, `Diagnosis: ${job.diagnosis || "Not diagnosed yet"}`].join("\n") : null;
+  const quoteTotals = quotationTotals(draftItems);
+  const totalUsd = quoteTotals.total;
+  const numericLimit = 9999999999.99;
+  const itemRows = draftItems.map(item => {
+    const cost = Number(item.cost_price_usd) || 0;
+    const markup = Number.isFinite(Number(item.markup_pct)) ? Number(item.markup_pct) : markupPctFor(item);
+    const unit = Number(item.unit_price_usd);
+    const total = Number(item.quantity) * unit;
+    return {
+      quotation_id: null, part_id: item.part_id, item_type: item.kind || itemType(item), part_name: item.part_name,
+      quantity: Number(item.quantity), cost_price_usd: cost, markup_pct: markup, unit_price_usd: unit,
+      total_usd: total, unit_price_zig: unit * rate, total_zig: total * rate,
+    };
+  });
+  const invalidItem = itemRows.find(item =>
+    !Number.isFinite(item.quantity) || item.quantity < 1 || item.quantity > 99999999.99 ||
+    !Number.isFinite(item.markup_pct) || item.markup_pct < -100 || item.markup_pct > 999.99 ||
+    !Number.isFinite(item.unit_price_usd) || item.unit_price_usd < 0 ||
+    [item.cost_price_usd, item.total_usd, item.unit_price_zig, item.total_zig].some(value => !Number.isFinite(value) || Math.abs(value) > numericLimit)
+  );
+  if (invalidItem || !Number.isFinite(totalUsd) || Math.abs(totalUsd) > numericLimit || !Number.isFinite(totalUsd * rate) || Math.abs(totalUsd * rate) > numericLimit) {
+    alert(`One quotation line is outside the supported numeric range. Check the prices, quantity, markup (maximum 999.99%), and exchange rate.`);
+    return;
+  }
+  itemRows.forEach(item => { item.quotation_id = null; });
+  const notes = job?.diagnosis ? `Diagnosis: ${job.diagnosis}` : null;
   const { data: quote, error } = await supabase.from("quotations").insert([{
     customer_id, vehicle_id, fault_reported, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
-    total_usd: totalUsd, total_zig: totalUsd * rate,
+    total_usd: totalUsd, total_zig: totalUsd * rate, vehicle_details: quotationVehicleDetails(),
     walk_in_name, walk_in_phone, walk_in_email, notes,
   }]).select().single();
   if (error) { alert("Failed to save quotation: " + error.message); return; }
-  const { error: itemsError } = await supabase.from("quotation_items").insert(draftItems.map(item => ({
-    quotation_id: quote.id, part_id: item.part_id, item_type: item.kind || itemType(item), part_name: item.part_name, quantity: item.quantity,
-    cost_price_usd: Number(item.cost_price_usd) || 0, markup_pct: markupPctFor(item), unit_price_usd: item.unit_price_usd,
-    total_usd: item.quantity * item.unit_price_usd, unit_price_zig: item.unit_price_usd * rate, total_zig: item.quantity * item.unit_price_usd * rate,
-  })));
-  if (itemsError) { alert("Quotation header saved, but items failed: " + itemsError.message); return; }
-  quoteForm.reset(); draftItems = []; renderDraft(); renderJobSummary(null); toggleWalkinFields(); await loadDocuments();
+  itemRows.forEach(item => { item.quotation_id = quote.id; });
+  const { error: itemsError } = await supabase.from("quotation_items").insert(itemRows);
+  if (itemsError) {
+    const { error: cleanupError } = await supabase.from("quotations").delete().eq("id", quote.id);
+    if (cleanupError) {
+      console.error("Could not remove quotation header after line-item save failed:", cleanupError);
+      alert(`Quotation header was saved, but its items failed: ${itemsError.message}. The incomplete quotation could not be removed (${cleanupError.message}); refresh the quotation list before retrying.`);
+    } else {
+      alert("Failed to save quotation items: " + itemsError.message + ". The incomplete quotation was removed; you can safely try again.");
+    }
+    return;
+  }
+  quoteForm.reset(); draftItems = []; renderDraft(); renderJobSummary(null); populateVehicleDetails({}); toggleWalkinFields(); await loadDocuments(); await openQuoteEditor(quote.id);
+  } catch (error) {
+    console.error("Quotation save failed:", error);
+    alert("Couldn't finish saving the quotation: " + (error.message || String(error)) + ". Refresh the quotation list before retrying if the save may have completed.");
+  } finally {
+    quoteSubmissionInProgress = false;
+    if (submitButton) submitButton.disabled = false;
+  }
+});
+quoteForm.addEventListener("input", event => {
+  event.target.removeAttribute("data-missing");
 });
 
 async function loadDocuments() {
@@ -375,20 +597,14 @@ async function loadDocuments() {
       window.location.href = `repairs.html?edit=${encodeURIComponent(button.dataset.jobId)}`;
       return;
     }
-    if (!window.confirm("Confirm the customer has approved this quotation before opening a job card.")) return;
-    const { error } = await supabase.from("quotations").update({ status: "Approved", updated_at: new Date().toISOString() }).eq("id", button.dataset.id);
-    if (error) {
-      alert("Couldn't mark the quotation approved: " + error.message);
-      return;
-    }
-    window.location.href = `repairs.html?quote=${encodeURIComponent(button.dataset.id)}`;
+    openQuotationJobApproval(button.dataset.id);
   }));
   document.querySelectorAll(".edit-order").forEach(button => button.addEventListener("click", () => openOrderEditor(button.dataset.id)));
   if (window.lucide) lucide.createIcons();
 }
 
 async function fetchQuote(id) {
-  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
+  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type, odometer_out), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, driver_name, driver_phone, vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type))";
   let { data, error } = await supabase.from("quotations").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full quotation lookup failed, retrying with fewer fields:", error.message);
@@ -408,13 +624,17 @@ async function fetchOrder(id) {
   return { data, error };
 }
 
-async function renderEditor(container, totalNode, items, rate = exchangeRate) {
+async function renderEditor(container, totalNode, items, rate = exchangeRate, isQuotation = false) {
   container.innerHTML = items.map((item, index) => {
     const isLabour = itemType(item) === "labour";
     const flatEstimate = isLabour && /provider estimate/i.test(item.part_name || "");
     return `<div class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${flatEstimate ? "flat estimate USD" : isLabour ? "price per hour USD" : "unit price USD"}</small></span><input class="amend-qty" data-index="${index}" type="number" min="${isLabour && !flatEstimate ? "0.01" : "1"}" step="${isLabour && !flatEstimate ? "any" : "1"}" value="${item.quantity}" ${flatEstimate ? "disabled" : ""} /><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" /></div>`;
   }).join("");
-  const recalc = () => { const total = [...container.querySelectorAll(".amend-qty")].reduce((sum, input, index) => sum + Number(input.value || 0) * Number(container.querySelectorAll(".amend-price")[index].value || 0), 0); totalNode.textContent = `${money(total)} / ZiG ${Number(total * rate).toFixed(2)}`; };
+  const recalc = () => {
+    const current = items.map((item, index) => ({ ...item, quantity: Number(container.querySelectorAll(".amend-qty")[index].value || 0), unit_price_usd: Number(container.querySelectorAll(".amend-price")[index].value || 0) }));
+    const totals = isQuotation ? quotationTotals(current) : { total: totalOf(current), vat: 0 };
+    totalNode.textContent = `${money(totals.total)}${totals.vat ? ` incl. VAT (${money(totals.vat)} on parts)` : ""} / ZiG ${Number(totals.total * rate).toFixed(2)}`;
+  };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));
   recalc();
 }
@@ -445,9 +665,10 @@ function zig(value) {
 function buildDetailText(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
-  const vehicle = record.vehicles || job.vehicles || {};
+  const vehicle = record.vehicles || job.vehicles || record.vehicle_details || {};
   const number = docNumber(record, kind);
   const isQuote = kind === "Quotation";
+  const totals = isQuote ? quotationTotals(items || []) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
   const vehicleText = vehicle.license_plate || vehicleLabel(vehicle)
     ? `${vehicleLabel(vehicle) || "vehicle"}${vehicle.license_plate ? ` (registration ${vehicle.license_plate})` : ""}`
     : "";
@@ -465,19 +686,25 @@ function buildDetailText(record, kind, items) {
       : `Thank you for your business. Please find below Sales Order No. ${number}, dated ${longDate(record.created_at)}${vehicleText ? `, for your ${vehicleText}` : ""}.`,
     ``,
     job.job_number ? `Job card: ${jobRef(job)}` : null,
+    vehicleLabel(vehicle) || vehicle.license_plate ? `Vehicle: ${[vehicleLabel(vehicle), vehicle.license_plate].filter(Boolean).join(" · ")}` : null,
+    vehicle.chassis_number ? `Chassis: ${vehicle.chassis_number}` : null,
+    vehicle.engine_number ? `Engine: ${vehicle.engine_number}` : null,
+    (job.odometer_in ?? record.vehicle_details?.odometer_in) != null ? `Odometer: ${Number(job.odometer_in ?? record.vehicle_details.odometer_in).toLocaleString()} km` : null,
+    (job.fuel_level_in || record.vehicle_details?.fuel_level_in) ? `Fuel level: ${job.fuel_level_in || record.vehicle_details.fuel_level_in}` : null,
+    job.driver_name || record.vehicle_details?.driver_name ? `Driver: ${[job.driver_name || record.vehicle_details.driver_name, job.driver_phone || record.vehicle_details?.driver_phone].filter(Boolean).join(" · ")}` : null,
     faultReported ? `Fault reported: ${faultReported}` : null,
     job.job_number ? `Diagnosis: ${job.diagnosis || "Diagnosis in progress"}` : null,
     job.job_number ? `` : null,
     isQuote ? `Quoted items:` : `Order items:`,
     lines || "(No items)",
     ``,
-    `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
+    isQuote ? `Subtotal: ${usd(totals.subtotal)}\nVAT (5% of parts): ${usd(totals.vat)}\nTotal including VAT: ${usd(totals.total)} (${zig(totals.total * Number(record.usd_to_zig_rate || 0))} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)` : `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
     ``,
     isQuote
       ? `This quotation is valid for seven (7) days from the date above, and prices are subject to the availability of parts. To proceed, kindly reply to confirm and we will schedule the work.`
       : `Kindly keep this sales order for your records. Should you have any questions, please do not hesitate to contact us.`,
     ``,
-    `The ${isQuote ? "quotation" : "sales order"} document is attached as an image for your reference.`,
+    `The ${isQuote ? "quotation" : "sales order"} document is attached as a PDF for your reference.`,
     ``,
     `Yours faithfully,`,
     biz.business_name,
@@ -490,8 +717,10 @@ function buildDetailText(record, kind, items) {
 function buildDetailHtml(record, kind, items) {
   const customer = resolveCustomer(record);
   const job = record.repair_jobs || {};
-  const vehicle = record.vehicles || job.vehicles || {};
+  const vehicle = record.vehicles || job.vehicles || record.vehicle_details || {};
   const number = docNumber(record, kind);
+  const isQuote = kind === "Quotation";
+  const totals = isQuote ? quotationTotals(items || []) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
   const rows = (items || []).map(item => `
     <tr><td>${itemTypeLabel(item)}</td><td>${itemType(item) === "part" ? escapeHtml(item.part_name) : "—"}</td><td>${itemQuantityDisplay(item)}</td><td>${itemUnitPriceDisplay(item)}</td><td>${money(item.quantity * item.unit_price_usd)}</td></tr>
   `).join("") || `<tr><td colspan="5">No line items</td></tr>`;
@@ -511,21 +740,30 @@ function buildDetailHtml(record, kind, items) {
         <strong>${escapeHtml(customer.full_name)}</strong>
         <span>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? ` · ${escapeHtml(customer.email)}` : ""}</span>
       </section>
-      ${job.job_number || record.vehicle_id || record.vehicles ? `<section class="quotation-paper-vehicle">
-        ${job.job_number ? `<div><span class="quotation-paper-kicker">Job card</span><strong>${escapeHtml(jobRef(job))}</strong></div>` : ""}
-        <div><span class="quotation-paper-kicker">Vehicle</span><strong>${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}</strong></div>
-        ${vehicle.chassis_number ? `<div><span class="quotation-paper-kicker">Chassis</span><strong>${escapeHtml(vehicle.chassis_number)}</strong></div>` : ""}
-        ${vehicle.engine_number ? `<div><span class="quotation-paper-kicker">Engine</span><strong>${escapeHtml(vehicle.engine_number)}</strong></div>` : ""}
-        ${job.odometer_in != null ? `<div><span class="quotation-paper-kicker">Odometer in</span><strong>${Number(job.odometer_in).toLocaleString()} km</strong></div>` : ""}
-        ${(job.fault_reported || record.fault_reported) ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Customer concern</span><p>${escapeHtml(job.fault_reported || record.fault_reported)}</p></div>` : ""}
-        ${job.job_number ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Technician's diagnosis</span><p>${escapeHtml(job.diagnosis || "Diagnosis in progress")}</p></div>` : ""}
-      </section>` : ""}
+      ${isQuote
+        ? (vehicle.make || vehicle.model ? `<section class="quotation-paper-vehicle">
+            ${vehicle.make ? `<div><span class="quotation-paper-kicker">Vehicle name</span><strong>${escapeHtml(vehicle.make)}</strong></div>` : ""}
+            ${vehicle.model ? `<div><span class="quotation-paper-kicker">Model</span><strong>${escapeHtml(vehicle.model)}</strong></div>` : ""}
+          </section>` : "")
+        : (job.job_number || record.vehicle_id || record.vehicles ? `<section class="quotation-paper-vehicle">
+            ${job.job_number ? `<div><span class="quotation-paper-kicker">Job card</span><strong>${escapeHtml(jobRef(job))}</strong></div>` : ""}
+            <div><span class="quotation-paper-kicker">Vehicle</span><strong>${escapeHtml(vehicleLabel(vehicle) || "Vehicle")}${vehicle.license_plate ? ` · ${escapeHtml(vehicle.license_plate)}` : ""}</strong></div>
+            ${vehicle.chassis_number ? `<div><span class="quotation-paper-kicker">Chassis</span><strong>${escapeHtml(vehicle.chassis_number)}</strong></div>` : ""}
+            ${vehicle.engine_number ? `<div><span class="quotation-paper-kicker">Engine</span><strong>${escapeHtml(vehicle.engine_number)}</strong></div>` : ""}
+            ${(job.odometer_in ?? record.vehicle_details?.odometer_in) != null ? `<div><span class="quotation-paper-kicker">Odometer in</span><strong>${Number(job.odometer_in ?? record.vehicle_details.odometer_in).toLocaleString()} km</strong></div>` : ""}
+            ${(job.fuel_level_in || record.vehicle_details?.fuel_level_in) ? `<div><span class="quotation-paper-kicker">Fuel level</span><strong>${escapeHtml(job.fuel_level_in || record.vehicle_details.fuel_level_in)}</strong></div>` : ""}
+            ${(job.driver_name || record.vehicle_details?.driver_name) ? `<div><span class="quotation-paper-kicker">Driver</span><strong>${escapeHtml([job.driver_name || record.vehicle_details.driver_name, job.driver_phone || record.vehicle_details?.driver_phone].filter(Boolean).join(" · "))}</strong></div>` : ""}
+            ${(job.fault_reported || record.fault_reported) ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Customer concern</span><p>${escapeHtml(job.fault_reported || record.fault_reported)}</p></div>` : ""}
+            ${job.job_number ? `<div class="quotation-paper-condition"><span class="quotation-paper-kicker">Technician's diagnosis</span><p>${escapeHtml(job.diagnosis || "Diagnosis in progress")}</p></div>` : ""}
+          </section>` : "")}
+      ${isQuote && record.fault_reported ? `<section class="quotation-paper-condition"><span class="quotation-paper-kicker">Work to be done</span><p>${escapeHtml(record.fault_reported)}</p></section>` : ""}
       <h3 class="quotation-paper-lines-title">${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
       <table class="quotation-paper-table"><thead><tr><th>Type</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
       <section class="quotation-paper-total">
+        ${isQuote ? `<span>Subtotal</span><span>${money(totals.subtotal)}</span><span>VAT (5% of parts)</span><span>${money(totals.vat)}</span>` : ""}
         <span>Total payable</span>
-        <strong>${money(record.total_usd)}</strong>
-        <span>ZiG ${Number(record.total_zig || 0).toFixed(2)}</span>
+        <strong>${money(totals.total)}</strong>
+        <span>ZiG ${Number(totals.total * Number(record.usd_to_zig_rate || 0)).toFixed(2)}</span>
       </section>
       <p class="quotation-paper-note">${kind === "Quotation" ? "Quotation valid for 7 days. Parts and prices are subject to availability." : `Thank you for choosing ${escapeHtml(biz.business_name)}.`}</p>
       <footer class="quotation-paper-footer">
@@ -551,7 +789,7 @@ function printDocument(record, kind) {
         @page { size: A4; margin: 14mm; }
         * { box-sizing: border-box; }
         body { margin: 0; color: #17212b; font: 14px Arial, sans-serif; }
-        .quotation-document { max-width: 190mm; margin: 0 auto; padding: 8mm; background: #fff; }
+        .quotation-document { display: block; visibility: visible; max-width: 190mm; margin: 0 auto; padding: 8mm; background: #fff; }
         .quotation-paper-header { display: flex; justify-content: space-between; gap: 20px; border-bottom: 2px solid #222; padding-bottom: 16px; }
         .quotation-paper-brand { display: flex; gap: 12px; align-items: center; }
         .quotation-paper-brand img { width: 72px; height: 72px; object-fit: contain; }
@@ -568,9 +806,20 @@ function printDocument(record, kind) {
         .quotation-paper-total strong { font-size: 22px; }
         .quotation-paper-note, .quotation-paper-footer { margin-top: 20px; color: #59636e; }
         .quotation-paper-footer { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #d5d9dc; padding-top: 12px; font-size: 11px; }
-        @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+        @media print {
+          html, body, .quotation-document, .quotation-document * { visibility: visible !important; }
+          body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          .quotation-document { display: block !important; }
+        }
       </style>
-    </head><body>${html}<script>window.addEventListener("load", () => { window.print(); window.addEventListener("afterprint", () => window.close(), { once: true }); });<\/script></body></html>`);
+    </head><body>${html}<script>
+      window.addEventListener("load", async () => {
+        await Promise.all([...document.images].map(image => image.decode().catch(() => undefined)));
+        window.addEventListener("afterprint", () => window.close(), { once: true });
+        window.focus();
+        window.print();
+      }, { once: true });
+    <\/script></body></html>`);
   printWindow.document.close();
 }
 
@@ -616,25 +865,83 @@ function whatsappNumber(raw) {
 }
 
 async function withBusy(button, label, fn) {
+  if (button && busyActions.has(button)) return;
+  if (button) busyActions.add(button);
   const html = button?.innerHTML;
   if (button) { button.disabled = true; button.innerHTML = `<i data-lucide="loader-circle"></i> ${label}`; if (window.lucide) lucide.createIcons(); }
   try { return await fn(); }
-  finally { if (button) { button.disabled = false; button.innerHTML = html; if (window.lucide) lucide.createIcons(); } }
+  finally {
+    if (button) {
+      busyActions.delete(button);
+      button.disabled = false;
+      button.innerHTML = html;
+      if (window.lucide) lucide.createIcons();
+    }
+  }
+}
+
+async function createDetailPdf(kind, record) {
+  if (!window.jspdf) await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  const container = document.getElementById(kind === "Quotation" ? "quote-detail-text" : "order-detail-text");
+  container.innerHTML = buildDetailHtml(record, kind, itemsOf(record, kind) || []);
+  const canvas = await html2canvas(container, { scale: 2, backgroundColor: "#fff", useCORS: true });
+  const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
+  const width = 190;
+  const pageHeight = 277;
+  const imageHeight = canvas.height * width / canvas.width;
+  const image = canvas.toDataURL("image/png");
+  pdf.addImage(image, "PNG", 10, 10, width, imageHeight);
+  let remaining = imageHeight - pageHeight;
+  let offset = pageHeight;
+  while (remaining > 0) {
+    pdf.addPage();
+    pdf.addImage(image, "PNG", 10, 10 - offset, width, imageHeight);
+    remaining -= pageHeight;
+    offset += pageHeight;
+  }
+  const prefix = kind === "Quotation" ? "Quotation" : "Sales-Order";
+  return new File([pdf.output("blob")], `${prefix}-${docNumber(record, kind)}.pdf`, { type: "application/pdf" });
+}
+
+function saveFile(file) {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+async function fileBase64(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+  return btoa(binary);
 }
 
 async function sendByWhatsApp(kind, record, button) {
   const customer = resolveCustomer(record);
-  const phone = whatsappNumber(customer.phone !== "—" ? customer.phone : "") ||
-    whatsappNumber(prompt("Customer's WhatsApp number (e.g. 0771234567):") || "");
-  if (!phone) return;
-  // Open the WhatsApp tab inside the click so it isn't blocked as a pop-up.
-  const tab = window.open("", "_blank");
-  if (tab) tab.document.write("<p style='font:16px system-ui;padding:24px'>Preparing the message…</p>");
+  const phone = whatsappNumber(customer.phone !== "—" ? customer.phone : "");
+  if (!phone) return window.aprToast?.("Customer WhatsApp number is missing", "error", "Add a phone number to the customer record before sharing.");
+  const tab = window.open("", "_blank", "noopener");
   try {
-    const file = await withBusy(button, "Saving image…", () => downloadDocumentImage(kind, record));
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(buildDetailText(record, kind, itemsOf(record, kind)))}`;
+    const file = await withBusy(button, "Preparing PDF…", () => createDetailPdf(kind, record));
+    const text = buildDetailText(record, kind, itemsOf(record, kind));
+    if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+      try {
+        await navigator.share({ files: [file], text });
+        if (tab && !tab.closed) tab.close();
+        return;
+      } catch (error) {
+        if (error.name === "AbortError") { if (tab && !tab.closed) tab.close(); return; }
+      }
+    }
+    saveFile(file);
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     if (tab && !tab.closed) tab.location.href = url; else window.location.href = url;
-    window.aprToast?.(`${file} downloaded`, "success", "Attach it in WhatsApp with the paperclip, then send.");
+    window.aprToast?.("PDF downloaded; WhatsApp is opening", "success", "Attach the PDF in WhatsApp Web or the app, then send.");
   } catch (err) {
     if (tab && !tab.closed) tab.close();
     window.aprToast?.("Couldn't prepare the message", "error", err.message || String(err));
@@ -643,15 +950,27 @@ async function sendByWhatsApp(kind, record, button) {
 
 async function sendByEmail(kind, record, button) {
   const customer = resolveCustomer(record);
-  const email = (customer.email && customer.email !== "—" ? customer.email : "").trim() || (prompt("Customer email address:") || "").trim();
-  if (!email) return;
+  const email = (customer.email && customer.email !== "—" ? customer.email : "").trim();
+  if (!email) return window.aprToast?.("Customer email address is missing", "error", "Add an email address to the customer record before sharing.");
   try {
-    const file = await withBusy(button, "Saving image…", () => downloadDocumentImage(kind, record));
+    const file = await withBusy(button, "Sending PDF…", () => createDetailPdf(kind, record));
     const subject = `${kind === "Quotation" ? "Quotation" : "Sales Order"} No. ${docNumber(record, kind)} — ${biz.business_name}`;
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildDetailText(record, kind, itemsOf(record, kind)))}`;
-    window.aprToast?.(`${file} downloaded`, "success", "Attach it to the email before sending.");
+    const{error}=await supabase.functions.invoke("send-receipt-email",{body:{
+      to:email,subject,text:buildDetailText(record,kind,itemsOf(record,kind)),
+      fileName:file.name,mimeType:file.type,fileBase64:await fileBase64(file),
+    }});
+    if(error)throw error;
+    window.aprToast?.(`${kind} emailed to ${email}`, "success");
   } catch (err) {
-    window.aprToast?.("Couldn't prepare the email", "error", err.message || String(err));
+    console.error("Email send failed:",err);
+    try {
+      const file=await createDetailPdf(kind,record);saveFile(file);
+      const subject = `${kind === "Quotation" ? "Quotation" : "Sales Order"} No. ${docNumber(record, kind)} — ${biz.business_name}`;
+      window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildDetailText(record,kind,itemsOf(record,kind))+"\n\nThe PDF was downloaded. Attach it before sending.")}`;
+      window.aprToast?.("Automatic email failed", "error", `${err.message || String(err)}. A draft was opened; attach the downloaded PDF.`);
+    } catch (fallbackError) {
+      window.aprToast?.("Couldn't prepare the email", "error", fallbackError.message || String(fallbackError));
+    }
   }
 }
 
@@ -667,6 +986,57 @@ function copyDetailText(text, statusNode) {
   });
 }
 
+let pendingQuotationJobId = null;
+
+function openQuotationJobApproval(quotationId) {
+  pendingQuotationJobId = quotationId;
+  const modal = document.getElementById("quote-job-approval-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
+  document.getElementById("quote-job-approval-confirm")?.focus();
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeQuotationJobApproval() {
+  pendingQuotationJobId = null;
+  const modal = document.getElementById("quote-job-approval-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.style.display = "";
+}
+
+document.getElementById("quote-job-approval-cancel")?.addEventListener("click", closeQuotationJobApproval);
+document.getElementById("quote-job-approval-modal")?.addEventListener("click", event => {
+  if (event.target === event.currentTarget) closeQuotationJobApproval();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && document.getElementById("quote-job-approval-modal")?.classList.contains("hidden") === false) {
+    closeQuotationJobApproval();
+  }
+});
+document.getElementById("quote-job-approval-confirm")?.addEventListener("click", async event => {
+  if (!pendingQuotationJobId) return;
+  const quotationId = pendingQuotationJobId;
+  const button = event.currentTarget;
+  const originalHtml = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = `<i data-lucide="loader-circle"></i> Opening…`;
+  if (window.lucide) lucide.createIcons();
+  const { error } = await supabase.from("quotations")
+    .update({ status: "Approved", updated_at: new Date().toISOString() })
+    .eq("id", quotationId);
+  button.disabled = false;
+  button.innerHTML = originalHtml;
+  if (window.lucide) lucide.createIcons();
+  if (error) {
+    alert("Couldn't mark the quotation approved: " + error.message);
+    return;
+  }
+  closeQuotationJobApproval();
+  window.location.href = `repairs.html?quote=${encodeURIComponent(quotationId)}`;
+});
+
 // ---------- Quotation editor ----------
 
 async function openQuoteEditor(id) {
@@ -676,7 +1046,7 @@ async function openQuoteEditor(id) {
   setText("edit-quote-number", editingQuote.quotation_number);
   editingQuoteDetailText = buildDetailText(editingQuote, "Quotation", editingQuote.quotation_items);
   document.getElementById("quote-detail-text").innerHTML = buildDetailHtml(editingQuote, "Quotation", editingQuote.quotation_items);
-  await renderEditor(document.getElementById("edit-quote-lines"), document.getElementById("edit-quote-total"), editingQuote.quotation_items, editingQuote.usd_to_zig_rate);
+  await renderEditor(document.getElementById("edit-quote-lines"), document.getElementById("edit-quote-total"), editingQuote.quotation_items, editingQuote.usd_to_zig_rate, true);
   quoteModal.classList.remove("hidden"); quoteModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
 }
@@ -684,20 +1054,80 @@ async function saveQuoteChanges() {
   if (!editingQuote) return;
   const inputs = [...document.querySelectorAll("#edit-quote-lines .amend-qty")]; const prices = [...document.querySelectorAll("#edit-quote-lines .amend-price")]; const rate = editingQuote.usd_to_zig_rate;
   let total = 0;
-  for (let i = 0; i < editingQuote.quotation_items.length; i++) { const quantity = Number(inputs[i].value); const unit = Number(prices[i].value); total += quantity * unit; await supabase.from("quotation_items").update({ quantity, unit_price_usd: unit, total_usd: quantity * unit, unit_price_zig: unit * rate, total_zig: quantity * unit * rate }).eq("id", editingQuote.quotation_items[i].id); }
-  await supabase.from("quotations").update({ total_usd: total, total_zig: total * rate, updated_at: new Date().toISOString(), status: "Amended" }).eq("id", editingQuote.id);
+  for (let i = 0; i < editingQuote.quotation_items.length; i++) {
+    const quantity = Number(inputs[i].value);
+    const unit = Number(prices[i].value);
+    const original = editingQuote.quotation_items[i];
+    const cost = Number(original.cost_price_usd) || 0;
+    const markup = cost > 0 ? Number(((unit / cost - 1) * 100).toFixed(2)) : 0;
+    total += quantity * unit;
+    await supabase.from("quotation_items").update({
+      quantity, unit_price_usd: unit, markup_pct: markup,
+      total_usd: quantity * unit, unit_price_zig: unit * rate,
+      total_zig: quantity * unit * rate,
+    }).eq("id", original.id);
+  }
+  const amendedTotals = quotationTotals(editingQuote.quotation_items.map((item, index) => ({ ...item, quantity: Number(inputs[index].value), unit_price_usd: Number(prices[index].value) })));
+  await supabase.from("quotations").update({ total_usd: amendedTotals.total, total_zig: amendedTotals.total * rate, updated_at: new Date().toISOString(), status: "Amended" }).eq("id", editingQuote.id);
   closeModal(quoteModal); await loadDocuments();
 }
 async function createOrderFromQuote() {
   if (!editingQuote) return;
+  const { data: existingOrder, error: existingOrderError } = await supabase.from("sales_orders")
+    .select("id, order_number")
+    .eq("quotation_id", editingQuote.id)
+    .limit(1)
+    .maybeSingle();
+  if (existingOrderError) {
+    alert("Couldn't check whether this quotation already has an order: " + existingOrderError.message);
+    return;
+  }
+  if (existingOrder) {
+    closeModal(quoteModal);
+    await openOrderEditor(existingOrder.id);
+    return;
+  }
   const { data: order, error } = await supabase.from("sales_orders").insert([{
     quotation_id: editingQuote.id, customer_id: editingQuote.customer_id, repair_job_id: editingQuote.repair_job_id,
     walk_in_name: editingQuote.walk_in_name, walk_in_phone: editingQuote.walk_in_phone, walk_in_email: editingQuote.walk_in_email,
     usd_to_zig_rate: editingQuote.usd_to_zig_rate, total_usd: editingQuote.total_usd, total_zig: editingQuote.total_zig, status: "Draft",
   }]).select().single();
-  if (error) { alert("Failed to confirm sales order: " + error.message); return; }
-  const items = editingQuote.quotation_items.map(item => ({ sales_order_id: order.id, part_id: item.part_id, item_type: itemType(item), part_name: item.part_name, quantity: item.quantity, unit_price_usd: item.unit_price_usd, total_usd: item.total_usd, unit_price_zig: item.unit_price_zig, total_zig: item.total_zig }));
-  await supabase.from("sales_order_items").insert(items); closeModal(quoteModal); await loadDocuments();
+  if (error) {
+    if (error.code === "23505") {
+      const { data: duplicate } = await supabase.from("sales_orders")
+        .select("id")
+        .eq("quotation_id", editingQuote.id)
+        .limit(1)
+        .maybeSingle();
+      if (duplicate) {
+        closeModal(quoteModal);
+        await openOrderEditor(duplicate.id);
+        return;
+      }
+    }
+    alert("Failed to confirm sales order: " + error.message);
+    return;
+  }
+  const items = editingQuote.quotation_items.map(item => ({
+    sales_order_id: order.id, part_id: item.part_id, item_type: itemType(item), part_name: item.part_name,
+    quantity: item.quantity, cost_price_usd: Number(item.cost_price_usd) || 0,
+    markup_pct: Number(item.markup_pct) || 0,
+    unit_price_usd: item.unit_price_usd, total_usd: item.total_usd,
+    unit_price_zig: item.unit_price_zig, total_zig: item.total_zig,
+  }));
+  const { error: itemsError } = await supabase.from("sales_order_items").insert(items);
+  if (itemsError) {
+    const { error: cleanupError } = await supabase.from("sales_orders").delete().eq("id", order.id);
+    if (cleanupError) {
+      console.error("Could not remove sales order after its items failed to save:", cleanupError);
+      alert(`Sales order was created, but its items failed: ${itemsError.message}. The incomplete order could not be removed (${cleanupError.message}); refresh the order list before retrying.`);
+    } else {
+      alert("Sales order items failed to save: " + itemsError.message + ". The incomplete order was removed; you can safely try again.");
+    }
+    return;
+  }
+  closeModal(quoteModal);
+  await loadDocuments();
 }
 
 // ---------- Sales order editor ----------
@@ -775,10 +1205,24 @@ async function saveOrderChanges() {
 // order — this is what makes the amount show up in the Receipts page and
 // in the dashboard's revenue figures.
 async function ensureReceiptForOrder(orderId, amount) {
-  const { data: existing } = await supabase.from("receipts").select("id").eq("sales_order_id", orderId).limit(1);
+  const { data: existing, error: checkError } = await supabase.from("receipts").select("id").eq("sales_order_id", orderId).limit(1);
+  if (checkError) {
+    alert("Order saved, but its existing receipt couldn't be checked: " + checkError.message);
+    return false;
+  }
   if (existing && existing.length) return true;
   const { error } = await supabase.from("receipts").insert([{ sales_order_id: orderId, amount }]);
   if (error) {
+    if (error.code === "23505") {
+      const { data: duplicate, error: duplicateError } = await supabase.from("receipts")
+        .select("id")
+        .eq("sales_order_id", orderId)
+        .is("voided_at", null)
+        .limit(1)
+        .maybeSingle();
+      if (!duplicateError && duplicate) return true;
+      if (duplicateError) console.error("Could not verify duplicate sales-order receipt:", duplicateError);
+    }
     console.error("Failed to create receipt for sales order:", error);
     alert("Order saved, but the receipt couldn't be created: " + error.message);
     return false;
@@ -801,14 +1245,19 @@ function on(id, handler) {
   else console.warn(`quotations.js: expected an element with id="${id}" but it isn't on this page — that button won't work until the HTML matches.`);
 }
 
-on("edit-quote-save", saveQuoteChanges);
-on("edit-quote-order", createOrderFromQuote);
+on("edit-quote-save", event => withBusy(event.currentTarget, "Saving…", saveQuoteChanges));
+on("edit-quote-order", event => withBusy(event.currentTarget, "Creating order…", createOrderFromQuote));
 on("edit-quote-cancel", () => closeModal(quoteModal));
-on("edit-order-save", saveOrderChanges);
+on("edit-order-save", event => withBusy(event.currentTarget, "Saving order…", saveOrderChanges));
 on("edit-order-cancel", () => closeModal(orderModal));
 
 on("quote-detail-copy", () => copyDetailText(editingQuoteDetailText, document.getElementById("quote-detail-copy-status")));
 on("quote-detail-print", () => editingQuote && printDocument(editingQuote, "Quotation"));
+on("quote-detail-pdf", async event => {
+  if (!editingQuote) return;
+  try { saveFile(await withBusy(event.currentTarget, "Preparing PDF…", () => createDetailPdf("Quotation", editingQuote))); }
+  catch (error) { window.aprToast?.("Couldn't create quotation PDF", "error", error.message || String(error)); }
+});
 on("quote-detail-email", (e) => editingQuote && sendByEmail("Quotation", editingQuote, e.currentTarget));
 on("quote-detail-whatsapp", (e) => editingQuote && sendByWhatsApp("Quotation", editingQuote, e.currentTarget));
 
@@ -829,6 +1278,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (requestedCustomer && customers.some(customer => customer.id === requestedCustomer)) {
       customerSelect.value = requestedCustomer;
       renderQuoteVehicles(params.get("vehicle") || "");
+      fillWalkinDetails(customers.find(customer => customer.id === requestedCustomer));
       document.getElementById("quote-fault").value = params.get("fault") || "";
       toggleWalkinFields();
     }

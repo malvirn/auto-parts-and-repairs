@@ -20,7 +20,7 @@
       var next = theme === "dark" ? "light" : "dark";
       button.setAttribute("aria-label", "Switch to " + next + " mode");
       button.setAttribute("title", "Switch to " + next + " mode");
-      button.innerHTML = '<i data-lucide="' + (next === "light" ? "sun" : "moon") + '"></i><span>' + (next === "light" ? "Light" : "Dark") + "</span>";
+      button.innerHTML = '<i aria-hidden="true" data-lucide="' + (next === "light" ? "sun" : "moon") + '"></i>';
     });
     if (window.lucide) window.lucide.createIcons();
   }
@@ -32,18 +32,30 @@
   });
   document.addEventListener("DOMContentLoaded", function () {
     var header = document.querySelector("body.dashboard-page .site-masthead, body.dashboard-page .app-header, body.dashboard-page .main__header");
-    if (!header || header.querySelector(".theme-toggle")) return;
-    var button = document.createElement("button");
-    button.type = "button";
-    button.className = "theme-toggle";
-    button.addEventListener("click", function () {
-      mode = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      try { localStorage.setItem("apr-theme", mode); } catch (e) {}
-      apply();
-      window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: mode } }));
-    });
-    var actions = header.querySelector(".site-masthead__actions, .site-masthead__status, .hdr-right") || header;
-    actions.append(button);
+    var dashboardTopbar = document.querySelector("body.dashboard-workshop .dashboard-topbar");
+    if (!header && !dashboardTopbar) return;
+    var button = dashboardTopbar?.querySelector(".theme-toggle") || header?.querySelector(".theme-toggle");
+    if (button && !dashboardTopbar) return;
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "theme-toggle";
+      button.addEventListener("click", function () {
+        mode = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        try { localStorage.setItem("apr-theme", mode); } catch (e) {}
+        apply();
+        window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: mode } }));
+      });
+    }
+    var menuWrap = header?.querySelector(".hdr-menu-wrap");
+    var headerActions = header?.querySelector(".hdr-header-actions");
+    var actions = headerActions ||
+      header?.querySelector(".site-masthead__actions, .site-masthead__status, .hdr-right") || header;
+    var dashboardActions = dashboardTopbar?.querySelector(".dashboard-topbar-actions") || dashboardTopbar;
+    if (dashboardActions) dashboardActions.insertBefore(button, dashboardActions.querySelector("#global-notif-bell"));
+    else if (headerActions && menuWrap) headerActions.insertBefore(button, menuWrap);
+    else if (menuWrap) menuWrap.insertBefore(button, menuWrap.querySelector("#hdr-menu-btn"));
+    else actions?.append(button);
     apply();
   });
   if (mq && mode === "system") {

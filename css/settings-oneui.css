@@ -1,0 +1,94 @@
+body.dashboard-page .settings-welcome {
+  width: min(1120px, 100% - clamp(28px, 8vw, 116px));
+  margin: 0 auto 18px;
+  padding: 18px 22px;
+  border: 1px solid rgba(31, 196, 103, .22);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(31, 196, 103, .1), rgba(12, 18, 16, .96));
+}
+
+body.dashboard-page .settings-welcome h1 {
+  margin: 0;
+  color: #eef3ef;
+  font: 700 clamp(25px, 3vw, 34px)/1.15 Manrope, Inter, system-ui, sans-serif;
+}
+
+body.dashboard-page .settings-welcome p:last-child {
+  max-width: 66ch;
+  margin: 7px 0 0;
+  color: #9fb0a6;
+}
+
+body.dashboard-page .sjump {
+  width: min(1120px, 100% - clamp(28px, 8vw, 116px));
+  margin: 0 auto 18px;
+  padding: 4px 0 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+body.dashboard-page .sjump a {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 10px 15px;
+  border: 1px solid rgba(31, 196, 103, .2);
+  border-radius: 999px;
+  background: rgba(17, 27, 24, .9);
+}
+
+body.dashboard-page .sg-wrap {
+  width: min(1120px, 100% - clamp(28px, 8vw, 116px));
+  max-width: none;
+  margin: 0 auto;
+  gap: 16px;
+}
+
+body.dashboard-page .sg {
+  border-radius: 22px;
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+body.dashboard-page .sg:target {
+  border-color: #1fc467;
+}
+
+body.dashboard-page .sg > header {
+  gap: 14px;
+  padding: 20px 20px 16px;
+}
+
+body.dashboard-page .sg > header > i,
+body.dashboard-page .sg > header > svg {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 10px;
+  border: 1px solid rgba(31, 196, 103, .22);
+  border-radius: 15px;
+  background: rgba(31, 196, 103, .1);
+  color: #1fc467;
+  flex: none;
+}
+
+body.dashboard-page .sg > header h3 {
+  font-size: 18px;
+}
+
+@media (max-width: 620px) {
+  body.dashboard-page .settings-welcome,
+  body.dashboard-page .sjump,
+  body.dashboard-page .sg-wrap {
+    width: calc(100% - 28px);
+  }
+
+  body.dashboard-page .settings-welcome {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  body.dashboard-page .sg > header {
+    padding: 16px;
+  }
+}

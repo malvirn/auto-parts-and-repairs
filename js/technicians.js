@@ -35,6 +35,7 @@ const editGenerateOffDaysBtn = document.getElementById("edit-emp-generate-off-da
 
 let allEmployees = [];
 let currentEditId = null;
+let employeeSubmissionInProgress = false;
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -267,6 +268,11 @@ form.addEventListener("submit", async (e) => {
     is_active: true,
   };
 
+  if (employeeSubmissionInProgress) return;
+  employeeSubmissionInProgress = true;
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
   formMessage.textContent = "Saving…"; formMessage.dataset.tone = "info";
   const { error } = await supabase.from("technicians").insert([payload]);
   if (error) { formMessage.textContent = "Failed to add employee: " + error.message; formMessage.dataset.tone = "error"; return; }
@@ -276,6 +282,14 @@ form.addEventListener("submit", async (e) => {
   document.getElementById("emp-location").value = "Main Branch";
   formMessage.textContent = "Employee added."; formMessage.dataset.tone = "success";
   loadEmployees();
+  } catch (error) {
+    console.error("Employee save failed:", error);
+    formMessage.textContent = `Couldn't finish saving the employee: ${error.message || String(error)}`;
+    formMessage.dataset.tone = "error";
+  } finally {
+    employeeSubmissionInProgress = false;
+    if (submitButton) submitButton.disabled = false;
+  }
 });
 
 // ---- Edit modal ----

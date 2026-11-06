@@ -412,9 +412,16 @@ $("reset-password-btn")?.addEventListener("click", async (e) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
   busy(e.currentTarget, true, "Sending…");
-  const { error } = await supabase.auth.resetPasswordForEmail(user.email);
-  busy(e.currentTarget, false);
-  say("m-account", error ? "Couldn't send: " + error.message : `Password reset email sent to ${user.email}.`, !error);
+  try {
+    const redirectTo = new URL("reset-password.html", window.location.href).href;
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, { redirectTo });
+    say("m-account", error ? "Couldn't send: " + error.message : `Password reset email sent to ${user.email}.`, !error);
+  } catch (error) {
+    console.error("Couldn't send password reset email:", error);
+    say("m-account", "Couldn't send the reset email. Check your connection and try again.", false);
+  } finally {
+    busy(e.currentTarget, false);
+  }
 });
 $("sign-out-btn")?.addEventListener("click", async () => {
   await supabase.auth.signOut();
@@ -422,6 +429,14 @@ $("sign-out-btn")?.addEventListener("click", async () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  const sectionOrder = ["account", "access-control", "fingerprint", "appearance", "about", "currency", "labour", "daily-goals", "notifications", "app", "guide"];
+  const settingsSections = document.querySelector(".sg-wrap");
+  if (settingsSections) {
+    sectionOrder.forEach(id => {
+      const section = $(id);
+      if (section) settingsSections.append(section);
+    });
+  }
   loadBusinessSettings();
   loadGoals();
   loadFingerprints();

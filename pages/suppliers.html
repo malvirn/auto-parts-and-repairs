@@ -178,8 +178,10 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
@@ -193,7 +195,7 @@
         </div>
       </div>
       <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -215,13 +217,13 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -229,13 +231,7 @@
     </aside>
 
     <main class="main">
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">Purchasing network</p>
-          <h1>Suppliers</h1>
-          <p class="page-intro">Maintain spare-parts supplier contacts and purchasing details to keep workshop stock replenished.</p>
-        </div>
-      </div>
+      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Suppliers</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">New supplier</p><h2><i class="section-heading-icon" data-lucide="truck"></i>Add Supplier</h2></div><span class="section-note">Vendor contact details</span></div>
@@ -306,10 +302,11 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
+    <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/phone-inputs.js"></script>
   <script type="module" src="../js/suppliers.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
 </body>
 </html>

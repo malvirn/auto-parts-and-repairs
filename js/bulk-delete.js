@@ -2,6 +2,10 @@ import supabase from "./supabaseClient.js";
 
 const CONFIRMATION_WORD = "DELETE";
 
+export function isSuperAdmin() {
+  return document.body?.dataset.role === "super_admin";
+}
+
 function installDeleteDialogStyles() {
   if (document.getElementById("apr-delete-dialog-style")) return;
   const style = document.createElement("style");
@@ -32,6 +36,10 @@ function installDeleteDialogStyles() {
 }
 
 export async function confirmTypedDelete(description, { reversible = false } = {}) {
+  if (!isSuperAdmin()) {
+    window.alert("Only a Super Admin can delete or archive business records.");
+    return false;
+  }
   const action = reversible ? "Archive" : "Delete";
   const confirmationWord = reversible ? "ARCHIVE" : CONFIRMATION_WORD;
   const warning = reversible ? "This hides the record from active customer lists. You can restore it later." : "This action cannot be undone.";
@@ -93,6 +101,7 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   tbody.dataset.bulkDeleteReady = "true";
   const toolbar = document.createElement("div");
   toolbar.className = "bulk-delete-toolbar";
+  toolbar.dataset.superAdminDelete = "true";
   toolbar.innerHTML = `
     <label class="bulk-delete-select-all"><input type="checkbox" aria-label="Select all ${label}" /> Select all</label>
     <button class="btn btn--danger" type="button" disabled>${softDeleteColumn ? "Archive selected" : "Delete selected"}</button>
@@ -124,6 +133,14 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   const selectAll = toolbar.querySelector("input");
   const deleteButton = toolbar.querySelector("button");
   const message = toolbar.querySelector(".bulk-delete-message");
+  const headerCell = tableElement.tHead?.rows[0]?.querySelector(".bulk-delete-cell");
+
+  function updatePermissionVisibility() {
+    const allowed = isSuperAdmin();
+    toolbar.hidden = !allowed;
+    headerCell?.toggleAttribute("hidden", !allowed);
+    tbody.querySelectorAll(".bulk-delete-cell").forEach(cell => { cell.hidden = !allowed; });
+  }
 
   function updateControls() {
     const checkboxes = [...tbody.querySelectorAll(".bulk-delete-row input:not(:disabled)")];
@@ -142,6 +159,7 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
       if (!id || row.querySelector(".bulk-delete-row")) return;
       const cell = document.createElement("td");
       cell.className = "bulk-delete-cell bulk-delete-row";
+      cell.dataset.superAdminDelete = "true";
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.value = String(id);
@@ -151,6 +169,7 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
       cell.append(checkbox);
       row.prepend(cell);
     });
+    updatePermissionVisibility();
     updateControls();
   }
 
@@ -204,5 +223,6 @@ export function installBulkDelete({ tbody, table, label, getId, beforeDelete, fo
   });
 
   new MutationObserver(decorateRows).observe(tbody, { childList: true });
+  document.addEventListener("apr:access-ready", updatePermissionVisibility);
   decorateRows();
 }

@@ -22,6 +22,8 @@ let accounts = [];
 let assets = [];
 let depreciationTotals = {}; // asset_id -> accumulated depreciation so far
 let currentDisposeAsset = null;
+let assetSubmissionInProgress = false;
+let disposalSubmissionInProgress = false;
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -53,6 +55,10 @@ paymentSelect.addEventListener("change", updatePaymentFieldVisibility);
 
 assetForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (assetSubmissionInProgress) return;
+  assetSubmissionInProgress = true;
+
+  try {
   const name = document.getElementById("asset-name").value.trim();
   const category = document.getElementById("asset-category").value;
   const purchaseDate = document.getElementById("asset-date").value;
@@ -116,6 +122,9 @@ assetForm.addEventListener("submit", async (e) => {
   document.getElementById("asset-life").value = 5;
   assetFormMessage.textContent = "Asset added and posted to the ledger."; assetFormMessage.dataset.tone = "success";
   loadAssets();
+  } finally {
+    assetSubmissionInProgress = false;
+  }
 });
 
 // ---------- Load register ----------
@@ -175,7 +184,6 @@ runDepreciationBtn.addEventListener("click", async () => {
       return;
     }
 
-    let totalToPost = 0;
     const toRecord = [];
 
     for (const asset of assets.filter(a => a.is_active)) {
@@ -187,10 +195,25 @@ runDepreciationBtn.addEventListener("click", async () => {
 
       const amount = Math.min(monthly, remaining);
       toRecord.push({ asset_id: asset.id, amount });
-      totalToPost += amount;
     }
 
     if (!toRecord.length) { alert("Nothing to depreciate — every active asset is either fully depreciated or already processed this month."); return; }
+
+    const { data: processedEntries, error: processedEntriesError } = await supabase
+      .from("depreciation_entries")
+      .select("asset_id")
+      .eq("year", year)
+      .eq("month", month);
+    if (processedEntriesError) {
+      alert("Failed to check this month's depreciation entries: " + processedEntriesError.message);
+      return;
+    }
+    const processedAssetIds = new Set((processedEntries || []).map(entry => entry.asset_id));
+    const pendingEntries = toRecord.filter(entry => !processedAssetIds.has(entry.asset_id));
+    if (!pendingEntries.length) {
+      alert("Nothing to depreciate — every active asset has already been processed this month.");
+      return;
+    }
 
     const { data: entry, error: entryError } = await supabase.from("journal_entries").insert([{
       entry_date: now.toISOString().slice(0, 10),
@@ -199,9 +222,10 @@ runDepreciationBtn.addEventListener("click", async () => {
     }]).select().single();
     if (entryError) { alert("Failed to post: " + entryError.message); return; }
 
+    const pendingTotal = pendingEntries.reduce((sum, item) => sum + item.amount, 0);
     const { error: linesError } = await supabase.from("journal_lines").insert([
-      { journal_entry_id: entry.id, account_id: depreciationExpense.id, debit: totalToPost, credit: 0 },
-      { journal_entry_id: entry.id, account_id: accumDepreciation.id, debit: 0, credit: totalToPost },
+      { journal_entry_id: entry.id, account_id: depreciationExpense.id, debit: pendingTotal, credit: 0 },
+      { journal_entry_id: entry.id, account_id: accumDepreciation.id, debit: 0, credit: pendingTotal },
     ]);
     if (linesError) {
       await supabase.from("journal_entries").delete().eq("id", entry.id);
@@ -210,13 +234,13 @@ runDepreciationBtn.addEventListener("click", async () => {
     }
 
     let recorded = 0, skipped = 0;
-    for (const r of toRecord) {
+    for (const r of pendingEntries) {
       const { error } = await supabase.from("depreciation_entries").insert([{ asset_id: r.asset_id, year, month, amount: r.amount, journal_entry_id: entry.id }]);
       if (error) { if (error.code === "23505") skipped++; else console.error(error); }
       else recorded++;
     }
 
-    alert(`Depreciation posted — ${money(totalToPost)} across ${recorded} asset(s)${skipped ? `, ${skipped} already processed this month` : ""}.`);
+    alert(`Depreciation posted — ${money(pendingTotal)} across ${recorded} asset(s)${skipped ? `, ${skipped} already processed this month` : ""}.`);
     loadAssets();
   } finally {
     runDepreciationBtn.disabled = false;
@@ -257,6 +281,10 @@ disposeModal.addEventListener("click", (e) => { if (e.target === disposeModal) c
 
 disposeSave.addEventListener("click", async () => {
   if (!currentDisposeAsset) return;
+  if (disposalSubmissionInProgress) return;
+  disposalSubmissionInProgress = true;
+  disposeSave.disabled = true;
+  try {
   const depositAccountId = disposeAccountSelect.value;
   const proceeds = parseFloat(disposeProceedsInput.value) || 0;
   const disposeDate = disposeDateInput.value;
@@ -299,6 +327,10 @@ disposeSave.addEventListener("click", async () => {
 
   closeDisposeModal();
   loadAssets();
+  } finally {
+    disposalSubmissionInProgress = false;
+    disposeSave.disabled = false;
+  }
 });
 
 document.addEventListener("DOMContentLoaded", async () => {

@@ -41,7 +41,7 @@
     #part-form-grid > .field { min-width: 0; }
     #part-form-grid input, #part-form-grid select, #part-form-grid textarea, #edit-part-modal input, #edit-part-modal select, #edit-part-modal textarea { width: 100%; box-sizing: border-box; }
     #part-form-grid .part-price-output { margin-bottom: 8px; }
-    .shop-inventory-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .shop-inventory-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr); gap: 20px; align-items: start; }
     .shop-inventory-layout > .page-section { width: 100%; min-width: 0; margin: 0; }
     .shop-inventory-layout .stock-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     #parts-category-filter { min-width: 180px; }
@@ -85,7 +85,65 @@
     .shop-quick-access .btn { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; }
     .shop-quick-access .btn svg { width: 17px; height: 17px; }
     .shop-quick-access a { text-decoration: none; }
-    #shop-add-part, #shop-reorder, #shop-catalogue, #shop-quick-sale, #shop-restocks { scroll-margin-top: 20px; }
+    #job-part-purchase-requests .panel { overflow-x: auto; }
+    #job-part-purchase-requests table { min-width: 780px; }
+    .job-part-purchase-quote, .job-part-purchase-receive { display: grid; gap: 8px; min-width: 220px; }
+    .job-part-purchase-quote label, .job-part-purchase-receive label { display: grid; gap: 4px; font-size: .78rem; }
+    .job-part-purchase-quote input, .job-part-purchase-receive input, .job-part-purchase-receive select { box-sizing: border-box; width: 100%; min-height: 36px; }
+    .job-part-purchase-order { display: inline-flex; margin-bottom: 8px; text-decoration: none; }
+    .shop-markup-control { grid-column: 1 / -1; margin: 0; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .shop-price-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .shop-price-fields .field { min-width: 0; }
+    #quick-sale-form { border-color: rgba(31,196,103,.34); background: linear-gradient(155deg,rgba(18,30,25,.98),rgba(10,17,15,.99)); box-shadow: 0 22px 48px rgba(0,0,0,.32); }
+    #quick-sale-form .form-grid { padding: 16px; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; background: rgba(0,0,0,.16); }
+    #quick-sale-form .field label { color: #c6d6cc; font-size: .78rem; font-weight: 700; }
+    #quick-sale-form input, #quick-sale-form select { min-height: 44px; border-color: rgba(255,255,255,.16); }
+    .quick-sale-intro { display: flex; align-items: center; gap: 9px; margin: 0 0 12px; color: var(--muted); font-size: .88rem; }
+    .quick-sale-steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; padding: 0; list-style: none; }
+    .quick-sale-steps li { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .78rem; }
+    .quick-sale-steps b { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; background: rgba(31,196,103,.14); color: var(--green-bright); font-size: .7rem; }
+    .quick-sale-intro svg { width: 17px; height: 17px; flex: none; color: var(--green-bright); }
+    .quick-sale-category-filter { max-width: 260px; margin: 0 0 12px; }
+    .quick-sale-cart { display: grid; gap: 12px; }
+    .quick-sale-line { display: grid; grid-template-columns: minmax(220px,2fr) minmax(86px,.65fr) minmax(120px,1fr) minmax(120px,1fr) 44px; gap: 12px; align-items: end; padding: 16px; border: 1px solid rgba(31,196,103,.2); border-radius: 14px; background: linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.015)); transition: border-color 160ms ease,background 160ms ease; }
+    .quick-sale-line:focus-within { border-color: rgba(31,196,103,.55); background: rgba(31,196,103,.045); }
+    .quick-sale-line .field { min-width: 0; margin: 0; }
+    .quick-sale-line .field>label { display: block; margin: 0 0 7px; color: #aebfb4; font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+    .quick-sale-line input, .quick-sale-line select { box-sizing: border-box; width: 100%; min-height: 44px; }
+    .quick-sale-line output { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border: 1px solid rgba(31,196,103,.18); border-radius: 9px; background: rgba(31,196,103,.06); color: #e8f5ec; font-size: 1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .quick-sale-product-field { position: relative; }
+    .quick-sale-product-search { min-height: 46px!important; padding-left: 40px!important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%239fb0a6' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 13px center; }
+    .quick-sale-product-results { position: relative; z-index: 1; display: grid; gap: 5px; max-height: min(340px,55vh); overflow-y: auto; margin-top: 8px; padding: 8px; border: 1px solid rgba(31,196,103,.36); border-radius: 13px; background: #101815; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+    .quick-sale-results-heading { padding: 4px 8px 7px; color: var(--orange); font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .quick-sale-product-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 10px; border: 1px solid rgba(255,255,255,.065); border-radius: 9px; color: var(--text); transition: background 140ms ease,border-color 140ms ease; }
+    .quick-sale-product-result:hover { border-color: rgba(31,196,103,.3); background: rgba(31,196,103,.1); }
+    .quick-sale-product-result-name { min-width: 0; overflow-wrap: anywhere; font-size: .9rem; font-weight: 700; }
+    .quick-sale-product-result-name small { display: block; margin-top: 3px; color: var(--muted); font-size: .76rem; font-weight: 500; }
+    .quick-sale-product-result .btn { flex: 0 0 auto; min-height: 36px; padding: 6px 12px; }
+    .quick-sale-product-empty { padding: 12px 10px; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+    .quick-sale-selected { display: flex; align-items: center; gap: 9px; margin-top: 8px; padding: 9px 10px; border: 1px solid rgba(31,196,103,.3); border-radius: 10px; background: rgba(31,196,103,.09); color: var(--text); }
+    .quick-sale-selected-check { display: grid; width: 22px; height: 22px; flex: none; place-items: center; border-radius: 50%; background: var(--green); color: #fff; font-size: .8rem; font-weight: 900; }
+    .quick-sale-selected>span:nth-child(2) { min-width: 0; flex: 1; overflow-wrap: anywhere; font-size: .82rem; }
+    .quick-sale-selected small { display: block; margin-top: 2px; color: var(--muted); font-size: .73rem; }
+    .quick-sale-change-product { flex: none; padding: 5px 7px; border: 0; background: none; color: var(--green-bright); font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; }
+    .quick-sale-remove { min-height: 44px; border-color: rgba(255,107,107,.22); color: #ff8a80; }
+    .quick-sale-total { display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-height: 50px; padding: 10px 14px; border: 1px solid rgba(31,196,103,.24); border-radius: 12px; background: rgba(31,196,103,.07); color: #e9f8ed; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .quick-sale-total strong { color: #fff; font-size: 1.2rem; }
+    #shop-add-part, #shop-catalogue, #shop-quick-sale, #shop-restocks { scroll-margin-top: 20px; }
+    #shop-restocks .panel { overflow-x: auto; }
+    #restocks-table tr { transition: background 160ms ease; }
+    #restocks-table tr:hover { background: rgba(31,196,103,.07); }
+    #restocks-table td { vertical-align: middle; }
+    .restock-quantity { display: inline-flex; min-width: 38px; justify-content: center; padding: 4px 9px; border: 1px solid rgba(31,196,103,.3); border-radius: 999px; background: rgba(31,196,103,.1); color: var(--green-bright); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .restock-payment { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+    .restock-payment.paid { background: rgba(31,196,103,.12); color: #4ade80; }
+    .restock-payment.credit { background: rgba(250,204,21,.12); color: #facc15; }
+    .restock-date { color: var(--muted); font-size: .82rem; white-space: nowrap; }
+    @media (max-width: 1100px) {
+      .shop-inventory-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .shop-inventory-layout > .page-section { min-width: 0; }
+      .shop-inventory-layout .stock-summary-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
     @media (max-width: 720px) {
       .shop-quick-access { width: calc(100% - 28px); margin: -8px auto 22px; padding: 10px; }
       .shop-quick-access .btn { flex: 1 1 calc(50% - 10px); justify-content: center; }
@@ -103,6 +161,7 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
 
   <style id="shop-theme">
     /* The dashboard design is dark, so the Shop's light-theme colours are re-tuned here (colours only). */
@@ -123,18 +182,91 @@
     body.dashboard-page .stock-summary-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
     @media (max-width: 760px) {
       #quick-sale-form .form-grid { grid-template-columns: 1fr !important; }
+      .quick-sale-line { grid-template-columns: minmax(0,1fr) minmax(84px,.5fr); gap: 10px; padding: 13px; }
+      .quick-sale-line .field:first-child, .quick-sale-line .field:nth-child(3), .quick-sale-line .field:nth-child(4) { grid-column: 1 / -1; }
+      .quick-sale-remove { grid-column: 2; grid-row: 2; }
+      .shop-price-fields { grid-template-columns: 1fr; }
       #part-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .parts-filter-row { grid-template-columns: 1fr; }
       .shop-inventory-layout { grid-template-columns: 1fr; }
       .shop-inventory-layout .stock-summary-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .shop-inventory-layout { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
       #part-form-grid { grid-template-columns: 1fr; }
       #part-form-grid > .field[style*="grid-column"] { grid-column: 1 / -1 !important; }
     }
   </style>
+
+  <style id="pos-theme">
+    /* Quick Sale (POS) restyle. Header, sidebar, quick-access bar and footer are untouched. */
+    #quick-sale-form.pos { padding: 0; overflow: visible; border: 1px solid var(--line, rgba(255,255,255,.1)); border-radius: 18px; background: linear-gradient(180deg, rgba(18,27,23,.98), rgba(11,17,15,.99)); box-shadow: 0 18px 40px rgba(0,0,0,.28); }
+    .pos-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, .9fr); align-items: start; }
+    .pos-cart { min-width: 0; padding: 22px 24px 24px; }
+    .pos-checkout { display: grid; gap: 14px; align-content: start; min-width: 0; padding: 22px 24px 24px; border-left: 1px solid var(--line, rgba(255,255,255,.1)); background: rgba(0,0,0,.2); border-radius: 0 18px 18px 0; position: sticky; top: 16px; }
+    .pos-cart h3, .pos-checkout h3 { margin: 0; color: var(--text, #eaf3ee); font-size: 1.05rem; font-weight: 700; letter-spacing: 0; }
+    .pos-card-head { display: grid; gap: 6px; margin-bottom: 16px; }
+    #quick-sale-form .quick-sale-intro { margin: 0; color: var(--muted, #9fb0a6); font-size: .85rem; line-height: 1.5; align-items: flex-start; }
+    #quick-sale-form .quick-sale-intro svg { margin-top: 2px; }
+
+    /* cart lines */
+    #quick-sale-form .quick-sale-cart { gap: 10px; }
+    #quick-sale-form .quick-sale-line { padding: 14px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; background: rgba(255,255,255,.03); gap: 12px; }
+    #quick-sale-form .quick-sale-line:focus-within { border-color: var(--green-bright, #3ddc84); background: rgba(31,196,103,.05); }
+    #quick-sale-form .quick-sale-line .field > label { margin-bottom: 6px; color: var(--muted, #9fb0a6); font-size: .78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    #quick-sale-form .quick-sale-line input, #quick-sale-form .quick-sale-line select { min-height: 44px; border-radius: 10px; }
+    #quick-sale-form .quick-sale-line output { min-height: 44px; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; background: rgba(0,0,0,.25); font-weight: 700; }
+    #quick-sale-form .quick-sale-remove { border-radius: 10px; }
+    #quick-sale-form .quick-sale-results-heading { color: var(--muted, #9fb0a6); font-size: .78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+    #quick-sale-form .quick-sale-product-results { border-color: rgba(255,255,255,.12); background: #0f1714; }
+    #quick-sale-form .quick-sale-product-result { border-radius: 10px; }
+    .pos-add { width: 100%; justify-content: center; min-height: 46px; margin-top: 12px; border: 1px dashed rgba(31,196,103,.45); background: transparent; color: var(--green-bright, #3ddc84); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+    .pos-add:hover { background: rgba(31,196,103,.08); }
+    .pos-add svg { width: 17px; height: 17px; }
+
+    /* checkout column */
+    #quick-sale-form .pos-fields.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; max-width: none; padding: 0; border: 0; border-radius: 0; background: none; }
+    #quick-sale-form .pos-fields .field { min-width: 0; margin: 0; }
+    #quick-sale-form .pos-fields .pos-span { grid-column: 1 / -1; }
+    #quick-sale-form .pos-fields label { display: block; margin-bottom: 6px; color: var(--muted, #9fb0a6); font-size: .78rem; font-weight: 600; }
+    #quick-sale-form .pos-fields label small { margin-left: 4px; color: var(--muted, #9fb0a6); font-size: .72rem; font-weight: 400; opacity: .8; }
+    #quick-sale-form .pos-fields input, #quick-sale-form .pos-fields select { box-sizing: border-box; width: 100%; min-height: 44px; border-radius: 10px; }
+    .pos-credit-note { margin: 0; color: var(--muted, #9fb0a6); font-size: .78rem; line-height: 1.5; }
+    #quick-sale-form .quick-sale-total { justify-content: space-between; margin-top: 2px; padding: 16px 18px; border: 1px solid rgba(31,196,103,.4); border-radius: 14px; background: rgba(31,196,103,.1); color: var(--muted, #b7c7bd); font-size: .95rem; font-weight: 600; }
+    #quick-sale-form .quick-sale-total strong { color: #fff; font-size: 1.7rem; font-weight: 800; line-height: 1; }
+    .pos-submit { width: 100%; min-height: 54px; justify-content: center; border-radius: 12px; font-size: 1rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+    #quick-sale-form .form-message:empty { display: none; }
+    #quick-sale-form .form-message { margin: 0; }
+
+    @media (max-width: 1100px) {
+      .pos-layout { grid-template-columns: 1fr; }
+      .pos-checkout { position: static; border-left: 0; border-top: 1px solid var(--line, rgba(255,255,255,.1)); border-radius: 0 0 18px 18px; }
+      #quick-sale-form .quick-sale-line { grid-template-columns: minmax(0,1fr) minmax(84px,.5fr); gap: 10px; padding: 13px; }
+      #quick-sale-form .quick-sale-line .field:first-child, #quick-sale-form .quick-sale-line .field:nth-child(3), #quick-sale-form .quick-sale-line .field:nth-child(4) { grid-column: 1 / -1; }
+      #quick-sale-form .quick-sale-remove { grid-column: 2; grid-row: 2; }
+    }
+
+    @media (max-width: 520px) {
+      .pos-cart, .pos-checkout { padding: 16px; }
+      #quick-sale-form .pos-fields.form-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+
+  <style id="catalogue-theme">
+    /* Catalogue: description first, readable text */
+    #parts-table td:first-child { min-width: 240px; max-width: 360px; white-space: normal; font-weight: 600; color: var(--text, #eaf3ee); }
+    #parts-table td:first-child .part-description, #parts-table .part-description { color: inherit; font-size: .9rem; font-weight: 600; max-width: 360px; }
+    /* Light mode (covers the common ways a theme can switch) */
+    html[data-theme="light"] #parts-table td, html.light #parts-table td, body.light #parts-table td, body.light-theme #parts-table td, body[data-theme="light"] #parts-table td { color: #1f2937; }
+    html[data-theme="light"] #parts-table .part-description, html.light #parts-table .part-description, body.light #parts-table .part-description, body.light-theme #parts-table .part-description, body[data-theme="light"] #parts-table .part-description { color: #111827; }
+    html[data-theme="light"] #parts-table .margin-badge, html.light #parts-table .margin-badge, body.light #parts-table .margin-badge, body.light-theme #parts-table .margin-badge, body[data-theme="light"] #parts-table .margin-badge { color: #15803d; font-weight: 700; }
+    html[data-theme="light"] #parts-table .stock-ok, html.light #parts-table .stock-ok, body.light #parts-table .stock-ok, body.light-theme #parts-table .stock-ok, body[data-theme="light"] #parts-table .stock-ok { color: #374151; }
+    html[data-theme="light"] #parts-table .stock-low, html.light #parts-table .stock-low, body.light #parts-table .stock-low, body.light-theme #parts-table .stock-low, body[data-theme="light"] #parts-table .stock-low { color: #b91c1c; }
+    html[data-theme="light"] #parts-table .supplier-chip, html.light #parts-table .supplier-chip, body.light #parts-table .supplier-chip, body.light-theme #parts-table .supplier-chip, body[data-theme="light"] #parts-table .supplier-chip { background: #e5e7eb; color: #1f2937; }
+  </style>
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page dashboard-workshop">
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
@@ -184,29 +316,50 @@
     </aside>
 
     <main class="main" id="shop-root">
-      <header class="main__header dashboard-hero">
-        <div>
-          <p class="section-kicker">Inventory and margin control</p>
-          <h1>Parts Shop</h1>
-          <p class="page-intro">Manage spare-parts inventory, supplier costs, selling prices and stock used for vehicle repairs and servicing.</p>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
+        </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" />
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
       </header>
 
-      <div class="markup-control shop-markup-control">
-        <strong>Markup rate</strong>
-        <input type="number" id="markup-rate-input" step="0.1" min="0" aria-label="Markup rate percentage" />
-        <span>%</span>
-        <button id="save-markup-btn" type="button" class="btn"><i data-lucide="check"></i> Save Rate</button>
-        <button id="apply-markup-all-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Apply to All Existing Parts</button>
-      </div>
-
       <nav class="shop-quick-access" aria-label="Shop quick access">
-        <a class="btn btn--primary" href="#shop-add-part"><i data-lucide="package-plus"></i> Add Part</a>
         <a class="btn" href="#shop-quick-sale"><i data-lucide="shopping-bag"></i> Quick Sale</a>
+        <a class="btn" href="#job-part-purchase-requests"><i data-lucide="clipboard-list"></i> Job Part Requests</a>
         <a class="btn" href="#shop-catalogue"><i data-lucide="package"></i> Parts Catalogue</a>
-        <a class="btn" href="#shop-reorder"><i data-lucide="sparkles"></i> Reorder Suggestions</a>
+        <a class="btn" href="#shop-add-part"><i data-lucide="package-plus"></i> Intake Inventory</a>
         <a class="btn" href="#shop-restocks"><i data-lucide="history"></i> Restock History</a>
       </nav>
+
+      <section class="page-section" id="job-part-purchase-requests" aria-labelledby="job-part-purchase-requests-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Workshop procurement</p><h2 id="job-part-purchase-requests-heading"><i class="section-heading-icon" data-lucide="clipboard-list"></i>Job-card part requests</h2></div>
+          <button id="refresh-job-part-purchase-requests" type="button" class="btn" aria-label="Refresh job-card part requests"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">Enter the supplier's contact details and quoted cost, then send the request to Accounting. After funds are released, record the delivery into inventory.</p>
+        <p id="shop-job-part-purchase-message" class="form-message" role="status" aria-live="polite"></p>
+        <div class="panel" style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Job / Customer</th><th>Part / Quantity</th><th>Supplier &amp; Quote</th><th>Shop action</th></tr></thead>
+            <tbody id="shop-job-part-purchase-body"><tr><td colspan="4" class="empty-state">Loading job-card part requests…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Needs attention</p><h2><i class="section-heading-icon" data-lucide="bell"></i>Alerts</h2></div></div>
@@ -222,51 +375,60 @@
         </div>
       </section>
 
-      <section class="page-section" id="shop-reorder">
-        <div class="section-heading"><div><p class="section-kicker">Based on how fast things actually move</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Smart Reorder Suggestions</h2></div><button id="reorder-suggest-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Suggestions</button></div>
-        <div class="panel" style="padding:20px;">
-          <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Weighs total historical usage (repairs + sales) against current stock — not just a flat "below 3 units" rule.</p>
-          <div id="reorder-suggest-result" style="display:none; margin-top:12px; padding:14px 16px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.9rem; white-space:pre-wrap; line-height:1.6;"></div>
-        </div>
+      <section class="page-section" id="shop-quick-sale">
+        <div class="section-heading"><div><p class="section-kicker">Walk-in counter sale</p><h2><i class="section-heading-icon" data-lucide="shopping-bag"></i>Quick Sale</h2></div><span class="section-note">Deducts stock, credits a salesperson, issues a receipt</span></div>
+        <form id="quick-sale-form" class="panel pos">
+          <div class="pos-layout">
+            <div class="pos-cart">
+              <div class="pos-card-head">
+                <h3>Sale items</h3>
+                <p class="quick-sale-intro"><i data-lucide="search-check"></i> Add each item in three steps:</p>
+                <ol class="quick-sale-steps" aria-label="How to add sale items">
+                  <li><b>1</b> Search and choose a part</li>
+                  <li><b>2</b> Set quantity and price</li>
+                  <li><b>3</b> Complete checkout</li>
+                </ol>
+              </div>
+              <div class="field quick-sale-category-filter">
+                <label for="quick-sale-category">Product category</label>
+                <select id="quick-sale-category" aria-label="Filter Quick Sale products by category">
+                  <option value="">All categories</option>
+                </select>
+              </div>
+              <div id="quick-sale-items" class="quick-sale-cart" aria-label="Sale items"></div>
+              <button type="button" class="btn pos-add" id="quick-sale-add-item"><i data-lucide="plus"></i> Add product</button>
+            </div>
+
+            <aside class="pos-checkout" aria-label="Checkout">
+              <h3>Checkout</h3>
+              <div class="pos-fields form-grid">
+                <div class="field pos-span"><label for="quick-sale-salesperson">Salesperson</label><select id="quick-sale-salesperson"><option value="">No salesperson, no commission</option></select></div>
+                <div class="field pos-span"><label for="quick-sale-customer-id">Registered customer <small>Required for credit</small></label><select id="quick-sale-customer-id"><option value="">Walk-in / no account</option></select></div>
+                <div class="field pos-span"><label for="quick-sale-customer">Walk-in name <small>Optional</small></label><input type="text" id="quick-sale-customer" placeholder="Walk-in Sale" /></div>
+                <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option><option value="Swipe">Swipe</option><option value="Credit">Buy on credit</option></select></div>
+                <div class="field"><label for="quick-sale-discount">Discount ($)</label><input type="number" id="quick-sale-discount" min="0" step="0.01" value="0" inputmode="decimal" /></div>
+              </div>
+              <p class="pos-credit-note">Any active registered customer can buy on credit. Record later installments under Ledger → Customer Accounts.</p>
+              <div class="quick-sale-total" id="quick-sale-total" aria-live="polite">Total: $0.00</div>
+              <button type="submit" class="btn btn--primary pos-submit"><i data-lucide="check"></i> Complete sale</button>
+              <p id="quick-sale-message" class="form-message"></p>
+            </aside>
+          </div>
+        </form>
       </section>
 
       <div class="shop-inventory-layout page-section">
       <section class="page-section" id="shop-add-part">
-        <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Quantity, model, details and VAT-inclusive pricing</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Inventory intake</p><h2><i class="section-heading-icon" data-lucide="package-plus"></i>Add Part</h2></div><span class="section-note">Opening quantity is added directly; use Restock to record a supplier purchase</span></div>
         <form id="part-form" class="panel" style="padding:20px; margin-bottom:24px;">
         <div id="part-form-grid" class="form-grid" style="max-width:none;">
           <div class="field">
-            <label for="part-qty">Quantity</label>
-            <input type="number" id="part-qty" min="0" placeholder="e.g. 10" required />
-          </div>
-          <div class="field">
-            <label for="part-minimum-stock">Low-stock minimum</label>
-            <input type="number" id="part-minimum-stock" min="0" step="0.01" value="0" required />
-            <small class="section-note">Alert when stock reaches 10% of this level.</small>
-          </div>
-          <div class="field">
-            <label for="part-name">Model</label>
-            <input type="text" id="part-name" placeholder="e.g. Toyota Corolla 1.6" required />
+            <label for="part-name">Part name</label>
+            <input type="text" id="part-name" placeholder="e.g. Front brake pad set" required />
           </div>
           <div class="field">
             <label for="part-number">Part number (optional)</label>
             <input type="text" id="part-number" placeholder="e.g. ABC-1234" />
-          </div>
-          <div class="field">
-            <label for="part-description">Description</label>
-            <textarea id="part-description" rows="2" placeholder="Part details, fitment or notes"></textarea>
-          </div>
-          <div class="field">
-            <label for="part-cost">Cost per Unit ($)</label>
-            <input type="number" id="part-cost" step="0.01" min="0" placeholder="What you pay" required />
-          </div>
-          <div class="field">
-            <label for="part-price">Price + VAT ($)</label>
-            <input class="part-price-output" type="number" id="part-price" step="0.01" min="0" placeholder="Calculated from cost, markup and VAT" readonly required />
-            <label for="part-vat-rate">VAT rate</label>
-            <select id="part-vat-rate" required>
-              <option value="5" selected>5%</option>
-            </select>
           </div>
           <div class="field" style="grid-column: span 2;">
             <label for="part-category">Category</label>
@@ -280,14 +442,36 @@
               <option value="Other" selected>Other</option>
             </select>
           </div>
-          <div class="field" style="grid-column: span 2;">
-            <label>Suppliers (optional — check all that can supply this part; ★ marks the preferred one)</label>
-            <div id="part-suppliers-list" class="suppliers-checklist"></div>
-            <small class="section-note">You can add this part without a registered supplier and link suppliers later.</small>
+          <div class="field">
+            <label for="part-description">Description</label>
+            <textarea id="part-description" rows="2" placeholder="Part details, fitment or notes"></textarea>
           </div>
-          <div class="field"><label for="part-purchase-supplier">Supplier for this stock</label><select id="part-purchase-supplier"><option value="">Select supplier…</option></select></div>
-          <div class="field"><label for="part-payment-status">Stock payment</label><select id="part-payment-status"><option value="paid">Paid now</option><option value="on_credit">Buy on credit</option></select></div>
-          <div class="field" id="part-payment-account-field"><label for="part-payment-account">Paid from</label><select id="part-payment-account"><option value="">Select cash or bank account…</option></select></div>
+          <div class="field">
+            <label for="part-qty">Opening quantity</label>
+            <input type="number" id="part-qty" min="0" placeholder="e.g. 10" required />
+          </div>
+          <div class="field">
+            <label for="part-minimum-stock">Low-stock alert level</label>
+            <input type="number" id="part-minimum-stock" min="0" step="1" value="0" required />
+          </div>
+          <div class="field">
+            <label for="part-cost">Cost per Unit ($)</label>
+            <input type="number" id="part-cost" step="0.01" min="0" placeholder="What you pay" required />
+          </div>
+          <div class="shop-price-fields" style="grid-column:1 / -1;">
+            <div class="field">
+              <label for="part-price">Price + VAT ($)</label>
+              <input class="part-price-output" type="number" id="part-price" step="0.01" min="0" placeholder="Enter selling price" required />
+            </div>
+            <div class="field">
+              <label for="part-vat-rate">VAT rate</label>
+              <select id="part-vat-rate" required><option value="5" selected>5%</option></select>
+            </div>
+            <div class="field">
+              <label for="part-markup-rate">Markup (%)</label>
+              <input type="number" id="part-markup-rate" step="0.1" min="-100" required />
+            </div>
+          </div>
         </div>
         <div style="margin-top:14px;">
           <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add Part</button>
@@ -295,7 +479,7 @@
         </form>
       </section>
 
-      <section class="page-section">
+      <section class="page-section" id="shop-stock-summary">
         <div class="section-heading"><div><p class="section-kicker">Current inventory</p><h2><i class="section-heading-icon" data-lucide="warehouse"></i>Stock Summary</h2></div><span class="section-note">Units and value on hand</span></div>
         <div class="card-grid stock-summary-grid">
           <div class="stat-card"><div class="stat-card__label">Total Units</div><div class="stat-card__value" id="shop-total-units">—</div></div>
@@ -305,6 +489,13 @@
           <div class="stat-card"><div class="stat-card__label">Sales Value</div><div class="stat-card__value" id="shop-sales-value">—</div><div style="font-size:.78rem; color:var(--text-muted);" id="shop-sales-value-zig"></div></div>
         </div>
       </section>
+      <div class="markup-control shop-markup-control" id="shop-markup-control">
+        <strong>Markup rate</strong>
+        <input type="number" id="markup-rate-input" step="0.1" min="0" aria-label="Markup rate percentage" />
+        <span>%</span>
+        <button id="save-markup-btn" type="button" class="btn"><i data-lucide="check"></i> Save Rate</button>
+        <button id="apply-markup-all-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Apply to All Existing Parts</button>
+      </div>
       </div>
 
       <section class="page-section" id="shop-catalogue">
@@ -346,21 +537,6 @@
           </tbody>
         </table>
         </div>
-      </section>
-
-      <section class="page-section" id="shop-quick-sale">
-        <div class="section-heading"><div><p class="section-kicker">Walk-in counter sale</p><h2><i class="section-heading-icon" data-lucide="shopping-bag"></i>Quick Sale</h2></div><span class="section-note">Deducts stock, credits a salesperson, issues a receipt</span></div>
-        <form id="quick-sale-form" class="panel" style="padding:20px;">
-          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(4, 1fr);">
-            <div class="field"><label>Part</label><select id="quick-sale-part" required></select></div>
-            <div class="field"><label>Quantity</label><input type="number" id="quick-sale-qty" min="1" value="1" required /></div>
-            <div class="field"><label>Salesperson</label><select id="quick-sale-salesperson"><option value="">No salesperson — no commission</option></select></div>
-            <div class="field"><label>Customer Name <span style="font-weight:normal; color:var(--text-muted); font-size:.78rem;">(optional)</span></label><input type="text" id="quick-sale-customer" placeholder="Walk-in" /></div>
-          </div>
-          <div style="margin:10px 0; font-size:.9rem; color:var(--text-muted);" id="quick-sale-total"></div>
-          <button type="submit" class="btn btn--primary"><i data-lucide="check"></i> Complete Sale</button>
-          <p id="quick-sale-message" class="form-message"></p>
-        </form>
       </section>
 
       <section class="page-section" id="shop-restocks">
@@ -418,12 +594,13 @@
       <div class="field"><label for="edit-part-number">Part number (optional)</label><input type="text" id="edit-part-number" /></div>
       <div class="field"><label>Description</label><textarea id="edit-part-description" rows="2"></textarea></div>
       <div class="field"><label>Cost per Unit ($)</label><input type="number" id="edit-part-cost" step="0.01" min="0" /></div>
-      <div class="field">
-        <label>Price + VAT ($)</label><input type="number" id="edit-part-price" step="0.01" min="0" readonly />
-        <label for="edit-part-vat-rate">VAT rate</label>
-        <select id="edit-part-vat-rate" required>
-          <option value="5">5%</option>
-        </select>
+      <div class="shop-price-fields">
+        <div class="field"><label for="edit-part-price">Price + VAT ($)</label><input type="number" id="edit-part-price" step="0.01" min="0" required /></div>
+        <div class="field">
+          <label for="edit-part-vat-rate">VAT rate</label>
+          <select id="edit-part-vat-rate" required><option value="5">5%</option></select>
+        </div>
+        <div class="field"><label for="edit-part-markup-rate">Markup (%)</label><input type="number" id="edit-part-markup-rate" step="0.1" min="-100" required /></div>
       </div>
       <div class="field">
         <label for="edit-part-category">Category</label>
@@ -437,10 +614,6 @@
           <option value="Other">Other</option>
         </select>
       </div>
-      <div class="field">
-        <label>Suppliers (★ = preferred)</label>
-        <div id="edit-part-suppliers-list" class="suppliers-checklist"></div>
-      </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button id="edit-part-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save</button>
         <button id="edit-part-delete" type="button" class="btn" style="color:#c0392b;"><i data-lucide="trash-2"></i> Delete</button>
@@ -449,12 +622,34 @@
     </div>
   </div>
 
+  <script>
+    /* Parts catalogue: show Description as the first column (works with the rows shop.js renders). */
+    (function () {
+      var tbody = document.getElementById("parts-table");
+      if (!tbody) return;
+      var headRow = tbody.closest("table").querySelector("thead tr");
+      function fix() {
+        var ths = Array.prototype.slice.call(headRow.children);
+        var di = ths.findIndex(function (th) { return th.textContent.trim() === "Description"; });
+        if (di > 0) headRow.insertBefore(ths[di], headRow.firstElementChild);
+        Array.prototype.slice.call(tbody.children).forEach(function (tr) {
+          if (tr.dataset.descFirst || tr.children.length < 10) return;
+          tr.insertBefore(tr.children[2], tr.firstElementChild);
+          tr.dataset.descFirst = "1";
+        });
+      }
+      new MutationObserver(fix).observe(tbody, { childList: true });
+      fix();
+    })();
+  </script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/shop.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/job-part-purchases-shop.js"></script>
+    <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
 </body>
 </html>

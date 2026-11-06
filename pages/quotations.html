@@ -3,61 +3,279 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
 
-  <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTO PARTS &amp; REPAIRS — Quotations &amp; Sales Orders</title>
-  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Centric Auto Mobile — Quotations &amp; Sales Orders</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    /* Modal fix — same as before: shared .modal-overlay/.modal classes have
-       no real positioning, so this forces a centered popup on this page. */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
-      align-items: center; justify-content: center; padding: 24px; z-index: 1000; overflow-y: auto;
-    }
-    .modal-overlay.hidden { display: none !important; }
-    .modal-overlay:not(.hidden) { display: flex; }
-    .modal {
-      background: #fff; width: 100%; max-width: 640px; max-height: 88vh; border-radius: 14px;
-      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35); display: flex; flex-direction: column;
-      overflow: hidden; margin: auto;
-    }
-    .modal h3 { padding: 20px 24px 0; margin: 0 0 4px; font-size: 17px; }
-    .modal > .quotation-lines, .modal > .quote-detail-block, .modal > .quotation-total { padding-left: 24px; padding-right: 24px; }
-    .modal-scroll { overflow-y: auto; padding: 4px 0 8px; display: flex; flex-direction: column; gap: 14px; }
-    .modal-actions {
-      margin-top: 0; padding: 14px 24px; border-top: 1px solid var(--border, #e5e8ee); background: #fff;
-      display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: 0;
-    }
-    .quote-detail-block {
-      background: var(--surface-alt, #f9fafb); border: 1px solid var(--border, #e5e8ee);
-      border-radius: 10px; padding: 14px 16px; margin: 0 24px;
-    }
-    .quote-detail-block h4 { margin: 0 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted, #8a93a3); }
-    .quote-detail-block .receipt-document { max-width: none; margin: 0; padding: 0; }
-    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .detail-actions .btn { font-size: 13px; }
-    #quote-detail-copy-status, #order-detail-copy-status { font-size: 12px; color: var(--success, #2e7d4f); margin-left: 4px; }
-    #quote-walkin-fields.hidden, #order-walkin-note.hidden { display: none; }
-  </style>
-  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0b1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <!-- Kept only so the line items / tables that js/quotations.js generates keep their own layout. Everything below overrides colours. -->
   <link rel="stylesheet" href="../css/quotations.css">
+
+  <style id="quotations-design">
+    html{background:#0b1012;color-scheme:dark}
+    body.dashboard-page{
+      --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
+      --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
+      --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
+      --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
+      --border:var(--line); --surface-alt:#0c1210; --success:var(--green-bright);
+      margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
+      -webkit-font-smoothing:antialiased; overflow-x:clip; height:auto;
+      padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));
+    }
+    body.dashboard-page *{box-sizing:border-box}
+    body.dashboard-page .app-shell{display:block!important;height:auto!important;min-height:100svh;overflow:visible!important;background:none}
+    body.dashboard-page .main{display:block!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;background:none}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    [hidden]{display:none!important}
+    body.dashboard-page .hidden{display:none!important}
+
+    /* ===== header (identical to the dashboard) ===== */
+    body.dashboard-page .app-header{position:sticky;top:0;z-index:60;display:grid;grid-template-columns:auto minmax(300px,1fr) auto auto;grid-template-areas:"brand search right menu";align-items:center;column-gap:clamp(12px,2vw,28px);row-gap:14px;
+      min-height:0;margin:0;padding:22px clamp(14px,3.8vw,58px) 34px;border:0;background:linear-gradient(180deg,#0e1517,#0a1011)}
+    body.dashboard-page .app-header .curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:28px;pointer-events:none}
+    body.dashboard-page .hdr-brand{grid-area:brand;display:flex;align-items:center;gap:clamp(12px,1.6vw,22px);min-width:0}
+    body.dashboard-page .hdr-brand .dashboard-hero__logo{width:clamp(58px,9vw,140px);height:auto;flex:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4))}
+    body.dashboard-page .hdr-divider{width:1px;height:clamp(40px,5.6vw,86px);background:rgba(255,255,255,.18);flex:none}
+    body.dashboard-page .hdr-name{margin:0;font-size:clamp(18px,2.4vw,34px);font-weight:700;letter-spacing:-.01em;line-height:1.15;color:#fff}
+    body.dashboard-page .hdr-name em{font-style:normal;color:var(--green-bright)}
+    body.dashboard-page .hdr-sub{margin:4px 0 0;color:#dfe8e2;font-size:clamp(11px,1.15vw,17px);letter-spacing:.02em}
+    body.dashboard-page .hdr-right{grid-area:right;display:flex;align-items:center;gap:clamp(12px,2vw,28px);flex:none}
+    body.dashboard-page .hdr-time #dashboard-date{margin:0;font-size:clamp(11px,1vw,15px);color:#e6ede8;font-weight:400;line-height:1.3}
+    body.dashboard-page .hdr-clock{font-size:clamp(18px,1.9vw,27px);font-weight:700;letter-spacing:.01em;line-height:1.2;font-variant-numeric:tabular-nums;color:#fff}
+    body.dashboard-page .hdr-live{display:flex;align-items:center;gap:8px;color:var(--green-bright);font-size:clamp(11px,1vw,14px)}
+    body.dashboard-page .hdr-live i{width:11px;height:11px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 10px var(--green-bright)}
+    body.dashboard-page .hdr-live[data-state="offline"]{color:#ff9a6b}.hdr-live[data-state="offline"] i{background:#ff7a12;box-shadow:0 0 10px #ff7a12}
+    body.dashboard-page .hdr-hello{margin:0;font-size:clamp(12px,1.2vw,18px);color:#e6ede8;font-weight:400;line-height:1.35;max-width:210px}
+    body.dashboard-page #dashboard-greeting{display:block;margin:0;font-size:inherit;font-weight:600;color:var(--green-bright);line-height:1.35}
+
+    body.dashboard-page .hs{grid-area:search;position:relative;width:100%;max-width:640px;min-width:0;justify-self:center}
+    body.dashboard-page .hs-bar{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--text) 7%,transparent);transition:border-color 200ms,box-shadow 300ms}
+    body.dashboard-page .hs-bar:focus-within{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    body.dashboard-page .hs-bar>svg{width:20px;height:20px;flex:none;color:var(--muted)}
+    body.dashboard-page #hs-input{flex:1;min-width:0;height:100%!important;min-height:0!important;padding:0!important;border:0!important;outline:0;background:none!important;color:var(--text);font:inherit;font-size:15px;box-shadow:none!important}
+    body.dashboard-page #hs-input::placeholder{color:var(--muted)}
+    body.dashboard-page .hs-kbd{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:.75rem}
+    body.dashboard-page .hs-panel{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:90;max-height:min(70vh,540px);overflow-y:auto;padding:0 8px 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--text);box-shadow:0 18px 42px rgba(0,0,0,.55)}
+    body.dashboard-page .hs-chips{position:sticky;top:0;z-index:1;display:flex;gap:6px;overflow-x:auto;padding:10px 0;background:var(--panel);scrollbar-width:none}
+    body.dashboard-page .hs-chips::-webkit-scrollbar{display:none}
+    body.dashboard-page .hs-chip{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:600 .78rem var(--font);white-space:nowrap;cursor:pointer}
+    body.dashboard-page .hs-chip[aria-pressed="true"]{background:rgba(31,196,103,.16);border-color:var(--green-bright);color:var(--text)}
+    body.dashboard-page .hs-group{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 8px 4px;color:var(--orange);font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    body.dashboard-page .hs-more{border:0;background:none;color:var(--green-bright);font:600 .75rem var(--font);cursor:pointer;letter-spacing:0;text-transform:none}
+    body.dashboard-page .hs-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none}
+    body.dashboard-page .hs-item:hover,body.dashboard-page .hs-item:focus-visible{background:rgba(31,196,103,.12);outline:none}
+    body.dashboard-page .hs-item>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    body.dashboard-page .hs-item>span{min-width:0}
+    body.dashboard-page .hs-item b{display:block;font-size:.9rem;font-weight:600;overflow-wrap:anywhere}
+    body.dashboard-page .hs-item small{display:block;margin-top:2px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    body.dashboard-page .hs-empty{padding:22px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+
+    body.dashboard-page .hdr-menu-wrap{grid-area:menu;position:relative;margin-right:56px}
+    body.dashboard-page .hdr-more{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);cursor:pointer;transition:background 200ms,border-color 200ms}
+    body.dashboard-page .hdr-more:hover,body.dashboard-page .hdr-more[aria-expanded="true"]{border-color:var(--green-bright);background:rgba(31,196,103,.16)}
+    body.dashboard-page .hdr-more svg{width:22px;height:22px;fill:currentColor}
+    body.dashboard-page .hdr-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:95;width:min(330px,calc(100vw - 24px));max-height:min(72vh,560px);overflow-y:auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    body.dashboard-page .hdr-menu .m-head{padding:12px 10px 4px;color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    body.dashboard-page .hdr-menu a{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px;border-radius:10px;color:var(--text);font-size:.92rem;font-weight:500;text-decoration:none}
+    body.dashboard-page .hdr-menu a:hover,body.dashboard-page .hdr-menu a:focus-visible,body.dashboard-page .hdr-menu a[aria-current="page"]{background:rgba(31,196,103,.14);outline:none}
+    body.dashboard-page .hdr-menu a>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+
+    /* ===== page content ===== */
+    .quotation-workspace{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:30px}
+    body.dashboard-page .quotation-workspace,body.dashboard-page .main>.page-section{max-width:1500px;margin:0 auto;padding-inline:clamp(14px,4vw,58px)}
+    body.dashboard-page .quotation-workspace{padding-top:38px}
+    body.dashboard-page .main>.page-section{padding-top:30px;padding-bottom:46px}
+    body.dashboard-page .page-section{margin:0;background:none}
+    .section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:0 0 16px}
+    .section-heading h2{display:flex;align-items:center;gap:10px;margin:0;font-size:clamp(20px,2vw,26px);font-weight:700;letter-spacing:-.01em;color:var(--text)}
+    .section-heading-icon{width:24px;height:24px;color:var(--green-bright)}
+    .section-kicker{margin:0 0 4px;color:var(--orange);font-size:.74rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+    .section-note{color:var(--muted);font-size:.86rem}
+    body.dashboard-page .panel{background:linear-gradient(160deg,rgba(20,30,27,.96),rgba(12,18,16,.98));border:1px solid var(--line);border-radius:16px;color:var(--text);box-shadow:0 18px 36px rgba(0,0,0,.28)}
+    body.dashboard-page .panel:has(table){overflow-x:auto}
+
+    body.dashboard-page table{width:100%;border-collapse:collapse;color:var(--text)}
+    body.dashboard-page th{padding:12px;text-align:left;color:var(--muted);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:nowrap}
+    body.dashboard-page td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text);vertical-align:middle}
+    body.dashboard-page tbody tr:hover{background:rgba(31,196,103,.06)}
+    .empty-state{display:flex;align-items:center;justify-content:center;gap:10px;padding:26px 14px;color:var(--muted);font-size:.9rem;text-align:center}
+    td.empty-state{display:table-cell}
+    .empty-state svg{width:20px;height:20px;vertical-align:-4px;color:var(--green-bright)}
+
+    /* buttons */
+    body.dashboard-page .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(10,16,13,.7);color:var(--text);font:inherit;font-size:.88rem;font-weight:600;text-decoration:none;cursor:pointer;transition:background 200ms,border-color 200ms,transform 200ms}
+    body.dashboard-page .btn:hover{border-color:var(--green-bright);background:rgba(18,161,80,.16)}
+    body.dashboard-page .btn:active{transform:translateY(1px)}
+    body.dashboard-page .btn--primary{background:linear-gradient(180deg,var(--green-bright),var(--green));border-color:transparent;color:#fff}
+    body.dashboard-page .btn--primary:hover{background:linear-gradient(180deg,#2ad577,#14b058);border-color:transparent}
+    body.dashboard-page .btn svg{width:18px;height:18px;flex:none}
+    body.dashboard-page .btn:focus-visible,.tab:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+    /* form controls */
+    .quotation-form{padding:clamp(16px,2.4vw,26px)!important;display:grid;gap:18px}
+    .form-grid,.quotation-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+    .field{display:grid;gap:6px;min-width:0}
+    .field>label,.quotation-vehicle-grid label{display:grid;gap:6px;color:var(--muted);font-size:.78rem;font-weight:600;letter-spacing:.03em}
+    body.dashboard-page input:not([type=checkbox]):not([type=radio]),body.dashboard-page select,body.dashboard-page textarea{
+      width:100%;min-height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--text) 6%,transparent);
+      color:var(--text);font:inherit;font-size:15px;outline:0;transition:border-color 200ms,box-shadow 300ms}
+    body.dashboard-page textarea{padding:12px 14px;resize:vertical;line-height:1.45}
+    body.dashboard-page input:focus,body.dashboard-page select:focus,body.dashboard-page textarea:focus{border-color:var(--green-bright);box-shadow:0 0 0 4px rgba(31,196,103,.16)}
+    body.dashboard-page input::placeholder,body.dashboard-page textarea::placeholder{color:#8fa197}
+    body.dashboard-page select option{background:var(--panel);color:var(--text)}
+    body.dashboard-page fieldset{min-width:0;margin:0;padding:16px;border:1px solid var(--line);border-radius:14px}
+    body.dashboard-page legend{padding:0 8px;color:var(--text);font-size:.85rem;font-weight:700}
+    body.dashboard-page legend span{color:var(--muted);font-weight:500}
+    .quotation-vehicle-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:10px}
+    .quotation-vehicle-details small,.hint{color:var(--muted);font-size:.78rem}
+    .opt{color:var(--orange);font-weight:600;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;margin-left:4px}
+
+    .quotation-add-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+    .quotation-add-row>input,.quotation-add-row>select{flex:1 1 150px;width:auto}
+    .quotation-add-row>select{flex:2 1 240px}
+    .quotation-add-row>.btn{flex:none}
+    .quotation-category-label{margin:4px 0 -6px;color:var(--orange);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .quote-missing-fields{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(31,196,103,.08);color:var(--text);font-size:.9rem}
+    .quote-missing-fields{border-color:rgba(255,122,18,.55);background:rgba(255,122,18,.1);color:#ffb784}
+    body.dashboard-page .quotation-lines{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:14px;color:var(--text)}
+    body.dashboard-page .quotation-lines button{cursor:pointer}
+    .quotation-total{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(18,161,80,.12);font-weight:600}
+    .quotation-total strong{font-size:clamp(18px,2vw,24px);color:var(--green-bright);font-variant-numeric:tabular-nums}
+
+    /* ===== quotation details and line items ===== */
+    .q-split{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:start}
+    .q-split>.quotation-form{min-width:0}
+    .quotation-personal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+    .quotation-personal-details,.quotation-vehicle-details{min-width:0;margin:0;padding:16px;border:1px solid var(--line);border-radius:12px}
+    .quotation-personal-details legend,.quotation-vehicle-details legend{padding:0 6px;font-weight:700}
+    .quotation-personal-details small{color:var(--muted)}
+    .quotation-personal-grid label{display:grid;min-width:0;gap:6px;color:var(--muted);font-size:.82rem;font-weight:700}
+    .quotation-personal-grid input{width:100%;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit;font-size:16px}
+    .more-row{display:flex;justify-content:center;padding:14px}
+    .addon-more{border-color:var(--green-bright);color:var(--green-bright)}
+
+    /* ===== modals ===== */
+    .modal-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto;background:rgba(5,9,8,.74);backdrop-filter:blur(6px)}
+    .modal-overlay:not(.hidden){display:flex!important}
+    .modal{display:flex;flex-direction:column;width:100%;max-width:720px;max-height:90vh;margin:auto;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#121c19,#0c1210);color:var(--text);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+    .modal.modal--wide{max-width:1000px}
+    .modal h3{margin:0;padding:20px 24px 4px;font-size:1.1rem;font-weight:700;color:var(--text)}
+    .modal-scroll{display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding:8px 24px 14px}
+    .modal-actions{position:sticky;bottom:0;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin:0;padding:14px 24px;border-top:1px solid var(--line);background:#0e1714}
+    .quote-detail-block{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.22)}
+    .quote-detail-block h4{margin:0 0 8px;color:var(--orange);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    .quote-detail-block .receipt-document{max-width:none;margin:0;padding:0;color:var(--text)}
+    .detail-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+    #quote-detail-copy-status,#order-detail-copy-status{color:var(--green-bright);font-size:.8rem;margin-left:4px}
+    #quote-walkin-fields.hidden,#order-walkin-note.hidden{display:none}
+
+    /* ===== hidden navigation source for the shared More menu ===== */
+    body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
+      display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
+      background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
+      transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
+    .sidebar .sidebar__brand{margin:0 0 18px}
+    .sidebar .brand-logo{width:120px;height:auto}
+    .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none}
+    .sidebar .nav-link svg{width:20px;height:20px;flex:none}
+    .sidebar .nav-group{margin-top:8px}
+    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;color:var(--muted);font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
+    .sidebar .nav-grpwrap{display:none}
+    .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
+
+    /* ===== bottom tab bar + footer (identical to the dashboard) ===== */
+    body.dashboard-page .site-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:24px clamp(14px,3.8vw,58px);background:#0a0f10;color:#d3ddd6;font-size:clamp(11px,1vw,15px)}
+    body.dashboard-page .site-foot a{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+    body.dashboard-page .site-foot svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+    body.dashboard-page .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
+    body.dashboard-page .apr-bottom-nav>a,body.dashboard-page .apr-more-toggle{position:relative;display:grid;min-width:0;height:100%;place-items:center;align-content:center;gap:4px;border:0;background:none;color:#c9d3cd;font:600 11px Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none;cursor:pointer}
+    body.dashboard-page .apr-bottom-nav>a:hover,body.dashboard-page .apr-more-toggle:hover,body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#1fc467}
+    body.dashboard-page .apr-bottom-nav svg{width:23px;height:23px}
+    body.dashboard-page .apr-bottom-nav [aria-current="page"]::after{position:absolute;top:0;left:50%;width:42px;height:3px;border-radius:0 0 3px 3px;background:#1fc467;content:"";transform:translateX(-50%)}
+    body.dashboard-page .apr-more-wrap{position:relative;min-width:0;height:100%}
+    body.dashboard-page .apr-more-menu{position:absolute;right:8px;bottom:calc(100% + 12px);display:none;width:min(310px,calc(100vw - 24px));max-height:min(65vh,440px);padding:7px;overflow:auto;border:1px solid rgba(31,196,103,.24);border-radius:16px;background:#111b18;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+    body.dashboard-page .apr-more-menu.open{display:block}
+    body.dashboard-page .apr-more-menu a{display:flex;min-height:44px;align-items:center;gap:11px;padding:10px;border-radius:10px;color:#dfe8e2;font:500 .9rem Inter,"Segoe UI",system-ui,sans-serif;text-decoration:none}
+    body.dashboard-page .apr-more-menu a:hover,body.dashboard-page .apr-more-menu [aria-current="page"]{background:rgba(255,255,255,.06);color:#fff}
+    body.dashboard-page .apr-more-menu a svg{width:19px;height:19px;flex:none;color:#1fc467}
+    @media print{.apr-bottom-nav,.tabbar,.app-header,.site-foot{display:none!important}}
+
+    /* ===== light theme ===== */
+    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;--surface-alt:#f5f6f7;background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page .hdr-name,:root[data-theme="light"] body.dashboard-page .hdr-sub,:root[data-theme="light"] body.dashboard-page .hdr-clock,:root[data-theme="light"] body.dashboard-page .hdr-hello,:root[data-theme="light"] body.dashboard-page #dashboard-date{color:#111}
+    :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
+    :root[data-theme="light"] body.dashboard-page .tabbar,:root[data-theme="light"] body.dashboard-page .apr-bottom-nav{border-color:#d0d3d6;background:rgba(255,255,255,.98);box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+    :root[data-theme="light"] body.dashboard-page .tab,:root[data-theme="light"] body.dashboard-page .apr-bottom-nav>a,:root[data-theme="light"] body.dashboard-page .apr-more-toggle{color:#222}
+    :root[data-theme="light"] body.dashboard-page .tab[aria-current="page"],:root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#111}
+    :root[data-theme="light"] body.dashboard-page .tab[aria-current="page"]::after,:root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]::after{background:#111}
+    :root[data-theme="light"] body.dashboard-page .panel,:root[data-theme="light"] body.dashboard-page .modal{background:#fff;border-color:#d9dcdf;color:#111;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+    :root[data-theme="light"] body.dashboard-page .modal-actions{background:#fff}
+    :root[data-theme="light"] body.dashboard-page .btn{background:#fff;border-color:#c9cdd1;color:#111}
+    :root[data-theme="light"] body.dashboard-page .btn--primary{background:#111;border-color:#111;color:#fff}
+    :root[data-theme="light"] body.dashboard-page td{border-color:#e6e8ea}
+    :root[data-theme="light"] body.dashboard-page .quotation-total strong,:root[data-theme="light"] body.dashboard-page .section-heading-icon{color:#0d7a3b}
+
+    /* ===== responsive ===== */
+    @media (min-width:761px) and (max-width:1400px){.hdr-right .hdr-divider,.hdr-hello{display:none}}
+    @media (max-width:760px){
+      body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand right menu" "search search search";padding-bottom:30px}
+      body.dashboard-page .hdr-sub,body.dashboard-page .hdr-divider,body.dashboard-page .hdr-hello,body.dashboard-page .hdr-time #dashboard-date{display:none}
+      body.dashboard-page .hs{max-width:none;justify-self:stretch}
+      body.dashboard-page #hs-input{font-size:16px}
+      body.dashboard-page .hs-kbd{display:none}
+      .modal-overlay{padding:10px}
+      .section-heading{flex-wrap:wrap}
+    }
+    @media (max-width:560px){.hdr-clock{display:none}}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation:none!important}}
+
+    /* ===== footer: one bar, 4 icon buttons ===== */
+    .tabbar,.apr-bottom-nav{display:none!important}
+    .ftbar{position:fixed;left:0;right:0;bottom:0;z-index:900;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding-bottom:env(safe-area-inset-bottom,0);background:#080e10;border-top:1px solid rgba(255,255,255,.1)}
+    .ftbar a{position:relative;display:grid;place-items:center;height:62px;font-size:26px;color:#9fb0a6;text-decoration:none;transition:color .2s}
+    .ftbar a:hover,.ftbar a:focus-visible{color:#eef3ef;outline:none}
+    .ftbar svg{width:1em;height:1em;display:block;fill:currentColor;stroke:none}
+    .ftbar a[aria-current="page"]{color:#fff}
+    .ftbar a[aria-current="page"]::before{content:"";position:absolute;top:0;width:42px;height:3px;border-radius:0 0 3px 3px;background:var(--green-bright)}
+    .ftbar .tab-badge{display:none!important}
+    :root[data-theme="light"] .ftbar{background:rgba(255,255,255,.98);border-top-color:#d0d3d6;box-shadow:0 -6px 20px rgba(0,0,0,.1)}
+    :root[data-theme="light"] .ftbar a{color:#44484c}
+    :root[data-theme="light"] .ftbar a:hover,:root[data-theme="light"] .ftbar a[aria-current="page"]{color:#111}
+    @media print{.ftbar{display:none!important}}
+    
+    /* ===== header three-dot menu: modules in categories ===== */
+    .hdr-menu .m-group{margin-top:2px}
+    .hdr-menu .m-grp{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:10px;border:0;border-radius:10px;background:none;color:var(--text);font:600 .92rem var(--font);text-align:left;cursor:pointer}
+    .hdr-menu .m-grp:hover,.hdr-menu .m-grp:focus-visible,.hdr-menu .m-grp[aria-expanded="true"]{background:rgba(31,196,103,.12);outline:none}
+    .hdr-menu .m-grp>svg{width:19px;height:19px;flex:none;color:var(--green-bright)}
+    .hdr-menu .m-grp>span:first-of-type{flex:1}
+    .hdr-menu .m-chev{width:8px;height:8px;flex:none;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
+    .hdr-menu .m-grp[aria-expanded="true"] .m-chev{transform:rotate(225deg) translate(-2px,-1px)}
+    .hdr-menu .m-items{margin:2px 0 8px 19px;padding-left:8px;border-left:1px solid var(--line)}
+    .hdr-menu .m-items[hidden]{display:none!important}
+    .hdr-menu .m-items a{min-height:40px;font-size:.88rem}
+  </style>
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+    <!-- Module links are reused by the shared More menu after role filtering. -->
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -103,28 +321,96 @@
         </div>
       </div>
     </aside>
-    <main class="main">
-      <div class="main__header">
-        <div><p class="section-kicker">Commercial documents</p><h1>Quotations &amp; Sales Orders</h1><p class="page-intro">Create quotations in USD and ZiG with Shop-priced parts, labour and sundries — with or without a job card — then convert approved work into sales orders.</p></div>
-      </div>
 
-      <section class="page-section">
+    <main class="main">
+      <!-- HEADER (same markup, classes and hooks as the dashboard) -->
+      <header class="main__header dashboard-hero app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo" />
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div>
+            <p class="hdr-name">Centric <em>Auto Mobile</em></p>
+            <p class="hdr-sub">Auto Parts &amp; Repairs Management System</p>
+          </div>
+        </div>
+        <div class="hs" id="hs">
+          <div class="hs-bar" role="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" />
+            <span class="hs-kbd" aria-hidden="true">/</span>
+          </div>
+        </div>
+        <div class="hdr-right">
+          <div class="hdr-time">
+            <p class="page-intro" id="dashboard-date">Loading…</p>
+            <div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div>
+            <div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div>
+          </div>
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+        <svg class="curve" viewBox="0 0 1536 28" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 24H1130" fill="none" stroke="#1fc467" stroke-width="3" vector-effect="non-scaling-stroke"/>
+          <path d="M1130 24C1200 24 1230 7 1300 7H1536" fill="none" stroke="#ff7a12" stroke-width="3" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </header>
+
+      <div class="quotation-workspace">
+      <section class="page-section" id="quotation-create">
         <div class="section-heading"><div><p class="section-kicker">New document</p><h2><i class="section-heading-icon" data-lucide="file-plus-2"></i>Create Quotation</h2></div><span class="section-note">Shop selling prices · live exchange rate</span></div>
-        <form id="quotation-form" class="panel quotation-form" style="padding:20px;">
-          <div class="form-grid quotation-form-grid">
-            <div class="field"><label for="quote-job">Job Card / Vehicle</label><select id="quote-job"><option value="">No job card — walk-in customer</option></select></div>
-            <div class="field" id="quote-customer-field"><label for="quote-customer">Registered Customer</label><select id="quote-customer"><option value="">Select a customer or enter a walk-in below…</option></select></div>
-            <div class="field" id="quote-vehicle-field"><label for="quote-vehicle">Registered Vehicle</label><select id="quote-vehicle"><option value="">No vehicle selected</option></select></div>
+        <div class="q-split">
+        <form id="quotation-form" class="panel quotation-form">
+          <p id="quote-missing-fields" class="quote-missing-fields" role="status" hidden></p>
+          <select id="quote-job" hidden><option value="">Walk-in customer</option></select>
+          <div id="quote-customer-field" hidden><select id="quote-customer"><option value="">Walk-in customer</option></select></div>
+          <div id="quote-vehicle-field" hidden><select id="quote-vehicle"><option value="">No vehicle selected</option></select></div>
+          <fieldset id="quote-walkin-fields" class="field quotation-personal-details">
+            <legend>Personal details</legend>
+            <div class="quotation-personal-grid">
+              <label for="quote-walkin-name">Name<input id="quote-walkin-name" list="quote-customer-suggestions" autocomplete="off" required></label>
+              <label for="quote-walkin-phone">Phone<input id="quote-walkin-phone" type="tel" autocomplete="tel" required></label>
+              <label for="quote-walkin-email">Email<input id="quote-walkin-email" type="email" autocomplete="email"></label>
+            </div>
+            <datalist id="quote-customer-suggestions"></datalist>
+            <small>Start typing to see registered customer suggestions. Walk-in details are accepted too.</small>
+          </fieldset>
+          <fieldset id="quote-vehicle-details" class="field quotation-vehicle-details">
+            <legend>Vehicle details <span>(optional)</span></legend>
+            <div class="quotation-personal-grid">
+              <label for="quote-vehicle-make">Vehicle name<input id="quote-vehicle-make" autocomplete="off"></label>
+              <label for="quote-vehicle-model">Model<input id="quote-vehicle-model" autocomplete="off"></label>
+            </div>
+          </fieldset>
+          <div class="field" id="quote-fault-field"><label for="quote-fault">Work to be done</label><textarea id="quote-fault" rows="2" placeholder="Describe the requested work"></textarea></div>
+
+          <div class="quotation-add-row">
+            <label class="sr-only" for="quote-part">Part description</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
           </div>
-          <div id="quote-job-summary" class="quote-job-summary hidden" aria-live="polite"></div>
-          <div id="quote-walkin-fields" class="form-grid quotation-form-grid">
-            <div class="field"><label for="quote-walkin-name">Customer Name</label><input id="quote-walkin-name" placeholder="Required if no job card is selected" /></div>
-            <div class="field"><label for="quote-walkin-phone">Phone</label><input id="quote-walkin-phone" placeholder="+263 77 123 4567" /></div>
-            <div class="field"><label for="quote-walkin-email">Email</label><input id="quote-walkin-email" type="email" /></div>
+          <div class="quotation-category-label">Part not in the system</div>
+          <div class="quotation-add-row">
+            <label class="sr-only" for="quote-custom-name">Part name</label><input id="quote-custom-name" placeholder="Part name (typed in)" />
+            <label class="sr-only" for="quote-custom-qty">Quantity</label><input id="quote-custom-qty" type="number" min="1" value="1" />
+            <label class="sr-only" for="quote-custom-cost">Unit cost price</label><input id="quote-custom-cost" type="number" min="0" step="0.01" placeholder="Unit cost ($)" />
+            <label class="sr-only" for="quote-custom-selling">Selling price</label><input id="quote-custom-selling" type="number" min="0" step="0.01" placeholder="Selling price ($)" />
+            <label class="sr-only" for="quote-custom-markup">Markup percentage</label><input id="quote-custom-markup" type="number" min="-100" max="999.99" step="0.01" placeholder="Markup %" />
+            <label class="sr-only" for="quote-custom-profit">Profit per unit</label><input id="quote-custom-profit" type="number" step="0.01" placeholder="Profit ($)" />
+            <button id="quote-add-custom" type="button" class="btn"><i data-lucide="plus"></i> Add Typed Part</button>
           </div>
-          <div class="field" id="quote-fault-field"><label for="quote-fault">Fault reported</label><textarea id="quote-fault" rows="2" placeholder="Customer's reported issue"></textarea></div>
+          <div class="quotation-category-label">Sundries</div>
+          <div id="quote-sundries-fields" class="quotation-add-row">
+            <label class="sr-only" for="quote-sundry-price">Sundry price</label><input id="quote-sundry-price" type="number" min="0" step="0.01" placeholder="Sundry price ($)" />
+            <button id="quote-add-sundry" type="button" class="btn"><i data-lucide="plus"></i> Add Sundry</button>
+          </div>
+
+          <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
           <div class="field"><label for="quote-labour-mode">Labour charging method</label>
-            <select id="quote-labour-mode"><option value="time_based">Time-based rate tier</option><option value="provider_estimate">Provider-estimated task price</option></select>
+            <select id="quote-labour-mode"><option value="time_based">Time-based rate tier</option><option value="provider_estimate">Provider-estimated task price</option><option value="custom">Type in my own rate (no tier)</option></select>
           </div>
           <div class="quotation-add-row quotation-add-row--labour" id="quote-time-fields">
             <label class="sr-only" for="quote-labour-tier">Hourly rate tier</label><select id="quote-labour-tier"><option value="">Loading labour rates…</option></select>
@@ -133,30 +419,51 @@
           <div class="quotation-add-row quotation-add-row--labour" id="quote-estimate-fields" hidden>
             <label class="sr-only" for="quote-labour-estimate">Provider labour estimate</label><input id="quote-labour-estimate" type="number" min="0" step="0.01" placeholder="Estimated task price ($)" />
           </div>
-          <button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button>
-          <div class="quotation-add-row">
-            <label class="sr-only" for="quote-part">Part</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
+          <div class="quotation-add-row quotation-add-row--labour" id="quote-custom-fields" hidden>
+            <label class="sr-only" for="quote-custom-labour-desc">Labour description</label><input id="quote-custom-labour-desc" placeholder="Description (optional)" />
+            <label class="sr-only" for="quote-custom-labour-hours">Labour hours</label><input id="quote-custom-labour-hours" type="number" min="0.01" step="any" value="1" placeholder="Hours" />
+            <label class="sr-only" for="quote-custom-labour-rate">Rate per hour</label><input id="quote-custom-labour-rate" type="number" min="0" step="0.01" placeholder="Rate per hour ($)" />
           </div>
-          <div class="quotation-category-label">Sundries</div>
-          <div id="quote-sundries-fields" class="quotation-add-row">
-            <label class="sr-only" for="quote-sundry-price">Sundry price</label><input id="quote-sundry-price" type="number" min="0" step="0.01" placeholder="Sundry price ($)" />
-            <button id="quote-add-sundry" type="button" class="btn"><i data-lucide="plus"></i> Add Sundry</button>
-          </div>
-          <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
+          <div><button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button></div>
+
           <div class="quotation-total"><span>Quotation Total</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
           <button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button>
         </form>
+        </div>
       </section>
 
-      <section class="page-section">
+      <section class="page-section" id="quotation-list">
         <div class="section-heading"><div><p class="section-kicker">Issued documents</p><h2><i class="section-heading-icon" data-lucide="files"></i>Quotation List</h2></div><span class="section-note">Amend, negotiate, or convert</span></div>
         <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
+      </div>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Confirmed work</p><h2><i class="section-heading-icon" data-lucide="shopping-cart"></i>Sales Orders</h2></div><span class="section-note">Edit an order, then issue its receipt</span></div>
         <div class="panel"><table><thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="orders-table"><tr><td colspan="7" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
+
+      <!-- FOOTER: 4 buttons (same as the job cards page) -->
+      <nav class="ftbar" aria-label="Main">
+  <a href="../index.html" aria-label="Home" title="Home">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"/></svg>
+  </a>
+  <a href="repairs.html" aria-label="Job Cards" title="Job Cards">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/><path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0M7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/></svg>
+    <span class="tab-badge" id="tab-badge" hidden>0</span>
+  </a>
+  <a href="repairs.html" aria-label="Workshop" title="Workshop">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M16 4.5a4.5 4.5 0 0 1-1.703 3.526L13 5l2.959-1.11q.04.3.041.61"/><path d="M11.5 9c.653 0 1.273-.139 1.833-.39L12 5.5 11 3l3.826-1.53A4.5 4.5 0 0 0 7.29 6.092l-6.116 5.096a2.583 2.583 0 1 0 3.638 3.638L9.908 8.71A4.5 4.5 0 0 0 11.5 9m-1.292-4.361-.596.893.809-.27a.25.25 0 0 1 .287.377l-.596.893.809-.27.158.475-1.5.5a.25.25 0 0 1-.287-.376l.596-.893-.809.27a.25.25 0 0 1-.287-.377l.596-.893-.809.27-.158-.475 1.5-.5a.25.25 0 0 1 .287.376M3 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/></svg>
+  </a>
+  <a href="quotations.html" aria-label="Quotes" title="Quotes" aria-current="page">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M4.5 9a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1zM4 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1z"/></svg>
+  </a>
+</nav>
+
+      <footer class="site-foot">
+        <span>© 2025 Centric Auto Mobile. All rights reserved.</span>
+        <a href="mailto:malvirngomo8@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>malvirngomo8@gmail.com</a>
+      </footer>
     </main>
   </div>
 
@@ -171,6 +478,7 @@
           <div class="detail-actions">
             <button id="quote-detail-copy" type="button" class="btn"><i data-lucide="copy"></i> Copy Message</button>
             <button id="quote-detail-print" type="button" class="btn"><i data-lucide="printer"></i> Print Quotation</button>
+            <button id="quote-detail-pdf" type="button" class="btn"><i data-lucide="file-down"></i> Download PDF</button>
             <button id="quote-detail-email" type="button" class="btn"><i data-lucide="mail"></i> Email Customer</button>
             <button id="quote-detail-whatsapp" type="button" class="btn"><i data-lucide="message-circle"></i> WhatsApp Customer</button>
             <span id="quote-detail-copy-status"></span>
@@ -183,6 +491,22 @@
         <button id="edit-quote-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Amendment</button>
         <button id="edit-quote-order" class="btn" type="button"><i data-lucide="shopping-cart"></i> Confirm Sales Order</button>
         <button id="edit-quote-cancel" class="btn" type="button"><i data-lucide="x"></i> Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm opening a job card from an approved quotation -->
+  <div id="quote-job-approval-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quote-job-approval-title">
+    <div class="modal invoice-payment-modal">
+      <h2 id="quote-job-approval-title">Customer approval required</h2>
+      <p>Confirm the customer has approved this quotation before opening a job card.</p>
+      <div class="modal-actions">
+        <button id="quote-job-approval-confirm" class="btn btn--primary" type="button">
+          <i data-lucide="check"></i> Customer approved
+        </button>
+        <button id="quote-job-approval-cancel" class="btn" type="button">
+          <i data-lucide="x"></i> Cancel
+        </button>
       </div>
     </div>
   </div>
@@ -205,7 +529,7 @@
         </div>
         <div id="edit-order-lines" class="quotation-lines"></div>
         <div class="quotation-total"><span>Order Total</span><strong id="edit-order-total"></strong></div>
-        <div class="field" style="margin-top:12px; padding: 0 24px;"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson — no commission</option></select></div>
+        <div class="field"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson — no commission</option></select></div>
       </div>
       <div class="modal-actions">
         <button id="edit-order-save" class="btn btn--primary" type="button"><i data-lucide="save"></i> Save Order &amp; Issue Receipt</button>
@@ -215,12 +539,29 @@
   </div>
 
   <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
+   <script type="module" src="../js/app.js"></script>
+      <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/quotations.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+   <script type="module" src="../js/quotation-extras.js"></script>
+<script>
+/* Typed part pricing: Profit is now editable too. Editing it re-prices the part (selling = cost + profit) and updates the markup %. */
+(()=>{
+  const cost=document.getElementById("quote-custom-cost"),sell=document.getElementById("quote-custom-selling"),
+        markup=document.getElementById("quote-custom-markup"),profit=document.getElementById("quote-custom-profit");
+  if(!cost||!sell||!markup||!profit)return;
+  profit.removeAttribute("readonly");
+  profit.addEventListener("input",()=>{
+    const c=Number(cost.value)||0,p=Number(profit.value);
+    if(profit.value===""||!Number.isFinite(p))return;
+    sell.value=(c+p).toFixed(2);
+    if(c>0)markup.value=((p/c)*100).toFixed(2);
+  });
+})();
+</script>
 </body>
 </html>

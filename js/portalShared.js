@@ -18,19 +18,37 @@ export function messageForStatus(job) {
     .join(" ");
   const jobNo = String(job?.job_number ?? "").padStart(4, "0");
   const customer = job?.customers?.full_name ?? job?.customer_name ?? "";
-  const total = Number(job?.total_cost ?? 0).toFixed(2);
+  const registration = job?.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
+  const vehicleDetails = vehicle || "your vehicle";
+  const reference = jobNo ? `JC-${jobNo}` : "your job card";
+  const status = job?.status ? String(job.status) : "under review";
+  const labour = Number(job?.labour_cost) || 0;
+  const parts = Number(job?.parts_cost) || 0;
+  const incidentals = Number(job?.incidentals_cost) || 0;
+  const total = Number(job?.total_cost) || labour + parts + incidentals;
+  const money = value => `$${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const nextMileage = job?.next_service_mileage != null ? `${Number(job.next_service_mileage).toLocaleString("en-US")} km` : null;
 
-  if (job?.status === "Ready for Pickup") {
-    return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) is ready for pickup! Total cost: $${total}. Thank you for choosing us.`;
-  }
-  if (job?.status === "Processed") {
-    return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) is fully paid and ready for pickup. Thank you for choosing us.`;
-  }
-  if (job?.status === "Completed") {
-    return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) has been completed. Total cost: $${total}. Thanks again!`;
-  }
-  if (job?.status === "Collected") {
-    return `Hi ${customer}, your ${vehicle} (Job #${jobNo}) has been collected. Thank you for choosing us.`;
-  }
-  return null;
+  return [
+    `Dear ${customer || "Customer"},`,
+    "",
+    `This is a formal update from Centric Auto Mobile regarding ${vehicleDetails}${registration}.`,
+    `Job card reference: ${reference}`,
+    `Current status: ${status}`,
+    job?.fault_reported ? `Customer concern: ${job.fault_reported}` : null,
+    job?.diagnosis ? `Diagnosis: ${job.diagnosis}` : null,
+    job?.work_done ? `Work completed: ${job.work_done}` : null,
+    job?.work_missing ? `Work still required: ${job.work_missing}` : null,
+    "",
+    `Labour total: ${money(labour)}`,
+    `Materials total: ${money(parts)}`,
+    `Additional costs total: ${money(incidentals)}`,
+    `Job total: ${money(total)}`,
+    nextMileage ? `Next checkup mileage: ${nextMileage}` : null,
+    "",
+    "Please contact our workshop if you require any further assistance.",
+    "",
+    "Kind regards,",
+    "Centric Auto Mobile"
+  ].join("\n");
 }

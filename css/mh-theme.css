@@ -508,6 +508,63 @@ body.dashboard-page .receipt-document td {
   padding:9px 0; border-bottom:1px solid #d7d7d7; color:#111; background:transparent;
   font-size:inherit; font-family:inherit; font-weight:inherit; letter-spacing:normal; text-transform:none; vertical-align:top;
 }
+
+/* ---------- Shared responsive loading and data states ---------- */
+.apr-state {
+  min-height:168px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  box-sizing:border-box;
+  padding:28px 20px;
+  text-align:center;
+  border:1px dashed var(--mh-bd);
+  border-radius:14px;
+  background:var(--mh-in);
+  color:var(--mh-mu);
+}
+.apr-state__icon {
+  width:48px; height:48px; display:grid; place-items:center;
+  border-radius:14px; color:var(--mh-ac); background:color-mix(in srgb,var(--mh-ac) 12%,transparent);
+}
+.apr-state__icon svg { width:24px; height:24px; }
+.apr-state--loading .apr-state__icon svg { animation:aprSpin .9s linear infinite; }
+.apr-state--error .apr-state__icon { color:var(--mh-rs); background:color-mix(in srgb,var(--mh-rs) 12%,transparent); }
+.apr-state--offline .apr-state__icon { color:var(--mh-am); background:color-mix(in srgb,var(--mh-am) 12%,transparent); }
+.apr-state__copy strong { display:block; color:var(--mh-tx); font-size:15px; }
+.apr-state__copy p { margin:4px 0 0; max-width:480px; font-size:13px; line-height:1.55; }
+.apr-state__action { min-width:112px; margin-top:4px; }
+.apr-network-banner {
+  position:fixed; z-index:1200; left:50%; bottom:calc(72px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+  width:min(680px,calc(100% - 24px)); box-sizing:border-box;
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border:1px solid var(--mh-bd); border-radius:12px; background:var(--mh-card);
+  box-shadow:var(--mh-sh2); color:var(--mh-tx); font-size:13px;
+}
+.apr-network-banner[hidden] { display:none; }
+.apr-network-banner > svg { width:20px; height:20px; flex:none; color:var(--mh-am); }
+.apr-network-banner span { flex:1; min-width:0; }
+.apr-network-banner button { border:0; border-radius:9px; padding:8px 11px; cursor:pointer; background:var(--mh-ac); color:#fff; }
+.apr-field-invalid { border-color:var(--mh-rs) !important; box-shadow:0 0 0 3px color-mix(in srgb,var(--mh-rs) 14%,transparent) !important; }
+.apr-field-error { display:block; margin-top:6px; color:var(--mh-rs); font-size:12px; }
+.customer-empty .apr-state, .ov-empty:has(.apr-state) { border:0; background:transparent; }
+@keyframes aprSpin { to { transform:rotate(360deg); } }
+
+@media (max-width:720px) {
+  html, body { overflow-x:hidden; }
+  body.dashboard-page .main { width:100%; max-width:none; box-sizing:border-box; }
+  .apr-state { min-height:150px; padding:22px 14px; }
+  .apr-network-banner { bottom:calc(72px + env(safe-area-inset-bottom)); align-items:flex-start; }
+  .apr-network-banner button { min-height:36px; }
+  body.dashboard-page table { width:100%; }
+  body.dashboard-page .rc-row, body.dashboard-page .customer-directory-toolbar,
+  body.dashboard-page .filter-bar, body.dashboard-page .toolbar { flex-wrap:wrap; }
+  body.dashboard-page .rc-row__actions { width:100%; justify-content:flex-end; }
+  body.dashboard-page .panel, body.dashboard-page .card { min-width:0; overflow-x:auto; }
+}
 body.dashboard-page .receipt-document th { font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
 body.dashboard-page .receipt-document tbody tr:hover,
 body.dashboard-page .receipt-document tbody tr:hover td { background:transparent; }
@@ -1021,6 +1078,24 @@ body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px so
 #doc-capture th:last-child, #doc-capture td:last-child { padding-right:0; }
 #doc-capture .receipt-total { display:flex; justify-content:flex-end; gap:34px; padding-top:16px; font:700 16px Arial, sans-serif; }
 #doc-capture .receipt-note { margin-top:30px; font:12.5px/1.5 Arial, sans-serif; text-align:center; color:#444 !important; }
+@media print {
+  #receipt-modal .receipt-document,
+  #receipt-modal .receipt-modal-card {
+    width: 182mm;
+    max-width: 182mm;
+    min-height: 0;
+    padding: 6mm 8mm;
+    box-sizing: border-box;
+    color: #111 !important;
+    background: #fff !important;
+  }
+  #receipt-modal .receipt-document table { font-size: 9pt; }
+  #receipt-modal .receipt-document th,
+  #receipt-modal .receipt-document td { padding: 5px 4px; }
+  #receipt-modal .receipt-logo { height: 42px; }
+  #receipt-modal { page-break-after: avoid; page-break-inside: avoid; }
+  @page { size: A4 portrait; margin: 10mm; }
+}
 
 /* ---------- Sign-in loading screen (progress, developer credit, access level) ---------- */
 #boot[hidden], .boot [hidden] { display:none !important; }
@@ -1256,9 +1331,12 @@ body.dashboard-page .field textarea {
   min-height:42px;
 }
 body.dashboard-page input[type=checkbox]:not(.toggle-row input) {
+  box-sizing:border-box;
   width:14px !important;
   height:14px !important;
-  min-width:14px;
+  max-width:14px !important;
+  max-height:14px !important;
+  min-width:14px !important;
   min-height:14px !important;
   margin:0;
   padding:0 !important;

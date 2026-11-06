@@ -2,11 +2,25 @@
 
 This guide explains the application as it works today. Your role determines which pages you can see. If a page is missing or access is denied, ask your Super Admin to check your account; do not try to work around the access controls.
 
-The repair quotation, payment, and stock-threshold workflow requires the SQL migration `supabase/migrations/repair-quotations-payments-stock.sql` to be applied in Supabase before using the updated screens. Apply `supabase/migrations/customer-account-statement-view.sql` to display customer balances and carry-forward credit. Apply `supabase/migrations/customer-archive-labour-mode.sql` to enable customer archiving/restoration and provider-estimated or time-tier labour charges.
+The repair quotation, payment, and stock-threshold workflow requires the SQL migration `supabase/migrations/repair-quotations-payments-stock.sql` to be applied in Supabase before using the updated screens. Apply `supabase/migrations/customer-account-statement-view.sql` to display customer balances and carry-forward credit. Apply `supabase/migrations/customer-archive-labour-mode.sql` to enable customer archiving/restoration and provider-estimated or time-tier labour charges. Apply `supabase/migrations/receipt-credit-notes.sql` before `supabase/migrations/receipt-voiding.sql`; these migrations enable credit notes and audited receipt reversal. For Quick Sale payment methods and discounts on customer account statements, apply `supabase/migrations/customer-invoice-payments.sql` and `supabase/migrations/receipt-voiding.sql` first, then apply `supabase/migrations/quick-sale-payment-discounts.sql`. Then apply `supabase/migrations/quick-sale-customer-credit-and-payments.sql` for Bank/EcoCash sales, customer-account sales, and later account payments.
+
+Apply `supabase/migrations/job-card-close-and-quotation-vehicle-details.sql` to support the additional vehicle details on quotations. Apply `supabase/migrations/job-card-daily-updates-accounting-parts.sql` after the repair-job and job-parts tables exist. It enables daily job notes, work-done/missing fields, job-card closure details, and the Accounting queue for typed-in job parts. After `supabase/migrations/customer-invoice-payments.sql`, apply `supabase/migrations/customer-invoice-repair-job-link.sql` to link customer invoices to repair jobs; Accounting will then be notified when a closed job is awaiting an invoice. To send receipts, invoices, quotations, or sales orders automatically by email, deploy the `send-receipt-email` Edge Function and configure `RESEND_API_KEY` and `RECEIPT_FROM_EMAIL`; if sending is unavailable, the application opens an email draft and downloads the PDF for manual attachment.
+
+For typed-in job-part purchasing, first apply `supabase/migrations/job-card-daily-updates-accounting-parts.sql`, `supabase/migrations/shop-part-details-vat.sql`, and `supabase/migrations/shop-restock-payables.sql`, then apply `supabase/migrations/job-part-purchase-requests.sql`. A typed-in part on a new job card enters the Shop request queue. Shop records supplier contact details and the quoted unit cost; Accounting records the actual payment date and active Cash or Bank account, which posts the purchase to the ledger. Shop can then email the supplier and receive the delivery into existing or new inventory. New inventory items use the configured 5% VAT rate and require a selling price. The received item is linked to the job card, and the existing Accounting job-part pricing queue remains available.
+
+For Quick Sale, apply `supabase/migrations/quick-sale-atomic-checkout.sql` after `supabase/migrations/quick-sale-customer-credit-and-payments.sql`. This ensures the required Cash (1000), Bank/Swipe (1010), EcoCash (1020), Accounts Receivable (1100), and Parts Sales Revenue (4100) accounts are active, then makes stock deduction, sale items, ledger posting, and payment recording one transaction; failed checkouts leave no partial order or stock change. If an earlier version of this migration is already applied and checkout reports a required account is missing or inactive, run the updated migration again.
+
+For Cash Book daily drawer reconciliation and staff cash advances, first apply `supabase/migrations/repair-quotations-payments-stock.sql`, `supabase/migrations/customer-invoice-payments.sql`, `supabase/migrations/receipt-voiding.sql`, `supabase/migrations/quick-sale-payment-discounts.sql`, and `supabase/migrations/quick-sale-customer-credit-and-payments.sql`, then apply `supabase/migrations/cashbook-daily-reconciliation-advances.sql`.
+
+For the Payables workflow, apply `supabase/migrations/shop-restock-payables.sql`, then `supabase/migrations/payable-payment-reversals.sql`, then `supabase/migrations/supplier-payables-workflow.sql`. The last migration adds atomic bill/payment posting and auditable bill voiding; apply it before using the updated Payables form.
+
+For duplicate protection on quotation-to-order conversion, active receipts, and monthly payroll, apply `supabase/migrations/business-action-idempotency.sql` after `supabase/migrations/receipt-voiding.sql` and after the sales-order and payroll tables exist. The migration checks for existing duplicate records and stops without changing them if any are found; review and resolve those records before retrying it.
+
+For configurable monthly payroll and individual payslips, apply `supabase/migrations/business-action-idempotency.sql` first, then `supabase/migrations/staff-payroll-payslips.sql` after the `payroll_runs`, `payroll_payments`, and `profiles` tables exist. Payroll on Employees & Staff requires a fresh Super Admin password confirmation. Enter one-off bonuses and overtime hours for each run; overtime is calculated as monthly salary ÷ 208 × 1.5 × hours. Payslips can be printed, or opened as an email draft or WhatsApp message; the last two actions require a recorded employee email address or phone number and do not send automatically.
 
 ## 1. Sign in and get around
 
-1. Open the application and go to **Sign In**.
+1. Open the hosted HTTPS application and go to **Sign In**. Do not open `login.html` directly from disk (`file://`); browser security blocks or limits the Supabase connection. For local testing, run `python -m http.server 8000` from the project root and visit `http://localhost:8000/login.html`.
 2. Enter the email and password for your authorized staff account, then select **Sign In**.
 3. Use the left navigation to open a section. On a narrow screen, use the menu button to open navigation.
 4. Start from **Dashboard** for today's activity, recent repair jobs, and items needing attention. Select an attention item to open the relevant page.
@@ -36,12 +50,14 @@ Use the customer form to register each vehicle's plate, body type, make, model, 
 
 ### B. Open a repair job
 
-1. Open **Repair Jobs** and choose an existing customer or register a new one in the intake form.
-2. Select a registered vehicle or register a new vehicle. When registering, enter its plate, make, model, year, body type, chassis number, and engine number; these details will be available for auto-fill later.
-3. Record the fuel level and odometer at drop-off when available.
+1. Open **Job Cards** and choose an existing customer or enter a new one. For a new record, select **Individual** or **Company**; company job cards can also record the representative who brought in the vehicle.
+2. Select a registered vehicle or enter a new vehicle's plate, make, model, year, body type, chassis number, and engine number. These details are saved to the vehicle and filled in the next time it is selected.
+3. Record the odometer reading at drop-off when available.
 4. Write the customer's reported concern clearly and factually, then choose **Create a quotation first** or **Open a draft job card directly**. A quotation-first intake saves the customer and vehicle, opens the quotation form with those details, and does not create a job card.
 5. To open a job card after a quotation, use **Open Job Card** beside that quotation, confirm the vehicle details, and submit the intake. The new job starts as **Draft**.
 6. Close the job card to return to the workshop queue. Use its search field and mechanic/customer-type filters to narrow the list. The assigned mechanic and their active job count are shown.
+
+When creating a job card directly, choose a configured time-based rate or enter a provider-estimated labour amount. Add inventory parts (stock is deducted when the job is created) or type in a part that is not in the catalogue. Typed-in parts are not billed until Accounting prices them in **Ledger → Typed-in Job Parts Awaiting Price**.
 
 ### C. Diagnose, assign, and price the work
 
@@ -51,19 +67,22 @@ Use the customer form to register each vehicle's plate, body type, make, model, 
 4. Add parts from the shop catalogue and set the quantity. Stock is updated when parts are attached to a job. Add a workshop supply with a description and amount when appropriate.
 5. Save the repair order. The displayed ZiG amount is an estimate based on the configured exchange rate.
 
-### D. Keep the job status current
+### D. Keep the job current and close it correctly
 
-1. New jobs start as **Draft**. Move a job to **Processing** when work begins and keep diagnosis, labour, parts, and incidentals current.
-2. Record one or more installments in **Split Payments**, selecting the actual method for each payment. Overpayments are allowed and remain as customer account credit. Credit is carried forward against later customer charges; the account view shows the net balance, and eligible credit is considered when processing a later job. Payment methods are Cash, Card, Bank transfer, Mobile money, and Other.
-3. Mark **Repair work is ready for pickup** when the work is finished. **Processed** is allowed only after the work is marked ready and any remaining balance is covered by payment or customer account credit. Older jobs may retain legacy statuses.
-4. When a processed vehicle is physically handed back, select **Mark as Collected**. Enter the collection odometer and handover details; collected jobs are locked against routine edits.
-5. A ready/unclaimed vehicle has a seven-day free pickup window. After it expires, the job shows an estimated parking fee of $3 per overdue day. Check the amount and shop policy before using **Apply Parking Fee**, then save the job.
-6. Use the job's customer-update actions when you need to send a status update or diagnosis by WhatsApp/email. Verify the contact details and message before sending.
+1. Open a job card to review its status, work done, work still missing, and parts used. The selected inventory part's description is shown on the job card.
+2. Save a daily update note whenever changing work details or status. Active cards with no update today are marked **Needs daily update**; this is a reminder, not a block on other actions.
+3. Use **Close job card** only when work is complete. Enter who tested the vehicle and the next checkup mileage; confirming the modal changes the job status to **closed**.
+4. Job cards do not record payments. Use the accounting/ledger workflow for customer billing and payments. **Create invoice** is available only when the job has an outstanding balance; invoice details are prefilled from the job card. Typed-in parts must be priced by Accounting before an invoice can be created.
+5. Use **WhatsApp update** to tell the customer the current job status. For more detailed updates (such as diagnosis/approval, parts delays, pickup readiness, or service reminders), verify the customer contact and message before sending.
 
 ### E. Issue and share a receipt
 
-1. Each repair installment updates a single cumulative receipt with the total amount paid so far.
-2. Open **Receipts** to review, print, or share the current receipt. Select **Standard printer · A4** or **Thermal printer · 80 mm** before printing. Check **All Receipts** before trying to create another record.
+1. Open **Receipts** to search by customer name, receipt number, phone, or reference, and narrow the list by date. Open a receipt or invoice to print, download a PDF, or share it.
+2. WhatsApp sharing opens WhatsApp Web or the installed app with a customer message. Where the browser supports file sharing, select the PDF attachment; otherwise attach the downloaded PDF manually in WhatsApp.
+3. Email sharing sends the PDF when the email function is deployed and configured. If it is unavailable, an email draft opens and the downloaded PDF must be attached before sending.
+4. Accounting users and Super Admins can void an incorrect receipt by entering a reason and confirming the in-page modal. Voiding preserves the receipt with a red **VOID** mark and excludes its amount from financial totals; it does not record a cash refund, so handle any actual refund separately.
+
+After creating a quotation, use the sharing modal to print, download a PDF, send by WhatsApp, or email it. Check the highlighted missing customer/vehicle details before sending.
 
 ## 4. Customers and the public repair-status portal
 
@@ -94,10 +113,11 @@ Staff can also share the portal link provided by a repair job when available. Tr
 
 ### Quick Sale
 
-1. In **Shop → Quick Sale**, select the part and quantity.
-2. Optionally select a salesperson and enter a customer name.
-3. Check the calculated total, then select **Complete Sale**.
-4. The sale reduces stock, records a sales order, and creates a receipt. Follow the **View / Print Receipt** link in the confirmation.
+1. In **Shop → Quick Sale**, search for the part, select it, and enter the quantity.
+2. Optionally select a salesperson and choose a registered customer. Use the walk-in name field for an unregistered walk-in customer.
+3. Choose **Cash** (default), **EcoCash**, **Bank**, or **Swipe** for immediate payment. Or choose **Buy on credit** and select an active registered customer. Credit sales are not capped by a credit limit.
+4. Enter a discount if applicable, check the calculated total, and select **Complete Sale**.
+5. Paid sales create a receipt and post to the matching Cash, EcoCash, or Bank account. Credit sales deduct stock, post a customer receivable, and appear as outstanding in **Ledger → Customer Accounts**. Expand the customer's open items and choose **Record payment** to accept later Cash, EcoCash, or Bank installments. Payments reduce the account balance and post to the ledger. Walk-in sales cannot be put on credit.
 
 ### Suppliers
 
@@ -122,9 +142,9 @@ Open **Suppliers** to add or edit supplier contact details, search the directory
 
 Open **Accounting** to reach these role-restricted tools. These records feed a shared general ledger, so use the correct date, account, supplier, amount, and reference.
 
-- **Ledger:** maintain the chart of accounts, post journal entries, and review the Trial Balance. Journal entry debits must equal credits before posting.
-- **Payables:** record a supplier bill with its bill date, due date, amount, and description. Use the payment action to record a payment against the payable; check the payment date and amount.
-- **Cash Book:** post dated cash/bank movements to the appropriate account and other-side account. Use the separate petty-cash controls to log expenses and top up the float; reconcile entries to the actual cash held.
+- **Ledger:** maintain the chart of accounts, post journal entries, and review the Trial Balance. Journal entry debits must equal credits before posting. Price typed-in job parts in the prominent **Typed-in Job Parts Awaiting Price** queue before invoicing. Use **Customer Details & History** at the top to search customers by name, contact, or vehicle plate; select a customer to review their vehicles, quotations, job cards, parts, sales, invoices, receipts, payments, and account balance.
+- **Payables:** type a supplier name or select a saved supplier; a new name is added to the supplier directory, and the system generates the bill number. Click a bill row to expand its details and payment history. Record full or partial payments, then open the payment history to print a receipt. Overdue bills are flagged in the page and notifications. To void a manual bill, first reverse every payment; the bill remains in the audit history and a reversing ledger entry is posted. Stock-linked bills must be reversed with their stock purchase, not voided separately.
+- **Cash Book:** allocate dated cash/bank movements to the appropriate account and category. Select a Zimbabwe business date to review cash flow, Cash on Hand drawer transactions, and petty-cash activity. At close, enter the physical drawer count to save an audit reconciliation; cash Quick Sales and non-voided cash job payments are included. Record staff cash advances and repayments here; the outstanding balance is tracked separately from petty cash.
 - **Landed Cost:** record a shipment, its parts and quantities, and related freight/insurance/other costs. Review allocation across the parts before saving; it updates inventory quantity and landed unit cost.
 - **Fixed Assets:** register equipment with purchase date, cost, payment account, salvage value, and useful life. Review monthly straight-line depreciation. Use the disposal action only when the asset has actually been disposed of, and enter the true date and proceeds.
 - **Statements:** choose the reporting period and refresh Profit & Loss; choose an as-of date and refresh the Balance Sheet. Review any balance/integrity messages rather than treating an unbalanced statement as correct.
@@ -138,6 +158,7 @@ If you are not responsible for bookkeeping, do not post or amend journal entries
 - **Notifications:** use the bell/notification area for issues such as overdue bills or pickups, low stock, expiring contracts, low petty cash, and ledger integrity. The Settings tab lists recent notifications; it is not a configuration panel.
 - **Currency & Rates:** authorized users can update the USD-to-ZiG rate. This affects converted displays and new documents; check the rate before quoting or reviewing totals.
 - **Account:** send a password-reset email or sign out.
+- **Job cards:** Super Admins can permanently delete a job card from the Job Cards list by selecting its trash button and typing **DELETE**. Catalog parts attached to the job are returned to stock; the job and its payment history cannot be restored.
 - **Access Control:** Super Admins can change another user's role, reversibly terminate/reactivate access, or permanently delete a login. Role changes require the Super Admin's password again. Deleting a login has no undo.
 
 ## 10. Good habits: do's and don'ts

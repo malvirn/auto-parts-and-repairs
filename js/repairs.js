@@ -24,6 +24,8 @@ const editTechnician = $("edit-technician");
 const editSaveBtn = $("edit-save");
 const editCancelBtn = $("edit-cancel");
 const editMarkCollectedBtn = $("edit-mark-collected");
+const closeJobCardBtn = $("close-job-card");
+const closeJobDialog = $("job-close-dialog");
 const editWhatsappBtn = $("edit-whatsapp");
 const editDiagnosisEta = $("edit-diagnosis-eta");
 const editDiagnosisWhatsappBtn = $("edit-diagnosis-whatsapp");
@@ -61,6 +63,8 @@ let currentEditJobId = null;
 let currentEditJob = null;
 let currentJobPaid = null;
 let newlyCreatedJobId = null;
+let jobPartSubmissionInProgress = false;
+let incidentalSubmissionInProgress = false;
 let cachedRate = null;
 let customersList = [];          // [{ id, full_name, phone, email, customer_type, vehicles: [...] }]
 let pendingCollection = false;
@@ -253,13 +257,55 @@ function formatPhoneForWhatsApp(raw) {
   return digits;
 }
 
+async function downloadEditJobCardImage(job) {
+  if (!window.html2canvas) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("Couldn't load the image generator."));
+      document.head.append(script);
+    });
+  }
+  const source = document.getElementById("doc");
+  if (!source) throw new Error("The job card document is not available.");
+  const canvas = await window.html2canvas(source, {
+    scale: 2,
+    backgroundColor: "#fff",
+    useCORS: true,
+    windowWidth: Math.max(window.innerWidth, 794),
+  });
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1));
+  if (!blob) throw new Error("Couldn't prepare the job-card image.");
+  const fileName = `${String(jobLabel(job) || "job-card").replace(/[<>:"/\\|?*]+/g, "-")}.png`;
+  const file = new File([blob], fileName, { type: "image/png" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(file);
+  link.download = file.name;
+  link.click();
+  return file;
+}
+
 function updateWhatsappButton(job) {
   if (!editWhatsappBtn) return;
   const msg = messageForStatus(job);
   const phone = formatPhoneForWhatsApp(job?.customers?.phone);
   if (msg && phone) {
     editWhatsappBtn.classList.remove("hidden");
-    editWhatsappBtn.onclick = () => window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+    editWhatsappBtn.onclick = async () => {
+      const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+      const tab = window.open("", "_blank");
+      if (tab) tab.document.write("<p style='font:16px system-ui;padding:24px'>Preparing the job-card image…</p>");
+      try {
+        const file = await downloadEditJobCardImage(job);
+        if (tab && !tab.closed) tab.location.href = url;
+        else window.open(url, "_blank");
+      } catch (error) {
+        console.error("Couldn't prepare job-card image:", error);
+        if (tab && !tab.closed) tab.location.href = url;
+        else window.open(url, "_blank");
+      }
+    };
   } else {
     editWhatsappBtn.classList.add("hidden");
     editWhatsappBtn.onclick = null;
@@ -379,12 +425,12 @@ newLabour?.addEventListener("input", () => { labourTouched = newLabour.value !==
 function renderPartOptions(select) {
   if (!select) return;
   select.innerHTML = `<option value="">Choose a part…</option>` + partsCatalog.map(p =>
-    `<option value="${p.id}" ${Number(p.quantity_in_stock) < 1 ? "disabled" : ""}>${escapeHtml(p.name)} — ${money(p.selling_price)} (${p.quantity_in_stock} in stock)</option>`
+    `<option value="${p.id}" ${Number(p.quantity_in_stock) < 1 ? "disabled" : ""}>${escapeHtml(p.description || p.name)} — ${money(p.selling_price)} (${p.quantity_in_stock} in stock)</option>`
   ).join("");
 }
 
 async function loadPartsIntoSelect() {
-  const { data, error } = await supabase.from("parts").select("id, name, selling_price, quantity_in_stock").order("name");
+  const { data, error } = await supabase.from("parts").select("id, name, description, selling_price, quantity_in_stock").order("name");
   if (error) { console.error("Error loading parts:", error); return; }
   partsCatalog = data || [];
   renderPartOptions(jobPartSelect);
@@ -398,7 +444,7 @@ $("new-part-add")?.addEventListener("click", () => {
   if (!Number.isInteger(qty) || qty < 1) { showFormMessage("Enter a valid quantity."); return; }
   const already = stagedParts.filter(s => s.part_id === part.id).reduce((n, s) => n + s.qty, 0);
   if (already + qty > Number(part.quantity_in_stock)) { showFormMessage(`Only ${part.quantity_in_stock} of ${part.name} in stock.`); return; }
-  stagedParts.push({ part_id: part.id, name: part.name, price: Number(part.selling_price) || 0, qty });
+  stagedParts.push({ part_id: part.id, name: part.description || part.name, price: Number(part.selling_price) || 0, qty });
   newPartQty.value = 1;
   newPartSelect.value = "";
   showFormMessage("");
@@ -504,14 +550,14 @@ function refreshTechnicianOptions(select, currentJobTechnicianId) {
 // =====================================================================
 async function loadJobParts(jobId) {
   if (!jobPartsList) return;
-  const { data, error } = await supabase.from("job_parts").select("id, part_name, quantity, price_at_time").eq("job_id", jobId);
+  const { data, error } = await supabase.from("job_parts").select("id, part_id, part_name, quantity, price_at_time, parts(description)").eq("job_id", jobId);
   if (error) { console.error("Error loading job parts:", error); return; }
   cardParts = data || [];
 
   jobPartsList.innerHTML = cardParts.length ? cardParts.map(jp => `
     <div class="jc-line" data-jp-id="${jp.id}">
       <label class="jc-delete-select"><input type="checkbox" class="job-part-select-checkbox" value="${jp.id}" aria-label="Select ${escapeHtml(jp.part_name)}" /> Select</label>
-      <span>${escapeHtml(jp.part_name)} <em>× ${jp.quantity}</em></span><b>${money(jp.price_at_time * jp.quantity)}</b>
+      <span>${escapeHtml(jp.parts?.description || jp.part_name)} <em>× ${jp.quantity}</em></span><b>${money(jp.price_at_time * jp.quantity)}</b>
       <button type="button" class="btn jc-rm remove-job-part-btn" data-jp-id="${jp.id}" aria-label="Remove part"><i data-lucide="x"></i></button>
     </div>`).join("") : `<div class="jc-empty">No parts added yet</div>`;
 
@@ -605,6 +651,7 @@ $("job-parts-delete-selected")?.addEventListener("click", async () => {
 });
 
 jobPartAddBtn?.addEventListener("click", async () => {
+  if (jobPartSubmissionInProgress) return;
   if (!currentEditJobId) return;
   if (currentEditJob?.status === TERMINAL_STATUS) {
     alert("This vehicle has been collected. Parts can no longer be changed.");
@@ -615,21 +662,32 @@ jobPartAddBtn?.addEventListener("click", async () => {
   if (!part) { alert("Select a part first."); return; }
   if (!Number.isInteger(qty) || qty < 1) { alert("Enter a valid quantity."); return; }
 
-  const { data: stockConsumed, error: stockError } = await supabase.rpc("consume_part_stock", { p_part_id: part.id, p_quantity: qty });
-  if (stockError) { alert("Unable to reserve this part: " + stockError.message); return; }
-  if (!stockConsumed) { alert("That part is out of stock or does not have enough units available."); return; }
+  const jobId = currentEditJobId;
+  jobPartSubmissionInProgress = true;
+  jobPartAddBtn.disabled = true;
+  try {
+    const { data: stockConsumed, error: stockError } = await supabase.rpc("consume_part_stock", { p_part_id: part.id, p_quantity: qty });
+    if (stockError) { alert("Unable to reserve this part: " + stockError.message); return; }
+    if (!stockConsumed) { alert("That part is out of stock or does not have enough units available."); return; }
 
-  const { error: insertError } = await supabase.from("job_parts").insert([{
-    job_id: currentEditJobId, part_id: part.id, part_name: part.name, quantity: qty, price_at_time: Number(part.selling_price) || 0,
-  }]);
-  if (insertError) {
-    await supabase.rpc("restore_part_stock", { p_part_id: part.id, p_quantity: qty });
-    alert("Failed to add part: " + insertError.message);
-    return;
+    const { error: insertError } = await supabase.from("job_parts").insert([{
+      job_id: jobId, part_id: part.id, part_name: part.name, quantity: qty, price_at_time: Number(part.selling_price) || 0,
+    }]);
+    if (insertError) {
+      const { data: stockRestored, error: restoreError } = await supabase.rpc("restore_part_stock", { p_part_id: part.id, p_quantity: qty });
+      const restoreMessage = restoreError || !stockRestored
+        ? ` Stock restoration also failed${restoreError ? `: ${restoreError.message}` : "."}`
+        : "";
+      alert("Failed to add part: " + insertError.message + restoreMessage);
+      return;
+    }
+    jobPartQty.value = 1;
+    await loadJobParts(jobId);
+    await loadPartsIntoSelect();
+  } finally {
+    jobPartSubmissionInProgress = false;
+    jobPartAddBtn.disabled = false;
   }
-  jobPartQty.value = 1;
-  await loadJobParts(currentEditJobId);
-  await loadPartsIntoSelect();
 });
 
 async function loadJobIncidentals(jobId) {
@@ -726,6 +784,7 @@ $("incidentals-delete-selected")?.addEventListener("click", async () => {
 });
 
 incidentalAddBtn?.addEventListener("click", async () => {
+  if (incidentalSubmissionInProgress) return;
   if (!currentEditJobId) return;
   if (currentEditJob?.status === TERMINAL_STATUS) {
     alert("This vehicle has been collected. Incidentals can no longer be changed.");
@@ -734,11 +793,19 @@ incidentalAddBtn?.addEventListener("click", async () => {
   const description = $("incidental-desc").value.trim();
   const amount = parseFloat($("incidental-amount").value);
   if (!description || !amount || amount <= 0) { alert("Enter a description and a valid amount."); return; }
-  const { error } = await supabase.from("job_incidentals").insert([{ job_id: currentEditJobId, description, amount }]);
-  if (error) { alert("Failed to add incidental: " + error.message); return; }
-  $("incidental-desc").value = "";
-  $("incidental-amount").value = "";
-  await loadJobIncidentals(currentEditJobId);
+  const jobId = currentEditJobId;
+  incidentalSubmissionInProgress = true;
+  incidentalAddBtn.disabled = true;
+  try {
+    const { error } = await supabase.from("job_incidentals").insert([{ job_id: jobId, description, amount }]);
+    if (error) { alert("Failed to add incidental: " + error.message); return; }
+    $("incidental-desc").value = "";
+    $("incidental-amount").value = "";
+    await loadJobIncidentals(jobId);
+  } finally {
+    incidentalSubmissionInProgress = false;
+    incidentalAddBtn.disabled = false;
+  }
 });
 
 function initStatusOptions() {
@@ -1066,6 +1133,7 @@ editSaveBtn?.addEventListener("click", async () => {
   const status = editStatus.value;
   const labour_cost = parseFloat(editLabour.value) || 0;
   const parts_cost = parseFloat(editParts.value) || 0;
+  const total_cost = Math.max(0, labour_cost + parts_cost + cardIncidentalsTotal);
 
   const updates = {
     status,
@@ -1086,7 +1154,7 @@ editSaveBtn?.addEventListener("click", async () => {
       return;
     }
     const total = Math.max(0, labour_cost + parts_cost + cardIncidentalsTotal);
-    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId);
+    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId).is("voided_at", null);
     if (paymentError) {
       alert("Couldn't verify the job balance: " + paymentError.message);
       return;
@@ -1120,6 +1188,12 @@ editSaveBtn?.addEventListener("click", async () => {
   if (!updatedRows || updatedRows.length === 0) {
     alert("Update ran with no error, but 0 rows changed — likely an RLS policy blocking the update.");
     return;
+  }
+  try {
+    await syncJobInvoiceAndReceipt(currentEditJobId, labour_cost, parts_cost, cardIncidentalsTotal, total_cost);
+  } catch (syncError) {
+    console.error("Job card totals changed but document synchronization failed:", syncError);
+    alert(syncError.message || String(syncError));
   }
 
   if (["Ready for Pickup", "Unclaimed"].includes(status)) {
@@ -1156,7 +1230,7 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
       return;
     }
     const total = currentJobTotal();
-    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId);
+    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId).is("voided_at", null);
     if (paymentError) {
       alert("Couldn't verify the job balance: " + paymentError.message);
       return;
@@ -1228,7 +1302,7 @@ async function loadJobPayments(jobId) {
   summary.textContent = "Loading payments…";
   history.innerHTML = "";
   const { data, error } = await supabase.from("repair_job_payments")
-    .select("id, amount, payment_method, paid_at")
+    .select("id, amount, payment_method, paid_at, voided_at, void_reason")
     .eq("repair_job_id", jobId)
     .order("paid_at");
   if (error) {
@@ -1238,7 +1312,7 @@ async function loadJobPayments(jobId) {
     return;
   }
   const payments = data || [];
-  const paid = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const paid = payments.filter(payment => !payment.voided_at).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
   currentJobPaid = paid;
   const total = currentJobTotal();
   let credit = 0;
@@ -1254,7 +1328,7 @@ async function loadJobPayments(jobId) {
   const due = Math.max(0, total - paid - credit);
   summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid)))}` : ""} · Balance ${money(due)}`;
   history.innerHTML = payments.length
-    ? payments.map(payment => `<div class="jc-line"><span>${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}</span><strong>${money(payment.amount)}</strong></div>`).join("")
+    ? payments.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#ff6969;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}`}</span><strong>${money(payment.amount)}</strong></div>`).join("")
     : `<div class="empty-state">No payments recorded yet.</div>`;
   if (paymentAmountInput) paymentAmountInput.removeAttribute("max");
 }
@@ -1269,46 +1343,102 @@ async function availableCustomerCredit(customerId, excludingJobId) {
   return Math.max(0, -accountBalance);
 }
 
-recordPaymentBtn?.addEventListener("click", async () => {
-  if (!currentEditJobId) return;
-  const amount = Number(paymentAmountInput.value);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    alert("Enter a payment amount greater than zero.");
-    return;
+if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
+  recordPaymentBtn.dataset.paymentHandlerBound = "true";
+  recordPaymentBtn.addEventListener("click", async () => {
+    if (!currentEditJobId || recordPaymentBtn.disabled) return;
+    const jobId = currentEditJobId;
+    const amount = Number(paymentAmountInput.value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      alert("Enter a payment amount greater than zero.");
+      return;
+    }
+    recordPaymentBtn.disabled = true;
+    try {
+      const { data: existing, error: lookupError } = await supabase.from("repair_job_payments")
+        .select("amount")
+        .eq("repair_job_id", jobId)
+        .is("voided_at", null);
+      if (lookupError) {
+        alert("Couldn't check existing payments: " + lookupError.message);
+        return;
+      }
+      const totalPaid = (existing || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+      const { error } = await supabase.from("repair_job_payments").insert([{
+        repair_job_id: jobId,
+        amount,
+        payment_method: paymentMethodSelect.value,
+      }]);
+      if (error) {
+        alert("Couldn't record payment: " + error.message);
+        return;
+      }
+      const cumulativePaid = totalPaid + amount;
+      let receiptError = null;
+      try {
+        await ensureReceiptExists(jobId, cumulativePaid);
+      } catch (error) {
+        receiptError = error;
+        console.error("Payment saved but cumulative receipt could not be updated:", error);
+        alert(`Payment was saved, but the cumulative receipt could not be updated: ${error.message || error}`);
+      }
+      paymentAmountInput.value = "";
+      currentJobPaid = cumulativePaid;
+      await loadJobPayments(jobId);
+      if (!receiptError) {
+        window.location.href = `receipts.html?job=${encodeURIComponent(jobId)}&from=repairs`;
+      }
+    } catch (error) {
+      console.error("Couldn't record job payment:", error);
+      alert("Couldn't complete the payment: " + (error.message || String(error)));
+    } finally {
+      recordPaymentBtn.disabled = false;
+    }
+  });
+}
+
+async function syncJobInvoiceAndReceipt(jobId, labourCost, partsCost, incidentalsTotal, totalCost) {
+  const { data: invoices, error: invoiceCheckError } = await supabase
+    .from("invoices")
+    .select("id,total,amount_paid,items")
+    .eq("repair_job_id", jobId)
+    .order("issued_at", { ascending: false })
+    .limit(1);
+  if (invoiceCheckError) throw new Error("Couldn't check the existing job invoice: " + invoiceCheckError.message);
+
+  if (invoices?.length) {
+    const invoice = invoices[0];
+    const items = [];
+    cardParts.forEach(part => {
+      items.push({
+        d: part.parts?.description || part.part_name || "Part",
+        q: Number(part.quantity || 1),
+        p: Number(part.price_at_time || 0),
+      });
+    });
+    if (labourCost > 0) items.push({ d: currentEditJob?.job_description || "Labour", q: 1, p: labourCost });
+    const { data: incidentals } = await supabase.from("job_incidentals").select("description,amount").eq("job_id", jobId);
+    (incidentals || []).forEach(extra => items.push({
+      d: extra.description || "Additional job cost",
+      q: 1,
+      p: Number(extra.amount || 0),
+    }));
+    const itemTotal = items.reduce((sum, item) => sum + item.q * item.p, 0);
+    if (Math.abs(itemTotal - totalCost) > 0.01) items.push({ d: "Job card total adjustment", q: 1, p: totalCost - itemTotal });
+
+    const { error: invoiceUpdateError } = await supabase.from("invoices").update({
+      items,
+      subtotal: totalCost,
+      total: totalCost,
+      amount_paid: Math.min(Number(invoice.amount_paid || 0), totalCost),
+    }).eq("id", invoice.id);
+    if (invoiceUpdateError) throw new Error("Couldn't update the existing job invoice: " + invoiceUpdateError.message);
   }
-  const { data: existing, error: lookupError } = await supabase.from("repair_job_payments")
-    .select("amount")
-    .eq("repair_job_id", currentEditJobId);
-  if (lookupError) {
-    alert("Couldn't check existing payments: " + lookupError.message);
-    return;
-  }
-  const totalPaid = (existing || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-  recordPaymentBtn.disabled = true;
-  const { error } = await supabase.from("repair_job_payments").insert([{
-    repair_job_id: currentEditJobId,
-    amount,
-    payment_method: paymentMethodSelect.value,
-  }]);
-  recordPaymentBtn.disabled = false;
-  if (error) {
-    alert("Couldn't record payment: " + error.message);
-    return;
-  }
-  const cumulativePaid = totalPaid + amount;
-  try {
-    await ensureReceiptExists(currentEditJobId, cumulativePaid);
-  } catch (receiptError) {
-    console.error("Payment saved but cumulative receipt could not be updated:", receiptError);
-    alert(`Payment was saved, but the cumulative receipt could not be updated: ${receiptError.message || receiptError}`);
-  }
-  paymentAmountInput.value = "";
-  currentJobPaid = cumulativePaid;
-  await loadJobPayments(currentEditJobId);
-});
+
+}
 
 async function ensureReceiptExists(jobId, amount) {
-  const { data: existing, error: checkError } = await supabase.from("receipts").select("id").eq("repair_job_id", jobId).limit(1);
+  const { data: existing, error: checkError } = await supabase.from("receipts").select("id").eq("repair_job_id", jobId).is("voided_at", null).limit(1);
   if (checkError) throw new Error("Couldn't check the existing job receipt: " + checkError.message);
   if (existing?.length) {
     const { error } = await supabase.from("receipts").update({ amount }).eq("id", existing[0].id);
@@ -1316,6 +1446,20 @@ async function ensureReceiptExists(jobId, amount) {
     return;
   }
   const { error: insertError } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount }]);
+  if (insertError?.code === "23505") {
+    const { data: duplicate, error: duplicateError } = await supabase.from("receipts")
+      .select("id")
+      .eq("repair_job_id", jobId)
+      .is("voided_at", null)
+      .limit(1)
+      .maybeSingle();
+    if (duplicateError) throw new Error("A receipt already exists, but it couldn't be loaded: " + duplicateError.message);
+    if (duplicate) {
+      const { error } = await supabase.from("receipts").update({ amount }).eq("id", duplicate.id);
+      if (error) throw new Error("Couldn't update the existing cumulative job receipt: " + error.message);
+      return;
+    }
+  }
   if (insertError) throw new Error("Couldn't create the job receipt: " + insertError.message);
 }
 
@@ -1672,16 +1816,26 @@ function buildUpdateMessage(job, diagnosisText, etaIso) {
   const total = labour + parts + cardIncidentalsTotal;
   const status = editStatus?.value || job.status;
   const lines = [
-    `Hello ${c.full_name || "there"},`,
+    `Dear ${c.full_name || "Customer"},`,
     ``,
-    `This is ${biz} with an update on ${vehicle}, job card ${jobLabel(job)}.`,
+    `This is a formal update from ${biz} regarding ${vehicle}, job card ${jobLabel(job)}.`,
     ``,
     `Status: ${status}`,
     diagnosisText ? `Diagnosis: ${diagnosisText}` : `Our mechanic is still diagnosing the fault you reported: ${job.fault_reported || "—"}.`,
+    job.work_done ? `Work completed: ${job.work_done}` : null,
+    job.work_missing ? `Work still required: ${job.work_missing}` : null,
     etaIso ? `Expected diagnosis by: ${new Date(etaIso).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : null,
-    total > 0 ? `Estimated cost so far: ${money(total)}` : null,
     ``,
-    `Reply to this message${businessInfo?.phone ? ` or call us on ${businessInfo.phone}` : ""} if you have any questions.`,
+    `Labour total: ${money(labour)}`,
+    `Materials total: ${money(parts)}`,
+    `Additional costs total: ${money(cardIncidentalsTotal)}`,
+    `Job total: ${money(total)}`,
+    job.next_service_mileage != null ? `Next checkup mileage: ${Number(job.next_service_mileage).toLocaleString("en-US")} km` : null,
+    ``,
+    `Please reply to this message${businessInfo?.phone ? ` or call us on ${businessInfo.phone}` : ""} if you have any questions.`,
+    ``,
+    `Kind regards,`,
+    biz,
   ];
   return lines.filter(l => l !== null).join("\n");
 }
@@ -1735,7 +1889,12 @@ async function sendDiagnosisUpdate(channel) {
     await loadBusinessInfo();
     const message = await polishWithAi(buildUpdateMessage(job, diagnosisText, etaIso));
     if (channel === "whatsapp") {
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+      try {
+        const file = await downloadEditJobCardImage(job);
+      } catch (error) {
+        console.error("Couldn't prepare job-card image:", error);
+      }
       if (tab && !tab.closed) tab.location.href = url;
       else window.location.href = url;
     } else {
@@ -1791,9 +1950,6 @@ async function suggestPossibleCauses() {
 $("ai-suggest-causes-btn")?.addEventListener("click", suggestPossibleCauses);
 editDiagnosisWhatsappBtn?.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
 editDiagnosisEmailBtn?.addEventListener("click", () => sendDiagnosisUpdate("email"));
-
-if (editDiagnosisWhatsappBtn) editDiagnosisWhatsappBtn.addEventListener("click", () => sendDiagnosisUpdate("whatsapp"));
-if (editDiagnosisEmailBtn) editDiagnosisEmailBtn.addEventListener("click", () => sendDiagnosisUpdate("email"));
 
 // ---- Voice-powered fault intake ----
 // Transcription itself uses the browser's own free, built-in Web Speech

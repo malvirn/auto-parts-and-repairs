@@ -5,9 +5,17 @@ const message = document.getElementById("customer-accounts-message");
 const searchInput = document.getElementById("customer-account-search");
 const filterSelect = document.getElementById("customer-account-filter");
 const moneyFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const paymentModal = document.getElementById("quick-sale-payment-modal");
+const paymentAmountInput = document.getElementById("quick-sale-payment-amount");
+const paymentDateInput = document.getElementById("quick-sale-payment-date");
+const paymentMethodInput = document.getElementById("quick-sale-payment-method");
+const paymentSummary = document.getElementById("quick-sale-payment-summary");
+const paymentMessage = document.getElementById("quick-sale-payment-message");
+const paymentSaveButton = document.getElementById("quick-sale-payment-save");
 
 let entries = [];
 let expandedCustomerId = null;
+let selectedPaymentEntry = null;
 
 function escapeHtml(value) {
   const element = document.createElement("div");
@@ -23,6 +31,14 @@ function dateLabel(value) {
   if (!value) return "—";
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+}
+
+function dateInZimbabwe() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Harare", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function groupEntries() {
@@ -59,7 +75,7 @@ function accountStatementText(customer) {
     `Date: ${new Date().toLocaleDateString()}`,
     "",
     "Account activity:",
-    ...customer.entries.map(entry => `${dateLabel(entry.entry_date)} | ${entry.reference} (${entry.source_type}) | Charge ${money(entry.total_amount)} | Paid ${money(entry.amount_paid)} | Balance ${money(entry.balance_due)}`),
+    ...customer.entries.map(entry => `${dateLabel(entry.entry_date)} | ${entry.reference} (${entry.source_type}) |${entry.discount_amount ? ` Discount ${money(entry.discount_amount)} |` : ""}${entry.payment_method ? ` Payment ${entry.payment_method} |` : ""} Charge ${money(entry.total_amount)} | Paid ${money(entry.amount_paid)} | Balance ${money(entry.balance_due)}`),
     "",
     customer.balance > 0.01
       ? `Amount outstanding: ${money(customer.balance)}`
@@ -80,14 +96,14 @@ function printStatement(customer) {
   }
   const rows = customer.entries.map(entry => `
     <tr><td>${escapeHtml(dateLabel(entry.entry_date))}</td><td>${escapeHtml(entry.reference)}</td>
-    <td>${escapeHtml(entry.source_type)}</td><td>${money(entry.total_amount)}</td>
+    <td>${escapeHtml(entry.source_type)}</td><td>${money(entry.discount_amount)}</td><td>${escapeHtml(entry.payment_method || "—")}</td><td>${money(entry.total_amount)}</td>
     <td>${money(entry.amount_paid)}</td><td>${money(entry.balance_due)}</td></tr>`).join("");
   printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Account statement - ${escapeHtml(customer.name)}</title>
     <style>body{font:14px Arial,sans-serif;color:#202720;margin:36px}h1{font-size:22px}p{margin:6px 0}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{padding:9px 7px;border-bottom:1px solid #ccd3ce;text-align:left}th{background:#edf1ee}.total{margin-top:22px;text-align:right;font-size:18px;font-weight:bold}@media print{body{margin:12mm}}</style>
     </head><body><h1>Customer Account Statement</h1><p><strong>${escapeHtml(customer.name)}</strong></p>
     <p>${escapeHtml(customer.phone)}${customer.email ? ` · ${escapeHtml(customer.email)}` : ""}</p>
     <p>Statement date: ${escapeHtml(new Date().toLocaleDateString())}</p>
-    <table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Charge</th><th>Paid</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>
+    <table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Discount</th><th>Payment method</th><th>Charge</th><th>Paid</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>
     <p class="total">${customer.balance > 0.01 ? `Amount outstanding: ${money(customer.balance)}` : customer.balance < -0.01 ? `Customer credit: ${money(Math.abs(customer.balance))}` : "Account balance: $0.00"}</p>
     <p>Centric Auto Mobile · Auto Parts &amp; Repairs</p><script>window.addEventListener("load",()=>window.print());<\/script></body></html>`);
   printWindow.document.close();
@@ -122,8 +138,8 @@ function render() {
     const balanceText = customer.balance < -0.01 ? `Credit carried forward ${money(Math.abs(customer.balance))}` : money(customer.balance);
     const expanded = expandedCustomerId === customer.id;
     const detail = expanded ? `<tr class="customer-account-detail-row"><td colspan="6"><div class="customer-transaction-list">
-      <div class="customer-transaction"><strong>Reference and date</strong><strong>Charge</strong><strong>Paid</strong><strong>Balance</strong></div>
-      ${customer.entries.map(entry => `<div class="customer-transaction"><span>${escapeHtml(entry.reference)} · ${escapeHtml(dateLabel(entry.entry_date))} · ${escapeHtml(entry.source_type)}</span><span>${money(entry.total_amount)}</span><span>${money(entry.amount_paid)}</span><span>${money(entry.balance_due)}</span></div>`).join("")}
+      <div class="customer-transaction"><strong>Reference and date</strong><strong>Discount</strong><strong>Payment</strong><strong>Charge</strong><strong>Paid</strong><strong>Balance</strong></div>
+      ${customer.entries.map(entry => `<div class="customer-transaction"><span>${escapeHtml(entry.reference)} · ${escapeHtml(dateLabel(entry.entry_date))} · ${escapeHtml(entry.source_type)}</span><span>${money(entry.discount_amount)}</span><span>${escapeHtml(entry.payment_method || "—")}</span><span>${money(entry.total_amount)}</span><span>${money(entry.amount_paid)}</span><span>${money(entry.balance_due)}${entry.can_record_payment && entry.balance_due > 0.01 ? ` <button type="button" class="btn" data-action="pay-order" data-customer-id="${escapeHtml(customer.id)}" data-source-id="${escapeHtml(entry.source_id)}" aria-label="Record payment for ${escapeHtml(entry.reference)}">Record payment</button>` : ""}</span></div>`).join("")}
       </div></td></tr>` : "";
     return `<tr>
       <td><strong>${escapeHtml(customer.name)}</strong><div class="customer-contact">${escapeHtml(customer.phone)}${customer.email ? ` · ${escapeHtml(customer.email)}` : ""}</div></td>
@@ -143,13 +159,13 @@ async function loadCustomerAccounts() {
   message.textContent = "Loading customer balances…";
   message.dataset.tone = "info";
   const { data, error } = await supabase.from("customer_account_statement")
-    .select("customer_id, customer_name, phone, email, source_id, source_type, reference, entry_date, total_amount, amount_paid, balance_due")
+    .select("customer_id, customer_name, phone, email, source_id, source_type, reference, entry_date, total_amount, amount_paid, balance_due, discount_amount, payment_method, can_record_payment")
     .order("customer_name")
     .order("entry_date", { ascending: false });
   if (error) {
     entries = [];
     render();
-    message.textContent = `Couldn't load customer balances: ${error.message}. Run supabase/migrations/customer-account-statement-view.sql in the Supabase SQL Editor.`;
+    message.textContent = `Couldn't load customer balances: ${error.message}. Apply the customer-account and Quick Sale payment migrations in the user guide.`;
     message.dataset.tone = "error";
     return;
   }
@@ -165,6 +181,18 @@ tbody.addEventListener("click", event => {
   const customer = groupEntries().find(account => account.id === button.dataset.customerId);
   if (!customer) return;
   const action = button.dataset.action;
+  if (action === "pay-order") {
+    selectedPaymentEntry = customer.entries.find(entry => entry.source_id === button.dataset.sourceId && entry.source_type === "Sales order");
+    if (!selectedPaymentEntry || selectedPaymentEntry.balance_due <= 0.01) return;
+    paymentSummary.textContent = `${customer.name} · ${selectedPaymentEntry.reference} · Outstanding ${money(selectedPaymentEntry.balance_due)}`;
+    paymentAmountInput.max = selectedPaymentEntry.balance_due.toFixed(2);
+    paymentAmountInput.value = selectedPaymentEntry.balance_due.toFixed(2);
+    paymentDateInput.value = dateInZimbabwe();
+    paymentMessage.textContent = "";
+    paymentModal.classList.remove("hidden");
+    paymentAmountInput.focus();
+    return;
+  }
   if (!action) {
     expandedCustomerId = expandedCustomerId === customer.id ? null : customer.id;
     render();
@@ -185,6 +213,51 @@ tbody.addEventListener("click", event => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   } else if (action === "print") {
     printStatement(customer);
+  }
+});
+
+function closePaymentModal() {
+  paymentModal.classList.add("hidden");
+  selectedPaymentEntry = null;
+}
+
+document.getElementById("quick-sale-payment-cancel").addEventListener("click", closePaymentModal);
+paymentModal.addEventListener("click", event => {
+  if (event.target === paymentModal) closePaymentModal();
+});
+paymentSaveButton.addEventListener("click", async () => {
+  if (!selectedPaymentEntry) return;
+  const amount = Number(paymentAmountInput.value);
+  const paymentDate = paymentDateInput.value;
+  if (!Number.isFinite(amount) || amount <= 0 || amount > Number(selectedPaymentEntry.balance_due) + 0.005) {
+    paymentMessage.textContent = `Enter an amount greater than zero and no more than ${money(selectedPaymentEntry.balance_due)}.`;
+    paymentMessage.dataset.tone = "error";
+    return;
+  }
+  if (!paymentDate) {
+    paymentMessage.textContent = "Choose the date the payment was received.";
+    paymentMessage.dataset.tone = "error";
+    return;
+  }
+  paymentSaveButton.disabled = true;
+  paymentMessage.textContent = "Recording payment…";
+  paymentMessage.dataset.tone = "info";
+  try {
+    const { error } = await supabase.rpc("record_quick_sale_payment", {
+      p_sales_order_id: selectedPaymentEntry.source_id,
+      p_amount: amount,
+      p_payment_method: paymentMethodInput.value,
+      p_payment_date: paymentDate,
+    });
+    if (error) throw new Error(error.message);
+    closePaymentModal();
+    await loadCustomerAccounts();
+  } catch (error) {
+    console.error("Couldn't record Quick Sale account payment:", error);
+    paymentMessage.textContent = `Couldn't record payment: ${error.message || String(error)}. Apply supabase/migrations/quick-sale-customer-credit-and-payments.sql if this feature is not installed.`;
+    paymentMessage.dataset.tone = "error";
+  } finally {
+    paymentSaveButton.disabled = false;
   }
 });
 

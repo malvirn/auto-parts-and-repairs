@@ -1,4 +1,6 @@
+import "./dialogs.js";
 import supabase from "./supabaseClient.js";
+import { loadUserProfile } from "./profile.js";
 
 const path = window.location.pathname.replace(/\\/g, "/");
 const isLoginPage = path.endsWith("/login.html") || path.endsWith("login.html");
@@ -52,34 +54,33 @@ function normalizeRole(role) {
   return normalized === "superadmin" ? "super_admin" : normalized;
 }
 
-async function getMyProfile(userId) {
-  const { data, error } = await supabase.from("profiles")
-    .select("role, access_level")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) {
-    console.error("Unable to load the account role — defaulting to the most restrictive tier (staff):", error);
-    return { role: "staff", is_active: true };
-  }
-
-  let is_active = true;
-  const { data: activeData, error: activeError } = await supabase.from("profiles")
-    .select("is_active")
-    .eq("id", userId)
-    .maybeSingle();
-  if (activeError) {
-    console.warn("Unable to check whether the account is active; profile role was loaded successfully:", activeError);
-  } else {
-    is_active = activeData?.is_active !== false;
-  }
-  const normalizedRole = normalizeRole(data?.role);
-  const role = Number(data?.access_level) >= 2 ? "super_admin" : normalizedRole;
-  return { role, is_active };
-}
-
-function applyAccess(role) {
+function applyAccess(role, account = {}) {
   role = normalizeRole(role);
   document.body.dataset.role = role;
+  document.body.dataset.accountName = account.fullName || account.email || "Account";
+  document.body.dataset.accountEmail = account.email || "";
+  const markDeleteControls = root => {
+    root.querySelectorAll?.('button[id*="delete"], button[class*="delete"], button[id*="archive"], button[class*="archive"], .tier-del, .fp-del, [aria-label^="Delete"], [aria-label^="Remove"], [data-delete-document], .bulk-delete-toolbar').forEach(button => {
+      button.classList.add("requires-super-admin-delete");
+    });
+  };
+  markDeleteControls(document);
+  if (!document.body.dataset.deletePermissionObserver) {
+    const observer = new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        markDeleteControls(node);
+        markDeleteControls(node.parentElement || document);
+      }
+    })));
+    observer.observe(document.body, { childList: true, subtree: true });
+    document.body.dataset.deletePermissionObserver = "true";
+  }
+  if (!document.getElementById("super-admin-delete-controls-style")) {
+    const style = document.createElement("style");
+    style.id = "super-admin-delete-controls-style";
+    style.textContent = 'body:not([data-role="super_admin"]) .requires-super-admin-delete{display:none!important}';
+    document.head.append(style);
+  }
 
   // Hide sidebar links the current role isn't allowed to use — this is a
   // UX nicety (no dead-end clicks into a page that'll just show empty
@@ -248,14 +249,18 @@ async function protectPage() {
   // an account gets deleted (e.g. a database reset) — a stale local
   // session would otherwise still "look" logged in and load the page.
   authStage = "verifying login with Supabase (auth.getUser)";
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const authRequest = supabase.auth.getUser();
+  const authTimeout = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("Login verification timed out after 12 seconds")), 12000);
+  });
+  const { data: { user }, error } = await Promise.race([authRequest, authTimeout]);
   if (error || !user) {
     window.location.replace(loginPath);
     return;
   }
 
   authStage = "loading your profile and role (profiles table)";
-  const profile = await getMyProfile(user.id);
+  const profile = await loadUserProfile(user.id);
 
   if (!profile.is_active) {
     await supabase.auth.signOut();
@@ -264,7 +269,7 @@ async function protectPage() {
   }
 
   authStage = "applying page access";
-  applyAccess(profile.role);
+  applyAccess(profile.role, { fullName: profile.full_name, email: user.email });
 }
 
 if (!isLoginPage) {
@@ -273,6 +278,9 @@ if (!isLoginPage) {
   protectPage().catch(err => {
     console.error("[auth] protectPage failed at step:", authStage, err);
     authStage = authStage + " (error: " + (err?.message || err) + ")";
+    if (String(err?.message || "").includes("timed out")) {
+      window.location.replace(loginPath);
+    }
   });
 
   // Also react to sign-out happening in another tab, and to a token
@@ -286,4 +294,4 @@ if (!isLoginPage) {
   });
 }
 
-export { applyAccess, getMyProfile };
+export { applyAccess };

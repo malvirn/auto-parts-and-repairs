@@ -1,5 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { hydrate } from "./data-cache.js";
+import "./ui-state.js";
 
 const recentJobsBody = document.getElementById("recent-jobs");
 
@@ -34,7 +35,7 @@ async function fetchDashboardBundle() {
     `).order("created_at", { ascending: false })),
     getData("customers", supabase.from("customers").select("id, created_at").is("deleted_at", null)),
     getData("parts", supabase.from("parts").select("id, name, category, quantity_in_stock, minimum_stock")),
-    getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
+    getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at")),
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
     getData("settings", supabase.from("settings").select("daily_jobs_target, daily_revenue_target").limit(1)),
   ]);
@@ -54,10 +55,18 @@ async function loadDashboard() {
     const snapshot = renderTodaySnapshot(bundle.jobs, bundle.customers, bundle.receipts, todayStr);
     renderObjectives(snapshot, bundle.settings);
     renderNeedsAttention(bundle.jobs, bundle.parts, bundle.receipts, bundle.payrollRuns);
-    renderRecentJobs(bundle.jobs.slice(0, 10));
+    renderRecentJobs(bundle.jobs.slice(0, 10), bundle.receipts);
     if (window.lucide) lucide.createIcons();
   });
 }
+
+function refreshAfterDocumentChange() {
+  loadDashboard().catch(error => console.error("Couldn't refresh dashboard totals:", error));
+}
+
+addEventListener("storage", event => {
+  if (event.key === "apr:data-changed") refreshAfterDocumentChange();
+});
 
 function renderGreeting() {
   const hour = new Date().getHours();
@@ -73,7 +82,7 @@ function renderTodaySnapshot(jobs, customers, receipts, todayStr) {
   const isToday = iso => iso && iso.slice(0, 10) === todayStr;
   const createdToday = jobs.filter(j => isToday(j.created_at)).length;
   const completedToday = jobs.filter(j => isToday(j.completed_at)).length;
-  const revenueToday = receipts.filter(r => isToday(r.issued_at)).reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const revenueToday = receipts.filter(r => !r.voided_at && isToday(r.issued_at)).reduce((sum, r) => sum + Number(r.amount || 0), 0);
   const newCustomersToday = customers.filter(c => isToday(c.created_at)).length;
 
   const el = document.getElementById("today-cards");
@@ -192,7 +201,7 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
     });
   }
 
-  const receiptedJobIds = new Set(receipts.map(r => r.repair_job_id).filter(Boolean));
+  const receiptedJobIds = new Set(receipts.filter(receipt => !receipt.voided_at).map(r => r.repair_job_id).filter(Boolean));
   const pendingReceipts = jobs.filter(job => ["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status) && !receiptedJobIds.has(job.id));
   if (pendingReceipts.length > 0) {
     items.push({
@@ -221,22 +230,42 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
     : `<div class="attention-empty"><i data-lucide="check-circle-2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"></i>All caught up — nothing urgent right now.</div>`;
 }
 
-function renderRecentJobs(jobs) {
+function renderRecentJobs(jobs, receipts = []) {
   if (!recentJobsBody) return;
   if (!jobs.length) {
-    recentJobsBody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted)">No jobs yet</td></tr>`;
+    recentJobsBody.innerHTML = `<tr><td colspan="6"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create the first job card to start tracking work.</p></div><a class="btn apr-state__action" href="pages/repairs.html">Open job cards</a></div></td></tr>`;
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
+  const statusMeta = {
+    Draft: ["file-pen-line", "draft", "Draft"],
+    Processing: ["loader-circle", "processing", "Processing"],
+    Received: ["inbox", "received", "Received"],
+    Diagnosing: ["stethoscope", "diagnosing", "Diagnosing"],
+    Processed: ["package-check", "processed", "Processed"],
+    "Ready for Pickup": ["package-check", "waiting", "Waiting for Pickup"],
+    Unclaimed: ["triangle-alert", "unclaimed", "Unclaimed"],
+    Collected: ["circle-check", "collected", "Collected"],
+  };
+  const paidByJob = new Map();
+  receipts.filter(receipt => !receipt.voided_at).forEach(receipt => {
+    if (!receipt.repair_job_id) return;
+    paidByJob.set(receipt.repair_job_id, (paidByJob.get(receipt.repair_job_id) || 0) + Number(receipt.amount || 0));
+  });
   recentJobsBody.innerHTML = jobs.map(job => {
     const vehicle = [job.vehicles?.year, job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ");
+    const [icon, statusClass, statusLabel] = statusMeta[job.status] || ["circle-help", "other", job.status || "Unknown"];
+    const canPay = job.status !== "Collected" && Number(job.total_cost || 0) - (paidByJob.get(job.id) || 0) > 0.01;
+    const openHref = `pages/repairs.html?highlight=${encodeURIComponent(job.id)}${canPay ? "&payment=1" : ""}`;
     return `
       <tr>
         <td>#${String(job.job_number).padStart(4, "0")}</td>
         <td>${escapeHtml(job.customers?.full_name ?? "—")}</td>
         <td>${escapeHtml(vehicle || "—")}</td>
-        <td>${escapeHtml(job.status)}</td>
+        <td><span class="job-status-badge status-${statusClass}"><i data-lucide="${icon}"></i>${escapeHtml(statusLabel)}</span></td>
         <td>$${Number(job.total_cost ?? 0).toFixed(2)}</td>
+        <td class="recent-job-action"><a href="${openHref}"><i data-lucide="${canPay ? "credit-card" : "eye"}"></i>${canPay ? "View / Pay" : "View"}</a></td>
       </tr>
     `;
   }).join("");
@@ -347,7 +376,7 @@ async function runGlobalSearch(term, resultsEl) {
 
   resultsEl.innerHTML = groups.length
     ? groups.map(g => `<div class="global-search__group-label">${g.label}</div>${g.items.join("")}`).join("")
-    : `<div class="global-search__empty">No matches for "${escapeHtml(term)}"</div>`;
+    : `<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No results for "${escapeHtml(term)}"</strong><p>Check the spelling, try a vehicle registration or phone number, or use fewer words.</p></div></div>`;
   resultsEl.hidden = false;
   if (window.lucide) lucide.createIcons();
 }
@@ -381,10 +410,12 @@ function initGlobalSearch() {
     clearTimeout(debounceTimer);
     const term = input.value.trim();
     if (term.length < 2) { resultsEl.hidden = true; resultsEl.innerHTML = ""; return; }
+    resultsEl.innerHTML = `<div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Searching</strong><p>Checking customers, job cards, quotations, and suppliers…</p></div></div>`;
+    resultsEl.hidden = false;
     debounceTimer = setTimeout(() => {
       runGlobalSearch(term, resultsEl).catch(error => {
         console.error("Global search failed:", error);
-        resultsEl.innerHTML = `<div class="global-search__empty" role="alert">Search unavailable: ${escapeHtml(error.message || String(error))}</div>`;
+        resultsEl.innerHTML = `<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Search could not finish</strong><p>${escapeHtml(error.message || String(error))} Check your internet connection, then retry the search.</p></div></div>`;
         resultsEl.hidden = false;
       });
     }, 250);
@@ -403,6 +434,7 @@ function readNavState() {
   try { return JSON.parse(localStorage.getItem(NAV_STATE_KEY) || "{}") || {}; } catch (e) { return {}; }
 }
 function initNavGroups() {
+  if (document.querySelector(".sidebar")?.dataset.dashboardCanonical === "true") return;
   const state = readNavState();
   document.querySelectorAll(".sidebar .nav-group").forEach(group => {
     const key = group.dataset.group;

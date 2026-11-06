@@ -11,8 +11,11 @@ const receiptModal = document.getElementById("receipt-modal");
 const receiptDocument = document.getElementById("receipt-document");
 const receiptWhatsappBtn = document.getElementById("receipt-whatsapp");
 const receiptEmailBtn = document.getElementById("receipt-email");
+const receiptBackBtn = document.getElementById("receipt-back");
+const receiptOrigin = new URLSearchParams(window.location.search).get("from");
 
 let currentReceipt = null; // { receiptNumber, referenceLabel, customer }
+const receiptGenerationsInProgress = new Set();
 
 function formatPhoneForWhatsApp(raw) {
   if (!raw) return null;
@@ -65,6 +68,8 @@ function normalizeReceiptSource(receipt) {
       status: order.status,
       labour: 0,
       total: Number(order.total_usd || 0),
+      discount: Number(order.discount_usd || 0),
+      paymentMethod: order.payment_method || "Not recorded",
       items: (order.sales_order_items || []).map(i => ({ part_name: i.part_name, quantity: i.quantity, price_at_time: i.unit_price_usd })),
       incidentals: [],
       aiNotes: null,
@@ -84,9 +89,11 @@ function renderReceipt(receipt) {
   const incidentals = source.incidentals || [];
   const itemsTotal = items.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.price_at_time || 0), 0);
   const incidentalsTotal = incidentals.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const subtotal = source.total || itemsTotal + incidentalsTotal + source.labour;
-  const amountPaid = Number(receipt.amount ?? subtotal);
-  const balanceDue = Math.max(subtotal - amountPaid, 0);
+  const subtotal = source.kind === "order" ? itemsTotal : source.total || itemsTotal + incidentalsTotal + source.labour;
+  const discount = Math.min(Number(source.discount || 0), subtotal);
+  const total = Math.max(subtotal - discount, 0);
+  const amountPaid = Number(receipt.amount ?? total);
+  const balanceDue = Math.max(total - amountPaid, 0);
   const formatMoney = amount => `$${Number(amount || 0).toFixed(2)}`;
   const issuedAt = new Date(receipt.issued_at);
   const issuedDate = Number.isNaN(issuedAt.getTime()) ? "—" : issuedAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -127,7 +134,7 @@ function renderReceipt(receipt) {
       <div><dt>Contact</dt><dd>${escapeHtml(source.customer?.phone || "—")}</dd></div>
       ${source.kind === "job" ? `<div><dt>Vehicle Registration</dt><dd>${escapeHtml(source.plate || "—")}</dd></div>` : ""}
       <div><dt>${source.kind === "job" ? "Work Order No" : "Sales Order No"}</dt><dd>${escapeHtml(source.referenceLabel)}</dd></div>
-      <div><dt>Payment Method</dt><dd>Not recorded</dd></div>
+      <div><dt>Payment Method</dt><dd>${escapeHtml(source.paymentMethod || "Not recorded")}</dd></div>
       <div><dt>Currency</dt><dd>USD</dd></div>
     </dl>
     <section class="receipt-items">
@@ -138,7 +145,7 @@ function renderReceipt(receipt) {
     </section>
     <section class="receipt-totals" aria-label="Receipt totals">
       <div><span>Subtotal</span><span>${formatMoney(subtotal)}</span></div>
-      <div><span>Discount</span><span>${formatMoney(0)}</span></div>
+      <div><span>Discount</span><span>${formatMoney(discount)}</span></div>
       <div class="receipt-paid"><span>Amount Paid</span><span>${formatMoney(amountPaid)}</span></div>
       <div><span>Balance Due</span><span>${formatMoney(balanceDue)}</span></div>
       <div class="receipt-grand"><strong>TOTAL PAID</strong><strong>${formatMoney(amountPaid)}</strong></div>
@@ -155,7 +162,7 @@ function renderReceipt(receipt) {
 
 const RECEIPT_SELECT = `id, receipt_number, amount, issued_at,
   repair_jobs(id, job_number, cro_number, status, labour_cost, total_cost, ai_suggested_causes, customers(full_name, phone, email), vehicles(year, make, model, license_plate), job_parts(part_name, quantity, price_at_time), job_incidentals(description, amount)),
-  sales_orders(id, order_number, total_usd, status, walk_in_name, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`;
+  sales_orders(id, order_number, total_usd, discount_usd, payment_method, status, walk_in_name, customers(full_name, phone, email), sales_order_items(part_name, quantity, unit_price_usd))`;
 
 // jobId being missing/empty is exactly what was crashing this with
 // "invalid input syntax" — Postgres refusing an empty string where a UUID
@@ -187,21 +194,36 @@ async function openReceiptForOrder(orderId) {
 }
 
 async function generateReceipt(jobId, amount) {
-  if (!jobId) return; // guards the DOMContentLoaded ?job= path the same way
-  const { data: job, error: jobError } = await supabase.from("repair_jobs").select("id, status, total_cost").eq("id", jobId).single();
-  if (jobError || !job) { alert("Unable to load job card."); return; }
-  if (!["Ready for Pickup", "Unclaimed"].includes(job.status)) { alert("A receipt can only be generated once the job is marked Ready for Pickup."); return; }
+  if (!jobId || receiptGenerationsInProgress.has(jobId)) return;
+  receiptGenerationsInProgress.add(jobId);
+  try {
+    const { data: job, error: jobError } = await supabase.from("repair_jobs").select("id, status, total_cost").eq("id", jobId).single();
+    if (jobError || !job) { alert("Unable to load job card" + (jobError?.message ? `: ${jobError.message}` : ".")); return; }
+    if (!["Ready for Pickup", "Unclaimed"].includes(job.status)) { alert("A receipt can only be generated once the job is marked Ready for Pickup."); return; }
 
-  const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);
+    const { data: existing, error: checkError } = await supabase.from("receipts")
+      .select("id")
+      .eq("repair_job_id", jobId)
+      .limit(1);
+    if (checkError) {
+      alert("Couldn't check for an existing receipt: " + checkError.message);
+      return;
+    }
 
-  if (error && error.code !== "23505") {
-    alert("Failed to generate receipt: " + error.message);
-    return;
+    if (!existing?.length) {
+      const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);
+      if (error && error.code !== "23505") {
+        alert("Failed to generate receipt: " + error.message);
+        return;
+      }
+    }
+
+    await loadPendingReceipts();
+    await loadAllReceipts();
+    await openReceiptForJob(jobId);
+  } finally {
+    receiptGenerationsInProgress.delete(jobId);
   }
-
-  await loadPendingReceipts();
-  await loadAllReceipts();
-  openReceiptForJob(jobId);
 }
 
 async function loadPendingReceipts() {
@@ -400,6 +422,16 @@ async function sendReceiptEmail() {
 
 if (receiptWhatsappBtn) receiptWhatsappBtn.addEventListener("click", sendReceiptWhatsApp);
 if (receiptEmailBtn) receiptEmailBtn.addEventListener("click", sendReceiptEmail);
+if (receiptBackBtn) receiptBackBtn.addEventListener("click", () => {
+  if (receiptOrigin === "shop" || receiptOrigin === "repairs" || receiptOrigin === "quotations") {
+    const page = `${receiptOrigin}.html`;
+    const relativePath = window.location.pathname.includes("/pages/") ? page : `pages/${page}`;
+    window.location.href = new URL(relativePath, window.location.href).href;
+  } else {
+    receiptModal?.classList.add("hidden");
+    if (receiptModal) receiptModal.style.display = "none";
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   loadPendingReceipts();
@@ -408,7 +440,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const requestedJob = params.get("job");
   const requestedOrder = params.get("order");
   if (requestedJob) {
-    setTimeout(() => generateReceipt(requestedJob), 250);
+    setTimeout(() => {
+      if (receiptOrigin === "repairs") openReceiptForJob(requestedJob);
+      else generateReceipt(requestedJob);
+    }, 250);
   } else if (requestedOrder) {
     setTimeout(() => openReceiptForOrder(requestedOrder), 250);
   }

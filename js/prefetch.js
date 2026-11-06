@@ -27,7 +27,7 @@ async function prefetchDashboard() {
     `).order("created_at", { ascending: false })),
     getData("customers", supabase.from("customers").select("id, created_at").is("deleted_at", null)),
     getData("parts", supabase.from("parts").select("id, name, quantity_in_stock")),
-    getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id")),
+    getData("receipts", supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at")),
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
     getData("settings", supabase.from("settings").select("daily_jobs_target, daily_revenue_target").limit(1)),
   ]);

@@ -37,10 +37,28 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <style>
+    .accounting-intro,.accounting-guide{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px}
+    .accounting-intro{padding:22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(31,196,103,.12),rgba(12,18,16,.96))}
+    .accounting-intro h1{margin:0;color:var(--text);font-size:clamp(26px,3vw,38px)}
+    .accounting-intro p{max-width:76ch;color:var(--muted);margin:8px 0 0}
+    .accounting-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .accounting-guide article{padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+    .accounting-guide h2{display:flex;align-items:center;gap:8px;margin:0 0 8px;color:var(--text);font-size:1rem}
+    .accounting-guide p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.55}
+    .accounting-guide a{display:inline-flex;margin-top:12px;color:var(--green-bright);font-weight:700;text-decoration:none}
+    .module-card__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+    .module-card__actions .btn{min-height:38px}
+    .job-part-purchase-table{overflow-x:auto}
+    .job-part-purchase-table input,.job-part-purchase-table select{min-width:145px}
+    @media(max-width:760px){.accounting-guide{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -88,13 +106,53 @@
     </aside>
 
     <main class="main">
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">The full financial core</p>
-          <h1>Accounting</h1>
-          <p class="page-intro">Track workshop income, operating expenses, customer payments, supplier balances and cash flow. Each section uses the shared ledger, so figures stay connected.</p>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
         </div>
-      </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Accounting</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+      </header>
+
+      <section class="accounting-intro">
+        <p class="section-kicker">Money in, money out, and balances</p>
+        <h1>Accounting</h1>
+        <p>Use customer invoices to bill customers and record money received. Use Payables for supplier bills and payments. The Ledger keeps the accounting entries behind these balances.</p>
+      </section>
+
+      <section class="accounting-guide" aria-label="Accounting basics">
+        <article><h2><i data-lucide="circle-help"></i> Customer receivables</h2><p>Money customers still owe your business. Create an invoice, then record full or part payments as money arrives.</p><a href="receipts.html?tab=invoices&amp;from=accounting">Open customer invoices</a></article>
+        <article><h2><i data-lucide="circle-help"></i> Supplier payables</h2><p>Money your business still owes suppliers. Add each supplier bill and record payments against it.</p><a href="payables.html">Open supplier bills</a></article>
+        <article><h2><i data-lucide="circle-help"></i> Ledger &amp; reports</h2><p>Every posted bill and payment creates balanced ledger entries. Use reports to review totals over time.</p><a href="ledger.html">View ledger</a></article>
+      </section>
+
+      <section class="page-section" id="job-part-purchase-requests" aria-labelledby="job-part-purchase-requests-heading">
+        <div class="section-heading">
+          <div><p class="section-kicker">Action required</p><h2 id="job-part-purchase-requests-heading"><i class="section-heading-icon" data-lucide="wallet"></i>Job-part purchases awaiting funds</h2></div>
+          <button id="refresh-accounting-job-part-purchases" type="button" class="btn" aria-label="Refresh job-part purchases"><i data-lucide="refresh-cw"></i></button>
+        </div>
+        <p class="page-intro">Review the Shop supplier quote and release the payment from an active Cash or Bank account. Payments are recorded in the ledger; Shop records the delivery into inventory.</p>
+        <p id="accounting-job-part-purchase-message" class="form-message" role="status" aria-live="polite"></p>
+        <div class="panel job-part-purchase-table">
+          <table>
+            <thead><tr><th>Job / Customer</th><th>Part / Quantity</th><th>Supplier</th><th>Quoted total</th><th>Pay from</th><th>Payment date</th><th>Action</th></tr></thead>
+            <tbody id="accounting-job-part-purchase-body"><tr><td colspan="7" class="empty-state">Loading job-part purchases…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
       <section class="page-section">
         <div class="module-grid">
@@ -108,6 +166,12 @@
             <div class="module-card__title">Payables</div>
             <div class="module-card__desc">Supplier bills, payments made, remaining balances and due dates for parts purchases and other costs.</div>
           </a>
+          <article class="module-card">
+            <div class="module-card__icon"><i data-lucide="file-plus-2"></i></div>
+            <div class="module-card__title">Customer Invoices</div>
+            <div class="module-card__desc">Bill customers, track what has been paid, and see the balance still due. Payments post to Accounts Receivable in the ledger.</div>
+            <div class="module-card__actions"><a class="btn btn--primary" href="receipts.html?new=1&amp;from=accounting">Create invoice</a><a class="btn" href="receipts.html?tab=invoices&amp;from=accounting">View invoices</a></div>
+          </article>
           <a class="module-card" href="cashbook.html">
             <div class="module-card__icon"><i data-lucide="wallet"></i></div>
             <div class="module-card__title">Cash Book</div>
@@ -142,7 +206,9 @@
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/job-part-purchases-accounting.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
-</body>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  </body>
 </html>

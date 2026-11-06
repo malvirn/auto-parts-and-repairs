@@ -48,6 +48,7 @@ const editFields = {
 };
 
 let currentId = null;
+let supplierSubmissionInProgress = false;
 let allSuppliers = [];   // full list from the DB, used for local filtering
 let currentFilter = "";
 
@@ -173,6 +174,11 @@ function isDuplicate(name) {
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
+  if (supplierSubmissionInProgress) return;
+  supplierSubmissionInProgress = true;
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
   const supplier = Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value.trim() || null]));
 
   if (!supplier.name) {
@@ -199,6 +205,13 @@ form.addEventListener("submit", async event => {
   form.reset();
   showFormMessage("Supplier added.", "success");
   loadSuppliers();
+  } catch (error) {
+    console.error("Supplier save failed:", error);
+    showFormMessage(`Couldn't finish saving the supplier: ${error.message || String(error)}`, "error");
+  } finally {
+    supplierSubmissionInProgress = false;
+    if (submitButton) submitButton.disabled = false;
+  }
 });
 
 saveButton.addEventListener("click", async () => {

@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { loadUserProfile } from "./profile.js";
 import { fingerprintSupported, deviceHasFingerprint, signInWithFingerprint } from "./passkey.js";
 import { bootStart, bootCancel, bootDeny, bootFinish, splitLetters } from "./boot.js";
 import { prefetchCoreData } from "./prefetch.js";
@@ -6,6 +7,14 @@ import { prefetchCoreData } from "./prefetch.js";
 const form = document.getElementById("login-form");
 const messageEl = document.getElementById("login-message");
 const submitBtn = document.getElementById("login-submit");
+const forgotPasswordBtn = document.getElementById("forgot-password");
+const openedFromFile = window.location.protocol === "file:";
+
+if (openedFromFile) {
+  showMessage("This app cannot connect to Supabase reliably when opened as a file. Start a local web server or open the hosted HTTPS site.", "error");
+  submitBtn.disabled = true;
+  if (forgotPasswordBtn) forgotPasswordBtn.disabled = true;
+}
 
 function resetButton() {
   submitBtn.disabled = false;
@@ -17,6 +26,34 @@ function showMessage(text, tone) {
   messageEl.textContent = text;
   messageEl.dataset.tone = tone;
 }
+
+forgotPasswordBtn?.addEventListener("click", async () => {
+  const emailInput = document.getElementById("login-email");
+  const email = emailInput.value.trim();
+  if (!email) {
+    emailInput.focus();
+    showMessage("Enter your email address first, then choose the password reset link.", "error");
+    return;
+  }
+  if (!emailInput.checkValidity()) {
+    emailInput.reportValidity();
+    return;
+  }
+
+  forgotPasswordBtn.disabled = true;
+  showMessage("Sending password reset instructions…", "info");
+  try {
+    const redirectTo = new URL("pages/reset-password.html", window.location.href).href;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+    showMessage("If an account exists for this address, password reset instructions have been sent.", "info");
+  } catch (error) {
+    console.error("Couldn't send password reset email:", error);
+    showMessage(`Couldn't send the reset email: ${error.message || String(error)}`, "error");
+  } finally {
+    forgotPasswordBtn.disabled = false;
+  }
+});
 
 // Animated system name on the sign-in card.
 const sysName = document.getElementById("sys-name");
@@ -32,26 +69,8 @@ async function completeSignIn(fallbackEmail) {
   const { data: { user: confirmed } } = await supabase.auth.getUser();
   if (!confirmed) return "Session didn't save properly — please try again.";
 
-  const { data: roleProfile, error } = await supabase.from("profiles")
-    .select("role, full_name, access_level").eq("id", confirmed.id).maybeSingle();
-  if (error) console.error("Unable to load account role:", error);
-  let profile = roleProfile ? {
-    ...roleProfile,
-    role: Number(roleProfile.access_level) >= 2
-      ? "super_admin"
-      : normalizeRole(roleProfile.role),
-    is_active: true,
-  } : null;
-  if (profile) {
-    const { data: activeProfile, error: activeError } = await supabase.from("profiles")
-      .select("is_active").eq("id", confirmed.id).maybeSingle();
-    if (activeError) {
-      console.warn("Unable to check whether the account is active; role data loaded successfully:", activeError);
-    } else {
-      profile.is_active = activeProfile?.is_active !== false;
-    }
-  }
-  if (profile && profile.is_active === false) {
+  const profile = await loadUserProfile(confirmed.id);
+  if (profile.is_active === false) {
     await supabase.auth.signOut();
     return "This account has been deactivated. Contact your Super Admin.";
   }
@@ -61,16 +80,14 @@ async function completeSignIn(fallbackEmail) {
   return null;
 }
 
-function normalizeRole(role) {
-  const normalized = String(role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
-  return normalized === "superadmin" ? "super_admin" : normalized;
-}
-
 // If someone's already got a valid, server-verified session and lands
 // back on the login page (e.g. a bookmark), send them straight through
 // instead of making them log in again for no reason.
 (async () => {
   const params = new URLSearchParams(window.location.search);
+  if (params.get("password") === "updated") {
+    showMessage("Your password has been updated. Sign in with your new password.", "info");
+  }
   if (params.get("terminated") === "1") {
     showMessage("This account has been deactivated. Contact your Super Admin.", "error");
     return; // don't auto-redirect a terminated account back in
@@ -87,6 +104,7 @@ function normalizeRole(role) {
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (openedFromFile) return;
   showMessage("", "");
 
   const email = document.getElementById("login-email").value.trim();

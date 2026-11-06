@@ -32,6 +32,32 @@
     .status-badge.unpaid { background: rgba(178,59,59,0.12); color: var(--danger, #b23b3b); }
     .status-badge.partially_paid { background: rgba(201,154,46,0.15); color: var(--warning, #c99a2e); }
     .status-badge.paid { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
+    .status-badge.voided { background: rgba(178,59,59,0.12); color: var(--danger, #b23b3b); }
+    .payable-actions{min-width:170px}
+    .payable-actions .btn{display:inline-flex;align-items:center;gap:6px;margin:3px 4px 3px 0}
+    .payable-actions .btn svg{width:15px;height:15px}
+    .reverse-payment-btn{border-color:rgba(251,113,133,.4)!important;color:#fb7185!important}
+    .reverse-payment-btn:hover{background:rgba(251,113,133,.1)!important}
+    .reversal-status{display:inline-flex;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;background:rgba(148,163,184,.12);color:var(--text-muted);font-size:.76rem;white-space:nowrap}
+    .payment-history-error{display:block;color:#fb7185;font-size:.75rem;max-width:250px;overflow-wrap:anywhere}
+    .payables-overdue{margin:0 0 16px;padding:14px 16px;border:1px solid rgba(178,59,59,.45);border-left:4px solid var(--danger,#b23b3b);border-radius:10px;background:rgba(178,59,59,.1);color:var(--text)}
+    .payables-overdue[hidden]{display:none}
+    .payable-row{cursor:pointer}
+    .payable-row:hover,.payable-row.is-expanded{background:rgba(46,125,79,.08)}
+    .payable-row.is-voided{opacity:.72}
+    .payable-details-row td{padding:16px;background:rgba(0,0,0,.025)}
+    .payable-details{display:grid;gap:14px}
+    .payable-details-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+    .payable-detail-item{padding:10px 12px;border:1px solid var(--border);border-radius:9px;overflow-wrap:anywhere}
+    .payable-detail-item small,.payable-payment small{display:block;color:var(--text-muted);font-size:.76rem}
+    .payable-detail-item strong{display:block;margin-top:4px}
+    .payable-payment-list{display:grid;gap:8px}
+    .payable-payment{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:9px}
+    .payable-payment-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .payable-payment-details{display:block;margin-top:6px;color:var(--text-muted);font-size:.78rem}
+    .payable-voided-label{color:var(--danger,#b23b3b);font-weight:700}
+    .payable-actions{min-width:190px}
+    @media(max-width:700px){.payable-payment{align-items:flex-start;flex-direction:column}}
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -42,10 +68,20 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <style>
+    .payables-intro{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(31,196,103,.12),rgba(12,18,16,.96))}
+    .payables-intro h1{margin:0;color:var(--text);font-size:clamp(25px,3vw,36px)}
+    .payables-intro p{max-width:76ch;margin:8px 0 0;color:var(--muted)}
+    .payables-intro__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+    .payables-help{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:14px 18px;border-left:4px solid var(--green-bright);border-radius:8px;background:rgba(31,196,103,.08);color:var(--text)}
+    .payables-help strong{color:var(--green-bright)}
+  </style>
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
 </head>
-<body class="dashboard-page system-page">
+<body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
@@ -93,28 +129,50 @@
     </aside>
 
     <main class="main">
-      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
-      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
-      <a href="payables.html" class="btn btn--primary"><i data-lucide="banknote"></i> Payables</a>
-      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
-      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
-      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
-      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
-      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
-      </div>
+      <header class="main__header app-header">
+        <div class="hdr-brand dashboard-hero__brand">
+          <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
+          <span class="hdr-divider" aria-hidden="true"></span>
+          <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
+        </div>
+        <div class="hs" id="hs"><div class="hs-bar" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">
+          <span class="hs-kbd" aria-hidden="true">/</span>
+        </div></div>
+        <div class="hdr-right">
+          <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div>
+          <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Supplier bills</span></div>
+        </div>
+        <div class="hdr-menu-wrap">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
+        </div>
+      </header>
 
-      <div class="main__header">
-        <div>
-          <p class="section-kicker">Creditors</p>
-          <h1>Accounts Payable</h1>
-          <p class="page-intro">Track supplier bills, payments already made, remaining balances and due dates. Recording a bill or payment also updates the shared ledger.</p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <nav class="module-tabs" aria-label="Accounting modules" style="display:flex; gap:8px; flex-wrap:wrap; margin:0 auto 20px; width:min(1500px,100% - clamp(28px,8vw,116px));">
+        <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+        <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+        <a href="payables.html" class="btn btn--primary"><i data-lucide="banknote"></i> Payables</a>
+        <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
+        <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+        <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+        <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
+        <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </nav>
+
+      <section class="payables-intro">
+        <p class="section-kicker">Money your business owes</p>
+        <h1>Supplier Bills (Payables)</h1>
+        <p>Use this page for supplier bills only. “Still owed” is the bill total minus payments you have recorded. Each bill and payment updates the Ledger.</p>
+        <div class="payables-intro__actions">
+          <a class="btn btn--primary" href="receipts.html?new=1&amp;from=accounting"><i data-lucide="file-plus-2"></i> Bill a customer</a>
+          <a class="btn" href="receipts.html?tab=invoices&amp;from=accounting"><i data-lucide="users"></i> Customer invoices</a>
           <a class="btn" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
-          <a class="btn" href="shop.html#shop-restocks"><i data-lucide="store"></i> Shop Purchases</a>
+          <a class="btn" href="shop.html#shop-restocks"><i data-lucide="store"></i> Shop purchases</a>
         </div>
-      </div>
+      </section>
+      <p class="payables-help"><strong>Quick guide:</strong> Type a supplier name or choose a saved supplier; each new bill gets an automatic bill number. Click any bill row to view its full record and payment history. Record payments and print receipts from the expanded bill. Reverse payments before voiding a manual bill; voiding preserves the bill and posts a reversing ledger entry. Stock-linked bills must be reversed with their stock purchase.</p>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Supplier balances by due date</p><h2><i class="section-heading-icon" data-lucide="alarm-clock"></i>Unpaid Supplier Bills</h2></div></div>
@@ -126,8 +184,8 @@
         <div class="section-heading"><div><p class="section-kicker">Record a bill</p><h2><i class="section-heading-icon" data-lucide="file-plus-2"></i>Add Payable</h2></div><span class="section-note">Posts a debit + credit to the Ledger</span></div>
         <form id="payable-form" class="panel" style="padding:20px;">
           <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
-            <div class="field"><label>Supplier</label><select id="pay-supplier" required></select></div>
-            <div class="field"><label>Bill Number</label><input type="text" id="pay-bill-number" placeholder="Supplier's invoice #" /></div>
+            <div class="field"><label for="pay-supplier-name">Supplier</label><input type="text" id="pay-supplier-name" list="pay-supplier-options" maxlength="200" placeholder="Select or type a supplier name" autocomplete="off" required><datalist id="pay-supplier-options"></datalist><small>A new name is added to the supplier directory automatically.</small></div>
+            <div class="field"><label>Bill Number</label><input type="text" value="Generated when saved" readonly aria-label="Bill number is generated automatically" /></div>
             <div class="field"><label>Amount ($)</label><input type="number" id="pay-amount" step="0.01" min="0.01" required /></div>
             <div class="field"><label>Bill Date</label><input type="date" id="pay-bill-date" required /></div>
             <div class="field"><label>Due Date</label><input type="date" id="pay-due-date" required /></div>
@@ -141,9 +199,10 @@
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Ledger</p><h2><i class="section-heading-icon" data-lucide="list"></i>Open &amp; Recent Payables</h2></div></div>
+        <div id="payables-overdue" class="payables-overdue" role="status" hidden></div>
         <div class="panel">
           <table>
-            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due Date</th><th>Bill Total</th><th>Paid So Far</th><th>Still Owed</th><th>Status</th><th>Source</th><th></th></tr></thead>
+            <thead><tr><th>Supplier</th><th>Bill #</th><th>Due Date</th><th>Bill Total</th><th>Paid So Far</th><th>Still Owed</th><th>Status</th><th>Source</th><th>Actions</th></tr></thead>
             <tbody id="payables-table"><tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
           </table>
         </div>
@@ -173,5 +232,6 @@
   <script type="module" src="../js/payables.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
   <script type="module" src="../js/repair-pages-navigation.js"></script>
-</body>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  </body>
 </html>

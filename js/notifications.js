@@ -3,8 +3,8 @@ import supabase from "./supabaseClient.js";
 // ============================================================
 // Global notification bell — injects itself into every page that loads
 // this script, so "important things happening elsewhere" are visible no
-// matter where you currently are in the app. No HTML changes needed per
-// page: this builds its own markup and appends it to <body>.
+// matter where you currently are in the app. It appends its own markup to
+// <body>, except on dashboard pages with a header action cluster.
 // ============================================================
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // re-check every 5 minutes
@@ -31,6 +31,25 @@ function injectBellUI() {
       color: var(--text, #e8e6e3); display: flex; align-items: center; justify-content: center;
       cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25);
     }
+    body.dashboard-page:not(.dashboard-workshop) #global-notif-bell {
+      position: static; top: auto; right: auto; z-index: auto;
+      width: 44px; height: 44px; flex: none;
+    }
+    body.dashboard-workshop .dashboard-topbar #global-notif-bell,
+    body.dashboard-page:not(.dashboard-workshop) .hdr-header-actions #global-notif-bell {
+      position: relative; top: auto; right: auto; z-index: auto;
+      width: 38px; height: 38px; flex: none;
+    }
+    @media (max-width: 480px) {
+      body.dashboard-page:not(.dashboard-workshop) .hdr-header-actions #global-notif-bell {
+        width: 32px; height: 32px;
+      }
+    }
+    @media (max-width: 360px) {
+      body.dashboard-page:not(.dashboard-workshop) .hdr-header-actions #global-notif-bell {
+        width: 28px; height: 28px;
+      }
+    }
     #global-notif-bell:hover { border-color: var(--accent, #ff9d3d); }
     #global-notif-badge {
       position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px;
@@ -38,9 +57,13 @@ function injectBellUI() {
       font-size: .68rem; font-weight: 700; display: none; align-items: center; justify-content: center;
     }
     #global-notif-panel {
-      position: fixed; top: 64px; right: 20px; z-index: 2000; width: 340px; max-height: 70vh; overflow-y: auto;
+      position: fixed; top: 64px; right: 20px; z-index: 2000; width: min(340px, calc(100vw - 24px)); max-height: 70vh; overflow-y: auto;
       background: var(--surface, #161412); border: 1px solid var(--border, rgba(255,255,255,.1)); border-radius: 12px;
       box-shadow: 0 20px 50px rgba(0,0,0,.35); display: none; padding: 10px;
+    }
+    body.dashboard-page:not(.dashboard-workshop) #global-notif-panel {
+      top: auto; right: auto; width: min(340px, calc(100vw - 24px));
+      max-height: min(70vh, 560px);
     }
     #global-notif-panel.open { display: block; }
     #global-notif-panel h4 { margin: 4px 8px 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #9a9690); }
@@ -60,7 +83,17 @@ function injectBellUI() {
   bell.id = "global-notif-bell";
   bell.setAttribute("aria-label", "Notifications");
   bell.innerHTML = `<i data-lucide="bell"></i><span id="global-notif-badge"></span>`;
-  document.body.appendChild(bell);
+  const dashboardTopbar = document.querySelector("body.dashboard-workshop .dashboard-topbar");
+  const topbarActions = dashboardTopbar?.querySelector(".dashboard-topbar-actions");
+  const headerActions = document.querySelector("body.dashboard-page:not(.dashboard-workshop) .hdr-header-actions")
+    || document.querySelector("body.dashboard-page:not(.dashboard-workshop) .hdr-menu-wrap");
+  const dashboardActions = topbarActions || headerActions;
+  if (topbarActions) topbarActions.append(bell);
+  else if (headerActions?.classList.contains("hdr-header-actions")) {
+    headerActions.insertBefore(bell, headerActions.querySelector(".hdr-menu-wrap"));
+  } else if (headerActions) headerActions.insertBefore(bell, headerActions.querySelector("#hdr-menu-btn"));
+  else if (dashboardTopbar) dashboardTopbar.append(bell);
+  else document.body.appendChild(bell);
 
   const panel = document.createElement("div");
   panel.id = "global-notif-panel";
@@ -70,6 +103,11 @@ function injectBellUI() {
   bell.addEventListener("click", (e) => {
     e.stopPropagation();
     panel.classList.toggle("open");
+    if (panel.classList.contains("open") && (dashboardActions || dashboardTopbar)) {
+      const rect = bell.getBoundingClientRect();
+      panel.style.top = `${rect.bottom + 8}px`;
+      panel.style.right = `${Math.max(12, window.innerWidth - rect.right)}px`;
+    }
   });
   document.addEventListener("click", (e) => {
     if (!panel.contains(e.target) && e.target !== bell) panel.classList.remove("open");
@@ -110,14 +148,21 @@ function renderNotifications(items) {
 
 async function checkOverduePayables() {
   try {
-    const { data } = await supabase.from("payables").select("id, bill_number, due_date, amount, amount_paid, suppliers(name)").neq("status", "paid");
-    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase.from("payables")
+      .select("id, bill_number, due_date, amount, amount_paid, voided_at, suppliers(name)")
+      .neq("status", "paid")
+      .is("voided_at", null);
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Harare", year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date());
+    const dateParts = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    const today = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
     return (data || [])
-      .filter(p => p.due_date < today && Number(p.amount) - Number(p.amount_paid) > 0.01)
+      .filter(p => !p.voided_at && p.due_date < today && Number(p.amount) - Number(p.amount_paid) > 0.01)
       .map(p => ({
         severity: "warning",
         message: `Bill ${escapeHtml(p.bill_number || "—")} from ${escapeHtml(p.suppliers?.name || "a supplier")} is overdue — ${money(Number(p.amount) - Number(p.amount_paid))} owed`,
-        link: "payables.html",
+        link: `payables.html?highlight=${encodeURIComponent(p.id)}`,
       }));
   } catch { return []; }
 }
@@ -170,6 +215,129 @@ async function checkUnclaimedVehicles() {
         };
       });
   } catch { return []; }
+}
+
+async function checkJobsAwaitingBilling() {
+  if (!["accounting", "super_admin"].includes(document.body.dataset.role)) return [];
+
+  try {
+    const { data: jobs, error: jobsError } = await supabase.from("repair_jobs")
+      .select("id, job_number, cro_number, customers(full_name)")
+      .not("closed_at", "is", null)
+      .order("closed_at", { ascending: false })
+      .limit(500);
+    if (jobsError) throw jobsError;
+    if (!jobs?.length) return [];
+
+    const jobIds = jobs.map(job => job.id);
+    const { data: invoices, error: invoicesError } = await supabase.from("invoices")
+      .select("repair_job_id")
+      .in("repair_job_id", jobIds);
+    if (invoicesError) throw invoicesError;
+
+    const invoicedJobIds = new Set((invoices || []).map(invoice => invoice.repair_job_id));
+    return jobs
+      .filter(job => !invoicedJobIds.has(job.id))
+      .map(job => {
+        const reference = job.cro_number || `JC-${String(job.job_number || "").padStart(5, "0")}`;
+        const path = window.location.pathname.includes("/pages/") ? "receipts.html" : "pages/receipts.html";
+        const query = new URLSearchParams({ new: "1", job: job.id, from: "accounting" });
+        return {
+          severity: "warning",
+          message: `${escapeHtml(reference)} for ${escapeHtml(job.customers?.full_name || "a customer")} is closed and awaiting an invoice`,
+          link: `${path}?${query}`,
+        };
+      });
+  } catch (error) {
+    console.error("Couldn't check closed jobs awaiting billing:", error);
+    return [];
+  }
+}
+
+async function checkCompletedJobCards() {
+  try {
+    const { data, error } = await supabase.from("repair_jobs")
+      .select("id,job_number,cro_number,completed_at,status")
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    const path = window.location.pathname.includes("/pages/") ? "repairs.html" : "pages/repairs.html";
+    return (data || []).map(job => {
+      const reference = job.cro_number || `JC-${String(job.job_number || "").padStart(5, "0")}`;
+      return {
+        severity: "warning",
+        message: `${escapeHtml(reference)} is complete and ready for review`,
+        link: `${path}?edit=${encodeURIComponent(job.id)}`,
+      };
+    });
+  } catch (error) {
+    console.error("Couldn't check completed job cards:", error);
+    return [];
+  }
+}
+
+async function checkUnpricedJobParts() {
+  if (!["accounting", "super_admin"].includes(document.body.dataset.role)) return [];
+  try {
+    const { data, error } = await supabase.rpc("get_unpriced_job_parts");
+    if (error) throw error;
+    const path = window.location.pathname.includes("/pages/") ? "ledger.html" : "pages/ledger.html";
+    const items = data || [];
+    return items.map(item => {
+      const reference = item.job_number || "Job card";
+      return {
+        severity: "warning",
+        message: `${escapeHtml(reference)} — ${escapeHtml(item.part_name || "Typed-in part")} needs accounting pricing`,
+        link: `${path}#unpriced-job-parts`,
+      };
+    });
+  } catch (error) {
+    console.error("Couldn't check unpriced job-card parts:", error);
+    return [];
+  }
+}
+
+async function checkJobPartPurchases() {
+  const role = document.body.dataset.role;
+  if (!role) return [];
+
+  const isAccounting = ["accounting", "super_admin"].includes(role);
+  const isShop = ["staff", "super_admin"].includes(role);
+  if (!isAccounting && !isShop) return [];
+
+  try {
+    const results = await Promise.all([
+      ...(isAccounting ? [supabase.rpc("get_accounting_job_part_purchase_requests")] : []),
+      ...(isShop ? [supabase.rpc("get_shop_job_part_purchase_requests")] : []),
+    ]);
+    for (const result of results) {
+      if (result.error) throw result.error;
+    }
+
+    const pathPrefix = window.location.pathname.includes("/pages/") ? "" : "pages/";
+    const requests = [
+      ...(isAccounting ? (results[0].data || []).map(request => ({ ...request, queue: "accounting" })) : []),
+      ...(isShop ? (results[isAccounting ? 1 : 0].data || [])
+        .filter(request => ["requested", "paid"].includes(request.status))
+        .map(request => ({ ...request, queue: "shop" })) : []),
+    ];
+    return requests.map(request => {
+      const reference = request.cro_number || `JC-${String(request.job_number || "").padStart(5, "0")}`;
+      const partName = escapeHtml(request.part_name || "a typed-in part");
+      const action = request.queue === "accounting"
+        ? "awaiting supplier payment"
+        : request.status === "paid" ? "paid and ready to order/receive" : "needs a supplier quote";
+      return {
+        severity: "warning",
+        message: `${escapeHtml(reference)} — ${partName} ${action}`,
+        link: `${pathPrefix}${request.queue === "accounting" ? "accounting.html" : "shop.html"}#job-part-purchase-requests`,
+      };
+    });
+  } catch (error) {
+    console.error("Couldn't check job-part purchase requests:", error);
+    return [];
+  }
 }
 
 async function checkPettyCash() {
@@ -260,6 +428,10 @@ async function runAllChecks() {
     checkOverduePayables(),
     checkExpiringContracts(),
     checkUnclaimedVehicles(),
+    checkJobsAwaitingBilling(),
+    checkCompletedJobCards(),
+    checkJobPartPurchases(),
+    checkUnpricedJobParts(),
     checkPettyCash(),
     checkLowStock(),
     checkCommissionAnomalies(),
@@ -275,7 +447,11 @@ async function runAllChecks() {
 
 function init() {
   injectBellUI();
-  runAllChecks();
+  if (document.body.dataset.role) {
+    runAllChecks();
+  } else {
+    document.addEventListener("apr:access-ready", runAllChecks, { once: true });
+  }
   setInterval(runAllChecks, REFRESH_INTERVAL_MS);
 }
 
