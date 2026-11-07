@@ -1,0 +1,337 @@
+import supabase from "./supabaseClient.js";
+
+const $=id=>document.getElementById(id);
+const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const params=new URLSearchParams(location.search);
+const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
+const CONDITION_GROUPS=[
+ ["Body",[
+  ["front-bumper","Front bumper"],["bonnet","Bonnet"],["roof","Roof"],["lf-wing","Left front wing"],["rf-wing","Right front wing"],
+  ["lf-door","Left front door"],["lr-door","Left rear door"],["rf-door","Right front door"],["rr-door","Right rear door"],
+  ["boot","Boot / tailgate"],["rear-bumper","Rear bumper"]
+ ]],
+ ["Glass and lights",[
+  ["windscreen","Front windscreen"],["rear-glass","Rear windscreen"],["l-headlight","Left headlight"],["r-headlight","Right headlight"],
+  ["l-taillight","Left tail light"],["r-taillight","Right tail light"],["l-mirror","Left mirror"],["r-mirror","Right mirror"]
+ ]],
+ ["Wheels",[
+  ["wheel-lf","Left front wheel"],["wheel-rf","Right front wheel"],["wheel-lr","Left rear wheel"],["wheel-rr","Right rear wheel"]
+ ]],
+ ["Interior",[
+  ["seats","Seats"],["dashboard","Dashboard"]
+ ]]
+];
+let selectedJob=null,record=null,report={parts:{},notes:""},editable=false;
+
+function showMessage(text,isError=false){
+ $("page-message").textContent=text;
+ $("page-message").classList.toggle("error",isError);
+}
+function setDetailMessage(text,isError=false){
+ $("detail-error").textContent=text;
+ $("detail-error").classList.toggle("error",isError);
+}
+function renderDamage(){
+ $("inspection-grid").innerHTML=CONDITION_GROUPS.map(([group,parts])=>`
+  <fieldset class="condition-group damage-group"><legend>${esc(group)}</legend><div class="grid">${parts.map(([key,name])=>{
+   const entry=report.parts?.[key],marked=Array.isArray(entry?.dmg)?entry.dmg:[];
+   const selected=Array.isArray(entry?.dmg)?marked[0]??"":null;
+   const options=["No damage",...DAMAGE_TYPES];
+   return `<div class="damage-card"><p class="damage-name">${esc(name)}</p><div class="condition-options" role="radiogroup" aria-label="${esc(name)} condition">
+    ${options.map((type,index)=>{const value=index===0?"":type;return `<label class="condition-option"><input type="radio" name="condition-${key}" data-part="${key}" value="${esc(value)}" ${selected===value?"checked":""} ${editable?"":"disabled"}><span>${esc(type)}</span></label>`}).join("")}
+   </div></div>`;
+  }).join("")}</div></fieldset>`).join("");
+}
+function getIncompleteConditions(){
+  return CONDITION_GROUPS.flatMap(([,parts])=>parts)
+   .filter(([key])=>{
+    const marked=report.parts?.[key]?.dmg;
+    return !Array.isArray(marked)||marked.length>1||marked.some(type=>!DAMAGE_TYPES.includes(type));
+   });
+}
+function validateInspection(){
+  const incomplete=getIncompleteConditions();
+  if(!incomplete.length)return true;
+  setDetailMessage(`Choose a condition for every vehicle area. ${incomplete.length} area${incomplete.length===1?" is":"s are"} still incomplete.`,true);
+  const first=$("inspection-grid").querySelector(`input[data-part="${incomplete[0][0]}"]`);
+  first?.scrollIntoView({behavior:"smooth",block:"center"});
+  first?.focus();
+  return false;
+}
+const normalizeMatch=value=>String(value||"").trim().toLocaleUpperCase();
+function setEditable(value){
+ editable=value;
+ ["customer-name-input","vehicle-registration-input","checked-by-input"].forEach(id=>$(id).readOnly=!editable);
+ ["customer-name-input","vehicle-registration-input","checked-by-input","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
+ $("fuel").disabled=!editable;
+ $("odometer").disabled=!editable;
+ $("save-checklist").hidden=!editable;
+ $("delete-checklist").hidden=!record;
+ $("confirm-check").checked=false;
+ $("save-checklist").disabled=editable;
+ $("confirm-label").classList.toggle("hidden",!editable);
+ renderDamage();
+}
+function startNewChecklist(prefillJob=null){
+ record=null;report={parts:{},notes:""};selectedJob=prefillJob;
+ $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
+ $("checklist-number-display").hidden=true;$("checklist-number-display").textContent="";
+ $("print-checklist-number").textContent="";
+ $("job-meta").hidden=!prefillJob;
+ $("job-meta").textContent=prefillJob?`Checklist for ${prefillJob.cro_number||`JC-${String(prefillJob.job_number??"").padStart(5,"0")}`}`:"";
+ $("customer-name-input").value=prefillJob?.customers?.full_name||"";
+ $("vehicle-registration-input").value=prefillJob?.vehicles?.license_plate||"";
+ $("checked-by-input").value="";
+ $("checklist-notes").value="";
+ $("fuel").value=prefillJob?.fuel_level_in||"";
+ $("odometer").value=prefillJob?.odometer_in??"";
+ $("confirmed-notice").classList.add("hidden");
+ $("open-job").classList.add("hidden");
+ $("link-existing-fields").hidden=true;
+ $("detail-status").textContent=prefillJob?"Complete the required drop-off details and confirm this checklist.":"Enter the customer and vehicle details, then complete the checklist.";
+ $("save-checklist").textContent="Save and confirm checklist";
+ setDetailMessage("");setEditable(true);
+}
+function renderChecklistList(rows){
+ $("checklist-list").innerHTML=rows.length?rows.map(item=>{
+  const customer=item.customer_name||item.customers?.full_name||"Customer not recorded";
+  const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
+  const status=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"Ready to link to a job card";
+  return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a><button class="btn btn--danger" type="button" data-delete-checklist="${esc(item.id)}">Delete</button></div></div>`;
+ }).join(""):'<p class="message">No saved vehicle checklists yet. Create one to begin.</p>';
+}
+async function loadList(){
+ const{data,error}=await supabase.from("job_condition_reports")
+  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .order("updated_at",{ascending:false}).limit(300);
+ if(error)throw new Error(`Couldn't load saved checklists: ${error.message}`);
+ renderChecklistList(data||[]);
+}
+async function loadJob(jobId){
+ const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,vehicle_id,fuel_level_in,odometer_in,customers(full_name),vehicles(license_plate,make,model,year)").eq("id",jobId).single();
+ if(error)throw new Error(`Couldn't load the job card: ${error.message}`);
+ return data;
+}
+async function loadRecord(id){
+ const{data,error}=await supabase.from("job_condition_reports")
+  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .eq("id",id).single();
+ if(error)throw new Error(`Couldn't load this checklist: ${error.message}`);
+ return data;
+}
+async function showRecord(item){
+ record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";
+ selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
+ $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
+ $("customer-name-input").value=item.customer_name||item.customers?.full_name||"";
+ $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
+ $("checklist-notes").value=report.notes;
+ $("checklist-number-display").textContent=`Checklist #${item.checklist_number}`;
+ $("checklist-number-display").hidden=false;
+ $("print-checklist-number").textContent=`#${item.checklist_number}`;
+ $("checked-by-input").value=item.checked_by||"";
+ $("job-meta").hidden=!item.job_id;
+ $("job-meta").textContent=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"";
+ $("fuel").value=item.fuel_level_in||"";$("odometer").value=item.odometer_in??"";
+ $("detail-status").textContent=item.confirmed_at?`Confirmed ${new Date(item.confirmed_at).toLocaleString()}. Edit checklist details here and confirm again to save changes.`:"Complete the checklist and confirm before creating a job card.";
+ $("save-checklist").textContent=item.confirmed_at?"Save checklist changes":"Save and confirm checklist";
+ $("confirmed-notice").textContent=item.confirmed_at?`✓ Checklist confirmed by ${item.checked_by||"staff"}.`:"";
+ $("confirmed-notice").classList.toggle("hidden",!item.confirmed_at);
+ $("open-job").classList.toggle("hidden",!item.confirmed_at);
+ $("open-job").textContent=item.job_id?"Open linked job card":"Create job card with checklist details";
+ $("open-job").href=item.job_id
+  ?`repairs.html?job=${encodeURIComponent(item.job_id)}`
+  :`repairs.html?checklist=${encodeURIComponent(item.id)}`;
+ $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id);
+ $("link-job").disabled=true;
+ setEditable(true);
+ setDetailMessage("");
+ if(item.confirmed_at&&!item.job_id)await loadMatchingJobs(item);
+}
+async function loadMatchingJobs(item){
+ const{data,error}=await supabase.from("repair_jobs")
+  .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name),vehicles(license_plate)")
+  .order("created_at",{ascending:false}).limit(1000);
+ if(error)throw new Error(`Couldn't load matching job cards: ${error.message}`);
+ const matches=(data||[]).filter(job=>
+  normalizeMatch(job.customers?.full_name)===normalizeMatch(item.customer_name)
+  && normalizeMatch(job.vehicles?.license_plate)===normalizeMatch(item.vehicle_registration)
+  && (!item.customer_id||String(item.customer_id)===String(job.customer_id))
+  && (!item.vehicle_id||String(item.vehicle_id)===String(job.vehicle_id))
+ );
+ $("job-select").replaceChildren(new Option(matches.length?"Select a job card":"No matching job cards",""),...matches.map(job=>new Option(job.cro_number||`JC-${String(job.job_number??"").padStart(5,"0")}`,job.id)));
+ $("link-existing-fields").hidden=!matches.length;
+}
+async function saveAndConfirm(){
+ const button=$("save-checklist");
+ if(!validateInspection())return;
+ const customerName=$("customer-name-input").value.trim();
+ const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
+ const checkedBy=$("checked-by-input").value.trim();
+ if(!customerName)return setDetailMessage("Enter the customer name.",true);
+ if(!vehicleRegistration)return setDetailMessage("Enter the vehicle registration number.",true);
+ if(!checkedBy)return setDetailMessage("Enter the name of the person completing the checklist.",true);
+ if(!$("fuel").value)return setDetailMessage("Select the fuel level at drop-off.",true);
+ const odometerText=$("odometer").value.trim();
+ const odometer=odometerText?Number(odometerText):null;
+ if(!odometerText||!Number.isSafeInteger(odometer)||odometer<0)return setDetailMessage("Enter a valid whole-number odometer reading.",true);
+ button.disabled=true;setDetailMessage("");
+ try{
+  const payload={
+   job_id:selectedJob?.id||record?.job_id||null,
+   customer_id:record?.customer_id||selectedJob?.customer_id||null,
+   vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,
+   customer_name:customerName,vehicle_registration:vehicleRegistration,
+   checked_by:checkedBy,
+   report,fuel_level_in:$("fuel").value||null,odometer_in:odometer,
+   updated_at:new Date().toISOString()
+  };
+  let checklistId=record?.id;
+  if(checklistId){
+   const{error}=await supabase.from("job_condition_reports").update({
+    customer_name:payload.customer_name,
+    vehicle_registration:payload.vehicle_registration,
+    checked_by:payload.checked_by,
+    report:payload.report,
+    fuel_level_in:payload.fuel_level_in,
+    odometer_in:payload.odometer_in,
+    updated_at:payload.updated_at
+   }).eq("id",checklistId);
+   if(error)throw new Error(`Couldn't save checklist changes: ${error.message}`);
+  }else{
+   const{data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number").single();
+   if(error)throw new Error(`Couldn't save the checklist: ${error.message}`);
+   checklistId=data.id;
+   record={id:checklistId,checklist_number:data.checklist_number,...payload};
+  }
+  const{data:confirmedAt,error:confirmError}=await supabase.rpc("confirm_vehicle_condition_checklist",{p_checklist_id:checklistId});
+  if(confirmError)throw new Error(`Checklist was saved but could not be confirmed: ${confirmError.message}`);
+  record={...record,...payload,confirmed_at:confirmedAt||new Date().toISOString()};
+  $("checklist-number-display").textContent=`Checklist #${record.checklist_number}`;
+  $("checklist-number-display").hidden=false;
+  $("print-checklist-number").textContent=`#${record.checklist_number}`;
+  location.href=`checklist.html?id=${encodeURIComponent(checklistId)}`;
+ }catch(error){
+  console.error("Checklist save failed:",error);
+  setDetailMessage(error.message||String(error),true);
+  button.disabled=false;
+ }
+}
+
+function printChecklist(){
+ const printWindow=window.open("","_blank");
+ if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
+ printWindow.addEventListener("load",()=>{printWindow.focus();printWindow.print()},{once:true});
+ const parts=CONDITION_GROUPS.map(([group,items])=>`
+  <section><h2>${esc(group)}</h2><table><tbody>${items.map(([key,name])=>{
+   const marked=report.parts?.[key],damage=Array.isArray(marked?.dmg)?marked.dmg:[];
+   const condition=marked?(damage.length?damage.join(", "):"No damage"):"Not recorded";
+   return `<tr><th>${esc(name)}</th><td>${esc(condition)}</td></tr>`;
+  }).join("")}</tbody></table></section>`).join("");
+ const checklistNumber=record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
+ const linkedJob=selectedJob?(selectedJob.cro_number||`JC-${String(selectedJob.job_number??"").padStart(5,"0")}`):"—";
+ const confirmed=record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
+ const note=String(report.notes||"").trim();
+ const logo=new URL("../assets/logo.png",location.href).href;
+ printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Vehicle checklist ${checklistNumber}</title>
+ <style>
+ *{box-sizing:border-box}body{max-width:190mm;margin:0 auto;padding:10mm;color:#18212b;font:13px/1.5 Arial,sans-serif}
+ header{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:2px solid #394554}
+ header img{width:58px;height:58px;object-fit:contain}header h1{margin:0;font-size:21px}header p{margin:3px 0;color:#536273}
+ .number{margin-left:auto;text-align:right;font-size:16px;font-weight:700}
+ .summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:18px 0}
+ .summary div{padding:8px 10px;border:1px solid #d2d9e2;border-radius:6px;break-inside:avoid}
+ .summary b{display:block;color:#536273;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+ h2{margin:16px 0 6px;font-size:14px}table{width:100%;border-collapse:collapse}
+ th,td{padding:5px 8px;border-bottom:1px solid #d2d9e2;text-align:left;vertical-align:top}
+ th{width:45%;font-weight:600}section{break-inside:avoid}
+ .note,.liability{margin-top:16px;padding:10px 12px;border:1px solid #d2d9e2;border-radius:6px}
+ .liability{border-left:4px solid #b45309;background:#fff7ed}
+ footer{margin-top:24px;padding-top:10px;border-top:1px solid #d2d9e2;color:#536273;font-size:10px}
+ @page{size:A4;margin:12mm}@media print{body{padding:0}}
+ </style></head><body>
+ <header><img src="${esc(logo)}" alt=""><div><h1>Vehicle Checklist</h1><p>Centric Auto Mobile</p></div><div class="number">${checklistNumber}</div></header>
+ <div class="summary">
+  <div><b>Customer</b>${esc($("customer-name-input").value.trim()||"—")}</div>
+  <div><b>Vehicle registration</b>${esc($("vehicle-registration-input").value.trim().toUpperCase()||"—")}</div>
+  <div><b>Checklist completed by</b>${esc($("checked-by-input").value.trim()||"—")}</div>
+  <div><b>Job card</b>${esc(linkedJob)}</div>
+  <div><b>Odometer at drop-off</b>${esc($("odometer").value||"—")} km</div>
+  <div><b>Fuel at drop-off</b>${esc($("fuel").value||"—")}</div>
+  <div><b>Checklist status</b>${esc(confirmed)}</div>
+  <div><b>Printed</b>${esc(new Date().toLocaleString())}</div>
+ </div>
+ ${parts}
+ ${note?`<div class="note"><b>Notes</b><br>${esc(note).replace(/\n/g,"<br>")}</div>`:""}
+ <div class="liability">Please remove all valuables from the vehicle. Centric Auto Mobile is not responsible for valuables left in the vehicle.</div>
+ <footer>Customer / driver signature: ________________________________ &nbsp;&nbsp; Date: __________________</footer>
+ </body></html>`);
+ printWindow.document.close();
+}
+
+$("new-checklist").onclick=()=>startNewChecklist();
+$("back-to-list").onclick=()=>{location.href="checklist.html"};
+$("inspection-grid").addEventListener("change",event=>{
+ const choice=event.target.closest('input[type="radio"][data-part]');
+ if(!choice||!editable)return;
+ report.parts[choice.dataset.part]={dmg:choice.value?[choice.value]:[]};
+});
+$("checklist-notes").addEventListener("input",event=>{report.notes=event.target.value});
+$("confirm-check").onchange=event=>{$("save-checklist").disabled=!event.target.checked};
+$("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-check").checked)return setDetailMessage("Confirm that the customer name and registration above are correct for this vehicle at drop-off.",true);saveAndConfirm()};
+$("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
+$("delete-checklist").onclick=()=>deleteChecklist(record?.id);
+$("print-checklist").onclick=printChecklist;
+$("checklist-list").addEventListener("click",event=>{
+ const button=event.target.closest("[data-delete-checklist]");
+ if(button)deleteChecklist(button.dataset.deleteChecklist,button);
+});
+$("link-job").onclick=async()=>{
+ const button=$("link-job"),jobId=$("job-select").value;
+ if(!record?.id||!jobId)return;
+ button.disabled=true;setDetailMessage("");
+ const{error}=await supabase.rpc("link_vehicle_condition_checklist",{p_checklist_id:record.id,p_job_id:jobId});
+ if(error){setDetailMessage(`Couldn't link checklist: ${error.message}`,true);button.disabled=false;return}
+ location.href=`checklist.html?id=${encodeURIComponent(record.id)}`;
+};
+async function deleteChecklist(checklistId,button=$("delete-checklist")){
+ if(!checklistId||!await window.aprConfirm("Delete this checklist? This cannot be undone.",{title:"Delete checklist",confirmLabel:"Delete checklist",danger:true}))return;
+ button.disabled=true;showMessage("");
+ const{data,error}=await supabase.from("job_condition_reports").delete().eq("id",checklistId).select("id").maybeSingle();
+ if(error||!data){
+  const message=error?.message||"The checklist was not deleted.";
+  console.error("Checklist deletion failed:",error||message);
+  if(record?.id===checklistId)setDetailMessage(`Couldn't delete checklist: ${message}`,true);
+  else showMessage(`Couldn't delete checklist: ${message}`,true);
+  button.disabled=false;
+  return;
+ }
+ if(record?.id===checklistId){
+  record=null;selectedJob=null;
+  $("detail-view").classList.add("hidden");$("list-view").classList.remove("hidden");
+ }
+ await loadList();
+ showMessage("Checklist deleted.");
+}
+
+async function initialize(){
+ const{data:sessionData,error:sessionError}=await supabase.auth.getSession();
+ if(sessionError)throw new Error(`Couldn't verify your sign-in: ${sessionError.message}`);
+ if(!sessionData.session){location.href="../login.html";return}
+ const{data:access,error:accessError}=await supabase.rpc("current_access_level");
+ if(accessError)throw new Error(`Couldn't verify staff access: ${accessError.message}`);
+ if(Number(access)<1)throw new Error("You do not have permission to access workshop checklists.");
+ const jobId=params.get("job"),checklistId=params.get("id");
+ if(checklistId){await showRecord(await loadRecord(checklistId));return}
+ if(jobId){
+  selectedJob=await loadJob(jobId);
+  const{data:linked,error}=await supabase.from("job_condition_reports").select("id").eq("job_id",jobId).maybeSingle();
+  if(error)throw new Error(`Couldn't find the job's checklist: ${error.message}`);
+  if(linked){await showRecord(await loadRecord(linked.id));return}
+  startNewChecklist(selectedJob);return;
+ }
+ $("list-view").classList.remove("hidden");$("detail-view").classList.add("hidden");
+ await loadList();
+}
+initialize().catch(error=>{console.error("Checklist page failed to initialize:",error);showMessage(error.message||String(error),true)});
+
