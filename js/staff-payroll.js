@@ -229,7 +229,7 @@ async function processPayroll(event) {
       sum + payment.gross_salary + payment.overtime_amount + payment.bonus_amount + payment.commission_amount, 0));
     const totalDeductions = roundMoney(payments.reduce((sum, payment) => sum + payment.deductions, 0));
     const period = new Date(year, month - 1, 1).toLocaleString("default", { month: "long", year: "numeric" });
-    if (!window.confirm(`Process payroll for ${payments.length} active employees for ${period}? Net pay will total ${money(totalNet)}. This action cannot be undone here.`)) return;
+    if (!await window.aprConfirm(`Process payroll for ${payments.length} active employees for ${period}? Net pay will total ${money(totalNet)}. This action cannot be undone here.`, { title: "Confirm payroll", confirmLabel: "Process payroll", danger: true })) return;
 
     const { data: accounts, error: accountError } = await supabase.from("accounts").select("id, code");
     if (accountError) throw new Error("Couldn't load payroll ledger accounts: " + accountError.message);

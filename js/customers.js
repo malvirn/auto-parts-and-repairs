@@ -15,6 +15,9 @@ let editingVehicleId = null;
 let savedCustomerId = null;
 let savedVehicleId = null;
 let customerSubmissionInProgress = false;
+const VEHICLE_BODY_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Other"];
+const vehicleBodyTypeValue = value =>
+  VEHICLE_BODY_TYPES.find(type => type.toLowerCase() === String(value || "").trim().toLowerCase()) || "Other";
 
 installBulkDelete({
   tbody: tableBody,
@@ -215,7 +218,7 @@ async function startEditingCustomer(customerId) {
 
   const vehicle = customer.vehicles?.[0] || null;
   document.getElementById("cust-plate").value = vehicle?.license_plate || "";
-  document.getElementById("cust-body-type").value = vehicle?.body_type || "Other";
+  document.getElementById("cust-body-type").value = vehicleBodyTypeValue(vehicle?.body_type);
   document.getElementById("cust-make").value = vehicle?.make || "";
   document.getElementById("cust-model").value = vehicle?.model || "";
   document.getElementById("cust-year").value = vehicle?.year || "";
@@ -263,7 +266,7 @@ plateField?.addEventListener("change", async () => {
   document.getElementById("cust-type").value = data.customers.customer_type || "individual";
   document.getElementById("cust-phone").value = data.customers.phone || "";
   document.getElementById("customer-email").value = data.customers.email || "";
-  document.getElementById("cust-body-type").value = data.body_type || "Other";
+  document.getElementById("cust-body-type").value = vehicleBodyTypeValue(data.body_type);
   document.getElementById("cust-make").value = data.make || "";
   document.getElementById("cust-model").value = data.model || "";
   document.getElementById("cust-year").value = data.year || "";
@@ -395,7 +398,7 @@ if (form) {
 
     if (existing) {
       if (existing.is_archived) {
-        if (!confirm(`${existing.full_name} is archived. Restore this customer record and continue?`)) return;
+        if (!await window.aprConfirm(`${existing.full_name} is archived. Restore this customer record and continue?`, { title: "Restore customer", confirmLabel: "Restore customer" })) return;
         const { error: restoreError } = await supabase.from("customers")
           .update({ deleted_at: null })
           .eq("id", existing.id);

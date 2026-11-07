@@ -48,9 +48,14 @@ export async function loadUserProfile(userId) {
   }
 
   const profile = roleResult.value.data;
+  const profileRole = normalizeRole(profile?.role);
   return {
     ...profile,
-    role: Number(profile?.access_level) >= 2 ? "super_admin" : normalizeRole(profile?.role),
+    role: profileRole === "accounting"
+      ? "accounting"
+      : Number(profile?.access_level) >= 2 || profileRole === "super_admin"
+        ? "super_admin"
+        : profileRole,
     is_active: activeResult.status === "fulfilled" && !activeResult.value.error
       ? activeResult.value.data?.is_active !== false
       : true,

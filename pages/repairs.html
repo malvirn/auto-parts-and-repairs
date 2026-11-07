@@ -298,6 +298,11 @@
     .ov-bar{height:8px;margin-top:6px;border-radius:4px;background:color-mix(in srgb,var(--text) 10%,transparent)}
     .ov-bar i{display:block;height:100%;border-radius:4px;background:var(--green-bright)}
     .ov-empty{padding:14px 0;color:var(--muted);font-size:.88rem}
+    .apr-state--loading{display:flex;align-items:center;gap:14px;min-height:110px;padding:22px;border:1px solid rgba(31,196,103,.18);border-radius:14px;background:rgba(16,24,26,.72)}
+    .apr-state__spinner{width:24px;height:24px;flex:none;border:3px solid rgba(31,196,103,.2);border-top-color:var(--green-bright);border-radius:50%;animation:job-card-load-spin .8s linear infinite}
+    .apr-state__copy strong{display:block;color:var(--text);font-size:.95rem}
+    .apr-state__copy p{margin:4px 0 0;color:var(--muted);font-size:.84rem;line-height:1.5}
+    @keyframes job-card-load-spin{to{transform:rotate(360deg)}}
 
     @media (min-width:761px) and (max-width:1400px){
       .hdr-right .hdr-divider,.hdr-hello{display:none} /* give the search bar the room */
@@ -319,39 +324,19 @@
 .rc-tabs .grow{flex:1}
 .rc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
 .rc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid color-mix(in srgb,var(--text) 9%,transparent);cursor:pointer}
+.checklist-number-badge{display:inline-block;margin-left:8px;padding:3px 7px;border:1px solid #14823b;border-radius:6px;color:#14823b;font-size:.74rem;letter-spacing:.03em;vertical-align:middle}
 .rc-row:last-child{border-bottom:0}.rc-row:hover b{color:var(--green-bright)}
 .rc-row small{display:block;color:var(--muted);margin-top:2px}
 .rc-amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,122,18,.18);color:#ffb070}
 .pill.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}.pill.overdue{background:rgba(255,107,107,.18);color:#ff8585}
-.rc-build{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.rc-build{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:start}
 @media(max-width:900px){.rc-build{grid-template-columns:1fr}}
 .rc-form{display:grid;gap:12px}.rc-form h3{margin:6px 0 0;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .rc-form input,.rc-form select,.rc-form textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit;font-size:16px}
 .rc-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.rc-build{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.9fr);gap:22px;align-items:start;margin-top:18px}
+.rc-build{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:start;margin-top:18px}
 .rc-build .rc-form{min-width:0;max-width:none!important;margin-top:0!important}
-.build-inspection{position:sticky;top:18px;min-width:0;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text)}
-.build-inspection h3{margin:0 0 6px;color:var(--text);font-size:1.05rem}
-.build-inspection>p{margin:0 0 14px;color:var(--muted);font-size:.85rem;line-height:1.5}
-.build-inspection table{width:100%;border-collapse:collapse;color:var(--text);font-size:.82rem}
-.build-inspection th{padding:8px 4px;border-bottom:1px solid var(--line);color:var(--muted);font-size:.68rem;text-align:center}
-.build-inspection th:first-child{text-align:left}
-.build-inspection td{padding:10px 4px;border-bottom:1px solid color-mix(in srgb,var(--text) 12%,transparent)}
-.build-inspection td:not(:first-child){width:66px;text-align:center}
-.build-inspection .inspection-choice{position:relative;display:inline-flex;width:24px;height:24px;vertical-align:middle;cursor:pointer}
-.build-inspection .inspection-choice input{position:absolute;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.build-inspection .inspection-choice span{display:grid;width:24px;height:24px;place-items:center;border:1px solid var(--muted);border-radius:4px;background:var(--panel);color:#fff;font-size:16px;font-weight:800;line-height:1}
-.build-inspection .inspection-choice input:checked+span{border-color:var(--green);background:var(--green)}
-.build-inspection .inspection-choice input:checked+span::after{content:"✓"}
-.build-inspection .inspection-choice input:focus-visible+span{outline:2px solid var(--green-bright);outline-offset:2px}
-.build-inspection-readings{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;color:var(--text);font-size:.82rem}
-.build-inspection-readings b{display:block;margin-top:3px;color:var(--text);font-variant-numeric:tabular-nums}
-.build-inspection label[for="build-inspection-notes"]{display:block;margin:12px 0 6px;color:var(--text);font-size:.82rem;font-weight:700}
-.build-inspection textarea{box-sizing:border-box;width:100%;min-height:84px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 90%,var(--text));color:var(--text);font:inherit;font-size:16px;resize:vertical}
-.build-inspection textarea::placeholder{color:var(--muted)}
-.build-valuables-warning{margin-top:14px;padding:12px;border:1px solid #c4473e;border-left:5px solid #c4473e;border-radius:8px;background:#fff2f0;color:#6f1711;font-size:.82rem;font-weight:700;line-height:1.5}
-@media(max-width:900px){.rc-build{grid-template-columns:1fr}.build-inspection{position:static}}
 .li{display:grid;grid-template-columns:1fr 62px 86px 32px;gap:8px}
 .li button{border:0;background:none;color:#ff6b6b;font-size:20px;cursor:pointer}
 .rc-bar{display:flex;gap:10px;flex-wrap:wrap}
@@ -406,23 +391,20 @@
 }
 
 /* ===== car damage grid ===== */
-.build-inspection{grid-column:1/-1!important;position:static!important}
 .job-edit-modal{width:min(1120px,100%)!important}
 .dmg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px;margin:10px 0}
-.dmg-tile{display:grid;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:0}
+.dmg-tile{display:grid;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:0}
 .dmg-tile.has-dmg{border-color:#ff6b6b;box-shadow:0 0 0 1px #ff6b6b inset}
 .dmg-name{font-size:.78rem;font-weight:800;color:var(--text);line-height:1.2}
-.dmg-photo{position:relative;display:grid;place-items:center;height:86px;border:1px dashed var(--muted);border-radius:8px;background:color-mix(in srgb,var(--panel) 85%,var(--text));color:var(--muted);cursor:pointer;overflow:hidden;font-size:.68rem;text-align:center}
-.dmg-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.dmg-photo svg{width:42px;height:30px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.dmg-photo span{display:block;margin-top:2px}
-.dmg-photo input{display:none}
-.dmg-x{position:absolute;top:3px;right:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:14px;line-height:1;cursor:pointer;z-index:2}
+.dmg-part-icon{display:grid;place-items:center;min-height:44px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:8px;background:color-mix(in srgb,var(--panel) 85%,var(--text));color:var(--green-bright)}
+.dmg-part-icon svg{width:42px;height:30px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .dmg-chips{display:flex;flex-wrap:wrap;gap:4px}
-.dmg-chip{padding:3px 7px;border:1px solid var(--muted);border-radius:999px;background:none;color:var(--muted);font:600 .66rem var(--font);cursor:pointer}
-.dmg-chip[aria-pressed="true"]{background:#ff6b6b;border-color:#ff6b6b;color:#fff}
-.dmg-lightbox{position:fixed;inset:0;z-index:400;display:grid;place-items:center;background:rgba(0,0,0,.88);padding:16px}
-.dmg-lightbox img{max-width:100%;max-height:100%;border-radius:8px}
+.dmg-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border:1px solid var(--muted);border-radius:7px;background:color-mix(in srgb,var(--panel) 70%,var(--text));color:var(--muted);font:700 .66rem var(--font);cursor:pointer}
+.dmg-chip::before{content:"+";display:grid;width:14px;height:14px;place-items:center;border:1px solid currentColor;border-radius:50%;font-size:11px;line-height:1}
+.dmg-chip[aria-pressed="true"]{background:#b42318;border-color:#ff8b82;color:#fff}
+.dmg-chip[aria-pressed="true"]::before{content:"✓";border-color:transparent;font-size:12px}
+.dmg-chip:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px}
+.damage-sticker{display:inline-block;margin:2px 3px 2px 0;padding:2px 7px;border:1px solid #b42318;border-radius:999px;background:#fff2f0;color:#8f1d14;font-size:10px;font-weight:800}
 .job-edit-damage{grid-column:1/-1}
 #doc .dm-sum{font-size:11px;margin:6px 0}
 #doc .dm-figs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
@@ -659,6 +641,7 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
         <button type="button" class="nav-grp" aria-expanded="false" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link active" href="repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
+          <a class="nav-link" href="checklist.html" title="Vehicle Checklist"><i data-lucide="clipboard-check"></i> Vehicle Checklist</a>
           <a class="nav-link" href="customers.html" title="Customers"><i data-lucide="users"></i> Customers</a>
           <a class="nav-link" href="technicians.html" data-level="2" title="Employees &amp; Staff"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
@@ -702,24 +685,31 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
     <input class="job-search" type="search" id="job-search" placeholder="Filter job cards…" autocomplete="off" />
     <div class="rc-stats" style="margin-top:16px" id="stats"></div>
     <div class="chips" id="chips"></div>
-    <div id="list"><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Fetching vehicle, customer, and workshop status details…</p></div></div></div>
+    <div id="list"><div class="apr-state apr-state--loading" role="status" aria-live="polite"><span class="apr-state__spinner" aria-hidden="true"></span><div class="apr-state__copy"><strong>Loading job cards</strong><p>Fetching vehicle, customer, and workshop status details…</p></div></div></div>
   </section>
 
   <section class="panel" id="v-build" hidden>
     <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New job card</h2></div>
     <div class="rc-build">
     <div class="rc-form">
+      <p class="section-note" id="checklist-prefill-note" hidden></p>
       <h3>1 · Customer</h3>
-      <select id="f-cust" aria-label="Select an existing customer or register a new customer"><option value="__new_customer__">Register a new customer…</option></select>
-      <input id="f-name" placeholder="Customer name" />
-      <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
+      <select id="f-cust" aria-label="Select an existing customer"><option value="">Select a registered customer</option></select>
+      <p class="section-note">Register the customer and vehicle in Customers first, then complete their vehicle checklist from Workshop.</p>
+      <input id="f-name" placeholder="Customer name" autocomplete="name" />
+      <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" autocomplete="tel" /><input id="f-email" type="email" placeholder="Email (optional)" autocomplete="email" /></div>
+      <p class="section-note">Phone and email can be edited here; changes are saved to the customer record when the job card is created.</p>
       <h3>2 · Vehicle</h3>
-      <select id="f-veh"><option value="">+ New vehicle</option></select>
-      <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
-      <div class="two"><input id="f-year" type="number" placeholder="Year" /><input id="f-plate" placeholder="Registration plate" style="text-transform:uppercase" /></div>
-      <div class="two"><input id="f-body-type" placeholder="Body type (e.g. Sedan)" /><input id="f-chassis" placeholder="Chassis number" /></div>
+      <select id="f-veh" aria-label="Select the customer's registered vehicle"><option value="">Select the customer's registered vehicle</option></select>
+      <p class="section-note">Make, model, year, body type, chassis, and engine details are editable here. Registration, fuel, and odometer come from the checklist and stay read-only.</p>
+      <div class="two"><input id="f-make" placeholder="Make" /><input id="f-model" placeholder="Model" /></div>
+      <div class="two"><input id="f-year" type="number" min="1900" max="2100" placeholder="Year" /><input id="f-plate" placeholder="Registration plate" style="text-transform:uppercase" readonly /></div>
+      <div class="two"><label for="f-body-type">Body type<select id="f-body-type"><option value="">Not recorded</option><option value="Sedan">Sedan</option><option value="SUV">SUV</option><option value="Hatchback">Hatchback</option><option value="Pickup">Pickup</option><option value="Van">Van</option><option value="Other">Other</option></select></label><input id="f-chassis" placeholder="Chassis number" /></div>
       <div class="two"><input id="f-engine" placeholder="Engine number" /></div>
-      <div class="two"><label for="f-fuel-in">Fuel level at drop-off<select id="f-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label><label for="f-odometer-in">Odometer at drop-off<input id="f-odometer-in" type="number" min="0" step="1" placeholder="Odometer reading"></label></div>
+      <div class="two">
+        <label for="f-fuel-dropoff">Fuel at drop-off<input id="f-fuel-dropoff" readonly placeholder="From confirmed checklist" /></label>
+        <label for="f-odometer-dropoff">Odometer at drop-off (km)<input id="f-odometer-dropoff" readonly placeholder="From confirmed checklist" /></label>
+      </div>
       <h3>3 · Work</h3>
       <textarea id="f-fault" rows="3" placeholder="Fault reported by customer"></textarea>
       <label for="job-labour-mode">Labour charging method</label>
@@ -745,32 +735,19 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
       <p class="section-note">Typed-in parts are added to the Accounting queue and must be priced there before being billed.</p>
       <div id="build-parts-list" aria-live="polite"></div>
       <h3>5 · Work</h3>
-      <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
-      <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
+      <label for="f-work-missing">Other mechanical findings (optional)</label><textarea id="f-work-missing" rows="3" placeholder="Additional mechanical findings"></textarea>
       <select id="f-tech"><option value="">Assign technician (optional)</option></select>
       <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Create job card</button>
     </div>
-    <aside class="build-inspection" aria-labelledby="build-inspection-title">
-      <h3 id="build-inspection-title">Vehicle condition checklist — drop-off</h3>
-      <p>Inspect the vehicle with the owner. Tap the photo box to add a picture, then tap the damage type (Dent, Scratch, Crack, Broken, Missing).</p>
-      <div class="dmg-grid" id="build-inspection-grid"></div>
-      <div class="build-inspection-readings">
-        <div>Fuel level at drop-off<b id="build-fuel-value">Not recorded</b></div>
-        <div>Odometer at drop-off<b id="build-odometer-value">Not recorded</b></div>
-      </div>
-      <label for="build-inspection-notes">Existing damage / additional notes</label>
-      <textarea id="build-inspection-notes" rows="3" placeholder="Describe any existing damage or other notes"></textarea>
-      <div class="build-valuables-warning">IMPORTANT: Centric Auto Mobile is not accountable for any valuables left in the car. The vehicle owner is encouraged to remove and carry all personal belongings before leaving the car.</div>
-    </aside>
     </div>
   </section>
 
   <section class="panel" id="v-doc" hidden>
     <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span>
       <label for="d-status" class="sr-only">Status</label><select class="st" id="d-status"></select></div>
-    <p id="daily-update-warning" class="section-note" role="status"></p>
     <div class="rc-bar" style="margin:16px 0">
       <button class="btn" id="s-edit" type="button"><i data-lucide="pencil"></i> Edit job details</button>
+      <button class="btn" id="s-checklist" type="button"><i data-lucide="clipboard-check"></i> Open checklist to edit details</button>
       <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp update</button>
       <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
       <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
@@ -781,14 +758,6 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
     <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="card" aria-pressed="false">Job card</button></div>
     <div class="jc-split" id="jc-split" data-pane="details">
       <div class="jc-left">
-    <section class="panel" aria-labelledby="job-update-title">
-      <h2 id="job-update-title">Daily job update</h2>
-      <p class="section-note">Save a note whenever job details or status change. Daily notes are optional.</p>
-      <label for="d-work-done">Work done</label><textarea id="d-work-done" rows="3"></textarea>
-      <label for="d-work-missing">Work still missing</label><textarea id="d-work-missing" rows="3"></textarea>
-      <label for="d-update-note">Daily update note (optional)</label><textarea id="d-update-note" rows="2" placeholder="What changed or was checked today?"></textarea>
-      <button class="btn btn--primary" id="save-daily-update" type="button">Save daily update</button>
-    </section>
     <section class="panel" aria-labelledby="job-parts-title">
       <h2 id="job-parts-title">Parts used</h2>
       <div id="job-parts-list" aria-live="polite"></div>
@@ -813,12 +782,13 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
       <label>Make<input id="edit-vehicle-make"></label>
       <label>Model<input id="edit-vehicle-model"></label>
       <label>Year<input id="edit-vehicle-year" type="number" min="1900" max="2100"></label>
-      <label>Registration plate<input id="edit-vehicle-plate"></label>
-      <label>Fuel at drop-off<select id="edit-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label>
-      <label>Odometer at drop-off<input id="edit-odometer-in" type="number" min="0" step="1"></label>
-      <h3 class="job-edit-section">Vehicle condition at drop-off</h3>
-      <div class="job-edit-damage"><div class="dmg-grid" id="edit-inspection-grid"></div>
-      <label style="display:grid;gap:6px;color:var(--muted);font-size:.82rem;font-weight:700">Existing damage / additional notes<textarea id="edit-inspection-notes" style="min-height:70px"></textarea></label></div>
+      <label>Body type<select id="edit-vehicle-body-type"><option value="">Not recorded</option><option value="Sedan">Sedan</option><option value="SUV">SUV</option><option value="Hatchback">Hatchback</option><option value="Pickup">Pickup</option><option value="Van">Van</option><option value="Other">Other</option></select></label>
+      <label>Chassis number<input id="edit-vehicle-chassis"></label>
+      <label>Engine number<input id="edit-vehicle-engine"></label>
+      <label>Registration plate<input id="edit-vehicle-plate" readonly aria-describedby="edit-vehicle-plate-note"></label>
+      <p class="job-edit-note" id="edit-vehicle-plate-note">Change the registration from the linked vehicle checklist.</p>
+      <label>Fuel at drop-off<select id="edit-fuel-in" disabled><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label>
+      <label>Odometer at drop-off<input id="edit-odometer-in" type="number" min="0" step="1" readonly></label>
       <h3 class="job-edit-section">Work and labour</h3>
       <label>Fault reported<textarea id="edit-fault" required></textarea></label>
       <label>Technician<select id="edit-technician"><option value="">Unassigned</option></select></label>
@@ -826,8 +796,7 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px}
       <label id="edit-rate-tier-field">Rate tier<select id="edit-rate-tier"></select></label>
       <label id="edit-labour-hours-field">Estimated hours<input id="edit-labour-hours" type="number" min="0.01" step="0.01"></label>
       <label id="edit-labour-estimate-field">Provider estimate ($)<input id="edit-labour-estimate" type="number" min="0" step="0.01"></label>
-      <label>Work done<textarea id="edit-work-done"></textarea></label>
-      <label>Work still missing<textarea id="edit-work-missing"></textarea></label>
+      <label>Other mechanical findings (optional)<textarea id="edit-work-missing"></textarea></label>
       <h3 class="job-edit-section">Parts</h3>
       <div class="job-edit-parts" id="edit-job-parts"></div>
       <div class="two" style="grid-column:1/-1">
@@ -920,115 +889,18 @@ const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const DEFAULT_ST=["open","in progress","awaiting parts","completed","delivered"];
-const CLOSED_STATUS="Collected";
-let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
-const inspectionState=new Map();
-const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
-const CAR_PARTS=[
- {key:"front-bumper",name:"Front bumper",icon:"bumper"},{key:"bonnet",name:"Bonnet",icon:"panel"},{key:"windscreen",name:"Windscreen",icon:"glass"},{key:"roof",name:"Roof",icon:"panel"},
- {key:"lf-wing",name:"Left front wing",icon:"panel"},{key:"rf-wing",name:"Right front wing",icon:"panel"},
- {key:"lf-door",name:"Left front door",icon:"door"},{key:"lr-door",name:"Left rear door",icon:"door"},{key:"rf-door",name:"Right front door",icon:"door"},{key:"rr-door",name:"Right rear door",icon:"door"},
- {key:"l-mirror",name:"Left mirror",icon:"mirror"},{key:"r-mirror",name:"Right mirror",icon:"mirror"},
- {key:"l-headlight",name:"Left headlight",icon:"light"},{key:"r-headlight",name:"Right headlight",icon:"light"},{key:"l-taillight",name:"Left tail light",icon:"light"},{key:"r-taillight",name:"Right tail light",icon:"light"},
- {key:"boot",name:"Boot / tailgate",icon:"panel"},{key:"rear-bumper",name:"Rear bumper",icon:"bumper"},{key:"rear-glass",name:"Rear windscreen",icon:"glass"},
- {key:"wheel-lf",name:"Left front wheel",icon:"wheel"},{key:"wheel-rf",name:"Right front wheel",icon:"wheel"},{key:"wheel-lr",name:"Left rear wheel",icon:"wheel"},{key:"wheel-rr",name:"Right rear wheel",icon:"wheel"},
- {key:"seats",name:"Seats / interior",icon:"seat"},{key:"dashboard",name:"Dashboard",icon:"seat"}
-];
-const PART_ICONS={
- door:'<rect x="6" y="4" width="32" height="22" rx="4"/><path d="M14 11h16M28 18h5"/>',
- light:'<ellipse cx="22" cy="15" rx="15" ry="9"/><circle cx="22" cy="15" r="4"/>',
- wheel:'<circle cx="22" cy="15" r="12"/><circle cx="22" cy="15" r="3"/><path d="M22 3v9M22 18v9M10 15h9M25 15h9"/>',
- glass:'<path d="M8 24l5-17h18l5 17z"/>',
- panel:'<rect x="5" y="6" width="34" height="19" rx="6"/>',
- bumper:'<path d="M4 18c0-6 4-9 9-9h18c5 0 9 3 9 9v4H4z"/>',
- mirror:'<path d="M12 8h20a4 4 0 014 4v6a4 4 0 01-4 4H12a4 4 0 01-4-4v-6a4 4 0 014-4z"/><path d="M22 22v5"/>',
- seat:'<path d="M12 5h10v13h10v8H12z"/>'
-};
-const emptyReport=()=>({parts:{},notes:""});
-const reportOf=id=>{const r=inspectionState.get(String(id));return r&&r.parts?r:emptyReport()};
-let buildInspection=emptyReport();
-let editInspection=emptyReport();
-function partTileHTML(p,entry={}){
- const dmg=entry.dmg||[];
- return `<div class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}"><div class="dmg-name">${esc(p.name)}</div>
- <label class="dmg-photo" title="Add photo of ${esc(p.name)}">${entry.photo?`<img src="${entry.photo}" alt="${esc(p.name)}"><button type="button" class="dmg-x" data-dmg-remove aria-label="Remove photo">×</button>`:`<div><svg viewBox="0 0 44 30">${PART_ICONS[p.icon]||PART_ICONS.panel}</svg><span>Tap to add photo</span></div>`}<input type="file" accept="image/*" data-dmg-file></label>
- <div class="dmg-chips">${DAMAGE_TYPES.map(t=>`<button type="button" class="dmg-chip" data-dmg-type="${t}" aria-pressed="${dmg.includes(t)}">${t}</button>`).join("")}</div></div>`;
-}
-function compressImage(file,max=720,quality=.66){
- return new Promise((ok,no)=>{
-  const url=URL.createObjectURL(file),img=new Image();
-  img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);ok(c.toDataURL("image/jpeg",quality))};
-  img.onerror=()=>{URL.revokeObjectURL(url);no(new Error("Couldn't read that image"))};
-  img.src=url;
- });
-}
-function showPhoto(src){
- const box=document.createElement("div");box.className="dmg-lightbox";box.innerHTML=`<img src="${src}" alt="Part photo">`;box.onclick=()=>box.remove();document.body.append(box);
-}
-function mountDamageGrid(el,getReport){
- const render=()=>{const r=getReport();el.innerHTML=CAR_PARTS.map(p=>partTileHTML(p,r.parts[p.key])).join("")};
- const refresh=tile=>{const p=CAR_PARTS.find(x=>x.key===tile.dataset.part);tile.outerHTML=partTileHTML(p,getReport().parts[p.key])};
- el.onclick=event=>{
-  const tile=event.target.closest(".dmg-tile");if(!tile)return;
-  const key=tile.dataset.part,r=getReport(),entry=r.parts[key]||(r.parts[key]={dmg:[],photo:""});
-  const chip=event.target.closest("[data-dmg-type]");
-  if(chip){const t=chip.dataset.dmgType;entry.dmg=entry.dmg.includes(t)?entry.dmg.filter(x=>x!==t):[...entry.dmg,t];refresh(tile);return}
-  if(event.target.closest("[data-dmg-remove]")){event.preventDefault();entry.photo="";refresh(tile);return}
-  if(event.target.closest(".dmg-photo")&&entry.photo&&event.target.tagName==="IMG"){event.preventDefault();showPhoto(entry.photo)}
- };
- el.onchange=async event=>{
-  const input=event.target.closest("[data-dmg-file]");if(!input||!input.files[0])return;
-  const tile=input.closest(".dmg-tile"),key=tile.dataset.part,r=getReport(),entry=r.parts[key]||(r.parts[key]={dmg:[],photo:""});
-  try{entry.photo=await compressImage(input.files[0]);refresh(tile)}catch(error){toast(error.message)}
- };
- render();
-}
-async function loadReport(jobId){
- try{
-  const{data,error}=await supabase.from("job_condition_reports").select("report").eq("job_id",String(jobId)).maybeSingle();
-  if(!error&&data?.report?.parts)return data.report;
- }catch(error){console.error("Condition report load failed:",error)}
- try{const local=JSON.parse(localStorage.getItem(`jcr-${jobId}`)||"null");if(local?.parts)return local}catch{}
- return null;
-}
-async function saveReport(jobId,report){
- inspectionState.set(String(jobId),report);
- let failed=false;
- try{
-  const{error}=await supabase.from("job_condition_reports").upsert({job_id:String(jobId),report,updated_at:new Date().toISOString()});
-  failed=Boolean(error);if(error)console.error("Condition report save failed:",error);
- }catch(error){failed=true;console.error(error)}
- if(failed){
-  try{localStorage.setItem(`jcr-${jobId}`,JSON.stringify(report))}catch{toast("Checklist photos too large to keep on this device.");return}
-  toast("Checklist saved on this device only. Run the job_condition_reports SQL to save it online.");
- }
-}
-function damageSummaryHTML(j){
- const r=reportOf(j.id);
- const marked=CAR_PARTS.filter(p=>{const e=r.parts[p.key];return e&&(e.dmg?.length||e.photo)});
- if(!marked.length&&!r.notes)return '<div class="dm-sum">No damage or photos recorded at drop-off.</div>';
- const clear=CAR_PARTS.filter(p=>!marked.includes(p)).map(p=>p.name);
- return `<div class="dm-figs">${marked.map(p=>{const e=r.parts[p.key];return `<div class="dm-fig">${e.photo?`<img src="${e.photo}" alt="${esc(p.name)}">`:'<div class="noimg">No photo</div>'}<b>${esc(p.name)}</b><span class="tags">${e.dmg?.length?esc(e.dmg.join(", ")):"No damage marked"}</span></div>`}).join("")}</div>
- ${clear.length&&marked.length?`<div class="dm-sum"><b>No damage marked:</b> ${esc(clear.join(", "))}</div>`:""}`;
-}
+const CLOSED_STATUS="Ready for Pickup";
+let jobs=[],pendingChecklists=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true,prefillChecklist=null;
 const veh=v=>v?[v.year,v.make,v.model].filter(Boolean).join(" "):"";
+const BODY_TYPES=["Sedan","SUV","Hatchback","Pickup","Van","Other"];
+const bodyTypeValue=value=>BODY_TYPES.find(type=>type.toLowerCase()===String(value||"").trim().toLowerCase())||"";
 const jn=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
 const stClass=s=>/complet|deliver|closed|collect|paid/i.test(s||"")?"paid":"";
 const money=v=>"$"+Number(v||0).toFixed(2);
 const localDate=v=>v?new Date(v).toLocaleDateString():"";
-const isTerminalStatus=status=>String(status||"").toLowerCase()===CLOSED_STATUS.toLowerCase();
-const isClosed=j=>Boolean(j.closed_at)||/^closed$/i.test(j.status||"")||isTerminalStatus(j.status);
-const needsDailyUpdate=()=>false;
-function renderBuildInspection(){
- mountDamageGrid($("build-inspection-grid"),()=>buildInspection);
- $("build-inspection-notes").value=buildInspection.notes;
- syncBuildReadings();
-}
-function syncBuildReadings(){
- const fuel=$("f-fuel-in").value,odometer=$("f-odometer-in").value.trim();
- $("build-fuel-value").textContent=fuel||"Not recorded";
- $("build-odometer-value").textContent=odometer?`${Number(odometer).toLocaleString()} km`:"Not recorded";
-}
+const isTerminalStatus=status=>String(status||"").toLowerCase()==="collected";
+const isReadyForPickup=j=>/^ready for pickup$/i.test(j.status||"")||/^closed$/i.test(j.status||"");
+const isClosed=j=>isTerminalStatus(j.status);
 function renderBuildParts(){
  $("build-parts-list").innerHTML=selectedJobParts.length?selectedJobParts.map((item,index)=>`<div class="rc-row"><div><b>${esc(item.description||item.name)}</b><small>${item.kind==="typed"&&!item.pricedFromQuotation?"Awaiting Accounting price":`${money(item.price)} each`}${item.kind==="typed"&&item.pricedFromQuotation?` · Cost ${money(item.costPrice)} · Markup ${Number(item.markupPct||0).toFixed(2)}% · Profit ${money((item.price-item.costPrice)*item.quantity)}`:""} · Qty ${item.quantity}</small></div><button class="btn" type="button" data-remove-build-part="${index}">Remove</button></div>`).join(""):'<p class="section-note">No parts selected.</p>';
  $("build-parts-list").querySelectorAll("[data-remove-build-part]").forEach(button=>button.onclick=()=>{selectedJobParts.splice(Number(button.dataset.removeBuildPart),1);renderBuildParts()});
@@ -1067,36 +939,47 @@ const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(job
 
 /* ---------- list ---------- */
 async function load(){
- $("list").innerHTML='<div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Refreshing the latest workshop jobs…</p></div></div>';
- const [j,t]=await Promise.all([
+ $("list").innerHTML='<div class="apr-state apr-state--loading" role="status" aria-live="polite"><span class="apr-state__spinner" aria-hidden="true"></span><div class="apr-state__copy"><strong>Loading job cards</strong><p>Refreshing the latest workshop jobs…</p></div></div>';
+ const [j,t,c]=await Promise.all([
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
-  supabase.from("technician_directory").select("id,full_name").limit(300)]);
+  supabase.from("technician_directory").select("id,full_name").limit(300),
+  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,updated_at").is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(500)]);
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
- techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
+ if(c.error){console.error("Couldn't load confirmed checklists awaiting job cards:",c.error);toast(`Couldn't load checklists awaiting job cards: ${c.error.message}`)}
+ techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];pendingChecklists=c.error?[]:c.data||[];
  const h=new URLSearchParams(location.search).get("highlight");render();
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
  const q=($("job-search").value||"").toLowerCase(),sts=statuses();
- const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.full_name,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
+ const jobRows=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.checklist_number?`checklist ${j.checklist_number}`:"",j.cro_number,j.customers?.customer_code,j.customers?.full_name,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q))).map(job=>({type:"job",value:job}));
+ const checklistRows=filter==="all"?pendingChecklists.filter(item=>!q||[`checklist ${item.checklist_number}`,item.checklist_number,item.customer_name,item.vehicle_registration].join(" ").toLowerCase().includes(q)).map(item=>({type:"checklist",value:item})):[];
+ const L=[...jobRows,...checklistRows].sort((a,b)=>new Date(b.value.created_at||b.value.confirmed_at||b.value.updated_at||0)-new Date(a.value.created_at||a.value.confirmed_at||a.value.updated_at||0));
  const active=jobs.filter(j=>!stClass(j.status)).length;
- $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
+ $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active],["Checklists ready",pendingChecklists.length]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)}">${esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'job-search\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]))}
+ $("list").innerHTML=L.map((row,i)=>row.type==="checklist"
+  ?`<div class="rc-row" data-i="${i}" role="button" tabindex="0"><div><b>Checklist #${esc(row.value.checklist_number)}</b> <span class="pill">Ready for job card</span><small>${esc(row.value.customer_name||"Customer not recorded")} · ${esc(row.value.vehicle_registration||"Registration not recorded")}</small><small>Confirmed ${dt(row.value.confirmed_at)} · Select to create a prefilled job card</small></div></div>`
+  :`<div class="rc-row" data-i="${i}" role="button" tabindex="0"><div><b>${jn(row.value)}</b> <span class="pill ${stClass(row.value.status)}">${esc(row.value.status||"open")}</span>${row.value.checklist_number?`<strong class="checklist-number-badge">CHECKLIST #${esc(row.value.checklist_number)}</strong>`:""}<small>${esc(row.value.customers?.full_name||"—")} · ${esc(veh(row.value.vehicles))} ${esc(row.value.vehicles?.license_plate||"")}</small><small>${esc((row.value.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(row.value.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards or checklists match</strong><p>Try a checklist number, registration, customer name, job number, or change the status filter to All.</p></div><button type="button" class="btn apr-state__action" data-clear-search>Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards or confirmed checklists yet</strong><p>Confirm a vehicle checklist and it will appear here, ready to create a prefilled job card.</p></div><button type="button" class="btn apr-state__action" id="empty-new-job">New job card</button></div>');
+ const clearSearch=$("list").querySelector("[data-clear-search]");
+ if(clearSearch)clearSearch.onclick=()=>{$("job-search").value="";filter="all";render()};
+ const emptyNewJob=$("list").querySelector("#empty-new-job");
+ if(emptyNewJob)emptyNewJob.onclick=openBuilder;
+ const openRow=el=>{const row=L[Number(el.dataset.i)];if(!row)return;if(row.type==="checklist")location.href=`repairs.html?checklist=${encodeURIComponent(row.value.id)}`;else open(row.value)};
+ $("list").querySelectorAll(".rc-row").forEach(el=>{el.onclick=()=>openRow(el);el.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();openRow(el)}}})}
 
 /* ---------- job card document ---------- */
 function docHTML(j){const c=j.customers||{},v=j.vehicles||{};
 const labour=Number(j.labour_cost)||0,parts=curParts.reduce((sum,part)=>sum+(part.awaiting_accounting_price?0:(Number(part.price_at_time)||0)*Number(part.quantity||0)),0),additional=curIncidentals.reduce((sum,item)=>sum+(Number(item.amount)||0),0),vat=Number((parts*0.05).toFixed(2)),subtotal=Number((labour+parts+additional).toFixed(2)),grandTotal=Number((subtotal+vat).toFixed(2));
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs</div></div>
-<div><h1>JOB CARD</h1><div style="text-align:right"><b>${jn(j)}</b>${j.cro_number?`<br>CRO ${esc(j.cro_number)}`:""}<br>${dt(j.created_at)}</div></div></div>
+<div><h1>JOB CARD</h1><div style="text-align:right"><b>${jn(j)}</b>${j.checklist_number?`<br><strong style="display:inline-block;margin:5px 0;padding:5px 9px;border:2px solid #14823b;color:#126b32;font-size:16px">CHECKLIST #${esc(j.checklist_number)}</strong>`:""}${j.cro_number?`<br>CRO ${esc(j.cro_number)}`:""}<br>${dt(j.created_at)}</div></div></div>
 <div class="meta"><div><small>Customer</small><b>${esc(c.full_name||"—")}</b><br>${esc(c.customer_code||"No customer ID")}<br>${esc(c.phone||"")}<br>${esc(c.email||"")}</div>
 <div style="text-align:right"><small>Vehicle</small><b>${esc(veh(v)||"—")}</b><br>Reg: <b>${esc(v.license_plate||"—")}</b><br>Technician: ${esc(techs[j.technician_id]||"Unassigned")}</div></div>
 <div><small style="color:#6b7570;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Status</small> <span class="stamp" style="transform:none;margin:0 0 0 6px;font-size:12px">${esc((j.status||"open").toUpperCase())}</span></div>
+${j.checklist_number?`<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Vehicle checklist #${esc(j.checklist_number)}</small><br>Fuel at drop-off: ${esc(j.fuel_level_in||"Not recorded")}<br>Odometer at drop-off: ${j.odometer_in==null?"Not recorded":`${Number(j.odometer_in).toLocaleString()} km`}</div>`:""}
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Fault reported</small><br>${esc(j.fault_reported||"—")}</div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Labour charge</small><br>${j.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based tier"} · ${money(j.labour_cost||0)}${j.labour_mode==="time_based"&&j.labour_hours?` (${Number(j.labour_hours)} hr${Number(j.labour_hours)===1?"":"s"})`:""}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work done</small><br>${esc(j.work_done||"—")}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work still missing</small><br>${esc(j.work_missing||"—")}</div>
+${j.work_missing?`<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Other mechanical findings</small><br>${esc(j.work_missing)}</div>`:""}
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Parts used</small><br>${curParts.map(part=>{
  const price=part.awaiting_accounting_price?null:Number(part.price_at_time)||0;
  return `${esc(part.parts?.description||part.part_name)} × ${esc(part.quantity)}${price===null?" — awaiting Accounting price":` — ${money(price)} each — ${money(price*Number(part.quantity||0))}`}`;
@@ -1104,12 +987,6 @@ return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mo
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Additional job costs</small><br>${curIncidentals.map(item=>`${esc(item.description||"Additional cost")} — ${money(Number(item.amount)||0)}`).join("<br>")||"—"}</div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Cost summary</small><br>Labour: ${money(labour)}<br>Parts: ${money(parts)}<br>Additional costs: ${money(additional)}<br>Subtotal: ${money(subtotal)}<br>VAT (5% of parts): ${money(vat)}<br><b>Total including VAT: ${money(grandTotal)}</b></div>
 ${j.tested_by||j.next_service_mileage!=null?`<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Vehicle test &amp; next checkup</small><br>Tested by: ${esc(j.tested_by||"—")}<br>Next checkup mileage: ${Number(j.next_service_mileage).toLocaleString()} km</div>`:""}
-<section class="inspection"><h2>Vehicle condition checklist — drop-off</h2>
-${damageSummaryHTML(j)}
-<div class="inspection-readings"><div>Fuel level at drop-off: <b>${esc(j.fuel_level_in||"Not recorded")}</b></div><div>Odometer at drop-off: <b>${j.odometer_in==null?"Not recorded":`${Number(j.odometer_in).toLocaleString()} km`}</b></div></div>
-<div style="margin-top:10px;font-size:11px"><b>Existing damage / additional notes:</b><div class="inspection-note" style="min-height:40px;white-space:pre-wrap">${esc(reportOf(j.id).notes||"")}</div></div>
-<div class="valuables-warning">IMPORTANT: Centric Auto Mobile is not accountable for any valuables left in the car. The vehicle owner is encouraged to remove and carry all personal belongings before leaving the car.</div>
-</section>
 <div class="sig"><div>Tested by: ${esc(j.tested_by||"")} · Date: ${dt(j.closed_at)}</div><div>Next checkup mileage: ${j.next_service_mileage==null?"—":`${Number(j.next_service_mileage).toLocaleString()} km`}</div></div>
 <div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 async function open(j){
@@ -1125,18 +1002,25 @@ async function open(j){
  else curParts=parts||[];
  if(incidentalsResult.error){console.error("Couldn't load additional job costs:",incidentalsResult.error);toast(`Couldn't load additional job costs: ${incidentalsResult.error.message}`);curIncidentals=[]}
  else curIncidentals=incidentalsResult.data||[];
- const savedReport=await loadReport(j.id);
- if(savedReport)inspectionState.set(String(j.id),savedReport);
  renderJobDoc(j);
- $("s-edit").hidden=false;
+ $("s-edit").hidden=isClosed(j);
+ $("s-checklist").onclick=async()=>{
+  let{data:report,error}=await supabase.from("job_condition_reports").select("id").eq("job_id",String(j.id)).maybeSingle();
+  if(error){toast(`Couldn't open the vehicle checklist: ${error.message}`);return}
+  if(!report&&j.checklist_number){
+   const fallback=await supabase.from("job_condition_reports").select("id").eq("checklist_number",j.checklist_number).maybeSingle();
+   if(fallback.error){toast(`Couldn't open the vehicle checklist: ${fallback.error.message}`);return}
+   report=fallback.data;
+  }
+  location.href=report?.id?`checklist.html?id=${encodeURIComponent(report.id)}`:`checklist.html?job=${encodeURIComponent(j.id)}`;
+ };
  const s=[...new Set([...statuses(),...DEFAULT_ST])].filter(x=>!/^closed$/i.test(x)&&!isTerminalStatus(x));
+ if(isReadyForPickup(j)&&!s.includes("Collected"))s.push("Collected");
  if(isClosed(j))s.push(j.status);
+ if(j.status&&!s.includes(j.status))s.push(j.status);
  $("d-status").innerHTML=s.map(x=>`<option value="${esc(x)}" ${x===j.status?"selected":""}>${esc(x)}</option>`).join("");
  $("d-status").disabled=isClosed(j);
- $("d-work-done").value=j.work_done||"";
- $("d-work-missing").value=j.work_missing||"";
- $("d-update-note").value="";
- $("close-job-card").hidden=isClosed(j);
+ $("close-job-card").hidden=isClosed(j)||isReadyForPickup(j);
  $("job-parts-list").innerHTML=curParts.map(part=>`<div class="rc-row"><div><b>${esc(part.parts?.description||part.part_name)}</b><small>Qty ${esc(part.quantity)}${part.awaiting_accounting_price?" · IMPORTANT: awaiting Accounting price":""}</small></div><b>${part.awaiting_accounting_price?"PRICE REQUIRED":money(Number(part.price_at_time)*Number(part.quantity))}</b></div>`).join("")||'<p class="section-note">No parts have been recorded.</p>';
  show("doc");
 }
@@ -1163,6 +1047,7 @@ function updateEditLabourFields(){
 }
 async function showEditJobModal(){
  if(!cur)return;
+ if(isClosed(cur)){toast("Collected job cards are locked.");return}
  if(!curPartsLoaded){toast("Couldn't load the current parts. Reload the job card before editing.");return}
  try{
   await Promise.all([loadInventoryParts(),loadLabourTiers()]);
@@ -1174,11 +1059,13 @@ async function showEditJobModal(){
  $("edit-vehicle-make").value=vehicle.make||"";
  $("edit-vehicle-model").value=vehicle.model||"";
  $("edit-vehicle-year").value=vehicle.year||"";
+ $("edit-vehicle-body-type").value=bodyTypeValue(vehicle.body_type);
+ $("edit-vehicle-chassis").value=vehicle.chassis_number||"";
+ $("edit-vehicle-engine").value=vehicle.engine_number||"";
  $("edit-vehicle-plate").value=vehicle.license_plate||"";
  $("edit-fuel-in").value=cur.fuel_level_in||"";
  $("edit-odometer-in").value=cur.odometer_in??"";
  $("edit-fault").value=cur.fault_reported||"";
- $("edit-work-done").value=cur.work_done||"";
  $("edit-work-missing").value=cur.work_missing||"";
  $("edit-labour-mode").value=cur.labour_mode||"time_based";
  $("edit-rate-tier").replaceChildren(...labourTiers.map(tier=>new Option(`${tier.tier_name} — ${money(tier.hourly_rate)}/hr`,tier.id)));
@@ -1189,9 +1076,6 @@ async function showEditJobModal(){
  if(cur.technician_id&&!techs[cur.technician_id])$("edit-technician").add(new Option("Current technician",cur.technician_id));
  $("edit-technician").value=cur.technician_id||"";
  $("edit-add-stock-part").innerHTML='<option value="">Choose a stocked part</option>'+partsCatalog.map(part=>`<option value="${esc(part.id)}" ${Number(part.quantity_in_stock)<1?"disabled":""}>${esc(part.description||part.name)} — ${money(part.selling_price)} (${Number(part.quantity_in_stock)||0} in stock)</option>`).join("");
- editInspection=JSON.parse(JSON.stringify(reportOf(cur.id)));
- mountDamageGrid($("edit-inspection-grid"),()=>editInspection);
- $("edit-inspection-notes").value=editInspection.notes||"";
  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
  renderEditParts();
  const closed=isClosed(cur);
@@ -1203,12 +1087,11 @@ async function showEditJobModal(){
  $("edit-customer-name").focus();
 }
 $("s-edit").onclick=showEditJobModal;
-$("edit-inspection-notes").addEventListener("input",event=>{editInspection.notes=event.target.value});
 $("edit-labour-mode").onchange=updateEditLabourFields;
 $("edit-job-cancel").onclick=()=>$("edit-job-modal").classList.add("hidden");
 $("edit-job-delete").onclick=async()=>{
  if(!cur||document.body.dataset.role!=="super_admin")return;
- if(!confirm(`Delete job card ${jn(cur)}? This also restores all used stock quantities and cannot be undone.`))return;
+ if(!await window.aprConfirm(`Delete job card ${jn(cur)}? This also restores all used stock quantities and cannot be undone.`,{title:"Delete job card",confirmLabel:"Delete job card",danger:true}))return;
  const button=$("edit-job-delete");
  button.disabled=true;
  $("edit-job-message").textContent="Deleting job card…";
@@ -1331,9 +1214,7 @@ $("edit-job-form").onsubmit=async event=>{
  const button=$("edit-job-save"),message=$("edit-job-message");
  message.textContent="";
  const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim();
- const odometerValue=$("edit-odometer-in").value.trim(),odometer=odometerValue?Number(odometerValue):null;
  if(!customerName||!fault){message.textContent="Customer name and reported fault are required.";return}
- if(odometerValue&&(!Number.isSafeInteger(odometer)||odometer<0)){message.textContent="Enter a valid whole-number odometer reading.";return}
  const mode=$("edit-labour-mode").value,timeBased=mode==="time_based",hours=Number($("edit-labour-hours").value);
  const tier=labourTiers.find(item=>item.id===$("edit-rate-tier").value);
  const labourCost=timeBased?Number((Number(tier?.hourly_rate||0)*hours).toFixed(2)):Number($("edit-labour-estimate").value);
@@ -1356,7 +1237,14 @@ $("edit-job-form").onsubmit=async event=>{
   }
   cur.customer_id=customerId;
   cur.customers=customerFields;
-  const vehicleFields={make:$("edit-vehicle-make").value.trim()||null,model:$("edit-vehicle-model").value.trim()||null,year:$("edit-vehicle-year").value?Number($("edit-vehicle-year").value):null,license_plate:$("edit-vehicle-plate").value.trim().toUpperCase()||null};
+  const vehicleFields={
+   make:$("edit-vehicle-make").value.trim()||null,
+   model:$("edit-vehicle-model").value.trim()||null,
+   year:$("edit-vehicle-year").value?Number($("edit-vehicle-year").value):null,
+   body_type:$("edit-vehicle-body-type").value||null,
+   chassis_number:$("edit-vehicle-chassis").value.trim()||null,
+   engine_number:$("edit-vehicle-engine").value.trim()||null,
+  };
   let vehicleId=cur.vehicle_id;
   if(vehicleId){
    const{data,error}=await supabase.from("vehicles").update(vehicleFields).eq("id",vehicleId).select("id").maybeSingle();
@@ -1368,8 +1256,8 @@ $("edit-job-form").onsubmit=async event=>{
    vehicleId=data.id;
   }
   cur.vehicle_id=vehicleId;
-  cur.vehicles=vehicleFields;
-  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_done:$("edit-work-done").value.trim()||null,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,fuel_level_in:$("edit-fuel-in").value||null,odometer_in:odometer,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
+  cur.vehicles={...cur.vehicles,...vehicleFields,license_plate:$("edit-vehicle-plate").value.trim().toUpperCase()||null};
+  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
   if($("edit-technician").value)updates.technician_id=$("edit-technician").value;
   else updates.technician_id=null;
   let{error}=await supabase.from("repair_jobs").update(updates).eq("id",cur.id);
@@ -1380,35 +1268,38 @@ $("edit-job-form").onsubmit=async event=>{
    error=retry.error;technicianNotSaved=!error&&Boolean(updates.technician_id);
   }
   if(error)throw new Error(`Parts and contact details were saved, but job details could not be updated: ${error.message}`);
-  await saveReport(cur.id,editInspection);
   $("edit-job-modal").classList.add("hidden");
   await load();
   const refreshed=jobs.find(job=>job.id===cur.id);
   if(refreshed)await open(refreshed);
-  toast(technicianNotSaved?"Job card saved without technician assignment (column unavailable)":"Job card details saved");
+  const savedMessage=technicianNotSaved?"Job card saved without technician assignment (column unavailable)":"Job card details saved";
+  toast(savedMessage);
  }catch(error){console.error("Couldn't save edited job card:",error);message.textContent=error.message||String(error)}
  finally{button.disabled=false}
 };
-async function saveDailyUpdate(status,extraFields={}){
+async function saveJobStatus(status,extraFields={}){
  if(!cur)return false;
- const note=$("d-update-note").value.trim();
- const now=new Date().toISOString();
- const updates={work_done:$("d-work-done").value.trim()||null,work_missing:$("d-work-missing").value.trim()||null,daily_update_note:note,daily_update_at:now,...extraFields};
+ const updates={...extraFields};
  if(status)updates.status=status;
  const{error}=await supabase.from("repair_jobs").update(updates).eq("id",cur.id);
- if(error){toast("Couldn't save job update: "+error.message);return false}
- Object.assign(cur,updates);$("d-update-note").value="";$("daily-update-warning").textContent="";
+ if(error){toast("Couldn't save job status: "+error.message);return false}
+ Object.assign(cur,updates);
  renderJobDoc(cur);
  if(status===CLOSED_STATUS){$("close-job-modal").classList.add("hidden");$("close-job-card").hidden=true;$("d-status").value=CLOSED_STATUS;$("d-status").disabled=true}
- toast(status===CLOSED_STATUS?"Job card closed":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved");render();
+ if(status==="Collected")window.aprToast?.("Vehicle marked as collected","success");
+ else toast(status===CLOSED_STATUS?"Job is ready for pickup":"Status updated — tap WhatsApp update to tell the customer");
+ render();
  return true;
 }
-$("save-daily-update").onclick=()=>saveDailyUpdate();
 $("d-status").onchange=async e=>{
  if(!cur||e.target.value===cur.status)return;
  const status=e.target.value;
- if(/^closed$/i.test(status)||isTerminalStatus(status)){e.target.value=cur.status;toast("Use Close job card and complete the test details to close this job");return}
- if(!await saveDailyUpdate(status))e.target.value=cur.status;
+ if(/^closed$/i.test(status)||status===CLOSED_STATUS){e.target.value=cur.status;toast("Use Close job card and complete the test details before marking this job ready");return}
+ if(isTerminalStatus(status)){
+  if(!isReadyForPickup(cur)){e.target.value=cur.status;toast("Complete and test the repair before marking the vehicle collected");return}
+  if(!await window.aprConfirm("Confirm that the vehicle has been handed back to the customer?",{title:"Confirm vehicle hand-back",confirmLabel:"Confirm collection"})){e.target.value=cur.status;return}
+ }
+ if(!await saveJobStatus(status))e.target.value=cur.status;
 };
 $("close-job-card").onclick=()=>{
  if(!cur||isClosed(cur))return;
@@ -1438,7 +1329,7 @@ $("close-job-form").onsubmit=async event=>{
  if(!Number.isSafeInteger(mileage)||mileage<0){$("close-job-message").textContent="Enter a valid next checkup mileage.";return}
  // Pricing is intentionally not a workshop-close requirement. The Ledger owns pricing.
  const closedAt=new Date().toISOString();
- if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt}))return;
+ if(!await saveJobStatus(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt}))return;
 };
 function jobWhatsAppMessage(type){
  const name=cur.customers?.full_name||"";
@@ -1456,8 +1347,7 @@ function jobWhatsAppMessage(type){
   `Current status: ${cur.status||"open"}`,
   cur.fault_reported?`Customer concern: ${cur.fault_reported}`:null,
   cur.diagnosis?`Diagnosis: ${cur.diagnosis}`:null,
-  cur.work_done?`Work completed: ${cur.work_done}`:null,
-  cur.work_missing?`Work still required: ${cur.work_missing}`:null,
+  cur.work_missing?`Other mechanical findings: ${cur.work_missing}`:null,
   "",
   "Labour:",
   `${cur.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based labour"} — ${money(labour)}`,
@@ -1483,7 +1373,7 @@ function jobWhatsAppMessage(type){
  ];
  const fullMessage=details.filter(line=>line!==null).join("\n");
  if(type==="diagnosis")return fullMessage.replace(`Current status: ${cur.status||"open"}`,`Current status: ${cur.status||"open"}\nDiagnosis update requested: ${cur.diagnosis||cur.fault_reported||"Further assessment is required"}`);
- if(type==="parts")return fullMessage.replace(`Current status: ${cur.status||"open"}`,`Current status: ${cur.status||"open"}\nParts/work update: The work is currently pending ${cur.work_missing||"required parts or further workshop work"}. We will update you as soon as progress is made.`);
+ if(type==="parts")return fullMessage.replace(`Current status: ${cur.status||"open"}`,`Current status: ${cur.status||"open"}\nWorkshop note: ${cur.work_missing||"Additional parts or further workshop work may be required"}. We will update you as soon as progress is made.`);
  if(type==="pickup")return fullMessage.replace(`Current status: ${cur.status||"open"}`,`Current status: ${cur.status||"open"}\nCollection update: The vehicle is ready for collection. Please contact us to arrange pickup.`);
  if(type==="service")return fullMessage.replace(`Current status: ${cur.status||"open"}`,`Current status: ${cur.status||"open"}\nService reminder: Please arrange a suitable appointment${cur.next_service_mileage!=null?` at ${Number(cur.next_service_mileage).toLocaleString()} km`:""}.`);
  return fullMessage;
@@ -1518,14 +1408,12 @@ $("job-whatsapp-send").onclick=()=>{
 /* ---------- create flow ---------- */
 async function openBuilder(){
  const params=new URLSearchParams(location.search);
- selectedJobParts=[];vehicles=[];
- buildInspection=emptyReport();
- renderBuildInspection();
- $("f-cust").value="__new_customer__";
- ["f-name","f-phone","f-email","f-make","f-model","f-year","f-plate","f-fault","f-work-done","f-work-missing","f-custom-part","f-fuel-in","f-odometer-in"].forEach(id=>$(id).value="");
- syncBuildReadings();
- ["f-name","f-phone","f-email"].forEach(id=>$(id).readOnly=false);
- $("f-veh").replaceChildren(new Option("+ New vehicle",""));
+ $("save").disabled=true;
+ selectedJobParts=[];vehicles=[];prefillChecklist=null;
+ $("checklist-prefill-note").hidden=true;$("checklist-prefill-note").textContent="";
+ $("f-cust").value="";
+ ["f-name","f-phone","f-email","f-make","f-model","f-year","f-plate","f-fault","f-work-missing","f-custom-part","f-fuel-dropoff","f-odometer-dropoff"].forEach(id=>$(id).value="");
+ $("f-veh").replaceChildren(new Option("Select the customer's registered vehicle",""));
  $("f-part").value="";$("f-part-qty").value="1";$("f-custom-qty").value="1";
  $("f-tech").value="";$("job-labour-mode").value="time_based";$("job-labour-hours").value="1";$("job-estimated-labour").value="0";
  updateLabourPreview();
@@ -1540,15 +1428,58 @@ async function openBuilder(){
   if(techniciansResult.error)throw new Error(`Couldn't load technicians: ${techniciansResult.error.message}`);
   builderCustomers=customersResult.data||[];
   $("f-cust").replaceChildren(
-   new Option("Register a new customer…","__new_customer__"),
+   new Option("Select a registered customer",""),
    ...builderCustomers.map(customer=>new Option(`${customer.full_name||"Unnamed"}${customer.phone?` — ${customer.phone}`:""}`,customer.id)),
   );
   $("f-tech").replaceChildren(
    new Option("Assign technician (optional)",""),
    ...(techniciansResult.data||[]).map(technician=>new Option(technician.full_name,technician.id)),
   );
+  const checklistId=params.get("checklist");
   const quotationId=params.get("quote");
-  if(quotationId){
+  if(checklistId){
+   const{data:checklist,error}=await supabase.from("job_condition_reports")
+    .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,vehicle_make,vehicle_model,vehicle_year,fuel_level_in,odometer_in,confirmed_at")
+    .eq("id",checklistId).single();
+   if(error)throw new Error(`Couldn't load checklist details: ${error.message}`);
+   if(!checklist.confirmed_at)throw new Error("Confirm this vehicle checklist before creating a job card.");
+   if(checklist.job_id){
+    location.href=`repairs.html?job=${encodeURIComponent(checklist.job_id)}`;
+    return;
+   }
+   prefillChecklist=checklist;
+   const matchingCustomers=builderCustomers.filter(customer=>normalizedJobValue(customer.full_name)===normalizedJobValue(checklist.customer_name));
+   const selectedCustomer=(checklist.customer_id&&builderCustomers.find(customer=>String(customer.id)===String(checklist.customer_id)&&normalizedJobValue(customer.full_name)===normalizedJobValue(checklist.customer_name)))
+    ||(matchingCustomers.length===1?matchingCustomers[0]:null);
+   if(selectedCustomer){
+    $("f-cust").value=selectedCustomer.id;
+    await $("f-cust").onchange({target:$("f-cust")});
+    const selectedVehicle=(checklist.vehicle_id&&vehicles.find(vehicle=>String(vehicle.id)===String(checklist.vehicle_id)))
+     ||vehicles.find(vehicle=>normalizedJobValue(vehicle.license_plate)===normalizedJobValue(checklist.vehicle_registration));
+    if(selectedVehicle){
+     $("f-veh").value=selectedVehicle.id;
+     $("f-veh").onchange({target:$("f-veh")});
+    }else{
+     $("f-plate").value=(checklist.vehicle_registration||"").toUpperCase();
+     $("f-make").value=checklist.vehicle_make||"";
+     $("f-model").value=checklist.vehicle_model||"";
+     $("f-year").value=checklist.vehicle_year||"";
+    }
+   }else{
+    await $("f-cust").onchange({target:$("f-cust")});
+    $("f-name").value=checklist.customer_name||"";
+    $("f-plate").value=(checklist.vehicle_registration||"").toUpperCase();
+    $("f-make").value=checklist.vehicle_make||"";
+    $("f-model").value=checklist.vehicle_model||"";
+    $("f-year").value=checklist.vehicle_year||"";
+   }
+   $("f-fuel-dropoff").value=checklist.fuel_level_in||"";
+   $("f-odometer-dropoff").value=checklist.odometer_in??"";
+   const registrationMatches=vehicles.some(vehicle=>normalizedJobValue(vehicle.license_plate)===normalizedJobValue(checklist.vehicle_registration));
+   const customerMatches=Boolean(selectedCustomer);
+   $("checklist-prefill-note").textContent=`Checklist #${checklist.checklist_number} is confirmed and prefilled. ${customerMatches&&registrationMatches?"Review the details and complete the fault and work information.":"The customer or vehicle is not registered yet. The job-card flow will create the missing records from this checklist; enter a phone number if the customer is new."}`;
+   $("checklist-prefill-note").hidden=false;
+  }else if(quotationId){
    const {data:quotation,error:quotationError}=await supabase
     .from("quotations")
     .select("*, customers(full_name,phone,email,customer_type), vehicles(make,model,year,license_plate,chassis_number,engine_number,body_type,odometer_out), quotation_items(*)")
@@ -1568,7 +1499,7 @@ async function openBuilder(){
      $("f-veh").onchange({target:$("f-veh")});
     }
    }else{
-    $("f-cust").value="__new_customer__";
+    $("f-cust").value="";
     $("f-cust").onchange({target:$("f-cust")});
     $("f-name").value=quotation.walk_in_name||customer?.full_name||"";
     $("f-phone").value=quotation.walk_in_phone||customer?.phone||"";
@@ -1579,14 +1510,10 @@ async function openBuilder(){
    $("f-model").value=details.model||vehicle?.model||"";
    $("f-year").value=details.year||vehicle?.year||"";
    $("f-plate").value=(details.license_plate||vehicle?.license_plate||"").toUpperCase();
-   const quotedBodyType=String(details.body_type||vehicle?.body_type||"").trim();
-   $("f-body-type").value=quotedBodyType.toLowerCase()==="others"?"":quotedBodyType;
+   $("f-body-type").value=bodyTypeValue(details.body_type||vehicle?.body_type);
    $("f-chassis").value=details.chassis_number||vehicle?.chassis_number||"";
    $("f-engine").value=details.engine_number||vehicle?.engine_number||"";
-   $("f-fuel-in").value=details.fuel_level_in||"";
-   $("f-odometer-in").value=details.odometer_in!=null?details.odometer_in:(vehicle?.odometer_out!=null?vehicle.odometer_out:"");
    $("f-fault").value=quotation.fault_reported||quotation.notes||"";
-   syncBuildReadings();
 
    const items=quotation.quotation_items||[];
    selectedJobParts=[];
@@ -1662,13 +1589,9 @@ async function openBuilder(){
    if(params.get("year"))$("f-year").value=params.get("year");
   }
   }
+  $("save").disabled=false;
  }catch(error){console.error("Couldn't load job card options:",error);toast(error.message||String(error))}
 }
-$("build-inspection-notes").addEventListener("input",event=>{buildInspection.notes=event.target.value});
-["input","change"].forEach(type=>{
- $("f-fuel-in").addEventListener(type,syncBuildReadings);
- $("f-odometer-in").addEventListener(type,syncBuildReadings);
-});
 $("add-stock-part").onclick=()=>{
  const part=partsCatalog.find(item=>item.id===$("f-part").value),quantity=Number($("f-part-qty").value);
  if(!part)return toast("Select an inventory part");
@@ -1688,9 +1611,10 @@ $("add-custom-part").onclick=()=>{
 $("f-cust").onchange=async e=>{
  const customer=builderCustomers.find(item=>item.id===e.target.value);
  vehicles=[];
- $("f-veh").replaceChildren(new Option("+ New vehicle",""));
+ $("f-veh").replaceChildren(new Option("Select the customer's registered vehicle",""));
+ $("f-fuel-dropoff").value="";$("f-odometer-dropoff").value="";
  ["f-make","f-model","f-year","f-plate","f-body-type","f-chassis","f-engine"].forEach(id=>$(id).value="");
- ["f-name","f-phone","f-email"].forEach(id=>{$(id).readOnly=Boolean(customer);});
+ $("f-name").readOnly=false;
  $("f-name").value=customer?.full_name||"";
  $("f-phone").value=customer?.phone||"";
  $("f-email").value=customer?.email||"";
@@ -1704,18 +1628,204 @@ $("f-veh").onchange=e=>{
  const vehicle=vehicles.find(item=>String(item.id)===e.target.value);
  $("f-make").value=vehicle?.make||"";$("f-model").value=vehicle?.model||"";
  $("f-year").value=vehicle?.year||"";$("f-plate").value=vehicle?.license_plate||"";
- $("f-body-type").value=vehicle?.body_type||"";$("f-chassis").value=vehicle?.chassis_number||"";$("f-engine").value=vehicle?.engine_number||"";
+ $("f-body-type").value=bodyTypeValue(vehicle?.body_type);$("f-chassis").value=vehicle?.chassis_number||"";$("f-engine").value=vehicle?.engine_number||"";
+ loadDropoffChecklist().catch(error=>toast(error.message||String(error)));
 };
+const normalizedJobValue=value=>String(value||"").trim().toLocaleUpperCase();
+async function loadDropoffChecklist(){
+ $("f-fuel-dropoff").value="";$("f-odometer-dropoff").value="";
+ if(prefillChecklist){
+  const sameCustomer=normalizedJobValue($("f-name").value)===normalizedJobValue(prefillChecklist.customer_name);
+  const sameVehicle=normalizedJobValue($("f-plate").value)===normalizedJobValue(prefillChecklist.vehicle_registration);
+  if(sameCustomer&&sameVehicle){
+   $("f-fuel-dropoff").value=prefillChecklist.fuel_level_in||"";
+   $("f-odometer-dropoff").value=prefillChecklist.odometer_in??"";
+  }
+  return;
+ }
+ const customerId=$("f-cust").value,vehicleId=$("f-veh").value;
+ if(!customerId||!vehicleId)return;
+ const{data,error}=await supabase.from("job_condition_reports")
+  .select("customer_id,vehicle_id,customer_name,vehicle_registration,fuel_level_in,odometer_in")
+  .is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(1000);
+ if(error)throw new Error(`Couldn't load the checklist drop-off readings: ${error.message}`);
+ const normalize=value=>String(value||"").trim().toLocaleUpperCase();
+ const checklist=(data||[]).find(item=>
+  normalize(item.customer_name)===normalize($("f-name").value)
+  &&normalize(item.vehicle_registration)===normalize($("f-plate").value)
+  &&(!item.customer_id||String(item.customer_id)===String(customerId))
+  &&(!item.vehicle_id||String(item.vehicle_id)===String(vehicleId))
+ );
+ if(checklist){
+  $("f-fuel-dropoff").value=checklist.fuel_level_in||"Not recorded";
+  $("f-odometer-dropoff").value=checklist.odometer_in??"";
+ }
+}
 $("save").onclick=async()=>{const b=$("save");
- if(!$("f-name").value.trim())return toast("Add the customer name");if(!$("f-fault").value.trim())return toast("Describe the fault");
- if(!$("f-cust").value)return toast("Select an existing customer or register a new one.");
- const odometerValue=$("f-odometer-in").value.trim(),odometer=odometerValue?Number(odometerValue):null;
- if(odometerValue&&(!Number.isSafeInteger(odometer)||odometer<0))return toast("Enter a valid whole-number odometer reading");
+ if((!$("f-cust").value||!$("f-veh").value)&&!prefillChecklist)return toast("Select a registered customer and vehicle, then complete the vehicle checklist before creating a job card.");
+ if(!$("f-name").value.trim())return toast("The selected customer has no name. Update the customer record first.");
+ let selectedCustomer=builderCustomers.find(customer=>String(customer.id)===$("f-cust").value)||null;
+ let selectedVehicle=vehicles.find(vehicle=>String(vehicle.id)===$("f-veh").value)||null;
+ if(selectedCustomer&&normalizedJobValue($("f-name").value)!==normalizedJobValue(selectedCustomer.full_name))return toast("Enter the selected customer's correct name.");
+ if(selectedVehicle&&normalizedJobValue($("f-plate").value)!==normalizedJobValue(selectedVehicle.license_plate))return toast("The vehicle registration must match the confirmed checklist.");
+ if(prefillChecklist&&normalizedJobValue($("f-plate").value)!==normalizedJobValue(prefillChecklist.vehicle_registration))return toast("The vehicle registration must match the confirmed checklist.");
+ const vehicleYearText=$("f-year").value.trim(),vehicleYear=vehicleYearText?Number(vehicleYearText):null;
+ if(vehicleYear!==null&&(!Number.isInteger(vehicleYear)||vehicleYear<1900||vehicleYear>2100))return toast("Enter a valid vehicle year between 1900 and 2100.");
+ if(!$("f-fault").value.trim())return toast("Describe the fault");
+ const customerPhone=$("f-phone").value.trim(),customerEmail=$("f-email").value.trim();
+ if(customerEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail))return toast("Enter a valid customer email address.");
  const labourMode=$("job-labour-mode").value,rateTier=labourTiers.find(t=>t.id===$("job-rate-tier").value),hours=Number($("job-labour-hours").value)||0;
  if(labourMode==="time_based"&&(!rateTier||hours<=0))return toast("Choose a rate tier and enter valid labour hours");
  const labourCost=labourMode==="time_based"?Number((Number(rateTier.hourly_rate)*hours).toFixed(2)):Number($("job-estimated-labour").value);
  if(!Number.isFinite(labourCost)||labourCost<0)return toast("Enter a valid provider estimate");
  b.disabled=true;try{
+  let customerId=$("f-cust").value,vehicleId=$("f-veh").value;
+  let checklist=prefillChecklist;
+  if(checklist){
+   if(!checklist.confirmed_at||checklist.job_id)throw new Error("This checklist is not available for a new job card.");
+   if(normalizedJobValue(checklist.customer_name)!==normalizedJobValue($("f-name").value)
+    ||normalizedJobValue(checklist.vehicle_registration)!==normalizedJobValue($("f-plate").value)
+    ||(checklist.customer_id&&customerId&&String(checklist.customer_id)!==String(customerId))
+    ||(checklist.vehicle_id&&vehicleId&&String(checklist.vehicle_id)!==String(vehicleId))){
+    throw new Error("The selected customer and vehicle do not match the prefilled checklist.");
+   }
+  }else{
+   const{data:checklists,error:checklistError}=await supabase.from("job_condition_reports")
+    .select("id,checklist_number,customer_id,vehicle_id,customer_name,vehicle_registration,fuel_level_in,odometer_in,confirmed_at")
+    .is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(1000);
+   if(checklistError)throw new Error(`Couldn't check for a completed vehicle checklist: ${checklistError.message}`);
+   checklist=(checklists||[]).find(item=>
+    normalizedJobValue(item.customer_name)===normalizedJobValue($("f-name").value)
+    &&normalizedJobValue(item.vehicle_registration)===normalizedJobValue($("f-plate").value)
+    &&(!item.customer_id||String(item.customer_id)===String(customerId))
+    &&(!item.vehicle_id||String(item.vehicle_id)===String(vehicleId))
+   );
+  }
+  if(!checklist)throw new Error(`No confirmed checklist matches ${$("f-name").value.trim()} and registration ${$("f-plate").value.trim().toUpperCase()}. Create and confirm the checklist first.`);
+  $("f-fuel-dropoff").value=checklist.fuel_level_in||"Not recorded";
+  $("f-odometer-dropoff").value=checklist.odometer_in??"";
+  if(!selectedCustomer){
+   if(checklist.customer_id){
+    const{data:linkedCustomer,error:linkedCustomerError}=await supabase.from("customers")
+     .select("id,full_name,phone,email").eq("id",checklist.customer_id).maybeSingle();
+    if(linkedCustomerError)throw new Error(`Couldn't load the customer linked to this checklist: ${linkedCustomerError.message}`);
+    if(!linkedCustomer)throw new Error("The customer linked to this checklist is unavailable. Reopen the checklist and select the correct customer.");
+    if(normalizedJobValue(linkedCustomer.full_name)!==normalizedJobValue(checklist.customer_name))throw new Error("The checklist customer name no longer matches the linked customer record. Update the checklist to match before creating the job card.");
+    selectedCustomer=linkedCustomer;
+   }else{
+    const matchingCustomers=builderCustomers.filter(customer=>normalizedJobValue(customer.full_name)===normalizedJobValue(checklist.customer_name));
+    if(matchingCustomers.length>1)throw new Error("More than one registered customer has this name. Select the correct customer before continuing.");
+    if(matchingCustomers.length===1)selectedCustomer=matchingCustomers[0];
+    else{
+     if(!customerPhone)throw new Error("Enter the customer's phone number so the customer from this checklist can be registered.");
+     const{data:createdCustomer,error:customerCreateError}=await supabase.from("customers").insert({
+      full_name:checklist.customer_name,
+      phone:customerPhone,
+      email:customerEmail||null,
+      customer_type:"individual",
+     }).select("id,full_name,phone,email").single();
+     if(customerCreateError)throw new Error(`Couldn't register the customer from the checklist: ${customerCreateError.message}`);
+     selectedCustomer=createdCustomer;
+     builderCustomers.push(createdCustomer);
+    }
+   }
+   if(!builderCustomers.some(customer=>String(customer.id)===String(selectedCustomer.id))){
+    builderCustomers.push(selectedCustomer);
+    $("f-cust").add(new Option(`${selectedCustomer.full_name}${selectedCustomer.phone?` — ${selectedCustomer.phone}`:""}`,selectedCustomer.id));
+   }
+   if(![...$("f-cust").options].some(option=>String(option.value)===String(selectedCustomer.id))){
+    $("f-cust").add(new Option(`${selectedCustomer.full_name}${selectedCustomer.phone?` — ${selectedCustomer.phone}`:""}`,selectedCustomer.id));
+   }
+   customerId=selectedCustomer.id;
+   $("f-cust").value=customerId;
+   const vehicleForm={
+    make:$("f-make").value,model:$("f-model").value,year:$("f-year").value,
+    bodyType:$("f-body-type").value,chassis:$("f-chassis").value,engine:$("f-engine").value,
+   };
+   await $("f-cust").onchange({target:$("f-cust")});
+   $("f-name").value=checklist.customer_name;
+   $("f-phone").value=customerPhone||selectedCustomer.phone||"";
+   $("f-email").value=customerEmail||selectedCustomer.email||"";
+   $("f-plate").value=checklist.vehicle_registration.toUpperCase();
+   $("f-make").value=vehicleForm.make;
+   $("f-model").value=vehicleForm.model;
+   $("f-year").value=vehicleForm.year;
+   $("f-body-type").value=vehicleForm.bodyType;
+   $("f-chassis").value=vehicleForm.chassis;
+   $("f-engine").value=vehicleForm.engine;
+   $("f-fuel-dropoff").value=checklist.fuel_level_in||"";
+   $("f-odometer-dropoff").value=checklist.odometer_in??"";
+   selectedVehicle=vehicles.find(vehicle=>normalizedJobValue(vehicle.license_plate)===normalizedJobValue(checklist.vehicle_registration))||null;
+   vehicleId=selectedVehicle?.id||"";
+  }
+  if(!selectedVehicle){
+   if(checklist.vehicle_id){
+    const{data:linkedVehicle,error:linkedVehicleError}=await supabase.from("vehicles")
+     .select("id,customer_id,make,model,year,license_plate,body_type,chassis_number,engine_number")
+     .eq("id",checklist.vehicle_id).maybeSingle();
+    if(linkedVehicleError)throw new Error(`Couldn't load the vehicle linked to this checklist: ${linkedVehicleError.message}`);
+    if(!linkedVehicle||String(linkedVehicle.customer_id)!==String(customerId)||normalizedJobValue(linkedVehicle.license_plate)!==normalizedJobValue(checklist.vehicle_registration)){
+     throw new Error("The vehicle linked to this checklist is unavailable or no longer matches its registration.");
+    }
+    selectedVehicle=linkedVehicle;
+    if(!vehicles.some(vehicle=>String(vehicle.id)===String(linkedVehicle.id)))vehicles.push(linkedVehicle);
+   }
+  }
+  if(!selectedVehicle){
+   const existingVehicle=vehicles.find(vehicle=>normalizedJobValue(vehicle.license_plate)===normalizedJobValue(checklist.vehicle_registration));
+   if(existingVehicle)selectedVehicle=existingVehicle;
+   else{
+    if(!$("f-make").value.trim()||!$("f-model").value.trim()||!vehicleYear||!$("f-chassis").value.trim()||!$("f-engine").value.trim()){
+     throw new Error("This checklist's vehicle is not registered yet. Enter its make, model, year, chassis number, and engine number so it can be added to the customer record.");
+    }
+    const vehicleUpdates={
+     customer_id:customerId,
+     license_plate:checklist.vehicle_registration.toUpperCase(),
+     make:$("f-make").value.trim()||null,
+     model:$("f-model").value.trim()||null,
+     year:vehicleYear,
+     body_type:$("f-body-type").value||null,
+     chassis_number:$("f-chassis").value.trim()||null,
+     engine_number:$("f-engine").value.trim()||null,
+    };
+    const{data:createdVehicle,error:vehicleCreateError}=await supabase.from("vehicles")
+     .insert(vehicleUpdates).select("id,make,model,year,license_plate,body_type,chassis_number,engine_number").single();
+    if(vehicleCreateError)throw new Error(`Couldn't register the vehicle from the checklist: ${vehicleCreateError.message}`);
+    selectedVehicle=createdVehicle;
+    vehicles.push(createdVehicle);
+    $("f-veh").add(new Option(`${veh(createdVehicle)} ${createdVehicle.license_plate}`.trim(),createdVehicle.id));
+   }
+   vehicleId=selectedVehicle.id;
+   $("f-veh").value=vehicleId;
+  }
+  if(!customerId||!vehicleId)throw new Error("The customer and vehicle records could not be matched to this checklist.");
+  $("f-veh").value=vehicleId;
+  const vehicleUpdates={
+   make:$("f-make").value.trim()||null,
+   model:$("f-model").value.trim()||null,
+   year:vehicleYear,
+   body_type:$("f-body-type").value||null,
+   chassis_number:$("f-chassis").value.trim()||null,
+   engine_number:$("f-engine").value.trim()||null,
+  };
+  if(Object.keys(vehicleUpdates).some(key=>String(vehicleUpdates[key]??"")!==String(selectedVehicle[key]??""))){
+   const{data:updatedVehicle,error:vehicleUpdateError}=await supabase.from("vehicles")
+    .update(vehicleUpdates).eq("id",vehicleId).select("id").maybeSingle();
+   if(vehicleUpdateError)throw new Error(`Couldn't save vehicle details: ${vehicleUpdateError.message}`);
+   if(!updatedVehicle)throw new Error("Couldn't confirm the vehicle details were saved.");
+   Object.assign(selectedVehicle,vehicleUpdates);
+  }
+  const customerUpdates={};
+  if(customerPhone&&customerPhone!==String(selectedCustomer.phone||""))customerUpdates.phone=customerPhone;
+  const nextEmail=customerEmail||null;
+  if(nextEmail!==String(selectedCustomer.email||"")&&!(nextEmail===null&&!selectedCustomer.email))customerUpdates.email=nextEmail;
+  if(Object.keys(customerUpdates).length){
+   const{data:updatedCustomer,error:customerUpdateError}=await supabase.from("customers")
+    .update(customerUpdates).eq("id",customerId).select("id").maybeSingle();
+   if(customerUpdateError)throw new Error(`Couldn't save customer contact details: ${customerUpdateError.message}`);
+   if(!updatedCustomer)throw new Error("Couldn't confirm the customer contact details were saved.");
+   Object.assign(selectedCustomer,customerUpdates);
+  }
   const reservedParts=[];
   let createdJobId=null;
   let savedJobId=null;
@@ -1726,22 +1836,9 @@ $("save").onclick=async()=>{const b=$("save");
    if(!consumed)throw new Error(`Not enough stock for ${item.description||item.name}`);
    reservedParts.push({id:item.id,quantity:item.quantity});
   }
-  let cid=$("f-cust").value;
-  if(cid==="__new_customer__"){const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null}).select().single();if(r.error)throw r.error;cid=r.data.id}
-  let vid=$("f-veh").value||null;
-  const bodyType=$("f-body-type").value.trim();
-  const vehicleDetails={
-   make:$("f-make").value.trim()||null,
-   model:$("f-model").value.trim()||null,
-   year:+$("f-year").value||null,
-   license_plate:$("f-plate").value.trim().toUpperCase()||null,
-   body_type:bodyType.toLowerCase()==="others"?null:bodyType||null,
-   chassis_number:$("f-chassis").value.trim()||null,
-   engine_number:$("f-engine").value.trim()||null,
-  };
-  if(!vid&&($("f-make").value||$("f-plate").value)){const r=await supabase.from("vehicles").insert({...vehicleDetails,customer_id:cid}).select().single();if(r.error)throw r.error;vid=r.data.id}
-  else if(vid){const{error:vehicleError}=await supabase.from("vehicles").update(vehicleDetails).eq("id",vid);if(vehicleError)throw new Error(`Couldn't update vehicle details: ${vehicleError.message}`);}
-  const row={customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
+  const cid=customerId;
+  const vid=vehicleId;
+  const row={customer_id:cid,vehicle_id:vid,checklist_number:checklist.checklist_number,fault_reported:$("f-fault").value.trim(),work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,fuel_level_in:checklist.fuel_level_in||null,odometer_in:checklist.odometer_in??null};if($("f-tech").value)row.technician_id=$("f-tech").value;
   let r=await supabase.from("repair_jobs").insert(row).select().single();
   if(r.error&&row.technician_id){delete row.technician_id;r=await supabase.from("repair_jobs").insert(row).select().single();if(!r.error)toast("Saved without technician (column differs)")}
   if(r.error)throw r.error;
@@ -1790,8 +1887,15 @@ $("save").onclick=async()=>{const b=$("save");
    if(cleanupErrors.length)throw new Error(`${error.message||String(error)}. Cleanup needs attention: ${cleanupErrors.join("; ")}`);
    throw error;
   }
-  await saveReport(createdJobId,buildInspection);
-  await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);toast("Job card created")
+  const{error:linkError}=await supabase.rpc("link_vehicle_condition_checklist",{
+   p_checklist_id:checklist.id,p_job_id:createdJobId
+  });
+  if(linkError)console.error("Job card created but its vehicle checklist could not be linked:",linkError);
+  await load();
+  const created=jobs.find(job=>String(job.id)===String(savedJobId));
+  if(created)await open(created);
+  if(linkError)window.aprToast?.("Job card created","warning","The checklist could not be linked automatically. Use the Vehicle Checklist page to link it.");
+  else window.aprToast?.("Job card created","success",`${created?jn(created):"Job card"} was created successfully.`);
  }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
 
 /* ---------- share ---------- */
@@ -1846,7 +1950,7 @@ $("s-inv").onclick=async()=>{
    :Promise.resolve({data:[],error:null});
   const[{data:job,error:jobError},{data:payments,error:paymentsError},{data:accountEntries,error:accountError}]=await Promise.all([
    supabase.from("repair_jobs").select("total_cost").eq("id",cur.id).single(),
-   supabase.from("repair_job_payments").select("amount").eq("repair_job_id",cur.id),
+   supabase.from("repair_job_payments").select("amount").eq("repair_job_id",cur.id).is("voided_at",null),
    accountPromise,
   ]);
   if(jobError)throw new Error(`Couldn't check the job balance: ${jobError.message}`);
@@ -1864,8 +1968,12 @@ $("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{hi
 $("job-search").oninput=render;
 load().then(()=>{
  const params=new URLSearchParams(location.search);
- if(params.get("quote")||params.get("new")==="1")openBuilder();
- else if(params.get("edit")){const target=jobs.find(x=>String(x.id)===params.get("edit"));if(target)open(target);else toast("That job card could not be found")}
+ if(params.get("quote")||params.get("checklist")||params.get("new")==="1")openBuilder();
+ else if(params.get("job")||params.get("edit")){
+  const jobId=params.get("job")||params.get("edit");
+  const target=jobs.find(x=>String(x.id)===jobId);
+  if(target)open(target);else toast("That job card could not be found");
+ }
 });
 </script>
 </body>

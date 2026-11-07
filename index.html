@@ -34,15 +34,15 @@
 
   <!-- Dashboard styles stay local so shared application themes cannot alter its layout. -->
   <style id="dashboard-design">
-    html{background:#0b1012;color-scheme:dark;width:100%;height:100%;overflow-x:hidden}
+    html{background:#171c24;color-scheme:dark;width:100%;height:100%;overflow-x:hidden}
     html body.dashboard-page{width:100%;min-height:100vh;min-height:100svh;padding:0!important;overflow-y:auto!important;overflow-x:hidden!important}
     body.dashboard-page{
       --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
-      --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
-      --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
+      --ink:#171c24; --panel:#222a35; --line:#394554;
+      --text:#edf1f7; --muted:#adb8c7; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
       /* re-point the variables your existing css/js use so generated content picks up the theme */
-      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
-      --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#1c242e; --text-muted:var(--muted);
+      --accent:#79a6f6; --accent-dim:#5d8de5; --danger:#ff6b6b;
       margin:0; min-height:100vh; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
       -webkit-font-smoothing:antialiased; height:auto;
       padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));
@@ -223,9 +223,9 @@
     .apr-more-menu a svg{width:19px;height:19px;flex:none;color:#1fc467}
     @media print{.apr-bottom-nav{display:none!important}}
 
-    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;background:#f1f2f3;color:#111}
-    :root[data-theme="light"] body.dashboard-page .main,:root[data-theme="light"] body.dashboard-page .app-shell{background:#f1f2f3!important;color:#111!important}
-    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
+    :root[data-theme="light"] body.dashboard-page{--ink:#e9edf2;--panel:#f5f7fa;--line:#d2d9e2;--text:#18212b;--muted:#536273;--surface-2:#eef2f6;background:#e9edf2;color:#18212b}
+    :root[data-theme="light"] body.dashboard-page .main,:root[data-theme="light"] body.dashboard-page .app-shell{background:#e9edf2!important;color:#18212b!important}
+    :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#f5f7fa!important;color:#18212b!important}
     :root[data-theme="light"] body.dashboard-page .apr-bottom-nav{border-color:#d0d3d6;background:rgba(255,255,255,.98);box-shadow:0 -6px 20px rgba(0,0,0,.12)}
     :root[data-theme="light"] body.dashboard-page .apr-bottom-nav>a,:root[data-theme="light"] body.dashboard-page .apr-more-toggle{color:#222}
     :root[data-theme="light"] body.dashboard-page .apr-bottom-nav [aria-current="page"]{color:#111}
@@ -233,13 +233,13 @@
     :root[data-theme="light"] body.dashboard-page .apr-more-menu{border-color:#d0d3d6;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.18)}
     :root[data-theme="light"] body.dashboard-page .apr-more-menu a{color:#111}
     :root[data-theme="light"] body.dashboard-page .apr-more-menu a:hover,:root[data-theme="light"] body.dashboard-page .apr-more-menu [aria-current="page"]{background:#eceeef;color:#111}
-    :root[data-theme="light"] body.dashboard-page .hero{background:#f1f2f3}
+    :root[data-theme="light"] body.dashboard-page .hero{background:#e9edf2}
     :root[data-theme="light"] body.dashboard-page .hero-bg,:root[data-theme="light"] body.dashboard-page .hero::after{display:none}
     :root[data-theme="light"] body.dashboard-page .welcome,:root[data-theme="light"] body.dashboard-page .hero-title,:root[data-theme="light"] body.dashboard-page .hero-lede,:root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__value,:root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content table,:root[data-theme="light"] body.dashboard-page .hdr-hello{color:#111!important;text-shadow:none}
     :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
     :root[data-theme="light"] body.dashboard-page .tile{border-color:#c9cdd1;background:#fff;color:#111;box-shadow:0 4px 14px rgba(0,0,0,.08)}
     :root[data-theme="light"] body.dashboard-page .tile:hover{background:#f5f6f7;box-shadow:0 8px 20px rgba(0,0,0,.12)}
-    :root[data-theme="light"] body.dashboard-page .dash-content{background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page .dash-content{background:#e9edf2;color:#18212b}
     :root[data-theme="light"] body.dashboard-page .dash-content h2,:root[data-theme="light"] body.dashboard-page .dash-content .section-note,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card__label,:root[data-theme="light"] body.dashboard-page .dash-content .attention-empty,:root[data-theme="light"] body.dashboard-page .dash-content th,:root[data-theme="light"] body.dashboard-page .dash-content td{color:#111}
     :root[data-theme="light"] body.dashboard-page .dash-content .panel,:root[data-theme="light"] body.dashboard-page .dash-content .stat-card,:root[data-theme="light"] body.dashboard-page .dash-content .objective-card,:root[data-theme="light"] body.dashboard-page .dash-content .global-search__results{border-color:#d9dcdf;background:#fff;color:#111;box-shadow:0 3px 12px rgba(0,0,0,.06)}
     :root[data-theme="light"] body.dashboard-page .dash-content .btn{border-color:#c9cdd1;background:#fff;color:#111}
@@ -552,6 +552,7 @@
         <button type="button" class="nav-grp" aria-expanded="false" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
+          <a class="nav-link" href="pages/checklist.html" title="Vehicle Checklist"><i data-lucide="clipboard-check"></i> Vehicle Checklist</a>
           <a class="nav-link" href="pages/customers.html" title="Customers"><i data-lucide="users"></i> Customers</a>
           <a class="nav-link" href="pages/technicians.html" data-level="2" title="Employees &amp; Staff"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>

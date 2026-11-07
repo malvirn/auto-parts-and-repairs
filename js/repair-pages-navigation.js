@@ -114,7 +114,7 @@ function addToolbarUtilities(container, isModuleToolbar) {
     newJob.innerHTML = '<i data-lucide="plus" aria-hidden="true"></i>';
     container.append(newJob);
   }
-  newJob.href = isModuleToolbar ? "repairs.html?new=1" : "pages/repairs.html?new=1";
+  newJob.href = new URL("../pages/repairs.html?new=1", import.meta.url).href;
   newJob.hidden = !["super_admin", "staff"].includes(document.body.dataset.role || "staff");
   window.lucide?.createIcons();
 }
@@ -208,6 +208,7 @@ async function normalizeDashboardSidebar(sidebar) {
       analytics: ["super_admin", "accounting"],
       technicians: ["super_admin"],
       customers: ["super_admin", "staff"],
+      checklist: ["super_admin", "staff"],
       repairs: ["super_admin", "staff"],
       suppliers: ["super_admin", "staff"],
     };
@@ -312,7 +313,6 @@ function initializePageChrome() {
   if (!isDashboardHome()) {
     document.body.classList.add("dashboard-workshop");
     addDashboardToolbar(main);
-    normalizeDashboardSidebar(document.querySelector("body.dashboard-page .sidebar"));
     return;
   }
 
@@ -626,12 +626,13 @@ function ensureSidebarAccount(sidebar) {
   if (avatar) avatar.textContent = accountName.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "A";
 }
 
-function initializeAfterAccess() {
-  if (document.body.dataset.role) {
-    initializeNavigation();
+async function initializeAfterAccess() {
+  if (!document.body.dataset.role) {
+    document.addEventListener("apr:access-ready", initializeAfterAccess, { once: true });
     return;
   }
-  document.addEventListener("apr:access-ready", initializeNavigation, { once: true });
+  await normalizeDashboardSidebar(document.querySelector("body.dashboard-page .sidebar"));
+  initializeNavigation();
 }
 
 initializePageChrome();

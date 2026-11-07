@@ -721,7 +721,18 @@ let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
 function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
-const calc=o=>{const sub=o.items.reduce((s,i)=>s+i.q*i.p,0),disc=Math.min(+o.discount||0,sub),vatBase=Math.max(0,Number(o.vatBase??sub)-disc),vat=vatBase*(+o.vat||0)/100;return{sub,disc,vat,total:sub-disc+vat}};
+function normalizeInvoiceItems(items){
+ if(typeof items==="string"){try{items=JSON.parse(items)}catch{return[]}}
+ if(!Array.isArray(items))return[];
+ return items.map(item=>{
+  const description=item?.d??item?.description??item?.name??item?.part_name;
+  const rawQuantity=item?.q??item?.quantity,rawPrice=item?.p??item?.price??item?.unit_price??item?.unit_price_usd??item?.amount;
+  if(description==null&&rawQuantity==null&&rawPrice==null)return null;
+  const q=Number(rawQuantity??1),p=Number(rawPrice??0);
+  return{d:String(description??"Invoice item"),q:Number.isFinite(q)&&q>0?q:1,p:Number.isFinite(p)?p:0};
+ }).filter(Boolean);
+}
+const calc=o=>{const sub=Number(normalizeInvoiceItems(o.items).reduce((s,i)=>s+i.q*i.p,0).toFixed(2)),disc=Math.min(+o.discount||0,sub),vatBase=Math.max(0,Number(o.vatBase??sub)-disc),vat=Number((vatBase*(+o.vat||0)/100).toFixed(2));return{sub,disc,vat,total:o.total!=null&&Number.isFinite(Number(o.total))?Number(o.total):Number((sub-disc+vat).toFixed(2))}};
 const totalPaid=o=>o.kind==="receipt"?Number(o.receiptAmount??calc(o).total):calc(o).total;
 
 /* ---------- the document (invoice or receipt) ---------- */
@@ -729,6 +740,7 @@ function docHTML(o){const t=calc(o),inv=o.kind==="invoice",balance=Math.max(0,t.
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
 <div><h1>${inv?"INVOICE":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
 ${o.voidedAt?`<div class="void-banner">VOID</div><p class="void-reason">Reason: ${esc(o.voidReason||"Not provided")}</p>`:""}
+${o.checklistNumber||o.jobCard?.checklistNumber?`<div style="display:inline-block;margin:8px 0;padding:7px 12px;border:2px solid #14823b;border-radius:6px;color:#126b32;font-size:16px;font-weight:850;letter-spacing:.04em">VEHICLE CHECKLIST #${esc(o.checklistNumber||o.jobCard.checklistNumber)}</div>`:""}
 <div class="meta"><div><small>${inv?"Billed to":"Received from"}</small><b>${esc(o.customer.name||"Walk-in customer")}</b><br>${esc(o.customer.phone||"")}<br>${esc(o.customer.email||"")}</div>
 <div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
 ${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
@@ -771,11 +783,14 @@ async function load(){
   ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
   : `<option value="">Choose a payment method first…</option>`;
  if(a.error)console.error("Couldn't load accounts for customer invoice payments:",a.error);
- rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=Array.isArray(x.items)?x.items:[],discount=Number(x.discount)||0,subtotal=items.reduce((sum,item)=>sum+(Number(item.q)||0)*(Number(item.p)||0),0),vat=Math.round(Math.max(0,subtotal-discount)*0.05*100)/100,total=Math.round((subtotal-discount+vat)*100)/100,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items,discount,vat:5,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
- const jobIds=[...new Set((r.data||[]).map(x=>x.repair_job_id).filter(Boolean))];
+ rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=normalizeInvoiceItems(x.items),discount=Number(x.discount)||0,total=Number(x.total)||0,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items,subtotal:Number(x.subtotal)||0,total,discount,vat:Number(x.vat_rate??5),vatBase:Number(x.vat_base??x.subtotal)||0,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
+ const jobIds=[...new Set([
+  ...(r.data||[]).map(x=>x.repair_job_id),
+  ...rows.invoices.map(invoice=>invoice.repairJobId),
+ ].filter(Boolean))];
  const [paymentResult,jobResult,jobPartsResult,jobExtrasResult]=jobIds.length?await Promise.all([
   loadRepairJobPayments(jobIds),
-  supabase.from("repair_jobs").select("id,job_number,cro_number,total_cost,labour_cost,labour_hours,job_description,work_done,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number),customers(full_name,phone,email)").in("id",jobIds),
+  supabase.from("repair_jobs").select("id,job_number,cro_number,checklist_number,total_cost,labour_cost,labour_hours,job_description,work_done,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number),customers(full_name,phone,email)").in("id",jobIds),
   supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time,parts(description)").in("job_id",jobIds),
   supabase.from("job_incidentals").select("job_id,description,amount").in("job_id",jobIds)
  ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null}];
@@ -786,6 +801,7 @@ async function load(){
   $("list").dataset.detailsErr=`Some job-card details may be missing: ${jobDetailsError.message}`;
  }else delete $("list").dataset.detailsErr;
  const jobsById=new Map((jobResult.data||[]).map(job=>[String(job.id),job]));
+ rows.invoices.forEach(invoice=>{invoice.checklistNumber=jobsById.get(String(invoice.repairJobId))?.checklist_number??null});
  const jobPartsById=new Map(),jobExtrasById=new Map();
  (jobPartsResult.data||[]).forEach(item=>{
   const key=String(item.job_id);
@@ -822,6 +838,7 @@ async function load(){
    ];
  const vehicleLabel=[vehicle.year,vehicle.make,vehicle.model,vehicle.license_plate].filter(Boolean).join(" · ");
  const jobCard=x.repair_job_id?{
+  checklistNumber:job.checklist_number,
   vehicle:vehicleLabel,
   chassis:vehicle.chassis_number||"",
   engine:vehicle.engine_number||"",
@@ -894,7 +911,43 @@ function render(){
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
 function updateDocumentActions(){if(!cur)return;$("d-delete").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=!(cur.kind==="invoice"&&Number(cur.amountPaid||0)<calc(cur).total-.005)}
-function open(o){cur=o;$("doc").innerHTML=docHTML(o);updateDocumentActions();show("doc")}
+async function loadRepairJobInvoiceDetails(invoice){
+ const jobId=invoice.repairJobId;
+ const[jobResult,partsResult,extrasResult]=await Promise.all([
+  supabase.from("repair_jobs").select("id,job_number,cro_number,checklist_number,total_cost,labour_cost,labour_hours,labour_mode,job_description,work_done,fault_reported,diagnosis,customers(full_name,phone,email)").eq("id",jobId).single(),
+  supabase.from("job_parts").select("part_name,quantity,price_at_time,parts(description)").eq("job_id",jobId),
+  supabase.from("job_incidentals").select("description,amount").eq("job_id",jobId),
+ ]);
+ if(jobResult.error)throw new Error(`Couldn't load the linked job card: ${jobResult.error.message}`);
+ if(partsResult.error)throw new Error(`Couldn't load the linked job parts: ${partsResult.error.message}`);
+ if(extrasResult.error)throw new Error(`Couldn't load the linked job extras: ${extrasResult.error.message}`);
+ const job=jobResult.data,parts=partsResult.data||[],extras=extrasResult.data||[];
+ invoice.checklistNumber=job.checklist_number;
+ const items=parts.map(item=>({d:item.parts?.description||item.part_name||"Part",q:Number(item.quantity)||1,p:Number(item.price_at_time)||0}));
+ const partsSubtotal=items.reduce((sum,item)=>sum+item.q*item.p,0);
+ const labour=Number(job.labour_cost)||0;
+ if(labour>0){const hours=Number(job.labour_hours)||1,flat=job.labour_mode==="provider_estimate";items.push({d:job.job_description||job.work_done||"Labour",q:flat?1:hours,p:flat?labour:labour/hours})}
+ extras.forEach(item=>items.push({d:item.description||"Additional job cost",q:1,p:Number(item.amount)||0}));
+ const itemSubtotal=items.reduce((sum,item)=>sum+item.q*item.p,0),targetSubtotal=Number(invoice.subtotal)||Number(job.total_cost)||itemSubtotal;
+ if(Math.abs(itemSubtotal-targetSubtotal)>0.01)items.push({d:"Job card total adjustment",q:1,p:targetSubtotal-itemSubtotal});
+ invoice.items=items;
+ invoice.vatBase=partsSubtotal;
+ invoice.subtotal=targetSubtotal;
+ invoice.customer={name:invoice.customer?.name||job.customers?.full_name||"",phone:invoice.customer?.phone||job.customers?.phone||"",email:invoice.customer?.email||job.customers?.email||""};
+ invoice.ref=invoice.ref||job.cro_number||`JC-${String(job.job_number||"").padStart(5,"0")}`;
+ invoice.notes=invoice.notes||[job.fault_reported&&`Customer concern: ${job.fault_reported}`,job.diagnosis&&`Diagnosis: ${job.diagnosis}`,job.work_done&&`Work completed: ${job.work_done}`,job.job_description&&!job.work_done&&`Work completed: ${job.job_description}`].filter(Boolean).join("\n");
+ if(!invoice.total)invoice.total=targetSubtotal+(partsSubtotal*(Number(invoice.vat)||0)/100)-Number(invoice.discount||0);
+}
+async function open(o){
+ cur=o;
+ if(o.kind==="invoice"&&!normalizeInvoiceItems(o.items).length&&o.repairJobId){
+  $("doc").innerHTML='<p class="ov-empty">Loading invoice details…</p>';
+  updateDocumentActions();show("doc");
+  try{await loadRepairJobInvoiceDetails(o)}
+  catch(error){console.error("Couldn't load invoice details:",error);$("doc").innerHTML=`<p class="ov-empty">Couldn't load this invoice's job-card details: ${esc(error.message||String(error))}</p>`;toast("Invoice details could not be loaded.");return}
+ }
+ $("doc").innerHTML=docHTML(o);updateDocumentActions();show("doc");
+}
 async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const{data:payment,error:paymentError}=await supabase.from("invoice_payments")
   .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id")
@@ -907,12 +960,13 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  let jobCard=null;
  if(invoice.repair_job_id){
   const{data:job,error:jobError}=await supabase.from("repair_jobs")
-   .select("job_number,cro_number,work_done,job_description,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number)")
+   .select("job_number,cro_number,checklist_number,work_done,job_description,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number)")
    .eq("id",invoice.repair_job_id).maybeSingle();
   if(jobError)throw new Error(`Couldn't load the repair-job details: ${jobError.message}`);
   if(job){
    const vehicle=job.vehicles||{};
    jobCard={
+    checklistNumber:job.checklist_number,
     vehicle:[vehicle.year,vehicle.make,vehicle.model,vehicle.license_plate].filter(Boolean).join(" · "),
     chassis:vehicle.chassis_number||"",
     engine:vehicle.engine_number||"",
@@ -1034,11 +1088,21 @@ $("invoice-payment-percent").addEventListener("change",()=>{
 $("invoice-payment-amount").addEventListener("input",()=>{if($("invoice-payment-percent").value)$("invoice-payment-percent").value="";});
 
 /* ---------- builder ---------- */
-function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="1" step="1" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
+function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="0.01" step="any" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
  r.querySelector("button").onclick=()=>{r.remove();prev()};r.oninput=e=>{if(e.target===r.children[0]){const m=parts.find(x=>x.name===e.target.value);if(m)r.children[2].value=m.price}prev()};$("items").append(r)}
 function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:5,
  vatBase:invoiceVatBase,customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value},
- items:[...$("items").children].map(r=>({d:r.children[0].value.trim(),q:+r.children[1].value||1,p:+r.children[2].value||0})).filter(i=>i.d||i.p)}}
+ items:[...$("items").children].map(r=>{const d=r.children[0].value.trim(),q=r.children[1].value.trim(),p=r.children[2].value.trim();return{d,q:q===""?NaN:Number(q),p:p===""?NaN:Number(p),hasInput:Boolean(d||p||(q!==""&&q!=="1"))}}).filter(i=>i.hasInput).map(({hasInput,...item})=>item)}}
+function validateInvoiceDraft(o){
+ if(!o.items.length)return"Add at least one complete invoice item";
+ if(o.items.some(item=>!item.d||!Number.isFinite(item.q)||item.q<=0||item.q>99999999||!Number.isFinite(item.p)||item.p<0||item.p>100000000))return"Each invoice item needs a description, positive quantity, and non-negative price";
+ const subtotal=Number(o.items.reduce((sum,item)=>sum+item.q*item.p,0).toFixed(2));
+ const discount=Number(o.discount),vat=Number(o.vat),vatBase=Number(o.vatBase??subtotal);
+ if(!(subtotal>0)||!Number.isFinite(discount)||discount<0||discount>=subtotal)return"Discount must be zero or more and less than the invoice subtotal";
+ if(!Number.isFinite(vat)||vat<0||vat>100||!Number.isFinite(vatBase)||vatBase<0||vatBase>subtotal)return"Invoice VAT values are invalid";
+ if(!o.customer.name.trim())return"Add a customer name";
+ return"";
+}
 const prev=()=>{$("doc-new").innerHTML=`<div id="doc" style="box-shadow:none">${docHTML(collect())}</div>`};
 async function ensureBuilderOptions(){if($("f-cust").options.length>=2)return;const [c,p]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
   if(c.error){console.error("Couldn't load customers for invoice billing:",c.error);toast(`Couldn't load customer list: ${c.error.message}`)}
@@ -1046,7 +1110,7 @@ async function ensureBuilderOptions(){if($("f-cust").options.length>=2)return;co
   $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option(x.full_name||"Unnamed",x.id),{_c:x})));
   parts=(p.data||[]).map(x=>({name:x.name,price:x.selling_price??x.unit_price??x.sale_price??x.price??""})).filter(x=>x.name);
  $("parts-dl").innerHTML=parts.map(x=>`<option value="${esc(x.name)}">`).join("")}
-async function openBuilder(jobId=""){editingInvoiceId=null;invoiceRepairJobId=jobId||null;if(jobId){const existing=rows.invoices.find(invoice=>invoice.repairJobId===jobId);if(existing){open(existing);toast(`This job already has invoice ${existing.number}.`);if(payAfterSave)setTimeout(openInvoicePayment,0);return}}$("build-title").textContent="New invoice";$("save").innerHTML='<i data-lucide="check"></i> Save invoice &amp; share';show("build");await ensureBuilderOptions();$("items").replaceChildren();addLine();const dueDate=new Date();dueDate.setDate(dueDate.getDate()+7);$("f-due").value=dueDate.toISOString().slice(0,10);prev();
+async function openBuilder(jobId=""){editingInvoiceId=null;invoiceRepairJobId=jobId||null;invoiceVatBase=null;if(jobId){const existing=rows.invoices.find(invoice=>invoice.repairJobId===jobId);if(existing){open(existing);toast(`This job already has invoice ${existing.number}.`);if(payAfterSave)setTimeout(openInvoicePayment,0);return}}$("build-title").textContent="New invoice";$("save").innerHTML='<i data-lucide="check"></i> Save invoice &amp; share';show("build");await ensureBuilderOptions();$("items").replaceChildren();addLine();const dueDate=new Date();dueDate.setDate(dueDate.getDate()+7);$("f-due").value=dueDate.toISOString().slice(0,10);prev();
 if(jobId){
  try{
   const{data:job,error:jobError}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,total_cost,fault_reported,diagnosis,job_description,work_done,work_missing,labour_mode,labour_cost,labour_hours,vehicles(make,model,year,license_plate),customers(full_name,phone,email)").eq("id",jobId).single();
@@ -1054,7 +1118,7 @@ if(jobId){
   const[partsResult,extrasResult,paymentsResult]=await Promise.all([
    supabase.from("job_parts").select("part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",jobId),
    supabase.from("job_incidentals").select("description,amount").eq("job_id",jobId),
-   supabase.from("repair_job_payments").select("amount").eq("repair_job_id",jobId),
+   supabase.from("repair_job_payments").select("amount").eq("repair_job_id",jobId).is("voided_at",null),
   ]);
   if(partsResult.error)throw new Error(`Couldn't load the job-card parts: ${partsResult.error.message}`);
   if(extrasResult.error)throw new Error(`Couldn't load the job-card extra costs: ${extrasResult.error.message}`);
@@ -1098,20 +1162,20 @@ if(params.get("phone"))$("f-phone").value=params.get("phone");
 if(params.get("email"))$("f-email").value=params.get("email");
 if(params.get("ref"))$("f-ref").value=params.get("ref");
 prev()}
-async function openInvoiceEditor(invoice){editingInvoiceId=invoice.id;await ensureBuilderOptions();$("build-title").textContent=`Edit ${invoice.number}`;$("save").innerHTML='<i data-lucide="save"></i> Save changes';$("f-cust").value=invoice.customerId||"";$("f-name").value=invoice.customer.name||"";$("f-phone").value=invoice.customer.phone||"";$("f-email").value=invoice.customer.email||"";$("f-vat").value="5";$("f-disc").value=Number(invoice.discount)||0;$("f-due").value=invoice.due||"";$("f-ref").value=invoice.ref||"";$("f-notes").value=invoice.notes||"";$("items").replaceChildren();(invoice.items||[]).forEach(item=>addLine(item.d,item.q,item.p));if(!$("items").children.length)addLine();prev();show("build")}
-function startNewInvoice(){editingInvoiceId=null;invoiceRepairJobId=null;$("f-cust").value="";$("f-name").value="";$("f-phone").value="";$("f-email").value="";$("f-vat").value="5";$("f-disc").value="0";$("f-due").value="";$("f-ref").value="";$("f-notes").value="";$("items").replaceChildren();openBuilder()}
+async function openInvoiceEditor(invoice){editingInvoiceId=invoice.id;invoiceVatBase=invoice.vatBase??null;await ensureBuilderOptions();$("build-title").textContent=`Edit ${invoice.number}`;$("save").innerHTML='<i data-lucide="save"></i> Save changes';$("f-cust").value=invoice.customerId||"";$("f-name").value=invoice.customer.name||"";$("f-phone").value=invoice.customer.phone||"";$("f-email").value=invoice.customer.email||"";$("f-vat").value="5";$("f-disc").value=Number(invoice.discount)||0;$("f-due").value=invoice.due||"";$("f-ref").value=invoice.ref||"";$("f-notes").value=invoice.notes||"";$("items").replaceChildren();(invoice.items||[]).forEach(item=>addLine(item.d,item.q,item.p));if(!$("items").children.length)addLine();prev();show("build")}
+function startNewInvoice(){editingInvoiceId=null;invoiceRepairJobId=null;invoiceVatBase=null;$("f-cust").value="";$("f-name").value="";$("f-phone").value="";$("f-email").value="";$("f-vat").value="5";$("f-disc").value="0";$("f-due").value="";$("f-ref").value="";$("f-notes").value="";$("items").replaceChildren();openBuilder()}
 $("f-cust").onchange=e=>{const c=e.target.selectedOptions[0]?._c;if(c){$("f-name").value=c.full_name||"";$("f-phone").value=c.phone||"";$("f-email").value=c.email||""}prev()};
 $("v-build").addEventListener("input",prev);
-$("save").onclick=async()=>{const o=collect();if(!o.items.length)return toast("Add at least one item");if(!o.customer.name.trim())return toast("Add a customer name");
+$("save").onclick=async()=>{const o=collect(),validationError=validateInvoiceDraft(o);if(validationError)return toast(validationError);
  const button=$("save"),t=calc(o),editing=editingInvoiceId;button.disabled=true;
  try{
   let invoiceId=editing,savedInvoiceNumber=null;
   if(editing){
-   const{error}=await supabase.rpc("edit_customer_invoice",{p_invoice_id:editing,p_customer_id:$("f-cust").value||null,p_customer_name:o.customer.name.trim(),p_customer_phone:o.customer.phone.trim()||null,p_customer_email:o.customer.email.trim()||null,p_items:o.items,p_discount:+o.discount||0,p_vat_rate:+o.vat||0,p_due_date:o.due||null,p_reference:o.ref.trim()||null,p_notes:o.notes.trim()||null});
+   const{error}=await supabase.rpc("edit_customer_invoice",{p_invoice_id:editing,p_customer_id:$("f-cust").value||null,p_customer_name:o.customer.name.trim(),p_customer_phone:o.customer.phone.trim()||null,p_customer_email:o.customer.email.trim()||null,p_items:o.items,p_discount:Number(o.discount),p_vat_rate:Number(o.vat),p_vat_base:Number(o.vatBase??t.sub),p_due_date:o.due||null,p_reference:o.ref.trim()||null,p_notes:o.notes.trim()||null});
    if(error)throw new Error(error.message);
    signalDocumentChange("invoices",cur?.number||"Invoice");
   }else{
-   const{data,error}=await supabase.from("invoices").insert({repair_job_id:invoiceRepairJobId,customer_id:$("f-cust").value||null,customer_name:o.customer.name.trim(),customer_phone:o.customer.phone.trim()||null,customer_email:o.customer.email.trim()||null,items:o.items,discount:+o.discount||0,vat_rate:+o.vat||0,subtotal:t.sub,total:t.total,notes:o.notes,reference:o.ref,due_date:o.due||null}).select().single();
+   const{data,error}=await supabase.from("invoices").insert({repair_job_id:invoiceRepairJobId,customer_id:$("f-cust").value||null,customer_name:o.customer.name.trim(),customer_phone:o.customer.phone.trim()||null,customer_email:o.customer.email.trim()||null,items:o.items,discount:Number(o.discount),vat_rate:Number(o.vat),vat_base:Number(o.vatBase??t.sub),subtotal:t.sub,total:t.total,notes:o.notes,reference:o.ref,due_date:o.due||null}).select().single();
    if(error)throw new Error(error.message);
    invoiceId=data.id;
    savedInvoiceNumber=data.invoice_number;
@@ -1119,7 +1183,7 @@ $("save").onclick=async()=>{const o=collect();if(!o.items.length)return toast("A
   }
   editingInvoiceId=null;await load();let saved=rows.invoices.find(x=>x.id===invoiceId);
   if(!saved){
-   saved={kind:"invoice",id:invoiceId,repairJobId:invoiceRepairJobId,customerId:$("f-cust").value||null,number:editing?cur?.number||"Invoice":"INV-"+String(savedInvoiceNumber||"NEW").padStart(5,"0"),date:new Date().toISOString(),due:o.due,customer:o.customer,ref:o.ref,items:o.items,discount:+o.discount||0,vat:5,notes:o.notes,status:"unpaid",amountPaid:0};
+   saved={kind:"invoice",id:invoiceId,repairJobId:invoiceRepairJobId,customerId:$("f-cust").value||null,number:editing?cur?.number||"Invoice":"INV-"+String(savedInvoiceNumber||"NEW").padStart(5,"0"),date:new Date().toISOString(),due:o.due,customer:o.customer,ref:o.ref,items:o.items,discount:Number(o.discount),vat:5,vatBase:Number(o.vatBase??t.sub),notes:o.notes,status:"unpaid",amountPaid:0};
   }
   if(saved){open(saved);toast(editing?"Invoice updated.":"Invoice created.");if(!editing&&payAfterSave)setTimeout(openInvoicePayment,0)}
  }catch(error){console.error(editing?"Couldn't update customer invoice:":"Couldn't save customer invoice:",error);toast(`Couldn't ${editing?"update":"save"} invoice: ${error.message||String(error)}${editing?". Apply supabase/migrations/edit-receipts-invoices.sql if the edit feature is not installed.":""}`)}

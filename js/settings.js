@@ -32,8 +32,10 @@ function currentMode() {
 function applyMode(mode) {
   const theme = mode === "system" ? (mq && mq.matches ? "dark" : "light") : mode;
   document.documentElement.setAttribute("data-theme", theme);
-  document.documentElement.style.backgroundColor = theme === "dark" ? "#0b1220" : "#eef3fb";
+  document.documentElement.style.backgroundColor = theme === "dark" ? "#171c24" : "#e9edf2";
   document.documentElement.style.colorScheme = theme;
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = theme === "dark" ? "#171c24" : "#e9edf2";
   document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-checked", String(b.dataset.m === mode)));
   const now = $("mode-now");
   if (now) now.textContent = mode === "system" ? `Following your device. Currently ${theme}.` : "";

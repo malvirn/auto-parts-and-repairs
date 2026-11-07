@@ -98,6 +98,16 @@
         </section>
 
       <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Account lookup</p><h2><i class="section-heading-icon" data-lucide="search"></i>Checklist Number Search</h2></div></div>
+        <p class="section-note">Search a checklist number to see its customer account, job cards, invoices, receipts, sales, parts, payments, and statement entries.</p>
+        <form id="checklist-account-search" class="payroll-banner">
+          <label for="checklist-number-query">Checklist number<input id="checklist-number-query" type="search" inputmode="numeric" placeholder="e.g. 1000" required></label>
+          <button type="submit" class="btn btn--primary">Search account</button>
+        </form>
+        <div id="checklist-account-results" aria-live="polite"></div>
+      </section>
+
+      <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">At a glance</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Performance Summary</h2></div><span class="section-note">All time</span></div>
         <section class="card-grid" id="summary-cards"></section>
       </section>

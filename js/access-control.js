@@ -154,7 +154,9 @@ async function renderRoster(myId) {
       if (!confirmed) { message.textContent = "Cancelled — role was not changed."; message.dataset.tone = "info"; return; }
 
       message.textContent = "Saving…"; message.dataset.tone = "info";
-      const { error } = await supabase.from("profiles").update({ role: newRole }).eq("id", id);
+      const { error } = await supabase.from("profiles")
+        .update({ role: newRole, access_level: newRole === "super_admin" ? 2 : 1 })
+        .eq("id", id);
       if (error) { message.textContent = "Failed: " + error.message; message.dataset.tone = "error"; return; }
       message.textContent = "Role updated. They'll see the change next time they load a page."; message.dataset.tone = "success";
       row.children[1].textContent = ROLE_LABELS[newRole] || newRole;
@@ -187,7 +189,7 @@ async function renderRoster(myId) {
       const name = row.dataset.name;
       const message = document.getElementById("access-control-message");
 
-      if (!confirm(`Permanently delete ${name}'s login? This cannot be undone.`)) return;
+      if (!await window.aprConfirm(`Permanently delete ${name}'s login? This cannot be undone.`, { title: "Delete login", confirmLabel: "Delete login", danger: true })) return;
       const confirmed = await askForPasswordConfirmation(`Confirm your password to permanently delete ${name}'s login.`);
       if (!confirmed) { message.textContent = "Cancelled — nothing was deleted."; message.dataset.tone = "info"; return; }
 

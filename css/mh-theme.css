@@ -9,8 +9,8 @@
 /* ---------- 1. Tokens (dark = default, light via data-theme) ---------- */
 :root:not(#mh),
 :root:not(#mh) body {
-  --mh-bg:#0b1220; --mh-card:#111a2b; --mh-bd:#1e2a3e; --mh-in:#0d1626; --mh-tx:#e6ebf3; --mh-mu:#8d99ad;
-  --mh-ac:#4f8cf7; --mh-ah:#3b78e6; --mh-al:#8db4ff; --mh-glow:#13213a;
+  --mh-bg:#171c24; --mh-card:#222a35; --mh-bd:#394554; --mh-in:#1c242e; --mh-tx:#edf1f7; --mh-mu:#adb8c7;
+  --mh-ac:#79a6f6; --mh-ah:#5d8de5; --mh-al:#9bbaff; --mh-glow:#273447;
   --mh-rs:#fb7185; --mh-gr:#34d399; --mh-tl:#2dd4bf; --mh-am:#fbbf24; --mh-vi:#a78bfa;
   --mh-sh:0 1px 2px rgba(0,0,0,.3); --mh-sh2:0 12px 32px rgba(0,0,0,.45); --mh-r:16px;
 
@@ -26,7 +26,7 @@
 :root[data-theme="light"]:not(#mh),
 :root[data-theme="light"]:not(#mh) body,
 :root:not(#mh) body[data-theme="light"] {
-  --mh-bg:#f3f6fb; --mh-card:#ffffff; --mh-bd:#e3e8f0; --mh-in:#f6f8fc; --mh-tx:#0f172a; --mh-mu:#64748b;
+  --mh-bg:#e9edf2; --mh-card:#f5f7fa; --mh-bd:#d2d9e2; --mh-in:#eef2f6; --mh-tx:#18212b; --mh-mu:#536273;
   --mh-ac:#1f5fd6; --mh-ah:#174cb0; --mh-al:#1f5fd6; --mh-glow:#e9f0fd;
   --mh-rs:#e11d48; --mh-gr:#059669; --mh-tl:#0d9488; --mh-am:#d97706; --mh-vi:#7c3aed;
   --mh-sh:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06); --mh-sh2:0 18px 40px rgba(15,23,42,.14);
@@ -946,7 +946,7 @@ html { background-color: var(--mh-bg); }
   --mh-glass-in: rgba(255,255,255,.70);
   --mh-glass-bd: rgba(255,255,255,.75);
 }
-:root[data-theme="light"]:not(#mh) body, :root[data-theme="light"]:not(#mh) { --mh-bg:#eef3fb; }
+:root[data-theme="light"]:not(#mh) body, :root[data-theme="light"]:not(#mh) { --mh-bg:#e9edf2; }
 
 /* the colour glow behind everything (fixed, so it doesn't move while scrolling) */
 body.dashboard-page .app-shell::before {
@@ -1479,25 +1479,25 @@ html[data-theme="light"] { background:#f3f6fb !important; color-scheme:light !im
 /* Neutral, high-contrast light mode across dashboards and module pages. */
 :root[data-theme="light"] body.dashboard-page,
 :root[data-theme="light"] body.system-page {
-  --ink:#f1f2f3;
-  --bg:#f1f2f3;
-  --mh-bg:#f1f2f3;
-  --panel:#ffffff;
-  --surface:#ffffff;
-  --surface-2:#f5f6f7;
-  --surface-alt:#f5f6f7;
-  --mh-card:#ffffff;
-  --border:#d9dcdf;
-  --line:#d9dcdf;
-  --mh-bd:#d9dcdf;
-  --text:#111111;
-  --mh-tx:#111111;
-  --text-muted:#44484c;
-  --text-dim:#44484c;
-  --muted:#44484c;
+  --ink:#e9edf2;
+  --bg:#e9edf2;
+  --mh-bg:#e9edf2;
+  --panel:#f5f7fa;
+  --surface:#f5f7fa;
+  --surface-2:#eef2f6;
+  --surface-alt:#eef2f6;
+  --mh-card:#f5f7fa;
+  --border:#d2d9e2;
+  --line:#d2d9e2;
+  --mh-bd:#d2d9e2;
+  --text:#18212b;
+  --mh-tx:#18212b;
+  --text-muted:#536273;
+  --text-dim:#536273;
+  --muted:#536273;
   color-scheme:light;
-  background:#f1f2f3 !important;
-  color:#111111;
+  background:#e9edf2 !important;
+  color:#18212b;
 }
 :root[data-theme="light"] body.dashboard-page .main,
 :root[data-theme="light"] body.dashboard-page .app-shell,

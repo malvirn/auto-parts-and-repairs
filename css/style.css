@@ -708,12 +708,13 @@ th {
 .receipt-total { display: flex; justify-content: flex-end; gap: 34px; padding-top: 16px; font: 700 1rem Arial, sans-serif; }
 .receipt-note { margin-top: 30px; color: #444; font: .78rem/1.5 Arial, sans-serif; text-align: center; }
 @media print {
-  body * { visibility: hidden !important; }
-  #receipt-modal, #receipt-modal * { visibility: visible !important; }
+  body:has(#receipt-modal) * { visibility: hidden !important; }
+  body:has(#receipt-modal) #receipt-modal,
+  body:has(#receipt-modal) #receipt-modal * { visibility: visible !important; }
   #receipt-modal { position: static !important; display: block !important; background: #fff !important; }
   .receipt-modal-card { width: 100%; max-height: none; border: 0; overflow: visible; }
   .receipt-document { max-width: none; padding: 0; }
-  .no-print { display: none !important; }
+  body:has(#receipt-modal) .no-print { display: none !important; }
   @page { margin: 14mm; }
 }
 
@@ -2147,11 +2148,12 @@ th {
 .receipt-total { display: flex; justify-content: flex-end; gap: 34px; padding-top: 16px; font: 700 1rem Arial, sans-serif; }
 .receipt-note { margin-top: 30px; color: #444; font: .78rem/1.5 Arial, sans-serif; text-align: center; }
 @media print {
-  body * { visibility: hidden !important; }
-  #receipt-modal, #receipt-modal * { visibility: visible !important; }
+  body:has(#receipt-modal) * { visibility: hidden !important; }
+  body:has(#receipt-modal) #receipt-modal,
+  body:has(#receipt-modal) #receipt-modal * { visibility: visible !important; }
   #receipt-modal { position: static !important; display: block !important; background: #fff !important; }
   .receipt-modal-card { width: 100%; max-height: none; border: 0; overflow: visible; }
-  .no-print { display: none !important; }
+  body:has(#receipt-modal) .no-print { display: none !important; }
 
   /* Sized for an 80mm till/thermal roll rather than a full sheet of paper —
      adjust to 58mm below if that's what your printer takes instead. */
@@ -3033,11 +3035,12 @@ th {
 .receipt-total { display: flex; justify-content: flex-end; gap: 34px; padding-top: 16px; font: 700 1rem Arial, sans-serif; }
 .receipt-note { margin-top: 30px; color: #444; font: .78rem/1.5 Arial, sans-serif; text-align: center; }
 @media print {
-  body * { visibility: hidden !important; }
-  #receipt-modal, #receipt-modal * { visibility: visible !important; }
+  body:has(#receipt-modal) * { visibility: hidden !important; }
+  body:has(#receipt-modal) #receipt-modal,
+  body:has(#receipt-modal) #receipt-modal * { visibility: visible !important; }
   #receipt-modal { position: static !important; display: block !important; background: #fff !important; }
   .receipt-modal-card { width: 100%; max-height: none; border: 0; overflow: visible; }
-  .no-print { display: none !important; }
+  body:has(#receipt-modal) .no-print { display: none !important; }
 
   /* Sized for an 80mm till/thermal roll rather than a full sheet of paper —
      adjust to 58mm below if that's what your printer takes instead. */

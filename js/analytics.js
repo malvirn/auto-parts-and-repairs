@@ -59,6 +59,141 @@ function renderDateOverview(jobs, receipts, jobParts) {
   void rangePartLines;
 }
 
+function renderAccountSection(title, records, fields) {
+  const rows = records.map(record => `<tr>${fields.map(([label, key]) => `<td data-label="${escapeHtml(label)}">${escapeHtml(record[key] ?? "—")}</td>`).join("")}</tr>`).join("");
+  return `<section class="chart-card"><h3>${escapeHtml(title)} <span class="section-note">(${records.length})</span></h3>${records.length
+    ? `<div style="overflow-x:auto"><table><thead><tr>${fields.map(([label]) => `<th>${escapeHtml(label)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
+    : '<p class="section-note">No records found.</p>'}</section>`;
+}
+
+async function searchChecklistAccount(value) {
+  const results = document.getElementById("checklist-account-results");
+  const query = String(value || "").trim().replace(/^#/, "");
+  const checklistNumber = Number(query);
+  if (!/^\d+$/.test(query) || !Number.isSafeInteger(checklistNumber) || checklistNumber < 1000) {
+    results.innerHTML = '<p class="section-note" role="alert">Enter a valid checklist number (1000 or higher).</p>';
+    return;
+  }
+  results.innerHTML = '<p class="section-note" role="status">Searching checklist and account records…</p>';
+  try {
+    const [reportResult, directJobResult] = await Promise.all([
+      supabase.from("job_condition_reports").select("id,checklist_number,job_id,customer_id,customer_name,vehicle_registration,checked_by,fuel_level_in,odometer_in,confirmed_at").eq("checklist_number", checklistNumber).maybeSingle(),
+      supabase.from("repair_jobs").select("id,job_number,cro_number,checklist_number,customer_id,vehicle_id,status,fault_reported,created_at,total_cost,fuel_level_in,odometer_in,customers(full_name,customer_code),vehicles(make,model,year,license_plate)").eq("checklist_number", checklistNumber).maybeSingle(),
+    ]);
+    if (reportResult.error) throw new Error(`Couldn't search checklists: ${reportResult.error.message}`);
+    if (directJobResult.error) throw new Error(`Couldn't search job cards: ${directJobResult.error.message}`);
+    const report = reportResult.data;
+    let matchedJob = directJobResult.data;
+    if (!matchedJob && report?.job_id) {
+      const { data, error } = await supabase.from("repair_jobs")
+        .select("id,job_number,cro_number,checklist_number,customer_id,vehicle_id,status,fault_reported,created_at,total_cost,fuel_level_in,odometer_in,customers(full_name,customer_code),vehicles(make,model,year,license_plate)")
+        .eq("id", report.job_id).maybeSingle();
+      if (error) throw new Error(`Couldn't load the checklist's job card: ${error.message}`);
+      matchedJob = data;
+    }
+    if (!report && !matchedJob) {
+      results.innerHTML = `<p class="section-note" role="status">No checklist or job card was found for number ${checklistNumber}.</p>`;
+      return;
+    }
+
+    const customerId = matchedJob?.customer_id || report?.customer_id;
+    const errors = [];
+    let customer = null, customers = [], jobs = [], invoices = [], orders = [], statements = [], checklists = [], vehicles = [];
+    if (customerId) {
+      const queries = await Promise.all([
+        supabase.from("customers").select("id,customer_code,full_name,phone,email,customer_type").eq("id", customerId).maybeSingle(),
+        supabase.from("repair_jobs").select("id,job_number,cro_number,checklist_number,status,fault_reported,created_at,total_cost,fuel_level_in,odometer_in,vehicles(license_plate,make,model)").eq("customer_id", customerId).order("created_at", { ascending: false }).limit(2000),
+        supabase.from("invoices").select("id,invoice_number,repair_job_id,issued_at,due_date,total,amount_paid,customer_name,status").eq("customer_id", customerId).order("issued_at", { ascending: false }).limit(2000),
+        supabase.from("sales_orders").select("id,order_number,status,created_at,total_usd").eq("customer_id", customerId).order("created_at", { ascending: false }).limit(2000),
+        supabase.from("customer_account_statement").select("source_type,reference,entry_date,total_amount,amount_paid,balance_due").eq("customer_id", customerId).order("entry_date", { ascending: false }).limit(2000),
+        supabase.from("job_condition_reports").select("checklist_number,customer_name,vehicle_registration,checked_by,confirmed_at,fuel_level_in,odometer_in").eq("customer_id", customerId).order("checklist_number", { ascending: false }).limit(2000),
+        supabase.from("vehicles").select("license_plate,make,model,year").eq("customer_id", customerId).order("license_plate").limit(1000),
+      ]);
+      const [customerResult, jobResult, invoiceResult, orderResult, statementResult, checklistResult, vehicleResult] = queries;
+      for (const [label, result] of [
+        ["Customer", customerResult], ["Job cards", jobResult], ["Invoices", invoiceResult],
+        ["Sales orders", orderResult], ["Account statement", statementResult],
+        ["Checklists", checklistResult], ["Vehicles", vehicleResult],
+      ]) if (result.error) errors.push(`${label}: ${result.error.message}`);
+      customer = customerResult.data;
+      jobs = jobResult.data || [];
+      invoices = invoiceResult.data || [];
+      orders = orderResult.data || [];
+      statements = statementResult.data || [];
+      checklists = checklistResult.data || [];
+      vehicles = vehicleResult.data || [];
+    } else if (matchedJob) {
+      jobs = [matchedJob];
+    }
+
+    if (report && !checklists.some(item => Number(item.checklist_number) === checklistNumber)) checklists.unshift(report);
+    if (matchedJob && !jobs.some(item => String(item.id) === String(matchedJob.id))) jobs.unshift(matchedJob);
+    const jobIds = [...new Set(jobs.map(job => job.id).filter(Boolean))];
+    const orderIds = orders.map(order => order.id).filter(Boolean);
+    const invoiceIds = invoices.map(invoice => invoice.id).filter(Boolean);
+    const [jobReceipts, orderReceipts, jobParts, jobPayments, invoicePayments] = await Promise.all([
+      jobIds.length ? supabase.from("receipts").select("id,receipt_number,repair_job_id,sales_order_id,amount,issued_at").in("repair_job_id", jobIds).order("issued_at", { ascending: false }).limit(2000) : Promise.resolve({ data: [], error: null }),
+      orderIds.length ? supabase.from("receipts").select("id,receipt_number,repair_job_id,sales_order_id,amount,issued_at").in("sales_order_id", orderIds).order("issued_at", { ascending: false }).limit(2000) : Promise.resolve({ data: [], error: null }),
+      jobIds.length ? supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time").in("job_id", jobIds).limit(5000) : Promise.resolve({ data: [], error: null }),
+      jobIds.length ? supabase.from("repair_job_payments").select("*").in("repair_job_id", jobIds).limit(5000) : Promise.resolve({ data: [], error: null }),
+      invoiceIds.length ? supabase.from("invoice_payments").select("*").in("invoice_id", invoiceIds).limit(5000) : Promise.resolve({ data: [], error: null }),
+    ]);
+    const receipts = [...(jobReceipts.data || []), ...(orderReceipts.data || [])]
+      .filter((receipt, index, list) => list.findIndex(item => String(item.id) === String(receipt.id)) === index);
+    for (const [label, result] of [
+      ["Repair receipts", jobReceipts], ["Sales receipts", orderReceipts], ["Job parts", jobParts],
+      ["Job payments", jobPayments], ["Invoice payments", invoicePayments],
+    ]) if (result.error) errors.push(`${label}: ${result.error.message}`);
+
+    const accountLabel = customer?.full_name || report?.customer_name || matchedJob?.customers?.full_name || "Customer account";
+    results.innerHTML = `
+      <section class="chart-card" style="margin-bottom:16px">
+        <h3>Checklist #${checklistNumber} · ${escapeHtml(accountLabel)}</h3>
+        <p>${escapeHtml(report?.customer_name || accountLabel)} · Registration ${escapeHtml(report?.vehicle_registration || matchedJob?.vehicles?.license_plate || "—")}</p>
+        <p>Completed by ${escapeHtml(report?.checked_by || "—")} · Fuel ${escapeHtml(report?.fuel_level_in || matchedJob?.fuel_level_in || "—")} · Odometer ${escapeHtml(report?.odometer_in ?? matchedJob?.odometer_in ?? "—")}</p>
+        ${errors.length ? `<p role="alert" class="section-note">Some account records could not be loaded: ${errors.map(escapeHtml).join(" · ")}</p>` : ""}
+      </section>
+      ${customer ? renderAccountSection("Customer", [{
+        Code: customer.customer_code, Name: customer.full_name, Phone: customer.phone,
+        Email: customer.email, Type: customer.customer_type,
+      }], [["Code", "Code"], ["Name", "Name"], ["Phone", "Phone"], ["Email", "Email"], ["Type", "Type"]]) : ""}
+      ${renderAccountSection("Vehicles", vehicles.map(vehicle => ({
+        Registration: vehicle.license_plate, Vehicle: [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" "),
+      })), [["Registration", "Registration"], ["Vehicle", "Vehicle"]])}
+      ${renderAccountSection("Checklists", checklists.map(item => ({
+        Number: item.checklist_number, Registration: item.vehicle_registration, Inspector: item.checked_by,
+        Fuel: item.fuel_level_in, Odometer: item.odometer_in, Confirmed: item.confirmed_at ? new Date(item.confirmed_at).toLocaleDateString() : "No",
+      })), [["Number", "Number"], ["Registration", "Registration"], ["Inspector", "Inspector"], ["Fuel", "Fuel"], ["Odometer", "Odometer"], ["Confirmed", "Confirmed"]])}
+      ${renderAccountSection("Job cards", jobs.map(job => ({
+        Job: job.cro_number || `JC-${String(job.job_number ?? "").padStart(5, "0")}`, Checklist: job.checklist_number,
+        Status: job.status, Registration: job.vehicles?.license_plate, Created: job.created_at ? new Date(job.created_at).toLocaleDateString() : "",
+        Total: job.total_cost, Fault: job.fault_reported,
+      })), [["Job", "Job"], ["Checklist", "Checklist"], ["Status", "Status"], ["Registration", "Registration"], ["Created", "Created"], ["Total", "Total"], ["Fault", "Fault"]])}
+      ${renderAccountSection("Invoices", invoices.map(invoice => ({
+        Invoice: `INV-${String(invoice.invoice_number ?? "").padStart(5, "0")}`, Date: invoice.issued_at ? new Date(invoice.issued_at).toLocaleDateString() : "",
+        Due: invoice.due_date || "", Total: invoice.total, Paid: invoice.amount_paid, Status: invoice.status,
+      })), [["Invoice", "Invoice"], ["Date", "Date"], ["Due", "Due"], ["Total", "Total"], ["Paid", "Paid"], ["Status", "Status"]])}
+      ${renderAccountSection("Sales orders", orders.map(order => ({
+        Order: `Order #${order.order_number}`, Date: order.created_at ? new Date(order.created_at).toLocaleDateString() : "",
+        Status: order.status, Total: order.total_usd,
+      })), [["Order", "Order"], ["Date", "Date"], ["Status", "Status"], ["Total", "Total"]])}
+      ${renderAccountSection("Receipts", receipts.map(receipt => ({
+        Receipt: `R-${String(receipt.receipt_number ?? "").padStart(5, "0")}`, Date: receipt.issued_at ? new Date(receipt.issued_at).toLocaleDateString() : "",
+        Amount: receipt.amount, Related: receipt.repair_job_id ? "Repair job" : "Sales order",
+      })), [["Receipt", "Receipt"], ["Date", "Date"], ["Amount", "Amount"], ["Related", "Related"]])}
+      ${renderAccountSection("Job parts", jobParts.data || [], [["Part", "part_name"], ["Quantity", "quantity"], ["Unit price", "price_at_time"]])}
+      ${renderAccountSection("Repair payments", jobPayments.data || [], [["Date", "paid_at"], ["Amount", "amount"], ["Method", "payment_method"]])}
+      ${renderAccountSection("Invoice payments", invoicePayments.data || [], [["Date", "payment_date"], ["Amount", "amount"], ["Method", "payment_method"]])}
+      ${renderAccountSection("Account statement", statements.map(entry => ({
+        Date: entry.entry_date, Type: entry.source_type, Reference: entry.reference, Total: entry.total_amount,
+        Paid: entry.amount_paid, Balance: entry.balance_due,
+      })), [["Date", "Date"], ["Type", "Type"], ["Reference", "Reference"], ["Total", "Total"], ["Paid", "Paid"], ["Balance", "Balance"]])}`;
+  } catch (error) {
+    console.error("Checklist account search failed:", error);
+    results.innerHTML = `<p role="alert" class="section-note">Couldn't search the account: ${escapeHtml(error.message || String(error))}</p>`;
+  }
+}
+
 async function loadAnalytics() {
   // technician_directory (Phase 0 security) is the safe, no-salary view —
   // used for names and counts that every staff member should still see.
@@ -103,6 +238,14 @@ async function loadAnalytics() {
   renderPayrollChart(payrollRuns);
   renderPayrollHistory(payrollRuns);
   renderDateOverview(jobs, receipts, jobParts);
+  const accountSearch = document.getElementById("checklist-account-search");
+  if (accountSearch && !accountSearch.dataset.ready) {
+    accountSearch.dataset.ready = "true";
+    accountSearch.addEventListener("submit", event => {
+      event.preventDefault();
+      searchChecklistAccount(document.getElementById("checklist-number-query").value);
+    });
+  }
   document.getElementById("analytics-from")?.addEventListener("change", () => renderDateOverview(jobs, receipts, jobParts));
   document.getElementById("analytics-to")?.addEventListener("change", () => renderDateOverview(jobs, receipts, jobParts));
   await loadPayrollSection(technicians);
@@ -342,7 +485,7 @@ async function processPayroll(technicians, year, month, payDate) {
 async function processPayrollOnce(technicians, year, month, payDate) {
   const active = technicians.filter(t => t.is_active !== false);
   if (!active.length) { alert("No active employees to pay."); return; }
-  if (!confirm(`Process payroll for ${active.length} active employee(s), payable ${payDate.toLocaleDateString()}? This can't be undone from here.`)) return;
+  if (!await window.aprConfirm(`Process payroll for ${active.length} active employee(s), payable ${payDate.toLocaleDateString()}? This can't be undone from here.`, { title: "Confirm payroll", confirmLabel: "Process payroll", danger: true })) return;
 
   const { data: existingRun, error: existingRunError } = await supabase.from("payroll_runs")
     .select("id")
@@ -444,7 +587,7 @@ async function processPayrollOnce(technicians, year, month, payDate) {
     await supabase.from("commissions").update({ status: "paid", payroll_run_id: run.id }).in("id", paidCommissionIds);
   }
 
-  alert(`Payroll processed — ${totalNet.toFixed(2)} net across ${payments.length} employee(s), including ${(unpaidCommissions || []).length} commission payment(s). Posted to the Ledger.`);
+  window.aprToast?.("Payroll processed", "success", `${totalNet.toFixed(2)} net across ${payments.length} employee(s), including ${(unpaidCommissions || []).length} commission payment(s). Posted to the Ledger.`);
   loadAnalytics();
 }
 

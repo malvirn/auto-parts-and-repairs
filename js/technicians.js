@@ -217,7 +217,7 @@ async function refreshOffDaysCacheForCurrentMonth() {
 
 if (generateAllBtn) {
   generateAllBtn.addEventListener("click", async () => {
-    if (!confirm(`Generate this month's 3 random off days (no Sundays) for every active employee who doesn't already have a full set?`)) return;
+    if (!await window.aprConfirm(`Generate this month's 3 random off days (no Sundays) for every active employee who doesn't already have a full set?`, { title: "Generate off days", confirmLabel: "Generate off days" })) return;
     generateAllBtn.disabled = true;
     const now = new Date();
     const year = now.getFullYear(), month = now.getMonth() + 1;
@@ -226,7 +226,7 @@ if (generateAllBtn) {
     }
     await refreshOffDaysCacheForCurrentMonth();
     generateAllBtn.disabled = false;
-    alert("Off days generated for this month.");
+    window.aprToast?.("Off days generated for this month", "success");
   });
 }
 
@@ -375,7 +375,7 @@ editRenewBtn.addEventListener("click", () => {
 
 editTerminateBtn.addEventListener("click", async () => {
   if (!currentEditId) return;
-  if (!confirm("Mark this employee as terminated? Their record and history are kept, just flagged inactive.")) return;
+  if (!await window.aprConfirm("Mark this employee as terminated? Their record and history are kept, just flagged inactive.", { title: "Terminate employee", confirmLabel: "Terminate employee", danger: true })) return;
   const { error } = await supabase.from("technicians").update({ is_active: false }).eq("id", currentEditId);
   if (error) { alert("Failed to update: " + error.message); return; }
   closeEditModal();
@@ -387,7 +387,7 @@ editGenerateOffDaysBtn.addEventListener("click", async () => {
   const now = new Date();
   const year = now.getFullYear(), month = now.getMonth() + 1;
   const existing = await loadOffDaysForMonth(currentEditId, year, month);
-  const reshuffle = existing.length > 0 && confirm("Off days already exist for this month — reshuffle to new random dates?");
+  const reshuffle = existing.length > 0 && await window.aprConfirm("Off days already exist for this month — reshuffle to new random dates?", { title: "Reshuffle off days", confirmLabel: "Reshuffle dates" });
   if (existing.length > 0 && !reshuffle) return;
   const dates = await generateOffDays(currentEditId, year, month, { reshuffle: true });
   renderOffDaysInModal(dates);

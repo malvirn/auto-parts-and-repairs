@@ -24,7 +24,13 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce((select access_level from public.profiles where id = auth.uid()), 1);
+  select case
+    when lower(coalesce(profile.role, '')) in ('accounting', 'super_admin', 'superadmin')
+      then greatest(coalesce(profile.access_level, 1), 2)
+    else coalesce(profile.access_level, 1)
+  end
+  from (select 1) as singleton
+  left join public.profiles as profile on profile.id = auth.uid();
 $$;
 
 drop policy if exists "Level 2 can read receipts" on public.receipts;

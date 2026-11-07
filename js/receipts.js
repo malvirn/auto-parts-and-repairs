@@ -412,7 +412,7 @@ async function sendReceiptEmail() {
         },
       });
       if (error) throw error;
-      alert("Receipt emailed to " + email);
+      window.aprToast?.("Receipt emailed", "success", email);
     } catch (err) {
       console.error("Failed to email receipt:", err);
       alert("Couldn't email the receipt: " + err.message + "\n\nMake sure the send-receipt-email Edge Function is deployed with an email provider API key set.");

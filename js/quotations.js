@@ -36,8 +36,9 @@ function escapeHtml(value) {
 }
 
 function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
-function totalOf(items) { return items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0); }
-function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price_usd), 0); }
+function lineTotalOf(item) { return Number((Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)); }
+function totalOf(items) { return items.reduce((sum, item) => sum + lineTotalOf(item), 0); }
+function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function quotationTotals(items) {
   const subtotal = Number(totalOf(items || []).toFixed(2));
   const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
@@ -1053,22 +1054,25 @@ async function openQuoteEditor(id) {
 async function saveQuoteChanges() {
   if (!editingQuote) return;
   const inputs = [...document.querySelectorAll("#edit-quote-lines .amend-qty")]; const prices = [...document.querySelectorAll("#edit-quote-lines .amend-price")]; const rate = editingQuote.usd_to_zig_rate;
-  let total = 0;
+  const items = [];
   for (let i = 0; i < editingQuote.quotation_items.length; i++) {
     const quantity = Number(inputs[i].value);
     const unit = Number(prices[i].value);
-    const original = editingQuote.quotation_items[i];
-    const cost = Number(original.cost_price_usd) || 0;
-    const markup = cost > 0 ? Number(((unit / cost - 1) * 100).toFixed(2)) : 0;
-    total += quantity * unit;
-    await supabase.from("quotation_items").update({
-      quantity, unit_price_usd: unit, markup_pct: markup,
-      total_usd: quantity * unit, unit_price_zig: unit * rate,
-      total_zig: quantity * unit * rate,
-    }).eq("id", original.id);
+    if (!Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unit) || unit < 0) {
+      alert("Every quotation line needs a positive quantity and a non-negative price.");
+      return;
+    }
+    items.push({ id: editingQuote.quotation_items[i].id, quantity, unit_price_usd: unit });
   }
-  const amendedTotals = quotationTotals(editingQuote.quotation_items.map((item, index) => ({ ...item, quantity: Number(inputs[index].value), unit_price_usd: Number(prices[index].value) })));
-  await supabase.from("quotations").update({ total_usd: amendedTotals.total, total_zig: amendedTotals.total * rate, updated_at: new Date().toISOString(), status: "Amended" }).eq("id", editingQuote.id);
+  if (!Number.isFinite(Number(rate)) || Number(rate) <= 0) {
+    alert("The quotation exchange rate is invalid.");
+    return;
+  }
+  const { error } = await supabase.rpc("amend_customer_quotation", { p_quotation_id: editingQuote.id, p_items: items });
+  if (error) {
+    alert(`Couldn't save quotation changes: ${error.message}`);
+    return;
+  }
   closeModal(quoteModal); await loadDocuments();
 }
 async function createOrderFromQuote() {
@@ -1159,44 +1163,39 @@ async function openOrderEditor(id) {
 }
 async function saveOrderChanges() {
   if (!editingOrder) return;
-  const wasAlreadyConfirmed = editingOrder.status === "Confirmed";
-  const inputs = [...document.querySelectorAll("#edit-order-lines .amend-qty")]; const prices = [...document.querySelectorAll("#edit-order-lines .amend-price")]; const rate = Number(editingOrder.usd_to_zig_rate || exchangeRate); let total = 0;
-  for (let i = 0; i < editingOrder.sales_order_items.length; i++) { const quantity = Number(inputs[i].value); const unit = Number(prices[i].value); total += quantity * unit; await supabase.from("sales_order_items").update({ quantity, unit_price_usd: unit, total_usd: quantity * unit, unit_price_zig: unit * rate, total_zig: quantity * unit * rate }).eq("id", editingOrder.sales_order_items[i].id); }
+  const inputs = [...document.querySelectorAll("#edit-order-lines .amend-qty")];
+  const prices = [...document.querySelectorAll("#edit-order-lines .amend-price")];
+  if (inputs.length !== editingOrder.sales_order_items.length || prices.length !== editingOrder.sales_order_items.length) {
+    alert("The order lines changed unexpectedly. Reload the order before saving.");
+    return;
+  }
+  const items = editingOrder.sales_order_items.map((item, index) => ({
+    id: item.id,
+    quantity: Number(inputs[index].value),
+    unit_price_usd: Number(prices[index].value),
+  }));
+  if (items.some(item => !Number.isFinite(item.quantity) || item.quantity <= 0 ||
+      !Number.isFinite(item.unit_price_usd) || item.unit_price_usd < 0)) {
+    alert("Every order line needs a positive quantity and a non-negative price.");
+    return;
+  }
   const salespersonId = document.getElementById("edit-order-salesperson")?.value || null;
-  await supabase.from("sales_orders").update({ total_usd: total, total_zig: total * rate, status: "Confirmed", salesperson_id: salespersonId, updated_at: new Date().toISOString() }).eq("id", editingOrder.id);
-
-  // Stock only gets deducted once — on the actual Draft-to-Confirmed
-  // transition. Re-saving an already-confirmed order (amending it later)
-  // doesn't deduct again, since that stock was already taken out the
-  // first time this order was confirmed. This was the gap Quick Sale
-  // didn't have but this flow did.
-  if (!wasAlreadyConfirmed) {
-    // Parts already on the order's job card were taken from stock when they
-    // were added to the job, so only the extra quantity is deducted here.
-    const onJob = {};
-    if (editingOrder.repair_job_id) {
-      const { data: jobParts } = await supabase.from("job_parts").select("part_id, quantity").eq("job_id", editingOrder.repair_job_id);
-      (jobParts || []).forEach(jp => { if (jp.part_id) onJob[jp.part_id] = (onJob[jp.part_id] || 0) + Number(jp.quantity || 0); });
-    }
-    for (let i = 0; i < editingOrder.sales_order_items.length; i++) {
-      const item = editingOrder.sales_order_items[i];
-      if (!item.part_id) continue;
-      const fromJob = Math.min(onJob[item.part_id] || 0, Number(inputs[i].value));
-      onJob[item.part_id] = (onJob[item.part_id] || 0) - fromJob;
-      const quantity = Number(inputs[i].value) - fromJob;
-      if (quantity <= 0) continue;
-      const { data: part } = await supabase.from("parts").select("quantity_in_stock").eq("id", item.part_id).single();
-      if (part) {
-        await supabase.from("parts").update({ quantity_in_stock: Math.max(0, Number(part.quantity_in_stock) - quantity) }).eq("id", item.part_id);
-      }
-    }
+  const { error: saveError } = await supabase.rpc("save_sales_order_with_stock", {
+    p_sales_order_id: editingOrder.id,
+    p_salesperson_id: salespersonId,
+    p_items: items,
+  });
+  if (saveError) {
+    alert(`Couldn't save the order: ${saveError.message}`);
+    return;
   }
 
+  const total = items.reduce((sum, item) => sum + Math.round(item.quantity * item.unit_price_usd * 100) / 100, 0);
   const receiptOk = await ensureReceiptForOrder(editingOrder.id, total);
   closeModal(orderModal);
   await loadDocuments();
 
-  if (receiptOk && confirm("Sales order saved and a receipt has been recorded. View the printed receipt now?")) {
+  if (receiptOk && await window.aprConfirm("Sales order saved and a receipt has been recorded. View the printed receipt now?", { title: "View receipt", confirmLabel: "Open receipt" })) {
     window.location.href = `receipts.html?order=${encodeURIComponent(editingOrder.id)}`;
   }
 }

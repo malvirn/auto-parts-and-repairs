@@ -36,9 +36,14 @@
     }
 
 
-    /* Compact ledger dialogs: centred in the viewport, with the content kept
-       inside the screen rather than extending below it. */
-    #job-part-pricing-modal .modal,
+    #job-part-pricing-modal .modal {
+      width: min(1280px, calc(100vw - 36px)) !important;
+      max-width: 1280px;
+      max-height: none;
+      overflow: visible;
+      padding: 22px 26px;
+      gap: 12px;
+    }
     #jb-payment-modal .modal {
       width: min(760px, calc(100vw - 28px)) !important;
       max-width: 760px;
@@ -47,7 +52,7 @@
       padding: 16px 18px;
       gap: 9px;
     }
-    #job-part-pricing-modal .panel { max-height: 34vh; overflow: auto; }
+    #job-part-pricing-modal .panel { max-height: none; overflow: visible; }
     #job-part-pricing-modal table { margin: 0; }
     #job-part-pricing-modal th,
     #job-part-pricing-modal td { padding: 6px 8px; }
@@ -76,6 +81,20 @@
       #job-part-pricing-modal { padding:10px; }
       #job-part-pricing-modal .modal,
       #jb-payment-modal .modal { width:calc(100vw - 20px) !important; padding:13px; max-height:90vh; }
+      #job-part-pricing-modal .modal { max-height:none; }
+      #job-part-pricing-modal table { font-size:.72rem; }
+      #job-part-pricing-modal th,
+      #job-part-pricing-modal td { padding:4px 3px; }
+      #job-part-pricing-modal input { width:100% !important; min-width:0; }
+      #job-part-pricing-modal table,
+      #job-part-pricing-modal tbody,
+      #job-part-pricing-modal tr,
+      #job-part-pricing-modal td { display:block; width:100%; }
+      #job-part-pricing-modal thead { display:none; }
+      #job-part-pricing-modal tbody { display:grid; gap:9px; }
+      #job-part-pricing-modal tr[data-price-line] { padding:8px; border:1px solid var(--border); border-radius:8px; }
+      #job-part-pricing-modal tr[data-price-line] td { display:grid; grid-template-columns:minmax(88px,34%) minmax(0,1fr); align-items:center; gap:8px; border:0; text-align:left; overflow-wrap:anywhere; }
+      #job-part-pricing-modal tr[data-price-line] td::before { content:attr(data-label); color:var(--text-muted); font-weight:600; }
       #jb-payment-modal .payment-grid { grid-template-columns:1fr; }
       #jb-payment-modal .payment-summary { grid-template-columns:1fr 1fr; }
       #jb-payment-modal .payment-summary > :first-child { grid-column:1/-1; }
@@ -796,7 +815,7 @@
         const [partsResult, extrasResult, paymentsResult, invoiceResult] = await Promise.all([
           supabase.from("job_parts").select("part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id", jobId),
           supabase.from("job_incidentals").select("description,amount").eq("job_id", jobId),
-          supabase.from("repair_job_payments").select("amount").eq("repair_job_id", jobId),
+          supabase.from("repair_job_payments").select("amount").eq("repair_job_id", jobId).is("voided_at", null),
           supabase.from("invoices").select("*").eq("repair_job_id", jobId).order("issued_at", { ascending: false }).limit(1)
         ]);
         if (partsResult.error) throw new Error(`Couldn't load job parts: ${partsResult.error.message}`);
@@ -842,7 +861,9 @@
             vat_rate: 5,
             subtotal,
             total,
-            amount_paid: previouslyPaid,
+            amount_paid: Math.min(previouslyPaid, total),
+            status: previouslyPaid > 0 ? (previouslyPaid >= total - 0.005 ? "paid" : "partially_paid") : "unpaid",
+            vat_base: partsSubtotal,
             notes: `Created from ${jn(job)} in General Ledger. ${job.fault_reported || ""}`,
             reference: job.cro_number || jn(job),
             due_date: dueDate.toISOString().slice(0, 10)
@@ -964,13 +985,13 @@ import supabase from "../js/supabaseClient.js";
   $("job-part-pricing-lines").innerHTML=activeParts.map((p,i)=>{
    const unpriced=Boolean(p.awaiting_accounting_price),sell=Number(p.price_at_time||0),name=p.parts?.description||p.parts?.name||p.part_name||"Unnamed part",qty=Number(p.quantity||0);
    return `<tr data-price-line="${i}">
-    <td>${esc(name)}${unpriced?'<small class="pill">Price required</small>':'<small>Stock / already priced</small>'}</td>
-    <td>${qty}</td>
-     <td>${unpriced?`<input type="number" min="0.01" step="0.01" required data-cost-price="${i}" value="${Number(p.cost_price)>0?Number(p.cost_price).toFixed(2):""}" placeholder="Cost" style="width:110px">`:money(Number(p.cost_price||0))}</td>
-    <td>${unpriced?`<input type="number" min="-100" max="1000" step="0.01" required data-markup-pct="${i}" value="${p.markup_pct != null && Number.isFinite(Number(p.markup_pct))?Number(p.markup_pct).toFixed(2):defaultMarkup.toFixed(2)}" style="width:90px">`:Number(p.markup_pct||0).toFixed(2)+"%"}</td>
-     <td>${unpriced?`<input type="number" min="0.01" step="0.01" required data-selling-price="${i}" value="${Number(p.cost_price)>0?(Number(p.cost_price)*(1+Number(p.markup_pct||defaultMarkup)/100)).toFixed(2):""}" placeholder="Selling" style="width:110px">`:money(sell)}</td>
-    <td data-cost-total="${i}">${unpriced?"Awaiting cost":money(Number(p.cost_price||0)*qty)}</td>
-    <td data-profit-total="${i}">${unpriced?"Awaiting cost":money((sell-Number(p.cost_price||0))*qty)}</td>
+    <td data-label="Part">${esc(name)}${unpriced?'<small class="pill">Price required</small>':'<small>Stock / already priced</small>'}</td>
+    <td data-label="Quantity">${qty}</td>
+     <td data-label="Cost unit">${unpriced?`<input type="number" min="0.01" step="0.01" required data-cost-price="${i}" value="${Number(p.cost_price)>0?Number(p.cost_price).toFixed(2):""}" placeholder="Cost" style="width:110px">`:money(Number(p.cost_price||0))}</td>
+    <td data-label="Markup">${unpriced?`<input type="number" min="-100" max="1000" step="0.01" required data-markup-pct="${i}" value="${p.markup_pct != null && Number.isFinite(Number(p.markup_pct))?Number(p.markup_pct).toFixed(2):defaultMarkup.toFixed(2)}" style="width:90px">`:Number(p.markup_pct||0).toFixed(2)+"%"}</td>
+     <td data-label="Selling unit">${unpriced?`<input type="number" min="0.01" step="0.01" required data-selling-price="${i}" value="${Number(p.cost_price)>0?(Number(p.cost_price)*(1+Number(p.markup_pct||defaultMarkup)/100)).toFixed(2):""}" placeholder="Selling" style="width:110px">`:money(sell)}</td>
+    <td data-label="Cost total" data-cost-total="${i}">${unpriced?"Awaiting cost":money(Number(p.cost_price||0)*qty)}</td>
+    <td data-label="Profit" data-profit-total="${i}">${unpriced?"Awaiting cost":money((sell-Number(p.cost_price||0))*qty)}</td>
    </tr>`;
   }).join("")||'<tr><td colspan="7">No parts recorded.</td></tr>';
   const labour=Number(activeJob.labour_cost||0);

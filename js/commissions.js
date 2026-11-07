@@ -92,7 +92,7 @@ async function generateCommissions() {
       else created++;
     }
 
-    alert(`Done. ${created} new commission${created === 1 ? "" : "s"} generated, ${skipped} already existed and were skipped.`);
+    window.aprToast?.("Commissions generated", "success", `${created} new commission${created === 1 ? "" : "s"} generated${skipped ? `; ${skipped} already existed and were skipped` : ""}.`);
     loadCommissions();
   } finally {
     generateBtn.disabled = false;

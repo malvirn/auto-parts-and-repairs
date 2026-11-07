@@ -115,11 +115,11 @@ document.getElementById("save-markup-btn")?.addEventListener("click", async () =
   }
   updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
   updateSellingPrice(editCost, editPrice, document.getElementById("edit-part-markup-rate"), editVatRate);
-  alert("Markup rate updated. New parts and edits use it from now on — use \"Apply to All Existing Parts\" if you also want it applied retroactively.");
+  window.aprToast?.("Markup rate updated", "success", "New parts and edits will use this rate. Use Apply to All Existing Parts to update existing prices.");
 });
 
 document.getElementById("apply-markup-all-btn")?.addEventListener("click", async () => {
-  if (!confirm(`Recalculate the selling price of every part at ${(MARKUP_RATE * 100).toFixed(1)}%? This overwrites any manually adjusted prices.`)) return;
+  if (!await window.aprConfirm(`Recalculate the selling price of every part at ${(MARKUP_RATE * 100).toFixed(1)}%? This overwrites any manually adjusted prices.`, { title: "Apply markup to all parts", confirmLabel: "Update all prices", danger: true })) return;
   const { data: parts, error } = await supabase.from("parts").select("id, cost_price, vat_rate");
   if (error) { alert("Failed to load parts: " + error.message); return; }
   for (const p of parts || []) {
@@ -129,7 +129,7 @@ document.getElementById("apply-markup-all-btn")?.addEventListener("click", async
     }).eq("id", p.id);
     if (updateError) { alert(`Failed to update a part's price: ${updateError.message}`); return; }
   }
-  alert("Selling prices updated.");
+  window.aprToast?.("Selling prices updated", "success");
   await loadParts();
 });
 
@@ -940,7 +940,7 @@ function addQuickSaleLine() {
   quantityField.innerHTML = `<label>Quantity</label><input type="number" min="1" step="1" value="1" required>`;
   const priceField = document.createElement("div");
   priceField.className = "field";
-  priceField.innerHTML = `<label>Selling price ($)</label><input type="number" min="0.01" step="0.01" placeholder="0.00" required>`;
+  priceField.innerHTML = `<label>Selling price ($)</label><input type="number" min="0.01" step="0.01" placeholder="0.00" title="Price comes from the current product catalogue; apply approved discounts in the sale discount field." readonly required>`;
   const lineTotalField = document.createElement("div");
   lineTotalField.className = "field";
   lineTotalField.innerHTML = `<label>Line total</label><output>$0.00</output>`;

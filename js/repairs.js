@@ -1190,7 +1190,7 @@ editSaveBtn?.addEventListener("click", async () => {
     return;
   }
   try {
-    await syncJobInvoiceAndReceipt(currentEditJobId, labour_cost, parts_cost, cardIncidentalsTotal, total_cost);
+    await syncJobInvoiceAndReceipt(currentEditJobId);
   } catch (syncError) {
     console.error("Job card totals changed but document synchronization failed:", syncError);
     alert(syncError.message || String(syncError));
@@ -1397,44 +1397,9 @@ if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
   });
 }
 
-async function syncJobInvoiceAndReceipt(jobId, labourCost, partsCost, incidentalsTotal, totalCost) {
-  const { data: invoices, error: invoiceCheckError } = await supabase
-    .from("invoices")
-    .select("id,total,amount_paid,items")
-    .eq("repair_job_id", jobId)
-    .order("issued_at", { ascending: false })
-    .limit(1);
-  if (invoiceCheckError) throw new Error("Couldn't check the existing job invoice: " + invoiceCheckError.message);
-
-  if (invoices?.length) {
-    const invoice = invoices[0];
-    const items = [];
-    cardParts.forEach(part => {
-      items.push({
-        d: part.parts?.description || part.part_name || "Part",
-        q: Number(part.quantity || 1),
-        p: Number(part.price_at_time || 0),
-      });
-    });
-    if (labourCost > 0) items.push({ d: currentEditJob?.job_description || "Labour", q: 1, p: labourCost });
-    const { data: incidentals } = await supabase.from("job_incidentals").select("description,amount").eq("job_id", jobId);
-    (incidentals || []).forEach(extra => items.push({
-      d: extra.description || "Additional job cost",
-      q: 1,
-      p: Number(extra.amount || 0),
-    }));
-    const itemTotal = items.reduce((sum, item) => sum + item.q * item.p, 0);
-    if (Math.abs(itemTotal - totalCost) > 0.01) items.push({ d: "Job card total adjustment", q: 1, p: totalCost - itemTotal });
-
-    const { error: invoiceUpdateError } = await supabase.from("invoices").update({
-      items,
-      subtotal: totalCost,
-      total: totalCost,
-      amount_paid: Math.min(Number(invoice.amount_paid || 0), totalCost),
-    }).eq("id", invoice.id);
-    if (invoiceUpdateError) throw new Error("Couldn't update the existing job invoice: " + invoiceUpdateError.message);
-  }
-
+async function syncJobInvoiceAndReceipt(jobId) {
+  const { error } = await supabase.rpc("sync_repair_job_invoice", { p_repair_job_id: jobId });
+  if (error) throw new Error("Couldn't synchronize the linked job invoice: " + error.message);
 }
 
 async function ensureReceiptExists(jobId, amount) {
@@ -1822,8 +1787,7 @@ function buildUpdateMessage(job, diagnosisText, etaIso) {
     ``,
     `Status: ${status}`,
     diagnosisText ? `Diagnosis: ${diagnosisText}` : `Our mechanic is still diagnosing the fault you reported: ${job.fault_reported || "—"}.`,
-    job.work_done ? `Work completed: ${job.work_done}` : null,
-    job.work_missing ? `Work still required: ${job.work_missing}` : null,
+    job.work_missing ? `Other mechanical findings: ${job.work_missing}` : null,
     etaIso ? `Expected diagnosis by: ${new Date(etaIso).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : null,
     ``,
     `Labour total: ${money(labour)}`,

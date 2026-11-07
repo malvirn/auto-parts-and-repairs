@@ -9,8 +9,10 @@
     root.setAttribute("data-theme", theme);
     // Paint the app's background colour straight away so a page never
     // flashes white while it loads or while sign-in is being checked.
-    root.style.backgroundColor = theme === "dark" ? "#0b1220" : "#eef3fb";
+    root.style.backgroundColor = theme === "dark" ? "#171c24" : "#e9edf2";
     root.style.colorScheme = theme;
+    var themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = theme === "dark" ? "#171c24" : "#e9edf2";
     document.querySelectorAll("#modes button").forEach(function (button) {
       button.setAttribute("aria-checked", String(button.dataset.m === mode));
     });

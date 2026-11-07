@@ -169,7 +169,7 @@ async function loadAssets() {
 runDepreciationBtn.addEventListener("click", async () => {
   const now = new Date();
   const year = now.getFullYear(), month = now.getMonth() + 1;
-  if (!confirm(`Run straight-line depreciation for ${now.toLocaleString("default", { month: "long" })} ${year} across all active assets?`)) return;
+  if (!await window.aprConfirm(`Run straight-line depreciation for ${now.toLocaleString("default", { month: "long" })} ${year} across all active assets?`, { title: "Run depreciation", confirmLabel: "Run depreciation" })) return;
 
   runDepreciationBtn.disabled = true;
   const original = runDepreciationBtn.innerHTML;
@@ -240,7 +240,7 @@ runDepreciationBtn.addEventListener("click", async () => {
       else recorded++;
     }
 
-    alert(`Depreciation posted — ${money(pendingTotal)} across ${recorded} asset(s)${skipped ? `, ${skipped} already processed this month` : ""}.`);
+    window.aprToast?.("Depreciation posted", "success", `${money(pendingTotal)} across ${recorded} asset(s)${skipped ? `, ${skipped} already processed this month` : ""}.`);
     loadAssets();
   } finally {
     runDepreciationBtn.disabled = false;

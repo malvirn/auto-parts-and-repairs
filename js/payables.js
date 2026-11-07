@@ -450,7 +450,7 @@ async function reversePayment(button) {
   const billNumber = button.dataset.bill || "this bill";
   const reason = window.prompt(`Why are you reversing the ${money(amount)} payment for bill ${billNumber}?`);
   if (!reason?.trim()) return;
-  if (!window.confirm(`Post a reversing ledger transaction for ${money(amount)}? This cannot be undone.`)) return;
+  if (!await window.aprConfirm(`Post a reversing ledger transaction for ${money(amount)}? This cannot be undone.`, { title: "Reverse payment", confirmLabel: "Reverse payment", danger: true })) return;
 
   button.disabled = true;
   try {
@@ -474,7 +474,7 @@ async function voidPayable(button) {
   if (!payable) return;
   const reason = window.prompt(`Why are you voiding bill ${payable.bill_number || "—"}? This keeps the bill and posts a reversing ledger entry.`);
   if (!reason?.trim()) return;
-  if (!window.confirm(`Void bill ${payable.bill_number || "—"} for ${money(payable.amount)}? This cannot be undone.`)) return;
+  if (!await window.aprConfirm(`Void bill ${payable.bill_number || "—"} for ${money(payable.amount)}? This cannot be undone.`, { title: "Void supplier bill", confirmLabel: "Void bill", danger: true })) return;
 
   button.disabled = true;
   try {

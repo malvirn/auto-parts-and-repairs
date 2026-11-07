@@ -44,7 +44,7 @@ export async function confirmTypedDelete(description, { reversible = false } = {
   const confirmationWord = reversible ? "ARCHIVE" : CONFIRMATION_WORD;
   const warning = reversible ? "This hides the record from active customer lists. You can restore it later." : "This action cannot be undone.";
   if (typeof HTMLDialogElement === "undefined" || typeof HTMLDialogElement.prototype.showModal !== "function") {
-    if (!window.confirm(`${action} ${description}? ${warning}`)) return false;
+    if (!await window.aprConfirm(`${action} ${description}? ${warning}`, { title: `Confirm ${action.toLowerCase()}`, confirmLabel: action, danger: !reversible })) return false;
     return window.prompt(`Type ${confirmationWord} to confirm ${action.toLowerCase()}:`) === confirmationWord;
   }
 
