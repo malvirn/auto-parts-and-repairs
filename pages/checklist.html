@@ -32,6 +32,20 @@
   .condition-option span{display:inline-flex;align-items:center;min-height:34px;padding:6px 10px;border:1px solid var(--check-border);border-radius:999px;background:var(--check-card);color:var(--check-text);font-size:.78rem;font-weight:650}
   .condition-option input:checked+span{border-color:#20ad5a;background:#14723b;color:#fff}
   .condition-option input:focus-visible+span{outline:2px solid #20ad5a;outline-offset:2px}
+  /* vehicle condition: 4 per row, filling down each column first, line-art car-part icons */
+  .cond-grid{display:grid;grid-auto-flow:column;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(var(--rows,1),auto);gap:8px}
+  .cond-card{display:grid;justify-items:center;align-content:start;gap:6px;min-width:0;padding:10px 2px;text-align:center}
+  .cond-card.has-dmg{border-color:#e5534b}
+  .cond-card .damage-name{margin:0;min-height:2.4em;color:var(--check-muted);font-size:.58rem;font-weight:650;letter-spacing:0;line-height:1.2;text-transform:uppercase;text-wrap:balance;overflow-wrap:break-word}
+  .pi{width:44px;height:44px;fill:none;stroke:var(--check-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .pi .bg{fill:color-mix(in srgb,var(--check-text) 10%,transparent);stroke:none}
+  .pi .g{fill:#7be0a0}
+  .pi.flip{transform:scaleX(-1)}
+  .cond-select{width:100%;min-width:0;min-height:36px;padding:2px 0;appearance:none;-webkit-appearance:none;border:1px solid var(--check-border);border-radius:8px;background:var(--check-card);color:#35c27a;font-family:inherit;font-weight:700;font-size:.62rem;line-height:1.2;text-align:center;text-align-last:center}
+  .cond-select.has-dmg{color:#ff7b72}
+  :root[data-theme="light"] .cond-select{color:#14723b}
+  :root[data-theme="light"] .cond-select.has-dmg{color:#c0392b}
+  @media(min-width:769px){.pi{width:56px;height:56px}.cond-card .damage-name{font-size:.72rem}.cond-select{font-size:.8rem}}
   .liability-note{margin-top:20px;padding:14px;border:1px solid #d87a54;border-left:4px solid #d87a54;border-radius:8px;background:#fff2e9;color:#66341e;font-weight:650}
   .print-only{display:none}
   label{display:grid;gap:6px;color:var(--check-text);font-size:.84rem;font-weight:600}
