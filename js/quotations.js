@@ -26,6 +26,13 @@ let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 let quoteSubmissionInProgress = false;
 const busyActions = new WeakSet();
+const lib = src => new Promise((resolve, reject) => {
+  const script = document.createElement("script");
+  script.src = src;
+  script.onload = resolve;
+  script.onerror = () => reject(new Error(`Couldn't load ${src}`));
+  document.head.append(script);
+});
 
 const SHOP_LOGO_PATH = "../assets/logo.png";
 
@@ -824,30 +831,52 @@ function printDocument(record, kind) {
   printWindow.document.close();
 }
 
-// ---------- Send: download the document image first, then open the message ----------
-async function downloadDocumentImage(kind, record) {
-  const node = document.getElementById(kind === "Quotation" ? "quote-detail-text" : "order-detail-text");
-  if (!node) throw new Error("The document preview isn't on this page.");
-  if (typeof window.html2canvas !== "function") throw new Error("The image tool didn't load. Check your internet connection and reload the page.");
-  // Capture a clean copy on a fixed-width white "paper", away from the
-  // modal, so nothing is cropped and the theme colours don't fade it.
+async function captureDetailCanvas(kind, record) {
+  if (typeof window.html2canvas !== "function") {
+    try {
+      await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+    } catch {
+      throw new Error("The document image tool could not be loaded. Check your internet connection and reload the page.");
+    }
+  }
+  if (typeof window.html2canvas !== "function") throw new Error("The document image tool did not load correctly.");
   const paper = document.createElement("div");
   paper.id = "doc-capture";
-  paper.innerHTML = node.innerHTML;
+  paper.innerHTML = buildDetailHtml(record, kind, itemsOf(record, kind) || []);
+  Object.assign(paper.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "794px",
+    maxWidth: "none",
+    zIndex: "2147483647",
+    visibility: "hidden",
+    pointerEvents: "none",
+    backgroundColor: "#fff",
+  });
   document.body.appendChild(paper);
-  let canvas;
   try {
     const imgs = [...paper.querySelectorAll("img")];
-    await Promise.all(imgs.map(img => img.complete ? null : new Promise(r => { img.onload = img.onerror = r; })));
+    await Promise.all(imgs.map(img => img.decode().catch(() => undefined)));
+    if (document.fonts?.ready) await document.fonts.ready;
     const width = paper.offsetWidth, height = paper.offsetHeight;
-    canvas = await window.html2canvas(paper, {
+    return await window.html2canvas(paper, {
       backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false,
       width, height, windowWidth: Math.max(width + 40, document.documentElement.clientWidth),
       scrollX: 0, scrollY: 0,
+      onclone(clonedDocument) {
+        const clonedPaper = clonedDocument.getElementById("doc-capture");
+        if (clonedPaper) clonedPaper.style.visibility = "visible";
+      },
     });
   } finally {
     paper.remove();
   }
+}
+
+// ---------- Send: download the document image first, then open the message ----------
+async function downloadDocumentImage(kind, record) {
+  const canvas = await captureDetailCanvas(kind, record);
   const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
   if (!blob) throw new Error("Couldn't create the image.");
   const name = `${kind === "Quotation" ? "Quotation" : "Sales-Order"}-${docNumber(record, kind)}.png`;
@@ -883,22 +912,17 @@ async function withBusy(button, label, fn) {
 
 async function createDetailPdf(kind, record) {
   if (!window.jspdf) await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-  const container = document.getElementById(kind === "Quotation" ? "quote-detail-text" : "order-detail-text");
-  container.innerHTML = buildDetailHtml(record, kind, itemsOf(record, kind) || []);
-  const canvas = await html2canvas(container, { scale: 2, backgroundColor: "#fff", useCORS: true });
+  if (!window.jspdf?.jsPDF) throw new Error("The PDF generator did not load correctly.");
+  const canvas = await captureDetailCanvas(kind, record);
   const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
   const width = 190;
   const pageHeight = 277;
   const imageHeight = canvas.height * width / canvas.width;
   const image = canvas.toDataURL("image/png");
-  pdf.addImage(image, "PNG", 10, 10, width, imageHeight);
-  let remaining = imageHeight - pageHeight;
-  let offset = pageHeight;
-  while (remaining > 0) {
-    pdf.addPage();
-    pdf.addImage(image, "PNG", 10, 10 - offset, width, imageHeight);
-    remaining -= pageHeight;
-    offset += pageHeight;
+  const pageCount = Math.max(1, Math.ceil(imageHeight / pageHeight));
+  for (let page = 0; page < pageCount; page++) {
+    if (page > 0) pdf.addPage();
+    pdf.addImage(image, "PNG", 10, 10 - page * pageHeight, width, imageHeight);
   }
   const prefix = kind === "Quotation" ? "Quotation" : "Sales-Order";
   return new File([pdf.output("blob")], `${prefix}-${docNumber(record, kind)}.pdf`, { type: "application/pdf" });

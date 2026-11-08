@@ -242,19 +242,26 @@ paymentSaveButton.addEventListener("click", async () => {
   paymentSaveButton.disabled = true;
   paymentMessage.textContent = "Recording payment…";
   paymentMessage.dataset.tone = "info";
+  const paymentMethod = paymentMethodInput.value;
+  let paymentSaved = false;
   try {
-    const { error } = await supabase.rpc("record_quick_sale_payment", {
+    const { data: journalEntryId, error } = await supabase.rpc("record_quick_sale_payment", {
       p_sales_order_id: selectedPaymentEntry.source_id,
       p_amount: amount,
-      p_payment_method: paymentMethodInput.value,
+      p_payment_method: paymentMethod,
       p_payment_date: paymentDate,
     });
     if (error) throw new Error(error.message);
-    closePaymentModal();
-    await loadCustomerAccounts();
+    paymentSaved = true;
+    if (!journalEntryId) throw new Error("The payment was recorded, but the ledger did not return a receipt reference. Verify the payment before retrying.");
+    const receiptUrl = new URL("receipts.html", window.location.href);
+    receiptUrl.searchParams.set("quickSalePayment", journalEntryId);
+    receiptUrl.searchParams.set("paymentMethod", paymentMethod);
+    receiptUrl.searchParams.set("from", "ledger");
+    window.location.href = receiptUrl.href;
   } catch (error) {
     console.error("Couldn't record Quick Sale account payment:", error);
-    paymentMessage.textContent = `Couldn't record payment: ${error.message || String(error)}. Apply supabase/migrations/quick-sale-customer-credit-and-payments.sql if this feature is not installed.`;
+    paymentMessage.textContent = `${paymentSaved ? "Payment recorded, but the receipt could not be opened" : "Couldn't record payment"}: ${error.message || String(error)}. Apply supabase/migrations/quick-sale-customer-credit-and-payments.sql if this feature is not installed.`;
     paymentMessage.dataset.tone = "error";
   } finally {
     paymentSaveButton.disabled = false;

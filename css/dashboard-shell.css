@@ -2063,3 +2063,57 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
   background: var(--apr-surface-2) !important;
   color: var(--apr-text) !important;
 }
+
+@media (max-width: 768px) {
+  body.dashboard-workshop .main,
+  body.dashboard-workshop .main > * {
+    min-width: 0;
+  }
+
+  body.dashboard-workshop .main > :is(.page-section, .panel, .card-grid, .form-grid) {
+    max-width: 100%;
+  }
+
+  body.dashboard-workshop .main .panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.dashboard-workshop .main :is(.form-grid, .two) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.dashboard-workshop .main :is(.section-heading, .rc-tabs, .rc-bar, .detail-actions, .payables-intro__actions) {
+    flex-wrap: wrap;
+  }
+
+  body.dashboard-workshop .modal-overlay:not(.hidden) {
+    align-items: flex-start;
+    padding: max(10px, env(safe-area-inset-top, 0px)) 10px max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  body.dashboard-workshop .modal {
+    width: min(100%, 760px);
+    max-width: 100%;
+    max-height: calc(100dvh - 20px);
+    margin: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 480px) {
+  body.dashboard-workshop .main :is(.form-grid, .two) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.dashboard-workshop .main .section-heading > :last-child {
+    max-width: 100%;
+  }
+
+  body.dashboard-workshop .main .btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

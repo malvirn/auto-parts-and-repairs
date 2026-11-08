@@ -39,8 +39,12 @@
     #job-part-pricing-modal .modal {
       width: min(1280px, calc(100vw - 36px)) !important;
       max-width: 1280px;
-      max-height: none;
-      overflow: visible;
+      max-height: min(88vh, 900px);
+      max-height: min(88dvh, 900px);
+      min-width: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 22px 26px;
       gap: 12px;
     }
@@ -52,7 +56,7 @@
       padding: 16px 18px;
       gap: 9px;
     }
-    #job-part-pricing-modal .panel { max-height: none; overflow: visible; }
+    #job-part-pricing-modal .panel { max-height: none; overflow-x: auto; }
     #job-part-pricing-modal table { margin: 0; }
     #job-part-pricing-modal th,
     #job-part-pricing-modal td { padding: 6px 8px; }
@@ -81,7 +85,7 @@
       #job-part-pricing-modal { padding:10px; }
       #job-part-pricing-modal .modal,
       #jb-payment-modal .modal { width:calc(100vw - 20px) !important; padding:13px; max-height:90vh; }
-      #job-part-pricing-modal .modal { max-height:none; }
+      #job-part-pricing-modal .modal { max-height:calc(100dvh - 20px); gap:10px; }
       #job-part-pricing-modal table { font-size:.72rem; }
       #job-part-pricing-modal th,
       #job-part-pricing-modal td { padding:4px 3px; }
@@ -95,6 +99,9 @@
       #job-part-pricing-modal tr[data-price-line] { padding:8px; border:1px solid var(--border); border-radius:8px; }
       #job-part-pricing-modal tr[data-price-line] td { display:grid; grid-template-columns:minmax(88px,34%) minmax(0,1fr); align-items:center; gap:8px; border:0; text-align:left; overflow-wrap:anywhere; }
       #job-part-pricing-modal tr[data-price-line] td::before { content:attr(data-label); color:var(--text-muted); font-weight:600; }
+      #job-part-pricing-modal .customer-account-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      #job-part-pricing-modal .modal > div[style*="justify-content:flex-end"] { justify-content:stretch !important; flex-wrap:wrap; }
+      #job-part-pricing-modal .modal > div[style*="justify-content:flex-end"] .btn { flex:1 1 130px; }
       #jb-payment-modal .payment-grid { grid-template-columns:1fr; }
       #jb-payment-modal .payment-summary { grid-template-columns:1fr 1fr; }
       #jb-payment-modal .payment-summary > :first-child { grid-column:1/-1; }

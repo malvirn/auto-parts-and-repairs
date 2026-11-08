@@ -745,7 +745,7 @@ ${o.checklistNumber||o.jobCard?.checklistNumber?`<div style="display:inline-bloc
 <div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
 ${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
 <table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
-<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":"Items total"}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>`:""}${!inv&&o.jobPayment?`<div><span>Original job / invoice total</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>Previous payments</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>Remaining balance</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
+<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
 ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 
 /* ---------- load lists ---------- */
@@ -870,6 +870,9 @@ async function load(){
  if(requestedInvoicePayment){
   try{await openInvoicePaymentReceipt(requestedInvoicePayment,params.get("paymentMethod"))}
   catch(error){console.error("Couldn't open the invoice payment receipt:",error);toast(`Couldn't open payment receipt: ${error.message||String(error)}`)}
+ }else if(params.get("quickSalePayment")){
+  try{await openQuickSalePaymentReceipt(params.get("quickSalePayment"),params.get("paymentMethod"))}
+  catch(error){console.error("Couldn't open the Quick Sale payment receipt:",error);toast(`Couldn't open payment receipt: ${error.message||String(error)}`)}
  }else if(params.get("new")==="1"){
   await openBuilder(requestedJob);
  }else if(requestedJob||requestedOrder){
@@ -979,15 +982,12 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   }
  }
  const invoiceNumber=`INV-${String(invoice.invoice_number).padStart(5,"0")}`;
- const amount=Number(payment.amount)||0,total=Number(invoice.total)||0;
+ const amount=Number(payment.amount)||0;
+ const items=normalizeInvoiceItems(invoice.items).map(item=>({d:item.d,q:item.q,p:item.p}));
+ const total=Number(invoice.total)||Number(items.reduce((sum,item)=>sum+item.q*item.p,0).toFixed(2));
  const totalPaid=Math.max(Number(invoice.amount_paid)||0,amount);
  const balance=Math.max(0,total-totalPaid);
  const status=balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid";
- const items=(Array.isArray(invoice.items)?invoice.items:[]).map(item=>({
-  d:item.d||item.description||"Invoice item",
-  q:Number(item.q??item.quantity)||1,
-  p:Number(item.p??item.price)||0
- }));
  tab="receipts";
  open({
   kind:"receipt",
@@ -1012,6 +1012,63 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   discount:Number(invoice.discount)||0,
   vat:5,
   status
+ });
+}
+async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
+ const{data:payment,error:paymentError}=await supabase.from("quick_sale_payments")
+  .select("id,sales_order_id,amount,payment_date,payment_method,journal_entry_id")
+  .eq("journal_entry_id",journalEntryId).maybeSingle();
+ if(paymentError)throw new Error(paymentError.message);
+ if(!payment)throw new Error("No saved Quick Sale payment matches this receipt link.");
+ const{data:order,error:orderError}=await supabase.from("sales_orders")
+  .select("id,order_number,walk_in_name,discount_usd,total_usd,payment_method,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd)")
+  .eq("id",payment.sales_order_id).maybeSingle();
+ if(orderError)throw new Error(orderError.message);
+ if(!order)throw new Error("The sales order for this payment could not be found.");
+ const[{data:payments,error:paymentsError},{data:receipts,error:receiptsError}]=await Promise.all([
+  supabase.from("quick_sale_payments").select("amount").eq("sales_order_id",order.id),
+  supabase.from("receipts").select("amount").eq("sales_order_id",order.id),
+ ]);
+ if(paymentsError)throw new Error(`Couldn't load Quick Sale payment history: ${paymentsError.message}`);
+ if(receiptsError)throw new Error(`Couldn't load the Quick Sale receipt history: ${receiptsError.message}`);
+ const amount=Number(payment.amount)||0,total=Number(order.total_usd)||0;
+ const receiptPaid=(receipts||[]).reduce((max,receipt)=>Math.max(max,Number(receipt.amount)||0),0);
+ const totalPaid=Math.min(total,Math.max(receiptPaid,(payments||[]).reduce((sum,item)=>sum+Number(item.amount||0),0)));
+ const balance=Math.max(0,total-totalPaid);
+ const items=(order.sales_order_items||[]).map(item=>({
+  d:item.part_name||"Sale item",
+  q:Number(item.quantity)||1,
+  p:Number(item.unit_price_usd)||0,
+ }));
+ const customer=order.customers||{};
+ const orderNumber=`SO-${String(order.order_number).padStart(5,"0")}`;
+ tab="receipts";
+ open({
+  kind:"receipt",
+  id:null,
+  salesOrderId:order.id,
+  paymentItemsLabel:"Sale items",
+  number:`PAY-${String(order.order_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
+  date:payment.payment_date,
+  customer:{name:customer.full_name||order.walk_in_name||"Walk-in customer",phone:customer.phone||"",email:customer.email||""},
+  ref:orderNumber,
+  receiptAmount:amount,
+  paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
+  jobPayment:{
+   totalLabel:"Original sale total",
+   previousLabel:"Previous payments",
+   balanceLabel:"Remaining balance",
+   jobTotal:total,
+   previousPaid:Math.max(0,totalPaid-amount),
+   currentPaid:amount,
+   totalPaid,
+   balance,
+   status:balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid",
+  },
+  items,
+  discount:Number(order.discount_usd)||0,
+  vat:0,
+  status:balance<=0.005?"paid":"partially_paid",
  });
 }
 function closeVoidModal(){$("receipt-void-modal").classList.add("hidden")}
@@ -1278,16 +1335,17 @@ async function pdf(){
  if(!cur)throw new Error("Open a receipt or invoice before saving a PDF.");
  if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
  if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+ if(typeof window.html2canvas!=="function")throw new Error("The document image tool did not load correctly.");
  const stage=document.createElement("div");
  stage.id="receipt-export-stage";
  stage.setAttribute("aria-hidden","true");
- stage.style.cssText="position:absolute;left:-10000px;top:0;z-index:2147483647;width:794px;opacity:1;pointer-events:none;background:#fff";
+ stage.style.cssText="position:fixed;left:0;top:0;z-index:2147483647;width:794px;visibility:hidden;pointer-events:none;background:#fff";
  stage.innerHTML=`${exportStyles(false,true)}<div id="doc">${docHTML(cur)}</div>`;
  document.body.append(stage);
  try{
   await Promise.all([...stage.querySelectorAll("img")].map(image=>image.decode().catch(()=>undefined)));
   if(document.fonts?.ready)await document.fonts.ready;
-  const cv=await window.html2canvas(stage,{scale:2,backgroundColor:"#fff",useCORS:true,windowWidth:794,scrollX:0,scrollY:0});
+  const cv=await window.html2canvas(stage,{scale:2,backgroundColor:"#fff",useCORS:true,windowWidth:834,scrollX:0,scrollY:0,onclone(clonedDocument){const capture=clonedDocument.getElementById("receipt-export-stage");if(capture)capture.style.visibility="visible"}});
   const jsPDF=window.jspdf?.jsPDF;
   if(!jsPDF)throw new Error("The PDF generator did not load correctly.");
   const doc=new jsPDF("p","mm","a4"),margin=10,contentWidth=190,contentHeight=277;
@@ -1430,22 +1488,23 @@ $("invoice-payment-save").onclick=async()=>{
  if(!Number.isFinite(amount)||amount<=0||amount>balance+.005){message.textContent=`Enter a payment greater than zero and no more than ${usd(balance)}.`;message.dataset.tone="error";return}
  if(!paymentDate||!paymentMethod||!accountId){message.textContent="Choose a payment date, payment method (Cash, Card, EcoCash or Bank), and the matching ledger account.";message.dataset.tone="error";return}
  saveButton.disabled=true;message.textContent="Recording payment…";message.dataset.tone="info";
+ let paymentSaved=false;
  try{
-  const invoiceId=cur.id,jobId=cur.repairJobId;
-  const previousReceiptIds=new Set(rows.receipts.filter(r=>String(r.repairJobId)===String(jobId)).map(r=>String(r.id)));
+  const invoiceId=cur.id;
   const selectedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
-  const{error}=await supabase.rpc("record_customer_invoice_payment",{p_invoice_id:invoiceId,p_amount:amount,p_account_id:accountId,p_payment_date:paymentDate});
+  const{data:journalEntryId,error}=await supabase.rpc("record_customer_invoice_payment",{p_invoice_id:invoiceId,p_amount:amount,p_account_id:accountId,p_payment_date:paymentDate});
   if(error)throw new Error(error.message);
+  paymentSaved=true;
+  if(!journalEntryId)throw new Error("The payment was saved, but the ledger did not return a receipt reference. Verify the invoice payment before retrying.");
   signalDocumentChange("invoices",cur.number);
-  lastPaymentContext={jobId,amount,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
+  lastPaymentContext={jobId:cur.repairJobId,amount,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
   closeInvoicePayment();
   const cleanParams=new URLSearchParams(location.search);cleanParams.delete("new");cleanParams.delete("job");cleanParams.delete("pay");payAfterSave=false;
   history.replaceState(null,"",`${location.pathname}${cleanParams.toString()?"?"+cleanParams.toString():""}`);
   await load();
-  const newReceipt=rows.receipts.find(r=>String(r.repairJobId)===String(jobId)&&!previousReceiptIds.has(String(r.id)));
-  if(newReceipt){if(lastPaymentContext)newReceipt.paymentMethod=lastPaymentContext.method;tab="receipts";render();open(newReceipt);toast(`Payment recorded. Receipt ${newReceipt.number} is ready.`)}
-  else{const updated=rows.invoices.find(invoice=>invoice.id===invoiceId);if(updated)open(updated);toast("Payment recorded. The backend did not return a new linked receipt, so the invoice remains open.")}
- }catch(error){console.error("Couldn't record customer invoice payment:",error);message.textContent=`Couldn't record payment: ${error.message||String(error)}.`;message.dataset.tone="error"}
+  await openInvoicePaymentReceipt(journalEntryId,lastPaymentContext.method);
+  toast("Payment recorded. The receipt is open.");
+ }catch(error){console.error("Couldn't record customer invoice payment:",error);message.textContent=`${paymentSaved?"Payment recorded, but the receipt could not be opened":"Couldn't record payment"}: ${error.message||String(error)}.`;message.dataset.tone="error"}
  finally{saveButton.disabled=false}
 };
 

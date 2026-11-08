@@ -19,6 +19,10 @@ const paymentCreditAccountSelect = document.getElementById("payment-credit-accou
 const paymentSaveBtn = document.getElementById("payment-save");
 const paymentCancelBtn = document.getElementById("payment-cancel");
 const paymentFormMessage = document.getElementById("payment-form-message");
+const voidPayableModal = document.getElementById("void-payable-modal");
+const voidPayableReason = document.getElementById("void-payable-reason");
+const voidPayableMessage = document.getElementById("void-payable-message");
+const voidPayableConfirm = document.getElementById("void-payable-confirm");
 
 let suppliers = [];
 let accounts = [];
@@ -28,6 +32,7 @@ let paymentReversals = new Map();
 let payableJournalLines = new Map();
 let paymentJournalLines = new Map();
 let currentPayable = null;
+let pendingVoidPayableId = null;
 let expandedPayableId = null;
 let initialHighlightApplied = false;
 
@@ -472,43 +477,82 @@ async function voidPayable(button) {
   const payableId = button.dataset.payableId;
   const payable = payables.find(item => item.id === payableId);
   if (!payable) return;
-  const reason = window.prompt(`Why are you voiding bill ${payable.bill_number || "—"}? This keeps the bill and posts a reversing ledger entry.`);
-  if (!reason?.trim()) return;
-  if (!await window.aprConfirm(`Void bill ${payable.bill_number || "—"} for ${money(payable.amount)}? This cannot be undone.`, { title: "Void supplier bill", confirmLabel: "Void bill", danger: true })) return;
+  pendingVoidPayableId = payableId;
+  document.getElementById("void-payable-number").textContent = payable.bill_number || "—";
+  document.getElementById("void-payable-supplier").textContent = payable.suppliers?.name || "Supplier not recorded";
+  document.getElementById("void-payable-amount").textContent = money(payable.amount);
+  document.getElementById("void-payable-date").textContent = dateLabel(payable.bill_date);
+  voidPayableReason.value = "";
+  voidPayableMessage.textContent = "";
+  voidPayableMessage.dataset.tone = "";
+  voidPayableConfirm.disabled = false;
+  voidPayableModal.classList.remove("hidden");
+  voidPayableModal.style.display = "flex";
+  voidPayableReason.focus();
+}
 
-  button.disabled = true;
+function closeVoidPayableModal() {
+  pendingVoidPayableId = null;
+  voidPayableModal.classList.add("hidden");
+  voidPayableModal.style.display = "none";
+}
+
+document.getElementById("void-payable-cancel").addEventListener("click", closeVoidPayableModal);
+voidPayableModal.addEventListener("click", event => {
+  if (event.target === voidPayableModal) closeVoidPayableModal();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !voidPayableModal.classList.contains("hidden")) closeVoidPayableModal();
+});
+voidPayableConfirm.addEventListener("click", async () => {
+  const payableId = pendingVoidPayableId;
+  const reason = voidPayableReason.value.trim();
+  if (!payableId) return;
+  if (!reason) {
+    voidPayableMessage.textContent = "Enter a reason before voiding this bill.";
+    voidPayableMessage.dataset.tone = "error";
+    voidPayableReason.focus();
+    return;
+  }
+  voidPayableConfirm.disabled = true;
+  voidPayableMessage.textContent = "Posting the reversing ledger entry…";
+  voidPayableMessage.dataset.tone = "info";
   try {
     const { error } = await supabase.rpc("void_supplier_payable", {
       p_payable_id: payableId,
-      p_reason: reason.trim(),
+      p_reason: reason,
     });
     if (error) throw new Error(error.message);
+    closeVoidPayableModal();
     await loadPayables();
     expandedPayableId = payableId;
     renderPayablesTable();
     window.aprToast?.("Bill voided and the reversing entry posted. The audit history was retained.", "success");
   } catch (error) {
     console.error("Couldn't void supplier bill:", error);
-    window.aprToast?.(`Couldn't void bill: ${error.message || String(error)}`, "error");
-    button.disabled = false;
+    voidPayableMessage.textContent = `Couldn't void bill: ${error.message || String(error)}`;
+    voidPayableMessage.dataset.tone = "error";
+    voidPayableConfirm.disabled = false;
   }
-}
+});
 
-function printPaymentReceipt(paymentId) {
+function printPaymentReceipt(paymentId, receiptWindow) {
   const payment = payablePayments.find(item => item.id === paymentId);
   const payable = payables.find(item => item.id === payment?.payable_id);
   if (!payment || !payable) {
     window.aprToast?.("Payment receipt details are unavailable. Refresh the payable list and try again.", "error");
-    return;
+    receiptWindow?.close();
+    return false;
   }
   const reversal = paymentReversals.get(payment.id);
   const supplierName = payable.suppliers?.name || "Supplier";
   const receiptNumber = `PAY-${String(payable.bill_number || "BILL").replace(/[^a-zA-Z0-9-]/g, "")}-${payment.id.slice(0, 8).toUpperCase()}`;
-  const popup = window.open("", "_blank");
+  const popup = receiptWindow || window.open("", "_blank");
   if (!popup) {
     window.aprToast?.("The receipt window was blocked. Allow pop-ups for this site and try again.", "error");
-    return;
+    return false;
   }
+  popup.document.open();
   popup.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(receiptNumber)}</title>
     <style>body{font:14px Arial,sans-serif;color:#111;max-width:680px;margin:32px auto;padding:0 20px}h1{text-align:center;font-size:23px;margin-bottom:4px}.muted{color:#555}.void{color:#b42318;border:2px solid #b42318;padding:8px;text-align:center;font-weight:bold;font-size:20px}table{width:100%;border-collapse:collapse;margin:22px 0}td{padding:9px 5px;border-bottom:1px solid #ddd}td:last-child{text-align:right;font-weight:bold}.total{font-size:18px;font-weight:bold;text-align:right}.footer{margin-top:32px;border-top:1px solid #ddd;padding-top:12px;color:#555}@media print{body{margin:12mm auto}}</style></head>
     <body>${reversal ? '<div class="void">PAYMENT REVERSED</div>' : ""}<h1>PAYMENT RECEIPT</h1><p style="text-align:center"><strong>Centric Auto Mobile</strong></p>
@@ -520,6 +564,7 @@ function printPaymentReceipt(paymentId) {
     <p class="footer">This receipt records a supplier payment. Bill balance at print time: ${money(Number(payable.amount) - Number(payable.amount_paid))}.</p>
     <script>window.addEventListener("load",()=>window.print());<\/script></body></html>`);
   popup.document.close();
+  return true;
 }
 
 // ---------- Record Payment (posts: debit Accounts Payable, credit chosen cash/bank account) ----------
@@ -557,22 +602,30 @@ paymentSaveBtn.addEventListener("click", async () => {
   paymentFormMessage.textContent = "Saving payment…";
   paymentFormMessage.dataset.tone = "info";
   paymentSaveBtn.disabled = true;
+  const payableId = currentPayable.id;
+  const previousPaymentIds = new Set(payablePayments.filter(payment => payment.payable_id === payableId).map(payment => payment.id));
+  const receiptWindow = window.open("", "_blank");
+  let paymentSaved = false;
   try {
     const { error } = await supabase.rpc("record_supplier_payable_payment", {
-      p_payable_id: currentPayable.id,
+      p_payable_id: payableId,
       p_amount: amount,
       p_payment_date: paymentDate,
       p_credit_account_id: creditAccountId,
     });
     if (error) throw new Error(error.message);
-    const payableId = currentPayable.id;
-    closePaymentModal();
+    paymentSaved = true;
     expandedPayableId = payableId;
     await loadPayables();
-    window.aprToast?.("Payment recorded in the ledger. Open the bill details to print its receipt.", "success");
+    const savedPayment = payablePayments.find(payment => payment.payable_id === payableId && !previousPaymentIds.has(payment.id));
+    if (!savedPayment) throw new Error("The payment was saved, but its receipt details could not be reloaded.");
+    if (!printPaymentReceipt(savedPayment.id, receiptWindow)) throw new Error("Allow pop-ups to open the supplier payment receipt.");
+    closePaymentModal();
+    window.aprToast?.("Payment recorded. The supplier payment receipt is open.", "success");
   } catch (error) {
     console.error("Couldn't record supplier payment:", error);
-    paymentFormMessage.textContent = `Couldn't record payment: ${error.message || String(error)}`;
+    receiptWindow?.close();
+    paymentFormMessage.textContent = `${paymentSaved ? "Payment recorded, but its receipt could not be opened" : "Couldn't record payment"}: ${error.message || String(error)}`;
     paymentFormMessage.dataset.tone = "error";
   } finally {
     paymentSaveBtn.disabled = false;

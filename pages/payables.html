@@ -57,7 +57,19 @@
     .payable-payment-details{display:block;margin-top:6px;color:var(--text-muted);font-size:.78rem}
     .payable-voided-label{color:var(--danger,#b23b3b);font-weight:700}
     .payable-actions{min-width:190px}
+    .void-payable-modal{width:min(560px,100%);max-width:560px;gap:16px}
+    .void-payable-modal h2{margin:0;font-size:1.35rem}
+    .void-payable-warning{padding:12px 14px;border:1px solid rgba(220,70,70,.35);border-radius:12px;background:rgba(220,70,70,.1);color:var(--text);font-size:.9rem}
+    .void-payable-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .void-payable-summary div{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+    .void-payable-summary small{display:block;color:var(--muted);font-size:.75rem}
+    .void-payable-summary strong{display:block;margin-top:3px;overflow-wrap:anywhere}
+    .void-payable-modal label{display:grid;gap:7px;font-size:.86rem;font-weight:700}
+    .void-payable-modal textarea{width:100%;min-height:100px;resize:vertical}
+    .void-payable-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+    .void-payable-actions .btn-danger{border-color:rgba(220,70,70,.55)!important;color:#ff8c8c!important}
     @media(max-width:700px){.payable-payment{align-items:flex-start;flex-direction:column}}
+    @media(max-width:480px){.void-payable-summary{grid-template-columns:1fr}.void-payable-modal{padding:18px!important}}
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -222,6 +234,31 @@
         <button id="payment-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
       </div>
       <p id="payment-form-message" class="form-message"></p>
+    </div>
+  </div>
+
+  <div id="void-payable-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="void-payable-title">
+    <div class="modal void-payable-modal">
+      <div>
+        <p class="section-kicker">Supplier bill adjustment</p>
+        <h2 id="void-payable-title">Void supplier bill</h2>
+      </div>
+      <p class="void-payable-warning">Voiding keeps the original bill for audit history and posts a reversing ledger entry. This action cannot be undone.</p>
+      <div class="void-payable-summary">
+        <div><small>Bill</small><strong id="void-payable-number">—</strong></div>
+        <div><small>Supplier</small><strong id="void-payable-supplier">—</strong></div>
+        <div><small>Bill total</small><strong id="void-payable-amount">—</strong></div>
+        <div><small>Bill date</small><strong id="void-payable-date">—</strong></div>
+      </div>
+      <div class="field">
+        <label for="void-payable-reason">Reason for voiding</label>
+        <textarea id="void-payable-reason" rows="4" maxlength="1000" required placeholder="Explain why this bill is being voided."></textarea>
+      </div>
+      <p id="void-payable-message" class="form-message" role="status" aria-live="polite"></p>
+      <div class="void-payable-actions">
+        <button id="void-payable-cancel" type="button" class="btn">Keep bill</button>
+        <button id="void-payable-confirm" type="button" class="btn btn-danger">Void bill</button>
+      </div>
     </div>
   </div>
 
