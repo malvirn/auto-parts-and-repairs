@@ -107,6 +107,27 @@
       #jb-payment-modal .payment-summary > :first-child { grid-column:1/-1; }
     }
 
+    /* Price parts dialog on phones: everything stays inside the card, inputs are
+       thumb-sized, and Cancel / Save stay visible while the lines scroll. */
+    html.modal-open .dashboard-sidebar-toggle { display:none !important; } /* the floating « button was covering the dialog title */
+    @media(max-width:640px) {
+      #job-part-pricing-modal .modal { overflow-x:hidden; padding-bottom:0; }
+      #job-part-pricing-modal table, #job-part-pricing-modal .panel { min-width:0 !important; max-width:100%; } /* style.css forces tables to 560px wide */
+      #job-part-pricing-modal h2 { font-size:1.15rem; line-height:1.25; overflow-wrap:anywhere; padding-right:4px; }
+      #job-part-pricing-modal .panel { overflow:visible; border:0; background:none; padding:0; box-shadow:none; }
+      #job-part-pricing-modal tr[data-price-line] td { grid-template-columns:minmax(84px,36%) minmax(0,1fr); min-width:0; padding:5px 2px; }
+      #job-part-pricing-modal tr[data-price-line] td > small { grid-column:1 / -1; }
+      #job-part-pricing-modal input { box-sizing:border-box; width:100% !important; max-width:100%; min-width:0; height:44px; padding:0 12px; font-size:16px; }
+      #job-part-pricing-modal .customer-account-summary > .customer-account-stat:last-child { grid-column:1 / -1; }
+      #job-part-pricing-modal .customer-account-stat { gap:6px; }
+      #job-part-pricing-modal .customer-account-stat strong { font-size:1.05rem; white-space:nowrap; overflow-wrap:normal; flex:none; }
+      #job-part-pricing-modal .modal > div[style*="justify-content:flex-end"] {
+        position:sticky; bottom:0; z-index:2; margin:0 -13px; padding:10px 13px calc(10px + env(safe-area-inset-bottom));
+        background:var(--mh-card,#222a35); border-top:1px solid var(--border);
+      }
+      #job-part-pricing-modal .modal > div[style*="justify-content:flex-end"] .btn { min-height:46px; }
+    }
+
     .journal-line-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
     .journal-line-row select, .journal-line-row input { min-height: 38px; }
     .balance-check { display: flex; gap: 24px; align-items: center; padding: 12px 16px; border-radius: var(--radius); margin: 12px 0; font-weight: 600; }
