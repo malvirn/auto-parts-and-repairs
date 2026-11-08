@@ -10,12 +10,21 @@
 // elements. Each query below is kept in sync with the matching page's own
 // fetcher by cache key.
 import supabase from "./supabaseClient.js";
-import { cacheSet } from "./data-cache.js";
+import { cacheSet, cacheClear } from "./data-cache.js";
 
+const SYNC_TIMEOUT_MS = 15000;
+
+// Runs one query. Never throws: returns { data, ok } so a single blocked
+// table (e.g. RLS hiding payroll from a staff account) doesn't sink the sync.
 async function getData(label, query) {
-  const { data, error } = await query;
-  if (error) { console.error(`Prefetch: error loading ${label}:`, error); return []; }
-  return data || [];
+  try {
+    const { data, error } = await query;
+    if (error) throw error;
+    return { data: data || [], ok: true };
+  } catch (error) {
+    console.error(`Sync: error loading ${label}:`, error);
+    return { data: [], ok: false, error };
+  }
 }
 
 async function prefetchDashboard() {
@@ -31,15 +40,25 @@ async function prefetchDashboard() {
     getData("payroll runs", supabase.from("payroll_runs").select("year, month").order("year", { ascending: false }).order("month", { ascending: false }).limit(1)),
     getData("settings", supabase.from("settings").select("daily_jobs_target, daily_revenue_target").limit(1)),
   ]);
-  cacheSet("dash:bundle", { jobs, customers, parts, receipts, payrollRuns, settings: settingsRows[0] });
+  // The two core reads decide whether the dashboard bundle is trustworthy;
+  // the rest are tolerated (a role may legitimately not see them).
+  const ok = jobs.ok && customers.ok;
+  if (ok) {
+    cacheSet("dash:bundle", {
+      jobs: jobs.data, customers: customers.data, parts: parts.data, receipts: receipts.data,
+      payrollRuns: payrollRuns.data, settings: settingsRows.data[0],
+    });
+  }
+  return ok;
 }
 
 async function prefetchCustomers() {
-  const data = await getData("customers list", supabase.from("customers")
+  const r = await getData("customers list", supabase.from("customers")
     .select("id, full_name, phone, customer_type, is_repeat_customer, deleted_at, vehicles(license_plate)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false }));
-  cacheSet("customers:active-list", data);
+  if (r.ok) cacheSet("customers:active-list", r.data);
+  return r.ok;
 }
 
 async function prefetchJobs() {
@@ -51,14 +70,33 @@ async function prefetchJobs() {
     `).order("created_at", { ascending: false })),
     getData("technicians", supabase.from("technician_directory").select("id, full_name")),
   ]);
-  cacheSet("repairs:jobs", { jobs, techs });
+  if (jobs.ok) cacheSet("repairs:jobs", { jobs: jobs.data, techs: techs.data });
+  return jobs.ok;
 }
 
-// Fire-and-forget by design: called alongside the sign-in loading screen's
-// own animation/delay, so it overlaps with time the person is looking at
-// the screen anyway rather than adding any extra wait of its own. A failure
-// here just means the first page visit falls back to its normal fetch.
+// The real sign-in sync: clears the previous session's cache, then pulls
+// the dashboard, customers and job-card data into it. Resolves with
+// { synced, failed } (names of the datasets). Rejects only if NOTHING could
+// be read (backend unreachable, session rejected, or every table blocked),
+// or if it takes longer than SYNC_TIMEOUT_MS.
+export async function syncUserData() {
+  cacheClear();
+  const groups = { Dashboard: prefetchDashboard, Customers: prefetchCustomers, "Job cards": prefetchJobs };
+  const work = Promise.all(Object.entries(groups).map(async ([name, run]) => {
+    try { return [name, await run()]; } catch (e) { console.error(`Sync: ${name} failed:`, e); return [name, false]; }
+  }));
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Syncing your data timed out. Check your connection and try again.")), SYNC_TIMEOUT_MS);
+  });
+  const results = await Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+  const synced = results.filter(([, ok]) => ok).map(([n]) => n);
+  const failed = results.filter(([, ok]) => !ok).map(([n]) => n);
+  if (!synced.length) throw new Error("Couldn't sync your data from the server. Check your connection and try again.");
+  return { synced, failed };
+}
+
+// Kept for any caller that just wants to warm the cache without waiting.
 export function prefetchCoreData() {
-  Promise.all([prefetchDashboard(), prefetchCustomers(), prefetchJobs()])
-    .catch(error => console.error("Prefetch failed (pages will fetch normally):", error));
+  syncUserData().catch(error => console.error("Prefetch failed (pages will fetch normally):", error));
 }

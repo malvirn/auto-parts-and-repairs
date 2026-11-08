@@ -18,6 +18,14 @@ export function cacheSet(key, data) {
   }
 }
 
+// Wipes everything this app cached in the tab, so a new sign-in never
+// starts from the previous person's data.
+export function cacheClear() {
+  try {
+    Object.keys(sessionStorage).filter(k => k.startsWith(PREFIX)).forEach(k => sessionStorage.removeItem(k));
+  } catch (e) {}
+}
+
 export function cacheGet(key) {
   try {
     const raw = sessionStorage.getItem(PREFIX + key);

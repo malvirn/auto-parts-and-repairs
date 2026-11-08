@@ -35,6 +35,7 @@ export async function loadUserProfile(userId) {
     console.error("Unable to load account role; continuing with the most restrictive staff access:", error);
     return {
       role: "staff",
+      lookup_failed: true,
       full_name: null,
       is_active: activeResult.status === "fulfilled" && !activeResult.value.error
         ? activeResult.value.data?.is_active !== false
