@@ -920,7 +920,7 @@ const $=id=>document.getElementById(id);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
-const DEFAULT_ST=["Draft","Received","Diagnosing","Awaiting Parts","In Repair","Processing","Processed","Ready for Pickup","Unclaimed","Collected"];
+const DEFAULT_ST=["Draft","Received","Diagnosing","Processing","Processed","Ready for Pickup","Unclaimed","Collected"]; // must match the repair_status enum exactly
 const CLOSED_STATUS="Collected";
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
 const inspectionState=new Map();
