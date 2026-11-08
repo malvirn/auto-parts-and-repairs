@@ -408,10 +408,27 @@
 /* ===== car damage grid ===== */
 .build-inspection{grid-column:1/-1!important;position:static!important}
 .job-edit-modal{width:min(1120px,100%)!important}
-.dmg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px;margin:10px 0}
-.dmg-tile{display:grid;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:0}
+.dmg-grid{display:grid;grid-auto-flow:column;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(var(--rows,8),auto);gap:8px;margin:10px 0}
+.dmg-tile{position:relative;display:grid;justify-items:center;align-content:start;gap:5px;min-width:0;padding:8px 2px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);font:inherit;text-align:center;cursor:pointer}
 .dmg-tile.has-dmg{border-color:#ff6b6b;box-shadow:0 0 0 1px #ff6b6b inset}
-.dmg-name{font-size:.78rem;font-weight:800;color:var(--text);line-height:1.2}
+.dmg-name{min-height:2.4em;color:var(--muted);font-size:.58rem;font-weight:700;line-height:1.2;text-transform:uppercase;text-wrap:balance;overflow-wrap:break-word}
+.dmg-state{max-width:100%;overflow:hidden;color:var(--green-bright);font-size:.6rem;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.dmg-tile.has-dmg .dmg-state{color:#ff6b6b}
+.dmg-cam{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--green-bright)}
+.pi{width:44px;height:44px;fill:none;stroke:var(--text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pi .bg{fill:color-mix(in srgb,var(--text) 10%,transparent);stroke:none}
+.pi .g{fill:#7be0a0}
+.pi.flip{transform:scaleX(-1)}
+.dmg-sheet{position:fixed;inset:0;z-index:390;display:grid;align-items:end;background:rgba(0,0,0,.6)}
+.dmg-panel{display:grid;gap:12px;width:min(520px,100%);margin:0 auto;padding:16px;border-radius:18px 18px 0 0;background:var(--panel);color:var(--text)}
+.dmg-head{display:flex;align-items:center;gap:12px}
+.dmg-head .pi{width:52px;height:52px;flex:none}
+.dmg-head small{display:block;margin-top:2px;color:var(--muted)}
+.dmg-opts{display:flex;flex-wrap:wrap;gap:8px}
+.dmg-opts .dmg-chip{padding:9px 14px;font-size:.82rem}
+.dmg-chip.ok[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+@media(max-width:520px){.build-inspection{padding:12px}.dmg-grid{gap:5px}.dmg-tile{padding:6px 1px}.dmg-name{font-size:.52rem}.dmg-state{font-size:.56rem;line-height:1.15;white-space:normal;text-wrap:balance}.pi{width:38px;height:38px}}
+@media(min-width:700px){.dmg-sheet{align-items:center}.dmg-panel{border-radius:18px}.pi{width:52px;height:52px}.dmg-name{font-size:.68rem}}
 .dmg-photo{position:relative;display:grid;place-items:center;height:86px;border:1px dashed var(--muted);border-radius:8px;background:color-mix(in srgb,var(--panel) 85%,var(--text));color:var(--muted);cursor:pointer;overflow:hidden;font-size:.68rem;text-align:center}
 .dmg-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .dmg-photo svg{width:42px;height:30px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -927,35 +944,48 @@ const CLOSED_STATUS="Collected";
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
 const inspectionState=new Map();
 const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
-const CAR_PARTS=[
- {key:"front-bumper",name:"Front bumper",icon:"bumper"},{key:"bonnet",name:"Bonnet",icon:"panel"},{key:"windscreen",name:"Windscreen",icon:"glass"},{key:"roof",name:"Roof",icon:"panel"},
- {key:"lf-wing",name:"Left front wing",icon:"panel"},{key:"rf-wing",name:"Right front wing",icon:"panel"},
- {key:"lf-door",name:"Left front door",icon:"door"},{key:"lr-door",name:"Left rear door",icon:"door"},{key:"rf-door",name:"Right front door",icon:"door"},{key:"rr-door",name:"Right rear door",icon:"door"},
- {key:"l-mirror",name:"Left mirror",icon:"mirror"},{key:"r-mirror",name:"Right mirror",icon:"mirror"},
- {key:"l-headlight",name:"Left headlight",icon:"light"},{key:"r-headlight",name:"Right headlight",icon:"light"},{key:"l-taillight",name:"Left tail light",icon:"light"},{key:"r-taillight",name:"Right tail light",icon:"light"},
- {key:"boot",name:"Boot / tailgate",icon:"panel"},{key:"rear-bumper",name:"Rear bumper",icon:"bumper"},{key:"rear-glass",name:"Rear windscreen",icon:"glass"},
- {key:"wheel-lf",name:"Left front wheel",icon:"wheel"},{key:"wheel-rf",name:"Right front wheel",icon:"wheel"},{key:"wheel-lr",name:"Left rear wheel",icon:"wheel"},{key:"wheel-rr",name:"Right rear wheel",icon:"wheel"},
- {key:"seats",name:"Seats / interior",icon:"seat"},{key:"dashboard",name:"Dashboard",icon:"seat"}
-];
-const PART_ICONS={
- door:'<rect x="6" y="4" width="32" height="22" rx="4"/><path d="M14 11h16M28 18h5"/>',
- light:'<ellipse cx="22" cy="15" rx="15" ry="9"/><circle cx="22" cy="15" r="4"/>',
- wheel:'<circle cx="22" cy="15" r="12"/><circle cx="22" cy="15" r="3"/><path d="M22 3v9M22 18v9M10 15h9M25 15h9"/>',
- glass:'<path d="M8 24l5-17h18l5 17z"/>',
- panel:'<rect x="5" y="6" width="34" height="19" rx="6"/>',
- bumper:'<path d="M4 18c0-6 4-9 9-9h18c5 0 9 3 9 9v4H4z"/>',
- mirror:'<path d="M12 8h20a4 4 0 014 4v6a4 4 0 01-4 4H12a4 4 0 01-4-4v-6a4 4 0 014-4z"/><path d="M22 22v5"/>',
- seat:'<path d="M12 5h10v13h10v8H12z"/>'
+const PI={
+ bumper:'<path class="g" d="M6 29c0-5 3-8 8-8h20c5 0 8 3 8 8v4H6z"/><path d="M11 33v3M37 33v3M13 25h22"/>',
+ bonnet:'<path class="g" d="M10 35l4-17c.5-2 2-3 4-3h12c2 0 3.5 1 4 3l4 17z"/><path d="M19 23h10M17 28h14"/>',
+ roof:'<rect class="g" x="14" y="8" width="20" height="32" rx="8"/><path d="M18 16h12M18 32h12"/>',
+ wing:'<path class="g" d="M7 34v-8c0-3 2-5 5-5h8c3 0 5 2 7 5l3 8z"/><path d="M12 34a6 6 0 0 1 12 0M30 17h9"/>',
+ door:'<path class="g" d="M11 37V14c0-2 1-3 3-3h15c3 0 5 2 6 5l2 21z"/><path d="M17 19h14M31 29h5"/>',
+ glass:'<path class="g" d="M9 34l5-17c.4-1.3 1.5-2 3-2h14c1.5 0 2.6.7 3 2l5 17z"/><path d="M24 15v19M13 30h22"/>',
+ rearglass:'<path class="g" d="M11 33l3-14c.4-1.5 1.5-2 3-2h14c1.5 0 2.6.5 3 2l3 14z"/><path d="M15 23h18M14 28h20"/>',
+ mirror:'<path class="g" d="M16 12h16a5 5 0 0 1 5 5v7a5 5 0 0 1-5 5H16a5 5 0 0 1-5-5v-7a5 5 0 0 1 5-5z"/><path d="M24 29v7M18 37h12"/>',
+ headlight:'<path class="g" d="M8 24c0-8 5-13 12-13v26c-7 0-12-5-12-13z"/><path d="M26 15h14M26 21h14M26 27h14M26 33h14"/>',
+ taillight:'<rect class="g" x="8" y="16" width="25" height="16" rx="4"/><path d="M37 18v12M41 20v8M14 24h13"/>',
+ boot:'<path class="g" d="M8 35V23c0-2 1.5-3.5 3.5-3.5h25c2 0 3.5 1.5 3.5 3.5v12z"/><path d="M14 19l2-7h16l2 7M18 28h12"/>',
+ wheel:'<circle cx="24" cy="24" r="14"/><circle class="g" cx="24" cy="24" r="4"/><path d="M24 10v10M24 28v10M10 24h10M28 24h10"/>',
+ seat:'<path class="g" d="M14 9h8c2 0 3 1 3 3l1 15h9c2 0 3 1 3 3v3H14z"/><path d="M14 37v3M37 37v3"/>',
+ speedo:'<path d="M9 33a15 15 0 1 1 30 0"/><circle class="g" cx="24" cy="31" r="3.5"/><path d="M26 29l7-8M24 12v3M14 28h2M34 28h-2"/>',
+ steer:'<circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="10"/><path d="M14 26c6-2 14-2 20 0M24 28v8"/><circle class="g" cx="24" cy="26" r="3"/>',
+ belt:'<path class="g" d="M16 10l9-1 6 11-9 8z"/><path d="M31 20l8 13-8 5M13 26l-3 3"/>',
+ engine:'<rect class="g" x="13" y="19" width="22" height="15" rx="3"/><path d="M18 19v-4h12v4M9 24v6M39 24v6M24 23l-3.5 4.5h5L23 32"/>',
+ radiator:'<rect class="g" x="12" y="12" width="24" height="5" rx="2"/><rect x="14" y="17" width="20" height="18"/><path d="M19 17v18M24 17v18M29 17v18"/><rect class="g" x="12" y="35" width="24" height="4" rx="2"/>',
+ brake:'<circle cx="24" cy="24" r="15"/><circle class="g" cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="2.5"/>',
+ exhaust:'<rect class="g" x="7" y="21" width="9" height="8" rx="1.5"/><rect x="16" y="21" width="12" height="8" rx="1"/><path d="M33 19c3-2.5 5 .5 3 3 3 .5 3 5-.5 5M32 32l4 3"/>'
 };
+const partIcon=(icon,flip)=>`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="21"/>${PI[icon]||PI.bonnet}</svg>`;
+
+const CAR_PARTS=[
+ {key:"front-bumper",name:"Front bumper",icon:"bumper"},{key:"bonnet",name:"Bonnet",icon:"bonnet"},{key:"windscreen",name:"Windscreen",icon:"glass"},{key:"roof",name:"Roof",icon:"roof"},
+ {key:"lf-wing",name:"Left front wing",icon:"wing"},{key:"rf-wing",name:"Right front wing",icon:"wing",flip:1},
+ {key:"lf-door",name:"Left front door",icon:"door"},{key:"lr-door",name:"Left rear door",icon:"door"},{key:"rf-door",name:"Right front door",icon:"door",flip:1},{key:"rr-door",name:"Right rear door",icon:"door",flip:1},
+ {key:"l-mirror",name:"Left mirror",icon:"mirror"},{key:"r-mirror",name:"Right mirror",icon:"mirror",flip:1},
+ {key:"l-headlight",name:"Left headlight",icon:"headlight"},{key:"r-headlight",name:"Right headlight",icon:"headlight",flip:1},{key:"l-taillight",name:"Left tail light",icon:"taillight"},{key:"r-taillight",name:"Right tail light",icon:"taillight",flip:1},
+ {key:"boot",name:"Boot / tailgate",icon:"boot"},{key:"rear-bumper",name:"Rear bumper",icon:"bumper"},{key:"rear-glass",name:"Rear windscreen",icon:"rearglass"},
+ {key:"wheel-lf",name:"Left front wheel",icon:"wheel"},{key:"wheel-rf",name:"Right front wheel",icon:"wheel"},{key:"wheel-lr",name:"Left rear wheel",icon:"wheel"},{key:"wheel-rr",name:"Right rear wheel",icon:"wheel"},
+ {key:"seats",name:"Seats / interior",icon:"seat"},{key:"dashboard",name:"Dashboard",icon:"speedo"},{key:"steering",name:"Steering wheel",icon:"steer"},{key:"seatbelts",name:"Seat belts",icon:"belt"},
+ {key:"engine",name:"Engine",icon:"engine"},{key:"radiator",name:"Radiator",icon:"radiator"},{key:"brakes",name:"Brakes",icon:"brake"},{key:"exhaust",name:"Exhaust",icon:"exhaust"}
+];
 const emptyReport=()=>({parts:{},notes:""});
 const reportOf=id=>{const r=inspectionState.get(String(id));return r&&r.parts?r:emptyReport()};
 let buildInspection=emptyReport();
 let editInspection=emptyReport();
 function partTileHTML(p,entry={}){
- const dmg=entry.dmg||[];
- return `<div class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}"><div class="dmg-name">${esc(p.name)}</div>
- <label class="dmg-photo" title="Add photo of ${esc(p.name)}">${entry.photo?`<img src="${entry.photo}" alt="${esc(p.name)}"><button type="button" class="dmg-x" data-dmg-remove aria-label="Remove photo">×</button>`:`<div><svg viewBox="0 0 44 30">${PART_ICONS[p.icon]||PART_ICONS.panel}</svg><span>Tap to add photo</span></div>`}<input type="file" accept="image/*" data-dmg-file></label>
- <div class="dmg-chips">${DAMAGE_TYPES.map(t=>`<button type="button" class="dmg-chip" data-dmg-type="${t}" aria-pressed="${dmg.includes(t)}">${t}</button>`).join("")}</div></div>`;
+ const dmg=entry.dmg||[],state=dmg.length?dmg.join(", "):"No damage";
+ return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
 }
 function compressImage(file,max=720,quality=.66){
  return new Promise((ok,no)=>{
@@ -968,22 +998,37 @@ function compressImage(file,max=720,quality=.66){
 function showPhoto(src){
  const box=document.createElement("div");box.className="dmg-lightbox";box.innerHTML=`<img src="${src}" alt="Part photo">`;box.onclick=()=>box.remove();document.body.append(box);
 }
-function mountDamageGrid(el,getReport){
- const render=()=>{const r=getReport();el.innerHTML=CAR_PARTS.map(p=>partTileHTML(p,r.parts[p.key])).join("")};
- const refresh=tile=>{const p=CAR_PARTS.find(x=>x.key===tile.dataset.part);tile.outerHTML=partTileHTML(p,getReport().parts[p.key])};
- el.onclick=event=>{
-  const tile=event.target.closest(".dmg-tile");if(!tile)return;
-  const key=tile.dataset.part,r=getReport(),entry=r.parts[key]||(r.parts[key]={dmg:[],photo:""});
+function openPartSheet(key,getReport,onDone){
+ const p=CAR_PARTS.find(x=>x.key===key),r=getReport(),entry=r.parts[key]||(r.parts[key]={dmg:[],photo:""});
+ entry.dmg=entry.dmg||[];
+ const box=document.createElement("div");box.className="dmg-sheet";
+ const draw=()=>{box.innerHTML=`<div class="dmg-panel" role="dialog" aria-modal="true" aria-label="${esc(p.name)}">
+  <div class="dmg-head">${partIcon(p.icon,p.flip)}<div><b>${esc(p.name)}</b><small>Condition at drop-off</small></div></div>
+  <div class="dmg-opts"><button type="button" class="dmg-chip ok" data-none aria-pressed="${!entry.dmg.length}">No damage</button>${DAMAGE_TYPES.map(t=>`<button type="button" class="dmg-chip" data-dmg-type="${t}" aria-pressed="${entry.dmg.includes(t)}">${t}</button>`).join("")}</div>
+  <label class="dmg-photo" title="Add photo of ${esc(p.name)}">${entry.photo?`<img src="${entry.photo}" alt="${esc(p.name)}"><button type="button" class="dmg-x" data-dmg-remove aria-label="Remove photo">×</button>`:`<div><svg viewBox="0 0 44 30"><path d="M6 8h8l3-4h10l3 4h8v18H6z"/><circle cx="22" cy="16" r="5"/></svg><span>Add photo (optional)</span></div>`}<input type="file" accept="image/*" data-dmg-file></label>
+  <button type="button" class="btn btn--primary" data-done>Done</button></div>`};
+ const onKey=event=>{if(event.key==="Escape")close()};
+ const close=()=>{box.remove();document.removeEventListener("keydown",onKey);onDone(key)};
+ box.onclick=event=>{
+  if(event.target===box||event.target.closest("[data-done]")){close();return}
+  if(event.target.closest("[data-none]")){entry.dmg=[];draw();return}
   const chip=event.target.closest("[data-dmg-type]");
-  if(chip){const t=chip.dataset.dmgType;entry.dmg=entry.dmg.includes(t)?entry.dmg.filter(x=>x!==t):[...entry.dmg,t];refresh(tile);return}
-  if(event.target.closest("[data-dmg-remove]")){event.preventDefault();entry.photo="";refresh(tile);return}
+  if(chip){const t=chip.dataset.dmgType;entry.dmg=entry.dmg.includes(t)?entry.dmg.filter(x=>x!==t):[...entry.dmg,t];draw();return}
+  if(event.target.closest("[data-dmg-remove]")){event.preventDefault();entry.photo="";draw();return}
   if(event.target.closest(".dmg-photo")&&entry.photo&&event.target.tagName==="IMG"){event.preventDefault();showPhoto(entry.photo)}
  };
- el.onchange=async event=>{
+ box.onchange=async event=>{
   const input=event.target.closest("[data-dmg-file]");if(!input||!input.files[0])return;
-  const tile=input.closest(".dmg-tile"),key=tile.dataset.part,r=getReport(),entry=r.parts[key]||(r.parts[key]={dmg:[],photo:""});
-  try{entry.photo=await compressImage(input.files[0]);refresh(tile)}catch(error){toast(error.message)}
+  try{entry.photo=await compressImage(input.files[0]);draw()}catch(error){toast(error.message)}
  };
+ document.addEventListener("keydown",onKey);document.body.append(box);draw();box.querySelector("[data-done]")?.focus();
+}
+function mountDamageGrid(el,getReport){
+ const rows=Math.ceil(CAR_PARTS.length/4);
+ const render=()=>{const r=getReport();el.style.setProperty("--rows",rows);el.innerHTML=CAR_PARTS.map(p=>partTileHTML(p,r.parts[p.key])).join("")};
+ const refresh=key=>{const p=CAR_PARTS.find(x=>x.key===key),tile=el.querySelector(`[data-part="${key}"]`);if(tile)tile.outerHTML=partTileHTML(p,getReport().parts[key])};
+ el.onclick=event=>{const tile=event.target.closest(".dmg-tile");if(tile)openPartSheet(tile.dataset.part,getReport,refresh)};
+ el.onchange=null;
  render();
 }
 async function loadReport(jobId){
