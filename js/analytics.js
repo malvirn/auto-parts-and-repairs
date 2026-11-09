@@ -132,7 +132,7 @@ async function searchChecklistAccount(value) {
     const orderIds = orders.map(order => order.id).filter(Boolean);
     const invoiceIds = invoices.map(invoice => invoice.id).filter(Boolean);
     const [jobReceipts, orderReceipts, jobParts, jobPayments, invoicePayments] = await Promise.all([
-      jobIds.length ? supabase.from("receipts").select("id,receipt_number,repair_job_id,sales_order_id,amount,issued_at").in("repair_job_id", jobIds).order("issued_at", { ascending: false }).limit(2000) : Promise.resolve({ data: [], error: null }),
+      jobIds.length ? supabase.from("receipts").select("id,receipt_number,repair_job_id,sales_order_id,amount,issued_at,voided_at,void_reason").in("repair_job_id", jobIds).order("issued_at", { ascending: false }).limit(2000) : Promise.resolve({ data: [], error: null }),
       orderIds.length ? supabase.from("receipts").select("id,receipt_number,repair_job_id,sales_order_id,amount,issued_at").in("sales_order_id", orderIds).order("issued_at", { ascending: false }).limit(2000) : Promise.resolve({ data: [], error: null }),
       jobIds.length ? supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time").in("job_id", jobIds).limit(5000) : Promise.resolve({ data: [], error: null }),
       jobIds.length ? supabase.from("repair_job_payments").select("*").in("repair_job_id", jobIds).limit(5000) : Promise.resolve({ data: [], error: null }),
@@ -180,7 +180,7 @@ async function searchChecklistAccount(value) {
       ${renderAccountSection("Receipts", receipts.map(receipt => ({
         Receipt: `R-${String(receipt.receipt_number ?? "").padStart(5, "0")}`, Date: receipt.issued_at ? new Date(receipt.issued_at).toLocaleDateString() : "",
         Amount: receipt.amount, Related: receipt.repair_job_id ? "Repair job" : "Sales order",
-      })), [["Receipt", "Receipt"], ["Date", "Date"], ["Amount", "Amount"], ["Related", "Related"]])}
+      })), [["Receipt", "Receipt"], ["Date", "Date"], ["Amount", "Amount"], ["Related", "Related"], ["Status", "Status"], ["Void reason", "Void reason"]])}
       ${renderAccountSection("Job parts", jobParts.data || [], [["Part", "part_name"], ["Quantity", "quantity"], ["Unit price", "price_at_time"]])}
       ${renderAccountSection("Repair payments", jobPayments.data || [], [["Date", "paid_at"], ["Amount", "amount"], ["Method", "payment_method"]])}
       ${renderAccountSection("Invoice payments", invoicePayments.data || [], [["Date", "payment_date"], ["Amount", "amount"], ["Method", "payment_method"]])}
