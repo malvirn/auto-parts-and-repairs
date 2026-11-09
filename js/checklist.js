@@ -64,15 +64,18 @@ function applyNoDamageDefaults(){
 }
 function renderDamage(){
  const options=[["","No damage"],...DAMAGE_TYPES.map(type=>[type,type])];
- $("inspection-grid").innerHTML=CONDITION_GROUPS.map(([group,parts])=>`
-  <fieldset class="condition-group damage-group"><legend>${esc(group)}</legend><div class="cond-grid" style="--rows:${Math.ceil(parts.length/4)}">${parts.map(([key,name,icon,flip])=>{
-   const entry=report.parts?.[key];
-   const current=Array.isArray(entry?.dmg)?(entry.dmg[0]??""):(editable?"":null);
-   const select=current===null
-    ?`<select class="cond-select" aria-label="${esc(name)} condition" disabled><option>Not recorded</option></select>`
-    :`<select class="cond-select${current?" has-dmg":""}" data-part="${key}" aria-label="${esc(name)} condition" ${editable?"":"disabled"}>${options.map(([value,label])=>`<option value="${esc(value)}" ${value===current?"selected":""}>${esc(label)}</option>`).join("")}</select>`;
-   return `<div class="damage-card cond-card${current?" has-dmg":""}">${partIcon(icon,flip)}<p class="damage-name">${esc(name)}</p>${select}</div>`;
-  }).join("")}</div></fieldset>`).join("");
+ const order=["front-bumper","rf-door","boot","dashboard","bonnet","rr-door","rear-bumper","steering","windscreen","l-mirror","rear-glass","seatbelts","roof","r-mirror","wheel-lf","engine","lf-wing","l-headlight","wheel-rf","radiator","rf-wing","r-headlight","wheel-lr","brakes","lf-door","l-taillight","wheel-rr","exhaust","lr-door","r-taillight","seats"];
+ const all=CONDITION_GROUPS.flatMap(([,parts])=>parts);
+ const byKey=new Map(all.map(part=>[part[0],part]));
+ const items=[...order.map(key=>byKey.get(key)).filter(Boolean),...all.filter(part=>!order.includes(part[0]))];
+ $("inspection-grid").innerHTML=`<fieldset class="condition-group damage-group"><div class="cond-grid">${items.map(([key,name,icon,flip])=>{
+  const entry=report.parts?.[key];
+  const current=Array.isArray(entry?.dmg)?(entry.dmg[0]??""):(editable?"":null);
+  const select=current===null
+   ?`<select class="cond-select" aria-label="${esc(name)} condition" disabled><option>Not recorded</option></select>`
+   :`<select class="cond-select${current?" has-dmg":""}" data-part="${key}" aria-label="${esc(name)} condition" ${editable?"":"disabled"}>${options.map(([value,label])=>`<option value="${esc(value)}" ${value===current?"selected":""}>${esc(label)}</option>`).join("")}</select>`;
+  return `<div class="damage-card cond-card${current?" has-dmg":""}">${partIcon(icon,flip)}<p class="damage-name">${esc(name)}</p>${select}</div>`;
+ }).join("")}</div></fieldset>`;
 }
 function getIncompleteConditions(){
   return CONDITION_GROUPS.flatMap(([,parts])=>parts)
