@@ -14,6 +14,7 @@ const paymentMessage = document.getElementById("quick-sale-payment-message");
 const paymentSaveButton = document.getElementById("quick-sale-payment-save");
 
 let entries = [];
+let overpaymentCredits = [];
 let expandedCustomerId = null;
 let selectedPaymentEntry = null;
 
@@ -140,6 +141,7 @@ function render() {
     const detail = expanded ? `<tr class="customer-account-detail-row"><td colspan="6"><div class="customer-transaction-list">
       <div class="customer-transaction"><strong>Reference and date</strong><strong>Discount</strong><strong>Payment</strong><strong>Charge</strong><strong>Paid</strong><strong>Balance</strong></div>
       ${customer.entries.map(entry => `<div class="customer-transaction"><span>${escapeHtml(entry.reference)} · ${escapeHtml(dateLabel(entry.entry_date))} · ${escapeHtml(entry.source_type)}</span><span>${money(entry.discount_amount)}</span><span>${escapeHtml(entry.payment_method || "—")}</span><span>${money(entry.total_amount)}</span><span>${money(entry.amount_paid)}</span><span>${money(entry.balance_due)}${entry.can_record_payment && entry.balance_due > 0.01 ? ` <button type="button" class="btn" data-action="pay-order" data-customer-id="${escapeHtml(customer.id)}" data-source-id="${escapeHtml(entry.source_id)}" aria-label="Record payment for ${escapeHtml(entry.reference)}">Record payment</button>` : ""}</span></div>`).join("")}
+      ${overpaymentCredits.filter(credit => credit.customer_id === customer.id && Number(credit.available_amount) > 0.005).map(credit => `<div class="customer-transaction"><span>Invoice overpayment · ${escapeHtml(credit.invoices?.invoice_number ? `INV-${credit.invoices.invoice_number}` : "Invoice")} · ${escapeHtml(dateLabel(credit.payment_date))}</span><span>—</span><span>Customer credit</span><span>${money(credit.amount)}</span><span>—</span><span>${money(credit.available_amount)} <button type="button" class="btn btn--primary" data-action="issue-overpayment-credit" data-customer-id="${escapeHtml(customer.id)}" data-overpayment-credit-id="${escapeHtml(credit.id)}">Issue credit note</button></span></div>`).join("")}
       </div></td></tr>` : "";
     return `<tr>
       <td><strong>${escapeHtml(customer.name)}</strong><div class="customer-contact">${escapeHtml(customer.phone)}${customer.email ? ` · ${escapeHtml(customer.email)}` : ""}</div></td>
@@ -170,6 +172,8 @@ async function loadCustomerAccounts() {
     return;
   }
   entries = data || [];
+  const overpaymentResult = await supabase.from("customer_overpayment_credits").select("id,customer_id,customer_name,customer_phone,invoice_id,amount,available_amount,payment_date,invoices(invoice_number)").gt("available_amount", 0.005);
+  overpaymentCredits = overpaymentResult.error ? [] : (overpaymentResult.data || []);
   message.textContent = entries.length ? `Updated ${new Date().toLocaleTimeString()}.` : "No customer account activity found.";
   message.dataset.tone = "info";
   render();
@@ -181,6 +185,18 @@ tbody.addEventListener("click", event => {
   const customer = groupEntries().find(account => account.id === button.dataset.customerId);
   if (!customer) return;
   const action = button.dataset.action;
+  if (action === "issue-overpayment-credit") {
+    const creditId = button.dataset.overpaymentCreditId;
+    const credit = overpaymentCredits.find(row => row.id === creditId);
+    if (!credit || !window.confirm("Issue a credit note for " + money(credit.available_amount) + " for " + customer.name + "?")) return;
+    button.disabled = true;
+    const { data, error } = await supabase.rpc("issue_overpayment_credit_note", { p_overpayment_credit_id: creditId });
+    if (error) { message.textContent = "Could not issue credit note: " + error.message; message.dataset.tone = "error"; button.disabled = false; return; }
+    const note = typeof data === "string" ? JSON.parse(data) : data;
+    message.textContent = "Credit note CN-" + note.credit_note_number + " issued and saved. It is available in the Receipts page."; message.dataset.tone = "success";
+    await loadCustomerAccounts();
+    return;
+  }
   if (action === "pay-order") {
     selectedPaymentEntry = customer.entries.find(entry => entry.source_id === button.dataset.sourceId && entry.source_type === "Sales order");
     if (!selectedPaymentEntry || selectedPaymentEntry.balance_due <= 0.01) return;
