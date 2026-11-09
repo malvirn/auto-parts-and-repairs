@@ -937,24 +937,24 @@ async function load(){
   const methodsByInvoice=new Map();
   payments.forEach(payment=>{
    const key=String(payment.invoice_id),method=String(payment.payment_method||"").trim();
-   if(method){if(!methodsByInvoice.has(key))methodsByInvoice.set(key,new Set());methodsByInvoice.get(key).add(method)}
+   if(method&&!payment.voided_at){if(!methodsByInvoice.has(key))methodsByInvoice.set(key,new Set());methodsByInvoice.get(key).add(method)}
   });
   rows.invoices.forEach(invoice=>{invoice.paymentMethod=[...(methodsByInvoice.get(String(invoice.id))||[])].join(" / ")});
   const paidByInvoice=new Map();
   payments.forEach(payment=>{
    const key=String(payment.invoice_id);
-   paidByInvoice.set(key,(paidByInvoice.get(key)||0)+Number(payment.amount||0));
+   if(!payment.voided_at)paidByInvoice.set(key,(paidByInvoice.get(key)||0)+Number(payment.amount||0));
   });
   const invoicePaymentReceipts=payments.filter(payment=>payment.invoices).map(payment=>{
    const invoice=payment.invoices,items=normalizeInvoiceItems(invoice.items);
    const total=Number(invoice.total)||Number(invoice.subtotal)||0;
-   const paidBefore=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-Number(payment.amount||0));
    const amount=Number(payment.amount)||0;
-   const applied=Math.min(amount,Math.max(0,total-paidBefore));
+    const paidBefore=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-(payment.voided_at?0:amount));
+    const applied=payment.voided_at?0:Math.min(amount,Math.max(0,total-paidBefore));
    const totalApplied=Math.min(total,paidBefore+applied);
    const credit=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-total);
    return{
-    kind:"receipt",id:null,invoicePaymentReceipt:true,
+    kind:"receipt",id:payment.id,invoicePaymentReceipt:true,voidedAt:payment.voided_at,voidReason:payment.void_reason,
     number:"PAY-"+String(invoice.invoice_number).padStart(5,"0")+"-"+String(payment.id).slice(0,6).toUpperCase(),
     date:payment.payment_date,repairJobId:invoice.repair_job_id,
     customer:{name:invoice.customer_name||"Customer",phone:invoice.customer_phone||"",email:invoice.customer_email||""},
@@ -1305,8 +1305,10 @@ async function voidReceipt(){
  const button=$("d-void"),receiptId=cur.id,receiptNumber=cur.number;
  button.disabled=true;
  try{
-  const{error}=await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
-  if(error)throw new Error(error.message);
+  const{error}=cur.invoicePaymentReceipt
+    ? await supabase.rpc("void_invoice_payment_receipt",{p_invoice_payment_id:receiptId,p_reason:reason.trim()})
+    : await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
+   if(error)throw new Error(error.message);
   signalDocumentChange("receipts",receiptNumber);
   await load();
   const updated=rows.receipts.find(receipt=>receipt.id===receiptId);
