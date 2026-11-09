@@ -180,10 +180,11 @@ async function searchChecklistAccount(value) {
       ${renderAccountSection("Receipts", receipts.map(receipt => ({
         Receipt: `R-${String(receipt.receipt_number ?? "").padStart(5, "0")}`, Date: receipt.issued_at ? new Date(receipt.issued_at).toLocaleDateString() : "",
         Amount: receipt.amount, Related: receipt.repair_job_id ? "Repair job" : "Sales order",
+        Status: receipt.voided_at ? "VOID" : "Valid", "Void reason": receipt.void_reason || "",
       })), [["Receipt", "Receipt"], ["Date", "Date"], ["Amount", "Amount"], ["Related", "Related"], ["Status", "Status"], ["Void reason", "Void reason"]])}
       ${renderAccountSection("Job parts", jobParts.data || [], [["Part", "part_name"], ["Quantity", "quantity"], ["Unit price", "price_at_time"]])}
-      ${renderAccountSection("Repair payments", jobPayments.data || [], [["Date", "paid_at"], ["Amount", "amount"], ["Method", "payment_method"]])}
-      ${renderAccountSection("Invoice payments", invoicePayments.data || [], [["Date", "payment_date"], ["Amount", "amount"], ["Method", "payment_method"]])}
+      ${renderAccountSection("Repair payments", (jobPayments.data || []).map(payment => ({ ...payment, status: payment.voided_at ? "VOID" : "Recorded" })), [["Date", "paid_at"], ["Amount", "amount"], ["Method", "payment_method"], ["Status", "status"], ["Void reason", "void_reason"]])}
+      ${renderAccountSection("Invoice payments", (invoicePayments.data || []).map(payment => ({ ...payment, status: payment.voided_at ? "VOID" : "Recorded" })), [["Date", "payment_date"], ["Amount", "amount"], ["Method", "payment_method"], ["Status", "status"], ["Void reason", "void_reason"]])}
       ${renderAccountSection("Account statement", statements.map(entry => ({
         Date: entry.entry_date, Type: entry.source_type, Reference: entry.reference, Total: entry.total_amount,
         Paid: entry.amount_paid, Balance: entry.balance_due,
