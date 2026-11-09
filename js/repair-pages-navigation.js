@@ -56,7 +56,7 @@ function addToolbarUtilities(container, isModuleToolbar) {
     status.className = "dashboard-connection-status";
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
-    status.innerHTML = '<i data-lucide="wifi" aria-hidden="true"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span>';
+    status.innerHTML = '<i data-lucide="wifi" aria-hidden="true"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="dashboard-connection-label">Online</span>';
     container.append(status);
 
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -87,11 +87,18 @@ function addToolbarUtilities(container, isModuleToolbar) {
       status.dataset.state = state;
       status.title = label;
       status.setAttribute("aria-label", label);
+      const icon = status.querySelector("[data-lucide]");
+      if (icon) icon.setAttribute("data-lucide", online ? "wifi" : "wifi-off");
+      const text = status.querySelector(".dashboard-connection-label");
+      if (text) text.textContent = online ? "Online" : "Offline";
+      window.lucide?.createIcons();
     };
     updateConnection();
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
     connection?.addEventListener?.("change", updateConnection);
+    window.addEventListener("focus", updateConnection);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) updateConnection(); });
   }
 
   if (!container.querySelector(".dashboard-refresh")) {
