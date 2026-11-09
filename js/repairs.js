@@ -1387,11 +1387,18 @@ async function availableCustomerCredit(customerId, excludingJobId) {
 }
 
 async function repairJobAppliedCredit(jobId) {
-  const { data, error } = await supabase.from("customer_credit_movements").select("amount")
-    .eq("target_type", "repair_job").eq("target_id", jobId)
-    .eq("movement_type", "application").is("reversed_at", null);
-  if (error) throw new Error(error.message);
-  return (data || []).reduce((sum, movement) => sum + Number(movement.amount || 0), 0);
+  const [movementResult, overpaymentResult] = await Promise.all([
+    supabase.from("customer_credit_movements").select("amount")
+      .eq("target_type", "repair_job").eq("target_id", jobId)
+      .eq("movement_type", "application").is("reversed_at", null),
+    supabase.from("customer_overpayment_credit_job_links").select("applied_amount")
+      .eq("repair_job_id", jobId).gt("applied_amount", 0),
+  ]);
+  if (movementResult.error) throw new Error(movementResult.error.message);
+  if (overpaymentResult.error) throw new Error(overpaymentResult.error.message);
+  const depositCredit = (movementResult.data || []).reduce((sum, movement) => sum + Number(movement.amount || 0), 0);
+  const overpaymentCredit = (overpaymentResult.data || []).reduce((sum, movement) => sum + Number(movement.applied_amount || 0), 0);
+  return Math.round((depositCredit + overpaymentCredit + Number.EPSILON) * 100) / 100;
 }
 
 if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
