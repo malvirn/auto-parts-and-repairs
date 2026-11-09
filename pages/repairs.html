@@ -712,7 +712,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
       <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
       <select id="f-tech"><option value="">Assign technician (optional)</option></select>
-      <p style="margin:10px 0;color:var(--muted);font-size:.85rem">Saved as a <b>Draft</b>. Link it to a vehicle checklist under Vehicle Checklist → Drafts to finish creating the job card.</p>
+      <p style="margin:10px 0;color:var(--muted);font-size:.85rem">Saved as a <b>Draft</b> unless you opened it from a checklist. Draft job cards are linked under Vehicle Checklist → Drafts.</p>
       <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save job card</button>
     </div>
     <aside class="build-inspection" aria-labelledby="build-inspection-title" hidden>
@@ -954,6 +954,7 @@ const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const DEFAULT_ST=["Draft","Received","Diagnosing","Processing","Processed","Ready for Pickup","Unclaimed","Collected"]; // must match the repair_status enum exactly
 const CLOSED_STATUS="Collected";
+let pendingChecklists=[],activeChecklist=null;
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
 const inspectionState=new Map();
 const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
@@ -1129,11 +1130,13 @@ const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(job
 /* ---------- list ---------- */
 async function load(){
  $("list").innerHTML='<div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Refreshing the latest workshop jobs…</p></div></div>';
- const [j,t]=await Promise.all([
+ const [j,t,cl]=await Promise.all([
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
-  supabase.from("technician_directory").select("id,full_name").limit(300)]);
+  supabase.from("technician_directory").select("id,full_name").limit(300),
+  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at").is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(200)]);
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
  techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
+ if(cl.error){console.error("Couldn't load checklists waiting for job cards:",cl.error);pendingChecklists=[]}else pendingChecklists=cl.data||[];
  const h=new URLSearchParams(location.search).get("highlight");render();
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
@@ -1144,7 +1147,14 @@ function render(){
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
  $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)}">${esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]))}
+ $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]));
+ const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
+ if(CL.length){
+  if(!L.length)$("list").innerHTML="";
+  $("list").insertAdjacentHTML("afterbegin",CL.map((c,i)=>`<div class="rc-row rc-checklist" data-cl="${i}" role="button" tabindex="0"><div><b>Checklist #${esc(c.checklist_number)}</b> <span class="pill">Ready for job card</span><small>${esc(c.customer_name||"Customer not recorded")} · ${esc(c.vehicle_registration||"Registration not recorded")}</small><small>Tap to open a job card for this vehicle</small></div><div class="rc-amt"><small>${dt(c.confirmed_at)}</small></div></div>`).join(""));
+  $("list").querySelectorAll(".rc-checklist").forEach(el=>{const go=()=>openBuilder(CL[el.dataset.cl]);el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
+ }
+}
 
 /* ---------- job card document ---------- */
 function docHTML(j){const c=j.customers||{},v=j.vehicles||{};
@@ -1576,8 +1586,9 @@ $("job-whatsapp-send").onclick=()=>{
 };
 
 /* ---------- create flow ---------- */
-async function openBuilder(){
+async function openBuilder(fromChecklist=null){
  const params=new URLSearchParams(location.search);
+ activeChecklist=fromChecklist&&fromChecklist.checklist_number?fromChecklist:null;
  selectedJobParts=[];vehicles=[];
  buildInspection=emptyReport();
  renderBuildInspection();
@@ -1697,6 +1708,20 @@ async function openBuilder(){
     }
    }
    updateLabourPreview();
+  }else if(activeChecklist){
+   const wantedName=String(activeChecklist.customer_name||"").trim().toUpperCase(),wantedPlate=String(activeChecklist.vehicle_registration||"").trim().toUpperCase();
+   const customer=builderCustomers.find(c=>String(c.full_name||"").trim().toUpperCase()===wantedName);
+   if(customer){
+    $("f-cust").value=customer.id;
+    await $("f-cust").onchange({target:$("f-cust")});
+    const vehicle=vehicles.find(v=>String(v.license_plate||"").trim().toUpperCase()===wantedPlate);
+    if(vehicle){$("f-veh").value=vehicle.id;$("f-veh").onchange({target:$("f-veh")})}
+    else $("f-plate").value=wantedPlate;
+   }else{
+    $("f-name").value=activeChecklist.customer_name||"";
+    $("f-plate").value=wantedPlate;
+   }
+   toast(`Checklist #${activeChecklist.checklist_number}: customer and vehicle filled in. Add the fault and save.`);
   }else{
    const customerId=params.get("customer"),vehicleId=params.get("vehicle");
   if(customerId&&builderCustomers.some(customer=>customer.id===customerId)){
@@ -1844,7 +1869,10 @@ $("save").onclick=async()=>{const b=$("save");
    if(cleanupErrors.length)throw new Error(`${error.message||String(error)}. Cleanup needs attention: ${cleanupErrors.join("; ")}`);
    throw error;
   }
-  await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);toast("Draft job card saved. Link a vehicle checklist to finish creating it.")
+  const checklistToLink=activeChecklist;activeChecklist=null;let linkError=null;
+  if(checklistToLink){const{error:le}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:savedJobId,p_checklist_number:checklistToLink.checklist_number});linkError=le||null}
+  await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);
+  toast(checklistToLink?(linkError?`Saved as a Draft. Couldn't link checklist #${checklistToLink.checklist_number}: ${linkError.message}`:`Job card created from checklist #${checklistToLink.checklist_number}.`):"Draft job card saved. Link a vehicle checklist to finish creating it.")
  }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
 
 /* ---------- share ---------- */
