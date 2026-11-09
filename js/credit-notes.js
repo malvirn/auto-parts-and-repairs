@@ -139,7 +139,7 @@ function showModal(receipt, built, lines) {
           </div>`).join("")}
       </div>
       <textarea id="cn-reason" placeholder="Reason (returned, overcharge, cancelled...)" style="width:100%;margin-top:14px;min-height:60px"></textarea>
-      <p style="margin:8px 0 0;color:var(--muted);font-size:12px">This credit note records the amount credited. Any cash refund must be processed separately through the customer credit refund workflow so the Cash Book and Ledger are updated.</p>
+      <p style="margin:8px 0 0;color:var(--muted);font-size:12px">This credit note records a credit only. It does not issue or confirm a cash refund. Cash refunds for this receipt type must be handled as a separate authorised cash transaction.</p>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap">
         <strong id="cn-total">Total: $0.00</strong>
         <span style="display:flex;gap:8px">
