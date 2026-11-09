@@ -484,11 +484,16 @@ function renderStaged() {
   updateNewTotals();
 }
 
+$("job-vat-enabled")?.addEventListener("change", updateNewTotals);
+
 async function updateNewTotals() {
   const labour = parseFloat(newLabour?.value) || 0;
   const parts = stagedParts.reduce((s, p) => s + p.price * p.qty, 0);
   const inc = stagedIncidentals.reduce((s, x) => s + x.amount, 0);
-  const total = labour + parts + inc;
+  const vatRate = $("job-vat-enabled")?.checked ? 5 : 0;
+  const total = calculateJobTotal(labour, parts, inc, vatRate);
+  const vatAmount = Math.round((parts * vatRate / 100 + Number.EPSILON) * 100) / 100;
+  setText("sum-vat", money(vatAmount));
   setText("sum-labour", money(labour));
   setText("sum-parts", money(parts));
   setText("sum-inc", money(inc));
