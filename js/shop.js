@@ -661,11 +661,19 @@ restockSaveBtn?.addEventListener("click", async () => {
     return;
   }
 
-  // Existing stock PLUS the restocked quantity — never overwritten.
+  // Preserve the value of existing stock using weighted-average unit cost.
+  // Replacing cost_price with the latest supplier price would revalue every
+  // older unit and distort the stock valuation report.
+  const oldQuantity = Number(part.quantity_in_stock || 0);
+  const oldUnitCost = Number(part.cost_price || 0);
+  const newQuantity = oldQuantity + quantity;
+  const weightedAverageCost = roundMoney(
+    ((oldQuantity * oldUnitCost) + (quantity * unitCost)) / newQuantity
+  );
   const { error: partError } = await supabase.from("parts").update({
-    quantity_in_stock: Number(part.quantity_in_stock || 0) + quantity,
-    cost_price: unitCost,
-    selling_price: Number(sellingPriceFor(unitCost)),
+    quantity_in_stock: newQuantity,
+    cost_price: weightedAverageCost,
+    selling_price: Number(sellingPriceFor(weightedAverageCost)),
     vat_rate: DEFAULT_VAT_RATE,
   }).eq("id", part.id);
   if (partError) {
