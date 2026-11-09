@@ -331,7 +331,7 @@
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,122,18,.18);color:#ffb070}
 .pill.paid{background:rgba(31,196,103,.18);color:var(--green-bright)}
 .pill.void{background:rgba(220,38,38,.2);color:#ff6969;border:1px solid rgba(255,80,80,.48)}
-#doc .void-banner{margin:18px 0;padding:12px;border:3px solid #c62828;border-radius:8px;color:#b71c1c;text-align:center;font-size:26px;font-weight:900;letter-spacing:.18em}
+#doc .void-banner{width:max-content;max-width:90%;margin:26px auto 20px;padding:8px 34px;border:4px double #b71c1c;border-radius:4px;color:#b71c1c;text-align:center;font:italic 900 30px/1.2 "Brush Script MT","Segoe Script",Georgia,serif;letter-spacing:.2em;transform:rotate(-7deg);text-shadow:1px 1px 0 rgba(183,28,28,.15);box-shadow:0 0 0 2px rgba(183,28,1,.08);opacity:.9}
 #doc .void-reason{margin:0 0 16px;color:#8f1d1d;font-weight:700}
 .rc-build{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
 @media(max-width:900px){.rc-build{grid-template-columns:1fr}}
@@ -989,7 +989,7 @@ async function load(){
   else toast(`No receipt found for this ${requestedJob?"job card":"sales order"}.`);
  }}
 function render(){
- const query=$("receipt-filter-search").value.trim().toLocaleLowerCase();
+ const queries=[$("hs-input").value,$("receipt-filter-search").value].map(value=>value.trim().toLocaleLowerCase()).filter(Boolean);
  const from=$("receipt-filter-from").value,to=$("receipt-filter-to").value;
  const min=$("receipt-filter-min").value===""?null:Number($("receipt-filter-min").value);
  const max=$("receipt-filter-max").value===""?null:Number($("receipt-filter-max").value);
@@ -1002,7 +1002,7 @@ function render(){
   const date=dateKey(o.date),amount=o.kind==="invoice"?calc(o).total:totalPaid(o);
   const status=o.voidedAt?"void":o.kind==="invoice"?(o.status||"unpaid"):(o.jobPayment?.status||"paid");
   const method=String(o.paymentMethod||"").toLocaleLowerCase();
-  return (!query||searchText.includes(query))&&(!from||date>=from)&&(!to||date<=to)&&(min===null||amount>=min)&&(max===null||amount<=max)&&(!statusFilter||status===statusFilter)&&(!methodFilter||method.includes(methodFilter));
+  return queries.every(query=>searchText.includes(query))&&(!from||date>=from)&&(!to||date<=to)&&(min===null||amount>=min)&&(max===null||amount<=max)&&(!statusFilter||status===statusFilter)&&(!methodFilter||method.includes(methodFilter));
  });
  document.querySelectorAll(".seg").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.tab===tab)));
  const inv=rows.invoices,out=inv.reduce((sum,o)=>sum+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((sum,o)=>sum+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt).reduce((sum,o)=>sum+totalPaid(o),0);
@@ -1809,7 +1809,7 @@ else if(receiptOrigin==="quotations")receiptBack.innerHTML='<i data-lucide="arro
 else if(receiptOrigin==="ledger")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Ledger';
 else if(receiptOrigin==="accounting")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Accounting';
 window.lucide?.createIcons();
-document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;visibleRows=3;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
 receiptBack.onclick=()=>{
  const from=receiptOrigin;
  if(from==="shop")location.href="shop.html";
