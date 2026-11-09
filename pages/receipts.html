@@ -987,6 +987,9 @@ async function load(){
  }else if(params.get("quickSalePayment")){
   try{await openQuickSalePaymentReceipt(params.get("quickSalePayment"),params.get("paymentMethod"))}
   catch(error){console.error("Couldn't open the Quick Sale payment receipt:",error);toast(`Couldn't open payment receipt: ${error.message||String(error)}`)}
+ }else if(params.get("creditNote")){
+  const note=rows.creditNotes.find(item=>String(item.id)===String(params.get("creditNote")));
+  if(note)await open(note);else toast("That credit note could not be found.");
  }else if(params.get("new")==="1"){
   await openBuilder(requestedJob);
  }else if(requestedJob||requestedOrder){
