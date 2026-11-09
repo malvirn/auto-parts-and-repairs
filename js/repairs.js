@@ -826,7 +826,7 @@ function vehicleName(v) {
 async function fetchJobsBundle() {
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
-      id, job_number, cro_number, customer_id, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, labour_mode, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
+      id, job_number, cro_number, customer_id, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, labour_mode, rate_tier_id, parts_cost, incidentals_cost, vat_rate, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
       customers ( full_name, phone, email, customer_type ),
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
     `).order("created_at", { ascending: false }),
