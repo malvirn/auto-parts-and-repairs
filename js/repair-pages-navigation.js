@@ -194,7 +194,7 @@ async function normalizeDashboardSidebar(sidebar) {
     const source = indexDocument.querySelector("body.dashboard-page .sidebar");
     if (!source) throw new Error("The dashboard navigation template is missing its sidebar");
 
-    const rawRole = String(document.body.dataset.role || "staff").trim().toLowerCase().replace(/[\\s-]+/g, "_");
+    const rawRole = String(document.body.dataset.role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
     const normalizedRole = rawRole === "superadmin" ? "super_admin" : rawRole;
     // Verified numeric access level is authoritative for super-admin navigation.
     const role = Number(document.body.dataset.accessLevel) >= 2 ? "super_admin" : normalizedRole;
