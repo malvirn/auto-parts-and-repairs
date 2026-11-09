@@ -619,7 +619,7 @@ select.st option{background:#10181a;color:#eef3ef}
   </section>
 
   <section class="panel" id="v-doc" hidden>
-    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button></div>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button><button class="btn" id="d-link-credit" hidden type="button"><i data-lucide="link"></i> Link to job card</button><button class="btn btn--primary" id="d-refund-credit" hidden type="button"><i data-lucide="wallet"></i> Refund customer</button></div>
     <div class="rc-bar" style="margin:16px 0">
       <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp</button>
       <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
@@ -718,6 +718,24 @@ window.addEventListener("error",event=>{
   new MutationObserver(()=>{if(!v.hidden)set("form")}).observe(v,{attributes:true,attributeFilter:["hidden"]});
 })();
 </script>
+<div class="modal-overlay hidden" id="credit-action-modal" role="dialog" aria-modal="true" aria-labelledby="credit-action-title">
+ <div class="modal invoice-payment-modal">
+  <h2 id="credit-action-title">Customer credit note</h2>
+  <p id="credit-action-summary" class="section-note"></p>
+  <div id="credit-link-fields" hidden>
+   <div class="field"><label for="credit-job-select">Matching job card / checklist</label><select id="credit-job-select"><option value="">Find matching job cards…</option></select></div>
+   <p class="section-note">Only job cards with the same customer name, email and phone are eligible. The server checks these details again before linking.</p>
+  </div>
+  <div id="credit-refund-fields" hidden>
+   <div class="field"><label for="credit-refund-amount">Refund amount ($)</label><input id="credit-refund-amount" type="number" min="0.01" step="0.01"></div>
+   <div class="field"><label for="credit-refund-date">Refund date</label><input id="credit-refund-date" type="date"></div>
+   <div class="field"><label for="credit-refund-method">Payment method</label><select id="credit-refund-method"><option value="">Choose method…</option><option>Cash</option><option>Card / POS</option><option>EcoCash</option><option>Bank transfer</option></select></div>
+   <div class="field"><label for="credit-refund-account">Pay from account</label><select id="credit-refund-account"><option value="">Choose cash / bank account…</option></select></div>
+  </div>
+  <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="credit-action-save">Save</button><button type="button" class="btn" id="credit-action-cancel">Cancel</button></div>
+  <p id="credit-action-message" class="form-message" role="status" aria-live="polite"></p>
+ </div>
+</div>
 <script type="module">
 let supabase;
 try{supabase=(await import("../js/supabaseClient.js")).default}
@@ -800,12 +818,21 @@ async function load(){
   ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
   : `<option value="">Choose a payment method first…</option>`;
  if(a.error)console.error("Couldn't load accounts for customer invoice payments:",a.error);
- const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,subtotal,discount,vat_rate,vat_base,total,items,reference)").order("issued_at",{ascending:false}).limit(500);
+ const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount)").order("issued_at",{ascending:false}).limit(500);
  if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
+ const [creditLinksResult,creditRefundsResult]=await Promise.all([
+  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,repair_jobs(job_number,checklist_number)"),
+  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,customer_overpayment_credit_notes(note_number,customer_name,customer_phone)")
+ ]);
+ if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
+ if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
+ const creditLinksByNote=new Map((creditLinksResult.data||[]).map(link=>[String(link.credit_note_id),link]));
  rows.creditNotes=(creditNotesResult.data||[]).map(note=>{
-  const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items);
-  return{kind:"credit_note",id:note.id,number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:amount,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount};
+  const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items),link=creditLinksByNote.get(String(note.id));
+  return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null};
  });
+ const refundReceipts=(creditRefundsResult.data||[]).map(refund=>({kind:"receipt",id:refund.id,creditRefundReceipt:true,number:"RF-"+String(refund.refund_number).padStart(5,"0"),date:refund.payment_date||refund.created_at,customer:{name:refund.customer_overpayment_credit_notes?.customer_name||"Customer",phone:refund.customer_overpayment_credit_notes?.customer_phone||""},ref:"Refund for CN-"+String(refund.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0"),receiptAmount:Number(refund.amount)||0,paymentMethod:refund.payment_method||"Refund",items:[],jobPayment:null}));
+ rows.receipts=[...(rows.receipts||[]),...refundReceipts].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
  rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=normalizeInvoiceItems(x.items),discount=Number(x.discount)||0,total=Number(x.total)||0,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items,subtotal:Number(x.subtotal)||0,total,discount,vat:Number(x.vat_rate??5),vatBase:Number(x.vat_base??x.subtotal)||0,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
  const jobIds=[...new Set([
   ...(r.data||[]).map(x=>x.repair_job_id),
@@ -980,7 +1007,67 @@ function render(){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice"}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
+
+let creditActionMode=null;
+function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");creditActionMode=null }
+function openCreditAction(mode){
+ if(!cur||cur.kind!=="credit_note")return;
+ creditActionMode=mode;
+ $("credit-action-title").textContent=mode==="link"?"Link credit note to job card":"Refund customer credit";
+ $("credit-action-summary").textContent=cur.number+" · Available credit "+usd(cur.availableAmount);
+ $("credit-link-fields").hidden=mode!=="link";
+ $("credit-refund-fields").hidden=mode!=="refund";
+ $("credit-action-message").textContent="";
+ $("credit-action-save").disabled=false;
+ if(mode==="refund"){
+  $("credit-refund-amount").value=Number(cur.availableAmount).toFixed(2);
+  $("credit-refund-amount").max=Number(cur.availableAmount).toFixed(2);
+  $("credit-refund-date").value=new Date().toISOString().slice(0,10);
+  $("credit-refund-method").value="";
+  $("credit-refund-account").innerHTML='<option value="">Choose cash / bank account…</option>'+invoiceAccounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+" · "+a.name)+'</option>').join("");
+ }else{
+  $("credit-job-select").innerHTML='<option value="">Loading matching job cards…</option>';
+  supabase.from("repair_jobs").select("id,job_number,checklist_number,created_at,customers!inner(full_name,phone,email)").eq("customer_id",cur.customerId).not("checklist_number","is",null).order("created_at",{ascending:false}).limit(100).then(({data,error})=>{
+   if(error)throw error;
+   const normPhone=v=>String(v||"").replace(/\D/g,"");
+   const matches=(data||[]).filter(job=>{
+    const customer=job.customers||{};
+    return String(customer.full_name||"").trim().toLowerCase()===String(cur.customer.name||"").trim().toLowerCase()
+     && normPhone(customer.phone)===normPhone(cur.customer.phone)
+     && String(customer.email||"").trim().toLowerCase()===String(cur.customerEmail||"").trim().toLowerCase();
+   });
+   $("credit-job-select").innerHTML='<option value="">Choose matching checklist…</option>'+matches.map(job=>'<option value="'+esc(job.id)+'">Checklist #'+esc(job.checklist_number)+' · Job #'+esc(job.job_number)+' · '+esc(job.created_at?new Date(job.created_at).toLocaleDateString():"")+'</option>').join("");
+   if(!matches.length)$("credit-job-select").innerHTML='<option value="">No matching job cards found</option>';
+  }).catch(error=>{$("credit-job-select").innerHTML='<option value="">Could not load job cards</option>';$("credit-action-message").textContent=error.message||String(error)});
+ }
+ $("credit-action-modal").classList.remove("hidden");
+}
+async function saveCreditAction(){
+ if(!cur||cur.kind!=="credit_note"||!creditActionMode)return;
+ const button=$("credit-action-save"),message=$("credit-action-message");
+ button.disabled=true;message.textContent=creditActionMode==="link"?"Linking credit note…":"Recording refund…";
+ try{
+  if(creditActionMode==="link"){
+   const jobId=$("credit-job-select").value;if(!jobId)throw new Error("Choose a matching job card checklist.");
+   const{error}=await supabase.rpc("link_overpayment_credit_to_job",{p_credit_note_id:cur.id,p_repair_job_id:jobId});
+   if(error)throw error;
+   toast("Credit note linked to the job card checklist.");
+  }else{
+   const amount=Number($("credit-refund-amount").value),date=$("credit-refund-date").value,method=$("credit-refund-method").value,accountId=$("credit-refund-account").value;
+   if(!Number.isFinite(amount)||amount<=0||amount>Number(cur.availableAmount)+0.005)throw new Error("Enter a refund amount within the available credit.");
+   if(!date||!method||!accountId)throw new Error("Choose the refund date, payment method and cash/bank account.");
+   const{data:refundId,error}=await supabase.rpc("refund_overpayment_credit",{p_credit_note_id:cur.id,p_amount:amount,p_account_id:accountId,p_payment_date:date,p_payment_method:method});
+   if(error)throw error;
+   toast("Refund recorded. A refund receipt has been issued.");
+  }
+  closeCreditAction();await load();
+  const updated=rows.creditNotes.find(note=>String(note.id)===String(cur.id));
+  if(updated)await open(updated);else show("list");
+ }catch(error){console.error("Credit note action failed:",error);message.textContent=error.message||String(error);message.dataset.tone="error"}
+ finally{button.disabled=false}
+}
+
 async function loadRepairJobInvoiceDetails(invoice){
  const jobId=invoice.repairJobId;
  const[jobResult,partsResult,extrasResult]=await Promise.all([
@@ -1651,7 +1738,7 @@ $("receipt-edit-save").onclick=async()=>{
  }catch(error){console.error("Couldn't correct receipt amount:",error);message.textContent=`Couldn't correct receipt: ${error.message||String(error)}. Apply supabase/migrations/edit-receipts-invoices.sql if this feature is not installed.`;message.dataset.tone="error"}
  finally{button.disabled=false}
 };
-$("d-paid").onclick=openInvoicePayment;
+$("d-paid").onclick=openInvoicePayment;$("d-link-credit").onclick=()=>openCreditAction("link");$("d-refund-credit").onclick=()=>openCreditAction("refund");$("credit-action-cancel").onclick=closeCreditAction;$("credit-action-save").onclick=saveCreditAction;$("credit-action-modal").addEventListener("click",event=>{if(event.target===$("credit-action-modal"))closeCreditAction()});
 $("invoice-payment-cancel").onclick=closeInvoicePayment;
 $("invoice-payment-modal").addEventListener("click",event=>{if(event.target===$("invoice-payment-modal"))closeInvoicePayment()});
 $("invoice-payment-save").onclick=async()=>{
