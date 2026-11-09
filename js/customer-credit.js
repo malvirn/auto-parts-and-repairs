@@ -48,7 +48,7 @@ async function load() {
       .select("id, deposit_receipt_id, movement_type, amount, target_type, target_id, payment_account_id, reason, journal_entry_id, created_at, reversed_at, reversal_reason, reversal_journal_entry_id")
       .order("created_at", { ascending: false }),
     supabase.from("customer_account_statement")
-      .select("customer_id, source_id, source_type, reference, balance_due")
+      .select("customer_id, customer_name, source_id, source_type, reference, balance_due")
       .gt("balance_due", 0.005),
     supabase.from("accounts").select("id, code, name")
       .eq("is_active", true).eq("type", "asset").like("code", "10%").order("code"),
@@ -87,8 +87,7 @@ function render() {
     <thead><tr><th>Credit note</th><th>Customer / quotation</th><th>Issued</th><th>Amount</th><th>Available</th><th>Staff action</th></tr></thead>
     <tbody>${creditNotes.map(note => {
       const quoteNumber = note.quotations?.quotation_number ?? "—";
-      const createdDate = note.quotations?.created_at ? businessDate(note.quotations.created_at) : "";
-      const expired = createdDate && businessDate() > new Date(Date.parse(`${createdDate}T00:00:00Z`) + 7 * 86400000).toISOString().slice(0, 10);
+      const expired = note.quotations?.created_at && Date.now() > Date.parse(note.quotations.created_at) + 7 * 86400000;
       const noteName = note.customer_name || note.customers?.full_name || "";
       const quoteTargets = targets.filter(target => note.customer_id
         ? target.customer_id === note.customer_id
