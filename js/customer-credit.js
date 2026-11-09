@@ -99,7 +99,7 @@ async function load() {
 function noteStatus(note, noteMovements) {
   const refunded = noteMovements.filter(item => item.movement_type === "refund" && !item.reversed_at)
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const applied = noteMovements.filter(item => item.movement_type === "apply" && !item.reversed_at)
+  const applied = noteMovements.filter(item => item.movement_type === "application" && !item.reversed_at)
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
   if (note.available_amount <= 0.005 && refunded > 0) return { label: "Refunded", tone: "refunded", refunded, applied };
   if (refunded > 0) return { label: "Partially refunded", tone: "partial", refunded, applied };
@@ -135,7 +135,7 @@ function printCreditNote(note) {
     @media print{body{padding:0;background:#fff}.sheet{border:0;border-radius:0;padding:0}.print{display:none}}
     @media(max-width:600px){body{padding:10px}.sheet{padding:18px}.top{flex-direction:column}.doc{text-align:left}.facts{grid-template-columns:1fr}}
   </style></head><body><button class="print" onclick="window.print()">Print credit note</button><main class="sheet">
-    <header class="top"><div class="brand"><img src="../assets/logo.png" alt="Centric Auto Mobile"><div><h1>CENTRIC AUTO MOBILE</h1><div class="muted">Auto Parts &amp; Repairs</div><div class="muted">Norton, Zimbabwe</div></div></div>
+    <header class="top"><div class="brand"><img src="${location.origin}/assets/logo.png" alt="Centric Auto Mobile"><div><h1>CENTRIC AUTO MOBILE</h1><div class="muted">Auto Parts &amp; Repairs</div><div class="muted">Norton, Zimbabwe</div></div></div>
     <div class="doc"><h2>CUSTOMER CREDIT NOTE</h2><strong>${number}</strong><div class="pill">${status.label}</div></div></header>
     <section class="facts">
       <div class="fact"><small>Customer</small><strong>${escapeHtml(note.customer_name || "Customer")}</strong><span class="muted">${escapeHtml(note.customer_phone || "—")}</span></div>
