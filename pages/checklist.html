@@ -152,6 +152,16 @@
     .checklist-row .actions{display:flex;flex-wrap:wrap;width:100%}
   }
 
+ 
+/* Checklist registration: larger, readable inspection tiles on phones and tablets. */
+@media(max-width:760px){
+  #inspection-grid .cond-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  #inspection-grid .cond-card{min-height:108px;padding:11px 9px;gap:7px}
+  #inspection-grid .cond-card .pi{width:38px;height:38px}
+  #inspection-grid .cond-card .damage-name{font-size:.76rem;line-height:1.3}
+  #inspection-grid .cond-card .cond-select{min-height:38px;font-size:.76rem}
+}
+
 </style>
 </head>
 <body class="dashboard-page dashboard-workshop">
