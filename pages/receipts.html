@@ -1012,7 +1012,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const amountApplied=Math.min(amount,Math.max(0,total-previousPaid));
  const totalPaid=Math.min(total,previousPaid+amountApplied);
  const balance=Math.max(0,total-totalPaid);
- const customerCredit=Math.max(Number(creditResult.data?.available_amount)||0,Math.max(0,(Number(invoice.amount_paid)||0)-total));
+ const customerCredit=(Number(creditResult.data?.available_amount)||0)+Math.max(0,(Number(invoice.amount_paid)||0)-total);
  const status=balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid";
  tab="receipts";
  open({
