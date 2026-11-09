@@ -64,7 +64,7 @@ async function load() {
   }
 
   const overpaymentResult = await supabase.from("customer_overpayment_credit_notes")
-    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base),customer_overpayment_credits(available_amount)")
+    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount)")
     .order("issued_at", { ascending: false }).limit(500);
   if (overpaymentResult.error) {
     console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
@@ -218,7 +218,7 @@ function render() {
   const matches = (note, kind) => {
     const invoice = note.invoices || {};
     const noteNumber = kind === "deposit" ? `QCN-${note.credit_note_number}` : `CN-${note.note_number}`;
-    const checklist = kind === "deposit" ? jobsById.get(note.quotations?.repair_job_id)?.checklist_number : "";
+    const checklist = kind === "deposit" ? jobsById.get(note.quotations?.repair_job_id)?.checklist_number : invoice.repair_jobs?.checklist_number;
     const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, note.payment_method, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
     const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
     const amount = Number(kind === "deposit" ? note.available_amount ?? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
