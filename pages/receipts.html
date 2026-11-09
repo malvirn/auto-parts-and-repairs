@@ -575,6 +575,15 @@ select.st option{background:#10181a;color:#eef3ef}
   <section class="panel" id="customer-credit-panel">
     <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits &amp; invoice overpayments</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn" id="customer-credit-refresh" type="button" title="Refresh customer credit"><i data-lucide="refresh-cw"></i></button></div>
     <p class="invoice-billing-note">Includes quotation deposits and invoice overpayments. Overpayments appear here with their credit note number, original invoice and amount carried forward. Customer credit remains a liability, not new income. Quotation deposit applications, refunds and reversals are audited in the ledger.</p>
+    <div class="receipt-list-filters credit-note-filters" role="search" aria-label="Filter credit notes">
+      <label for="customer-credit-search">Search customer, credit note, invoice, phone or reference<input id="customer-credit-search" type="search" placeholder="Search credit notes…" autocomplete="off"></label>
+      <label for="customer-credit-from">From date<input id="customer-credit-from" type="date"></label>
+      <label for="customer-credit-to">To date<input id="customer-credit-to" type="date"></label>
+      <label for="customer-credit-status">Status<select id="customer-credit-status"><option value="">All statuses</option><option value="available">Available</option><option value="partial">Partially used / refunded</option><option value="applied">Fully applied</option><option value="refunded">Refunded</option></select></label>
+      <label for="customer-credit-min">Minimum amount ($)<input id="customer-credit-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
+      <label for="customer-credit-max">Maximum amount ($)<input id="customer-credit-max" type="number" min="0" step="0.01" placeholder="Any"></label>
+      <button class="btn" id="customer-credit-clear" type="button">Clear filters</button>
+    </div>
     <div class="rc-doc-wrap"><div id="customer-credit-list" aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
   </section>
   <section class="panel" id="v-list">
@@ -587,12 +596,17 @@ select.st option{background:#10181a;color:#eef3ef}
     <p class="invoice-billing-note">Create a bill for a customer here. Open an unpaid invoice to record a full or partial payment and see the remaining balance.</p>
     <div class="rc-stats" style="margin:18px 0" id="stats"></div>
     <div class="receipt-list-filters" role="search" aria-label="Filter receipts and invoices">
-      <label for="receipt-filter-search">Search name, receipt number, phone or reference<input id="receipt-filter-search" type="search" placeholder="e.g. customer name or R-00012" autocomplete="off"></label>
+      <label for="receipt-filter-search">Search customer, document number, phone, email, job card or reference<input id="receipt-filter-search" type="search" placeholder="Search all receipt and invoice details…" autocomplete="off"></label>
       <label for="receipt-filter-from">From date<input id="receipt-filter-from" type="date"></label>
       <label for="receipt-filter-to">To date<input id="receipt-filter-to" type="date"></label>
+      <label for="receipt-filter-status">Payment status<select id="receipt-filter-status"><option value="">All statuses</option><option value="paid">Paid</option><option value="partially_paid">Partially paid</option><option value="unpaid">Unpaid</option><option value="void">Voided</option></select></label>
+      <label for="receipt-filter-method">Payment method<select id="receipt-filter-method"><option value="">All methods</option><option>Cash</option><option>Card</option><option>Card / POS</option><option>EcoCash</option><option>Bank</option><option>Bank transfer</option><option>Other</option></select></label>
+      <label for="receipt-filter-min">Minimum amount ($)<input id="receipt-filter-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
+      <label for="receipt-filter-max">Maximum amount ($)<input id="receipt-filter-max" type="number" min="0" step="0.01" placeholder="Any"></label>
       <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
     </div>
     <div id="list"><div class="ov-empty">Loading…</div></div>
+    <div id="receipt-load-more-wrap" class="rc-load-more" hidden><button id="receipt-load-more" class="btn" type="button">More receipts</button></div>
   </section>
 
   <section class="panel" id="v-build" hidden>
@@ -749,7 +763,7 @@ const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const CO={email:"malvirngomo8@gmail.com"};
-let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[],creditNotes:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1";
+let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[],creditNotes:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1",visibleRows=3;
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
 // The invoice builder preview also creates an element with id="doc", and it sits earlier in the page,
@@ -975,22 +989,32 @@ async function load(){
   else toast(`No receipt found for this ${requestedJob?"job card":"sales order"}.`);
  }}
 function render(){
- const queries=[$("hs-input").value,$("receipt-filter-search").value].map(value=>value.trim().toLocaleLowerCase()).filter(Boolean);
+ const query=$("receipt-filter-search").value.trim().toLocaleLowerCase();
  const from=$("receipt-filter-from").value,to=$("receipt-filter-to").value;
+ const min=$("receipt-filter-min").value===""?null:Number($("receipt-filter-min").value);
+ const max=$("receipt-filter-max").value===""?null:Number($("receipt-filter-max").value);
+ const statusFilter=$("receipt-filter-status").value;
+ const methodFilter=$("receipt-filter-method").value.trim().toLocaleLowerCase();
  const dateKey=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?"":`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`};
- const sourceRows=tab==="receipts"?[...rows.receipts,...rows.creditNotes]:rows[tab];
+ const sourceRows=tab==="receipts"?rows.receipts:rows.invoices;
  const L=sourceRows.filter(o=>{
-  const searchText=[o.number,o.customer.name,o.customer.phone,o.customer.email,o.ref,o.kind==="credit_note"?"credit note":""].filter(Boolean).join(" ").toLocaleLowerCase();
-  const date=dateKey(o.date);
-  return queries.every(query=>searchText.includes(query))&&(!from||date>=from)&&(!to||date<=to);
+  const searchText=[o.number,o.customer?.name,o.customer?.phone,o.customer?.email,o.ref,o.checklistNumber,o.jobCard?.checklistNumber,o.paymentMethod,o.status,o.due].filter(Boolean).join(" ").toLocaleLowerCase();
+  const date=dateKey(o.date),amount=o.kind==="invoice"?calc(o).total:totalPaid(o);
+  const status=o.voidedAt?"void":o.kind==="invoice"?(o.status||"unpaid"):(o.jobPayment?.status||"paid");
+  const method=String(o.paymentMethod||"").toLocaleLowerCase();
+  return (!query||searchText.includes(query))&&(!from||date>=from)&&(!to||date<=to)&&(min===null||amount>=min)&&(max===null||amount<=max)&&(!statusFilter||status===statusFilter)&&(!methodFilter||method.includes(methodFilter));
  });
  document.querySelectorAll(".seg").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.tab===tab)));
- const inv=rows.invoices,out=inv.reduce((s,o)=>s+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((s,o)=>s+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt).reduce((s,o)=>s+totalPaid(o),0);
- $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${usd(b)}</div></div>`).join("");
- $("list").innerHTML=(L.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.kind==="credit_note"?'<span class="pill paid">CREDIT NOTE</span>':o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.kind==="credit_note"?`<small>Amount carried forward</small>${usd(o.availableAmount??o.carriedForward)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&o.kind!=="credit_note"&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to)?"No receipts or invoices match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[el.dataset.i])});
- window.lucide?.createIcons();}
- function signalDocumentChange(table,label){
+ const inv=rows.invoices,out=inv.reduce((sum,o)=>sum+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((sum,o)=>sum+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt).reduce((sum,o)=>sum+totalPaid(o),0);
+ $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([label,value])=>`<div class="stat-card"><div class="stat-card__label">${label}</div><div class="stat-card__value">${usd(value)}</div></div>`).join("");
+ const visible=L.slice(0,visibleRows);
+ $("list").innerHTML=(visible.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer?.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}${o.customer?.phone?" · "+esc(o.customer.phone):""}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(query||from||to||min!==null||max!==null||statusFilter||methodFilter)?"No records match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
+ $("receipt-load-more-wrap").hidden=L.length<=visibleRows;
+ $("receipt-load-more").textContent=`More ${tab==="invoices"?"invoices":"receipts"} (${Math.min(visibleRows,L.length)} of ${L.length})`;
+ $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[Number(el.dataset.i)])});
+ window.lucide?.createIcons();
+}
+function signalDocumentChange(table,label){
   try{localStorage.setItem("apr:data-changed",JSON.stringify({table,label,time:Date.now()}))}
   catch(error){console.warn("Couldn't broadcast document change:",error)}
  }
