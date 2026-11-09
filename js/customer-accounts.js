@@ -193,7 +193,7 @@ tbody.addEventListener("click", event => {
     const { data, error } = await supabase.rpc("issue_overpayment_credit_note", { p_overpayment_credit_id: creditId });
     if (error) { message.textContent = "Could not issue credit note: " + error.message; message.dataset.tone = "error"; button.disabled = false; return; }
     const note = typeof data === "string" ? JSON.parse(data) : data;
-    message.textContent = "Credit note CN-" + note.credit_note_number + " issued and saved. It is available in the Receipts page."; message.dataset.tone = "success";
+    message.textContent = "Credit note CN-" + note.credit_note_number + " issued and saved. Refresh the customer account to see its status."; message.dataset.tone = "success";
     await loadCustomerAccounts();
     return;
   }
