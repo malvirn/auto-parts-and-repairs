@@ -231,7 +231,7 @@ async function getRate() {
 async function updateZigDisplay() {
   const labour = parseFloat(editLabour?.value) || 0;
   const parts = parseFloat(editParts?.value) || 0;
-  const total = labour + parts + cardIncidentalsTotal;
+  const total = calculateJobTotal(labour, parts, cardIncidentalsTotal, currentEditJob?.vat_rate);
   setText("jc-t-labour", money(labour));
   setText("jc-t-parts", money(parts));
   setText("jc-t-inc", money(cardIncidentalsTotal));
@@ -1133,7 +1133,7 @@ editSaveBtn?.addEventListener("click", async () => {
   const status = editStatus.value;
   const labour_cost = parseFloat(editLabour.value) || 0;
   const parts_cost = parseFloat(editParts.value) || 0;
-  const total_cost = Math.max(0, labour_cost + parts_cost + cardIncidentalsTotal);
+  const total_cost = calculateJobTotal(labour_cost, parts_cost, cardIncidentalsTotal, currentEditJob?.vat_rate);
 
   const updates = {
     status,
@@ -1153,7 +1153,7 @@ editSaveBtn?.addEventListener("click", async () => {
       alert("Mark the repair work ready before processing the job.");
       return;
     }
-    const total = Math.max(0, labour_cost + parts_cost + cardIncidentalsTotal);
+    const total = calculateJobTotal(labour_cost, parts_cost, cardIncidentalsTotal, currentEditJob?.vat_rate);
     const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId).is("voided_at", null);
     if (paymentError) {
       alert("Couldn't verify the job balance: " + paymentError.message);
@@ -1205,14 +1205,14 @@ editSaveBtn?.addEventListener("click", async () => {
 
   if (["Ready for Pickup", "Unclaimed"].includes(status)) {
     try {
-      await ensureReceiptExists(currentEditJobId, labour_cost + parts_cost + cardIncidentalsTotal);
+      await ensureReceiptExists(currentEditJobId, total_cost);
     } catch (receiptError) {
       console.error("Could not keep the job receipt in sync:", receiptError);
       alert(receiptError.message || String(receiptError));
     }
   }
   if (isNowReadyOrUnclaimed) {
-    await sendStatusEmail(currentEditJob, status, labour_cost + parts_cost + cardIncidentalsTotal);
+    await sendStatusEmail(currentEditJob, status, total_cost);
   }
 
   closeEditModal();
@@ -1250,8 +1250,16 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
       return;
     }
     const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-    if (total - paid - appliedCredit > 0.01) {
-      alert(`The vehicle cannot be collected until it is fully paid. Balance due: ${money(total - paid - appliedCredit)}.`);
+    let accountCredit = 0;
+    try {
+      if (currentEditJob?.customer_id) accountCredit = await availableCustomerCredit(currentEditJob.customer_id, currentEditJobId);
+    } catch (creditError) {
+      alert(`Could not verify carry-forward customer credit: ${creditError.message}`);
+      return;
+    }
+    const balanceDue = Math.max(0, total - paid - appliedCredit - accountCredit);
+    if (balanceDue > 0.01) {
+      alert(`The vehicle cannot be collected until it is fully paid. Balance due: ${money(balanceDue)}.`);
       return;
     }
   }
@@ -1303,11 +1311,23 @@ async function sendStatusEmail(job, status, totalCost) {
   if (error) console.error("Email send failed:", error);
 }
 
+function calculateJobTotal(labour, parts, incidentals, vatRate = 0) {
+  const labourValue = Number(labour) || 0;
+  const partsValue = Number(parts) || 0;
+  const incidentalsValue = Number(incidentals) || 0;
+  const rate = Math.min(100, Math.max(0, Number(vatRate) || 0));
+  const base = Math.round((labourValue + partsValue + incidentalsValue + Number.EPSILON) * 100) / 100;
+  const vat = Math.round((partsValue * rate / 100 + Number.EPSILON) * 100) / 100;
+  return Math.max(0, Math.round((base + vat + Number.EPSILON) * 100) / 100);
+}
+
 function currentJobTotal() {
-  return Math.max(0,
-    (parseFloat(editLabour?.value) || 0) +
-    (parseFloat(editParts?.value) || 0) +
-    cardIncidentalsTotal);
+  return calculateJobTotal(
+    parseFloat(editLabour?.value) || 0,
+    parseFloat(editParts?.value) || 0,
+    cardIncidentalsTotal,
+    currentEditJob?.vat_rate
+  );
 }
 
 async function loadJobPayments(jobId) {
