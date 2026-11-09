@@ -172,9 +172,6 @@
     .jb-lines td:last-child,.jb-lines th:last-child{text-align:right;font-variant-numeric:tabular-nums}
     .jb-lines tr.tot td{font-weight:700;border-top:2px solid var(--border,#e2e8f0)}
     .jb-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .adv-accounting{margin-top:24px}
-    .adv-accounting>summary{cursor:pointer;font-weight:700;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:rgba(0,0,0,.03)}
-    .adv-accounting[open]>summary{margin-bottom:16px}
     @media(max-width:640px){.jb-head{grid-template-columns:1fr auto}.jb-head>:nth-child(2){grid-column:1/-1;order:3}}
     .customer-account-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0; }
     .customer-account-stat { padding:12px 14px; border-left:3px solid var(--border); background:rgba(0,0,0,.025); }
@@ -223,6 +220,28 @@
     .customer-activity-expanded p strong { font-size:.76rem; }
     .customer-activity-expanded p span { font-size:.84rem; }
     .customer-activity-warnings { color:var(--danger,#b23b3b); }
+    .customer-directory-detail{overflow:hidden}
+    .customer-profile-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+    .customer-history-summary{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+    .customer-history-stat{min-width:0;overflow-wrap:anywhere}
+    .customer-activity-trigger>*{min-width:0}
+    .customer-activity-item__amount{overflow-wrap:anywhere}
+    .customer-activity-expanded{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+    .customer-directory-layout>.panel{min-width:0}
+    .customer-accounts-table-wrap{min-width:0}
+    @media(max-width:560px){
+      .customer-directory-detail{padding:12px}
+      .customer-profile-grid,.customer-history-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+      .customer-history-stat{padding:9px}
+      .customer-history-stat strong{font-size:.95rem}
+      .customer-history-stat small{font-size:.68rem}
+      .customer-activity-trigger{grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:10px}
+      .customer-activity-trigger time{font-size:.72rem;overflow-wrap:anywhere}
+      .customer-activity-trigger>span:nth-child(2){grid-column:1/-1;grid-row:2}
+      .customer-activity-item__amount{grid-column:2;grid-row:1;font-size:.84rem}
+      .customer-activity-expanded{grid-template-columns:1fr}
+      #customer-directory-table{min-width:470px}
+    }
     @media (max-width:1100px) {
       .customer-directory-layout { grid-template-columns:1fr; }
     }
@@ -438,8 +457,6 @@
         </div>
       </div>
 
-      <details class="adv-accounting">
-        <summary>More accounting — customer history, chart of accounts, journal entries, trial balance</summary>
       <section class="page-section" id="customer-directory" aria-labelledby="customer-directory-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Customer records</p><h2 id="customer-directory-heading"><i class="section-heading-icon" data-lucide="users-round"></i>Customer Details &amp; History</h2></div>
@@ -572,7 +589,6 @@
           </table>
         </div>
       </section>
-      </details>
     </main>
   </div>
 
