@@ -842,7 +842,7 @@ async function load(){
  const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount)").order("issued_at",{ascending:false}).limit(500);
  if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
  const [creditLinksResult,creditRefundsResult]=await Promise.all([
-  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,repair_jobs(job_number,checklist_number)"),
+  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)"),
   supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone)")
  ]);
  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
@@ -850,7 +850,7 @@ async function load(){
  const creditLinksByNote=new Map((creditLinksResult.data||[]).map(link=>[String(link.credit_note_id),link]));
  rows.creditNotes=(creditNotesResult.data||[]).map(note=>{
   const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items),link=creditLinksByNote.get(String(note.id));
-  return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:Number(note.customer_overpayment_credits?.available_amount??amount)||0,originalCreditAmount:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null};
+  return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:Number(note.customer_overpayment_credits?.available_amount??amount)||0,originalCreditAmount:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null,linkedAppliedAmount:Number(link?.applied_amount)||0};
  });
  const refundReceipts=(creditRefundsResult.data||[]).map(refund=>({kind:"receipt",id:refund.id,creditRefundReceipt:true,voidedAt:refund.voided_at,voidReason:refund.void_reason,number:"RF-"+String(refund.refund_number).padStart(5,"0"),date:refund.payment_date||refund.created_at,customer:{name:refund.customer_overpayment_credit_notes?.customer_name||"Customer",phone:refund.customer_overpayment_credit_notes?.customer_phone||""},ref:"Refund for CN-"+String(refund.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0"),receiptAmount:Number(refund.amount)||0,paymentMethod:refund.payment_method||"Refund",items:[{d:"Refund of customer credit note",q:1,p:Number(refund.amount)||0}],jobPayment:null}));
  rows.creditRefundReceipts=refundReceipts;
@@ -1088,13 +1088,13 @@ async function saveCreditAction(){
  if(!cur||cur.kind!=="credit_note"||!creditActionMode)return;
  const button=$("credit-action-save"),message=$("credit-action-message");
  let createdRefundId=null;
- button.disabled=true;message.textContent=creditActionMode==="link"?"Linking credit note…":"Recording refund…";
+ button.disabled=true;message.textContent=creditActionMode==="link"?"Applying credit to the job balance…":"Recording refund…";
  try{
   if(creditActionMode==="link"){
    const jobId=$("credit-job-select").value;if(!jobId)throw new Error("Choose a matching job card checklist.");
    const{error}=await supabase.rpc("link_overpayment_credit_to_job",{p_credit_note_id:cur.id,p_repair_job_id:jobId});
    if(error)throw error;
-   toast("Credit note linked to the job card checklist.");
+   toast("Credit applied to the job card. The outstanding balance and Ledger have been updated.");
   }else{
    const amount=Number($("credit-refund-amount").value),date=$("credit-refund-date").value,method=$("credit-refund-method").value,accountId=$("credit-refund-account").value;
    if(!Number.isFinite(amount)||amount<=0||amount>Number(cur.availableAmount)+0.005)throw new Error("Enter a refund amount within the available credit.");
