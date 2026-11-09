@@ -1048,6 +1048,8 @@ async function openEditModal(job) {
   currentEditJobId = job.id;
   currentEditJob = job;
   currentJobPaid = null;
+  currentJobAppliedCredit = null;
+  currentJobAccountCredit = null;
   pendingCollection = false;
   cardParts = [];
   cardIncidentals = [];
@@ -1118,6 +1120,9 @@ function closeEditModal() {
   modal.classList.add("hidden");
   currentEditJobId = null;
   currentEditJob = null;
+  currentJobPaid = null;
+  currentJobAppliedCredit = null;
+  currentJobAccountCredit = null;
   pendingCollection = false;
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
   if (editWhatsappBtn) {
