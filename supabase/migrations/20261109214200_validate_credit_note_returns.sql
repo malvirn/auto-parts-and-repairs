@@ -15,6 +15,13 @@ set search_path = public
 as $$
 declare
   receipt_amount numeric(12, 2);
+  source_job_id uuid;
+  source_order_id uuid;
+  source_customer_id uuid;
+  receipt_voided_at timestamptz;
+  sold_quantity numeric(10,2);
+  previously_credited_quantity numeric(10,2);
+  submitted_quantity numeric(10,2);
   already_credited numeric(12, 2);
   credit_amount numeric(12, 2) := 0;
   note_id uuid;
