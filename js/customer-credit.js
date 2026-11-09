@@ -43,7 +43,7 @@ async function load() {
   list.innerHTML = '<div class="customer-credit-empty">Loading quotation credit notes…</div>';
   const [receiptsResult, balancesResult, movementsResult, targetsResult, accountsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
-      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at, repair_job_id)")
+      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at, repair_job_id), customers(email)")
       .order("created_at", { ascending: false }),
     supabase.from("customer_credit_balances").select("deposit_receipt_id, available_amount"),
     supabase.from("customer_credit_movements")
