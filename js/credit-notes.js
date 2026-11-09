@@ -64,11 +64,14 @@ async function loadReceipt(btn) {
 async function creditedQty(receiptId) {
   const { data, error } = await supabase
     .from("credit_note_items")
-    .select("part_name, quantity, credit_notes!inner(receipt_id)")
+    .select("part_id, part_name, quantity, credit_notes!inner(receipt_id)")
     .eq("credit_notes.receipt_id", receiptId);
   if (error) throw error;
   const map = {};
-  (data || []).forEach(r => { map[r.part_name] = (map[r.part_name] || 0) + Number(r.quantity); });
+  (data || []).forEach(r => {
+    const key = r.part_id || `name:${r.part_name}`;
+    map[key] = (map[key] || 0) + Number(r.quantity);
+  });
   return map;
 }
 
@@ -105,7 +108,7 @@ async function openCreditNote(btn) {
 
     const credited = await creditedQty(receipt.id);
     const lines = built.lines
-      .map(l => ({ ...l, remaining: l.qty - (credited[l.name] || 0) }))
+      .map(l => ({ ...l, remaining: l.qty - (credited[l.partId || `name:${l.name}`] || 0) }))
       .filter(l => l.remaining > 0);
     if (!lines.length) { alert("Everything on this receipt has already been credited."); return; }
 
