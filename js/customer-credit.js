@@ -64,7 +64,7 @@ async function load() {
   }
 
   const overpaymentResult = await supabase.from("customer_overpayment_credit_notes")
-    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount)")
+    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method))")
     .order("issued_at", { ascending: false }).limit(500);
   if (overpaymentResult.error) {
     console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
@@ -212,6 +212,7 @@ function render() {
   const from = document.getElementById("customer-credit-from")?.value || "";
   const to = document.getElementById("customer-credit-to")?.value || "";
   const statusFilter = document.getElementById("customer-credit-status")?.value || "";
+  const methodFilter = document.getElementById("customer-credit-method")?.value.trim().toLocaleLowerCase() || "";
   const min = document.getElementById("customer-credit-min")?.value === "" ? null : Number(document.getElementById("customer-credit-min")?.value);
   const max = document.getElementById("customer-credit-max")?.value === "" ? null : Number(document.getElementById("customer-credit-max")?.value);
   const dateKey = value => value ? String(value).slice(0, 10) : "";
@@ -219,14 +220,15 @@ function render() {
     const invoice = note.invoices || {};
     const noteNumber = kind === "deposit" ? `QCN-${note.credit_note_number}` : `CN-${note.note_number}`;
     const checklist = kind === "deposit" ? jobsById.get(note.quotations?.repair_job_id)?.checklist_number : invoice.repair_jobs?.checklist_number;
-    const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, note.payment_method, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
+    const paymentMethod = kind === "deposit" ? note.payment_method : note.customer_overpayment_credits?.invoice_payments?.payment_method;
+    const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, paymentMethod, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
     const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
     const amount = Number(kind === "deposit" ? note.available_amount ?? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
     const status = kind === "deposit" ? noteStatus(note, movements.filter(item => item.deposit_receipt_id === note.id)).tone
       : amount <= 0.005 ? "applied" : amount < Number(note.amount || 0) - 0.005 ? "partial" : "available";
     return (!query || haystack.includes(query)) && (!from || date >= from) && (!to || date <= to)
       && (min === null || amount >= min) && (max === null || amount <= max)
-      && (!statusFilter || status === statusFilter || (statusFilter === "partial" && status === "partial"));
+      && (!statusFilter || status === statusFilter) && (!methodFilter || String(paymentMethod || "").toLocaleLowerCase().includes(methodFilter));
   };
   const filteredCreditNotes = creditNotes.filter(note => matches(note, "deposit"));
   const filteredOverpaymentNotes = overpaymentCreditNotes.filter(note => matches(note, "overpayment"));
@@ -404,13 +406,13 @@ list.addEventListener("click", async event => {
   }
 });
 
-["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-min","customer-credit-max"].forEach(id => {
+["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => {
   const field = document.getElementById(id);
   field?.addEventListener("input", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
   field?.addEventListener("change", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
 });
 document.getElementById("customer-credit-clear")?.addEventListener("click", () => {
-  ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
+  ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
   creditVisible = 3; overpaymentVisible = 3; render();
 });
 list.addEventListener("click", event => {
