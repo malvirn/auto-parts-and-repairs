@@ -720,6 +720,9 @@ const CO={email:"malvirngomo8@gmail.com"};
 let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1";
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
+// The invoice builder preview also creates an element with id="doc", and it sits earlier in the page,
+// so getElementById("doc") can return the hidden preview. Always target the receipt viewer's own one.
+const docEl=()=>document.querySelector("#v-doc #doc");
 function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
 function normalizeInvoiceItems(items){
  if(typeof items==="string"){try{items=JSON.parse(items)}catch{return[]}}
@@ -944,12 +947,12 @@ async function loadRepairJobInvoiceDetails(invoice){
 async function open(o){
  cur=o;
  if(o.kind==="invoice"&&!normalizeInvoiceItems(o.items).length&&o.repairJobId){
-  $("doc").innerHTML='<p class="ov-empty">Loading invoice details…</p>';
+  docEl().innerHTML='<p class="ov-empty">Loading invoice details…</p>';
   updateDocumentActions();show("doc");
   try{await loadRepairJobInvoiceDetails(o)}
-  catch(error){console.error("Couldn't load invoice details:",error);$("doc").innerHTML=`<p class="ov-empty">Couldn't load this invoice's job-card details: ${esc(error.message||String(error))}</p>`;toast("Invoice details could not be loaded.");return}
+  catch(error){console.error("Couldn't load invoice details:",error);docEl().innerHTML=`<p class="ov-empty">Couldn't load this invoice's job-card details: ${esc(error.message||String(error))}</p>`;toast("Invoice details could not be loaded.");return}
  }
- $("doc").innerHTML=docHTML(o);updateDocumentActions();show("doc");
+ docEl().innerHTML=docHTML(o);updateDocumentActions();show("doc");
 }
 async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const{data:payment,error:paymentError}=await supabase.from("invoice_payments")
