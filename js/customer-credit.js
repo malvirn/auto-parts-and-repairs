@@ -17,6 +17,7 @@ const dateLabel = value => value ? new Date(value).toLocaleDateString("en-GB", {
 
 let creditNotes = [];
 let overpaymentCreditNotes = [];
+let overpaymentRefunds = [];
 let movements = [];
 let targets = [];
 let accounts = [];
@@ -63,9 +64,15 @@ async function load() {
     return;
   }
 
-  const overpaymentResult = await supabase.from("customer_overpayment_credit_notes")
-    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method))")
-    .order("issued_at", { ascending: false }).limit(500);
+  const [overpaymentResult, overpaymentRefundsResult] = await Promise.all([
+    supabase.from("customer_overpayment_credit_notes")
+      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method))")
+      .order("issued_at", { ascending: false }).limit(500),
+    supabase.from("customer_overpayment_credit_refunds")
+      .select("credit_note_id,amount,voided_at"),
+  ]);
+  overpaymentRefunds = overpaymentRefundsResult.error ? [] : (overpaymentRefundsResult.data || []);
+  if (overpaymentRefundsResult.error) console.error("Could not load customer credit refund history:", overpaymentRefundsResult.error);
   if (overpaymentResult.error) {
     console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
     overpaymentCreditNotes = [];
@@ -224,8 +231,13 @@ function render() {
     const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, paymentMethod, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
     const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
     const amount = Number(kind === "deposit" ? note.available_amount ?? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
+    const refunded = kind === "overpayment" ? overpaymentRefunds
+      .filter(refund => refund.credit_note_id === note.id && !refund.voided_at)
+      .reduce((sum, refund) => sum + Number(refund.amount || 0), 0) : 0;
     const status = kind === "deposit" ? noteStatus(note, movements.filter(item => item.deposit_receipt_id === note.id)).tone
-      : amount <= 0.005 ? "applied" : amount < Number(note.amount || 0) - 0.005 ? "partial" : "available";
+      : refunded > 0 && amount <= 0.005 ? "refunded"
+        : refunded > 0 || amount < Number(note.amount || 0) - 0.005 ? "partial"
+          : amount <= 0.005 ? "applied" : "available";
     return (!query || haystack.includes(query)) && (!from || date >= from) && (!to || date <= to)
       && (min === null || amount >= min) && (max === null || amount <= max)
       && (!statusFilter || status === statusFilter) && (!methodFilter || String(paymentMethod || "").toLocaleLowerCase().includes(methodFilter));
