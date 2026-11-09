@@ -701,7 +701,8 @@
             <div class="stat-card"><div class="stat-card__label">Collected</div><div class="stat-card__value">&mdash;</div></div>
             <div class="stat-card"><div class="stat-card__label">Outstanding</div><div class="stat-card__value">&mdash;</div></div>
             <div class="stat-card"><div class="stat-card__label">Customers Owing</div><div class="stat-card__value">&mdash;</div></div>
-            <div class="stat-card"><div class="stat-card__label">Customer Credit Available</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Total Customer Credit Available</div><div class="stat-card__value">&mdash;</div></div>
+            <div class="stat-card"><div class="stat-card__label">Quotation Deposit Credit</div><div class="stat-card__value">&mdash;</div></div>
           </div>
           <div class="cs-tools">
             <input type="search" id="cs-search" placeholder="Search customer, phone or invoice..." autocomplete="off">
@@ -885,11 +886,16 @@
       const getCustomer = e => {
         const key = e.customer_id || `walkin:${String(e.customer_name || "Unnamed customer").trim().toLocaleLowerCase()}:${String(e.phone || "").trim()}`;
         let c = map.get(key);
-        if (!c) map.set(key, c = { id: e.customer_id || key, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0, availableCredit: 0 });
+        if (!c) map.set(key, c = { id: e.customer_id || key, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0, availableCredit: 0, depositCredit: 0 });
         return c;
       };
       if (customerCredit.error) console.warn("Customer deposit balances are unavailable:", customerCredit.error);
-      (customerCredit.data || []).forEach(e => { getCustomer(e).availableCredit += Number(e.available_amount) || 0; });
+      (customerCredit.data || []).forEach(e => {
+        const customer = getCustomer(e);
+        const available = Number(e.available_amount) || 0;
+        customer.availableCredit += available;
+        customer.depositCredit += available;
+      });
       for (const e of st.data || []) {
         const c = getCustomer(e);
         c.rows.push(e);
@@ -905,7 +911,7 @@
 
     function cards() {
       const sum = k => customers.reduce((s, c) => s + c[k], 0);
-      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length), usd(customers.reduce((s, c) => s + c.availableCredit + Math.max(0, -c.balance), 0))];
+      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length), usd(customers.reduce((s, c) => s + c.availableCredit + Math.max(0, -c.balance), 0)), usd(sum("depositCredit"))];
       document.querySelectorAll("#cs-cards .stat-card__value").forEach((el, i) => { el.textContent = vals[i]; });
       window.__aprOwed = { amount: customers.reduce((s, c) => s + Math.max(c.balance, 0), 0), count: customers.filter(c => c.balance > 0.01).length };
       document.dispatchEvent(new Event("apr:owed"));
