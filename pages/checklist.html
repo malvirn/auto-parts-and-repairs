@@ -128,8 +128,19 @@
       </header>
       <p id="page-message" class="message" role="status" aria-live="polite"></p>
       <section id="list-view" class="card">
-        <h2 style="margin-top:0">Saved checklists</h2>
-        <div id="checklist-list"><p class="message">Loading saved checklists…</p></div>
+        <div class="actions" style="margin:0 0 14px">
+          <button id="tab-checklists" class="btn btn--primary" type="button">Checklists</button>
+          <button id="tab-drafts" class="btn" type="button">Drafts <span id="drafts-count"></span></button>
+        </div>
+        <div id="checklists-pane">
+          <h2 style="margin-top:0">Saved checklists</h2>
+          <div id="checklist-list"><p class="message">Loading saved checklists…</p></div>
+        </div>
+        <div id="drafts-pane" hidden>
+          <h2 style="margin-top:0">Draft job cards</h2>
+          <p class="message">These job cards were saved without a checklist. Enter the checklist number to link it. The customer name and vehicle registration must match the checklist.</p>
+          <div id="drafts-list"><p class="message">Loading drafts…</p></div>
+        </div>
       </section>
       <section id="detail-view" class="card hidden">
         <h1 class="print-only print-title">Vehicle Checklist <span id="print-checklist-number"></span></h1>

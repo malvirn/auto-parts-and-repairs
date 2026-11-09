@@ -332,6 +332,7 @@
 .rc-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rc-build{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.9fr);gap:22px;align-items:start;margin-top:18px}
 .rc-build .rc-form{min-width:0;max-width:none!important;margin-top:0!important}
+.two[hidden],.build-inspection[hidden]{display:none!important}
 .build-inspection{position:sticky;top:18px;min-width:0;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text)}
 .build-inspection h3{margin:0 0 6px;color:var(--text);font-size:1.05rem}
 .build-inspection>p{margin:0 0 14px;color:var(--muted);font-size:.85rem;line-height:1.5}
@@ -682,7 +683,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <div class="two"><input id="f-year" type="number" placeholder="Year" /><input id="f-plate" placeholder="Registration plate" style="text-transform:uppercase" /></div>
       <div class="two"><input id="f-body-type" placeholder="Body type (e.g. Sedan)" /><input id="f-chassis" placeholder="Chassis number" /></div>
       <div class="two"><input id="f-engine" placeholder="Engine number" /></div>
-      <div class="two"><label for="f-fuel-in">Fuel level at drop-off<select id="f-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label><label for="f-odometer-in">Odometer at drop-off<input id="f-odometer-in" type="number" min="0" step="1" placeholder="Odometer reading"></label></div>
+      <div class="two" hidden><label for="f-fuel-in">Fuel level at drop-off<select id="f-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label><label for="f-odometer-in">Odometer at drop-off<input id="f-odometer-in" type="number" min="0" step="1" placeholder="Odometer reading"></label></div>
       <h3>3 · Work</h3>
       <textarea id="f-fault" rows="3" placeholder="Fault reported by customer"></textarea>
       <label for="job-labour-mode">Labour charging method</label>
@@ -711,9 +712,10 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
       <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
       <select id="f-tech"><option value="">Assign technician (optional)</option></select>
-      <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Create job card</button>
+      <p style="margin:10px 0;color:var(--muted);font-size:.85rem">Saved as a <b>Draft</b>. Link it to a vehicle checklist under Vehicle Checklist → Drafts to finish creating the job card.</p>
+      <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save job card</button>
     </div>
-    <aside class="build-inspection" aria-labelledby="build-inspection-title">
+    <aside class="build-inspection" aria-labelledby="build-inspection-title" hidden>
       <h3 id="build-inspection-title">Vehicle condition checklist — drop-off</h3>
       <p>Inspect the vehicle with the owner. Tap the photo box to add a picture, then tap the damage type (Dent, Scratch, Crack, Broken, Missing).</p>
       <div class="dmg-grid" id="build-inspection-grid"></div>
@@ -1795,7 +1797,7 @@ $("save").onclick=async()=>{const b=$("save");
   };
   if(!vid&&($("f-make").value||$("f-plate").value)){const r=await supabase.from("vehicles").insert({...vehicleDetails,customer_id:cid}).select().single();if(r.error)throw r.error;vid=r.data.id}
   else if(vid){const{error:vehicleError}=await supabase.from("vehicles").update(vehicleDetails).eq("id",vid);if(vehicleError)throw new Error(`Couldn't update vehicle details: ${vehicleError.message}`);}
-  const row={customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
+  const row={status:"Draft",customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
   let r=await supabase.from("repair_jobs").insert(row).select().single();
   if(r.error&&row.technician_id){delete row.technician_id;r=await supabase.from("repair_jobs").insert(row).select().single();if(!r.error)toast("Saved without technician (column differs)")}
   if(r.error)throw r.error;
@@ -1842,8 +1844,7 @@ $("save").onclick=async()=>{const b=$("save");
    if(cleanupErrors.length)throw new Error(`${error.message||String(error)}. Cleanup needs attention: ${cleanupErrors.join("; ")}`);
    throw error;
   }
-  await saveReport(createdJobId,buildInspection);
-  await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);toast("Job card created")
+  await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);toast("Draft job card saved. Link a vehicle checklist to finish creating it.")
  }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
 
 /* ---------- share ---------- */

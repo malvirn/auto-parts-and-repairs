@@ -349,6 +349,38 @@ async function deleteChecklist(checklistId,button=$("delete-checklist")){
  showMessage("Checklist deleted.");
 }
 
+function jobRef(job){return job.cro_number||`JC-${String(job.job_number??"").padStart(5,"0")}`}
+function renderDrafts(rows){
+ $("drafts-count").textContent=rows.length?`(${rows.length})`:"";
+ $("drafts-list").innerHTML=rows.length?rows.map(job=>{
+  const customer=job.customers?.full_name||"Customer not recorded",v=job.vehicles,plate=v?.license_plate||"No registration",car=[v?.make,v?.model].filter(Boolean).join(" ");
+  return `<div class="checklist-row"><div><strong>${esc(jobRef(job))} · ${esc(customer)} · ${esc(plate)}</strong><small>${esc(car?car+" · ":"")}Saved ${job.created_at?new Date(job.created_at).toLocaleString():""} · Waiting for a checklist</small></div><div class="actions" style="margin-top:0"><input type="number" min="1" step="1" inputmode="numeric" placeholder="Checklist number" aria-label="Checklist number for ${esc(jobRef(job))}" data-draft-number="${esc(job.id)}" style="max-width:170px"><button class="btn btn--primary" type="button" data-link-draft="${esc(job.id)}">Link checklist</button></div></div>`;
+ }).join(""):'<p class="message">No draft job cards. Job cards saved without a checklist appear here.</p>';
+}
+async function loadDrafts(){
+ const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,created_at,customers(full_name),vehicles(license_plate,make,model)").eq("status","Draft").is("checklist_number",null).order("created_at",{ascending:false}).limit(300);
+ if(error)throw new Error(`Couldn't load draft job cards: ${error.message}`);
+ renderDrafts(data||[]);
+}
+function showTab(name){
+ const drafts=name==="drafts";
+ $("checklists-pane").hidden=drafts;$("drafts-pane").hidden=!drafts;
+ $("tab-checklists").classList.toggle("btn--primary",!drafts);$("tab-drafts").classList.toggle("btn--primary",drafts);
+}
+$("tab-checklists").onclick=()=>showTab("checklists");
+$("tab-drafts").onclick=()=>showTab("drafts");
+$("drafts-list").addEventListener("click",async event=>{
+ const button=event.target.closest("[data-link-draft]");
+ if(!button)return;
+ const jobId=button.dataset.linkDraft,input=[...$("drafts-list").querySelectorAll("[data-draft-number]")].find(el=>el.dataset.draftNumber===jobId),number=Number(input?.value);
+ if(!Number.isSafeInteger(number)||number<1)return showMessage("Enter the checklist number to link.",true);
+ button.disabled=true;showMessage("");
+ const{error}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:jobId,p_checklist_number:number});
+ if(error){showMessage(`Couldn't link checklist #${number}: ${error.message}`,true);button.disabled=false;return}
+ showMessage(`Checklist #${number} linked. The job card is now created.`);
+ try{await Promise.all([loadList(),loadDrafts()])}catch(err){showMessage(err.message||String(err),true)}
+});
+
 async function initialize(){
  const{data:sessionData,error:sessionError}=await supabase.auth.getSession();
  if(sessionError)throw new Error(`Couldn't verify your sign-in: ${sessionError.message}`);
@@ -367,6 +399,8 @@ async function initialize(){
  }
  $("list-view").classList.remove("hidden");$("detail-view").classList.add("hidden");
  await loadList();
+ await loadDrafts().catch(error=>showMessage(error.message||String(error),true));
+ if(params.get("tab")==="drafts")showTab("drafts");
 }
 initialize().catch(error=>{console.error("Checklist page failed to initialize:",error);showMessage(error.message||String(error),true)});
 
