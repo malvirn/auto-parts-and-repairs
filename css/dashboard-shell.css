@@ -2139,3 +2139,7 @@ body.dashboard-page .sidebar-account__online[data-state="offline"]{color:#ff9a6b
 body.dashboard-page .sidebar-account__online[data-state="offline"]::before{background:#ff7a12;box-shadow:0 0 8px rgba(255,122,18,.65)}
 body.dashboard-page .sidebar-account__footer{flex:none;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
 body.dashboard-page .sidebar-account__footer .sidebar-account__signout{width:100%;min-height:44px;justify-content:center;font-size:13px}
+
+/* Keep the connection indicator visible and readable in the module header. */
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status{width:auto;min-width:76px;height:36px;padding:0 8px;gap:5px}
+body.dashboard-workshop .dashboard-connection-label{display:inline;font-size:10px;font-weight:750;letter-spacing:.01em}
