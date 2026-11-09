@@ -66,10 +66,12 @@ begin
   select coalesce(sum(payment.amount),0) into paid_amount
   from public.repair_job_payments payment
   where payment.repair_job_id = job_row.id and payment.voided_at is null;
-  select paid_amount + coalesce(sum(payment.amount),0) into paid_amount
-  from public.invoices invoice
-  join public.invoice_payments payment on payment.invoice_id = invoice.id
-  where invoice.repair_job_id = job_row.id;
+  paid_amount := paid_amount + coalesce((
+    select sum(payment.amount)
+    from public.invoices invoice
+    join public.invoice_payments payment on payment.invoice_id = invoice.id
+    where invoice.repair_job_id = job_row.id
+  ),0);
   select coalesce(sum(amount),0) into previously_applied
   from public.customer_credit_movements
   where target_type='repair_job' and target_id=job_row.id
@@ -89,7 +91,7 @@ begin
 
   select * into cash_liability from public.accounts where code='2300' and is_active and type='liability';
   select * into receivable from public.accounts where code='1100' and is_active and type='asset';
-  if not found or cash_liability.id is null then
+  if cash_liability.id is null or receivable.id is null then
     raise exception 'Customer Credit Liability (2300) or Accounts Receivable (1100) is missing or inactive';
   end if;
 
