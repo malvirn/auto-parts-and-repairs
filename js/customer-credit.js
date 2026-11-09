@@ -16,6 +16,7 @@ const dateLabel = value => value ? new Date(value).toLocaleDateString("en-GB", {
 }) : "—";
 
 let creditNotes = [];
+let overpaymentCreditNotes = [];
 let movements = [];
 let targets = [];
 let accounts = [];
@@ -58,6 +59,16 @@ async function load() {
   if (failure) {
     list.innerHTML = `<div class="customer-credit-empty">Customer credit is unavailable: ${escapeHtml(failure.message)}</div>`;
     return;
+  }
+
+  const overpaymentResult = await supabase.from("customer_overpayment_credit_notes")
+    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,total,subtotal,vat_rate,vat_base)")
+    .order("issued_at", { ascending: false }).limit(500);
+  if (overpaymentResult.error) {
+    console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
+    overpaymentCreditNotes = [];
+  } else {
+    overpaymentCreditNotes = overpaymentResult.data || [];
   }
 
   const userId = authResult.data.user?.id;
@@ -195,8 +206,8 @@ function renderUnpaidJobs(note) {
 }
 
 function render() {
-  if (!creditNotes.length) {
-    list.innerHTML = '<div class="customer-credit-empty">No quotation deposit credit notes have been issued yet.</div>';
+  if (!creditNotes.length && !overpaymentCreditNotes.length) {
+    list.innerHTML = '<div class="customer-credit-empty">No customer credit notes have been issued yet.</div>';
     return;
   }
   const accountOptions = accounts.map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} · ${escapeHtml(account.name)}</option>`).join("");
@@ -266,6 +277,21 @@ function render() {
         </div>
       </details>`;
     }).join("")}</div>`;
+  if (overpaymentCreditNotes.length) {
+    const overpaymentTotal = overpaymentCreditNotes.reduce((sum, note) => sum + Number(note.amount || 0), 0);
+    const invoiceNotesHtml = overpaymentCreditNotes.map(note => {
+      const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
+      const noteNumber = "CN-" + String(note.note_number).padStart(5, "0");
+      const invoiceNumber = invoice.invoice_number ? "INV-" + String(invoice.invoice_number).padStart(5, "0") : "Original invoice";
+      return '<article class="customer-credit-record" style="display:grid;gap:8px;padding:15px;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:var(--surface)">' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><strong class="credit-note-id">' + noteNumber + '</strong><span class="credit-note-status status-available">Invoice overpayment</span></div>' +
+        '<div class="credit-note-customer"><strong>' + escapeHtml(note.customer_name || "Customer") + '</strong><small>' + escapeHtml(invoiceNumber) + ' · Issued ' + dateLabel(note.issued_at) + '</small></div>' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span><small>Original invoice total</small><br><strong>' + money(invoice.total) + '</strong></span><span style="text-align:right"><small>Amount carried forward</small><br><strong style="color:var(--green-bright);font-size:1.1rem">' + money(note.amount) + '</strong></span></div></article>';
+    }).join("");
+    list.insertAdjacentHTML("beforeend",
+      '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
+      '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div></section>');
+  }
   window.lucide?.createIcons();
 }
 
