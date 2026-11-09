@@ -216,7 +216,7 @@ begin
       raise exception 'Enter the customer name on the quotation before recording a deposit';
     end if;
   end if;
-  if (quote_row.created_at at time zone 'Africa/Harare')::date + 7 < (now() at time zone 'Africa/Harare')::date then
+  if quote_row.created_at + interval '7 days' < now() then
     raise exception 'This quotation has expired; deposits are accepted only during its seven-day validity';
   end if;
   if exists (select 1 from public.sales_orders where quotation_id = quote_row.id) then
