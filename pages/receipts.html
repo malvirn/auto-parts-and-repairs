@@ -1002,13 +1002,17 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const amount=Number(payment.amount)||0;
  const items=normalizeInvoiceItems(invoice.items).map(item=>({d:item.d,q:item.q,p:item.p}));
  const total=Number(invoice.total)||Number(items.reduce((sum,item)=>sum+item.q*item.p,0).toFixed(2));
- const totalPaid=Math.min(total,Number(invoice.amount_paid)||0);
- const balance=Math.max(0,total-totalPaid);
- const[{data:creditRow,error:creditError}]=await Promise.all([
+ const[previousPaymentsResult,creditResult]=await Promise.all([
+  supabase.from("invoice_payments").select("amount").eq("invoice_id",invoice.id).neq("id",payment.id),
   supabase.from("customer_overpayment_credits").select("amount,available_amount").eq("invoice_payment_id",payment.id).maybeSingle()
  ]);
- if(creditError)throw new Error(`Couldn't load the customer's overpayment credit: ${creditError.message}`);
- const customerCredit=Math.max(Number(creditRow?.available_amount)||0,Math.max(0,(Number(invoice.amount_paid)||0)-total));
+ if(previousPaymentsResult.error)throw new Error(`Couldn't load previous invoice payments: ${previousPaymentsResult.error.message}`);
+ if(creditResult.error)throw new Error(`Couldn't load the customer's overpayment credit: ${creditResult.error.message}`);
+ const previousPaid=Math.min(total,(previousPaymentsResult.data||[]).reduce((sum,row)=>sum+Number(row.amount||0),0));
+ const amountApplied=Math.min(amount,Math.max(0,total-previousPaid));
+ const totalPaid=Math.min(total,previousPaid+amountApplied);
+ const balance=Math.max(0,total-totalPaid);
+ const customerCredit=Math.max(Number(creditResult.data?.available_amount)||0,Math.max(0,(Number(invoice.amount_paid)||0)-total));
  const status=balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid";
  tab="receipts";
  open({
@@ -1024,8 +1028,8 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
   jobPayment:{
    jobTotal:total,
-   previousPaid:Math.max(0,totalPaid-amount),
-   currentPaid:Math.min(amount,Math.max(0,total-(totalPaid- Math.min(amount,totalPaid)))),
+   previousPaid,
+   currentPaid:amountApplied,
    received:amount,
    customerCredit,
    totalPaid,
