@@ -233,7 +233,7 @@ function render() {
   const filteredCreditNotes = creditNotes.filter(note => matches(note, "deposit"));
   const filteredOverpaymentNotes = overpaymentCreditNotes.filter(note => matches(note, "overpayment"));
   if (!filteredCreditNotes.length && !filteredOverpaymentNotes.length) {
-    const hasFilters = query || from || to || statusFilter || min !== null || max !== null;
+    const hasFilters = query || from || to || statusFilter || methodFilter || min !== null || max !== null;
     list.innerHTML = `<div class="customer-credit-empty">${hasFilters ? "No credit notes match these filters." : "No customer credit notes have been issued yet."}</div>`;
     return;
   }
