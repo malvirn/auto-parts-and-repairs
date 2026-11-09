@@ -23,6 +23,8 @@ const staffAdvanceRepaymentMessage = document.getElementById("staff-advance-repa
 const staffAdvanceRepaymentSelect = document.getElementById("staff-advance-repayment-id");
 const staffAdvancesSummary = document.getElementById("staff-advances-summary");
 const staffAdvancesTableBody = document.querySelector("#staff-advances-table tbody");
+const customerBalancesSummary = document.getElementById("customer-balances-summary");
+const customerBalancesTableBody = document.querySelector("#customer-balances-table tbody");
 
 const pettyCashBalanceEl = document.getElementById("petty-cash-balance");
 const pettyCashStatusEl = document.getElementById("petty-cash-status");
@@ -47,6 +49,7 @@ let cashLedgerLines = [];
 let supplementalCashTransactions = [];
 let dailyCashSnapshot = null;
 let staffAdvanceRows = [];
+let customerBalances = [];
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -281,6 +284,61 @@ function renderDailyFloat(date) {
     <div class="stat-card"><div class="stat-card__label">Expected closing cash, bank &amp; EcoCash</div><div class="stat-card__value">${money(closing)}</div></div>`;
 }
 
+async function loadCustomerBalances() {
+  if (!customerBalancesSummary || !customerBalancesTableBody) return;
+  customerBalancesTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading customer balances…</td></tr>';
+  const [overpayments, deposits] = await Promise.all([
+    supabase.from("customer_overpayment_credits")
+      .select("id,invoice_id,customer_id,customer_name,customer_phone,amount,available_amount,payment_date,invoice_payments(payment_method),invoices(invoice_number)")
+      .gt("available_amount", 0.005)
+      .order("payment_date", { ascending: false }),
+    supabase.from("customer_credit_balances")
+      .select("deposit_receipt_id,credit_note_number,customer_id,customer_name,phone,issued_amount,available_amount,payment_date,created_at")
+      .gt("available_amount", 0.005)
+      .order("created_at", { ascending: false })
+  ]);
+  if (overpayments.error) throw new Error("Couldn't load invoice overpayments: " + overpayments.error.message);
+  if (deposits.error) throw new Error("Couldn't load quotation deposit credits: " + deposits.error.message);
+
+  customerBalances = [
+    ...(overpayments.data || []).map(row => ({
+      id: "overpayment-" + row.id,
+      customerId: row.customer_id,
+      customer: row.customer_name,
+      phone: row.customer_phone,
+      source: "Invoice overpayment",
+      reference: "INV-" + String(row.invoices?.invoice_number || "").padStart(5, "0"),
+      date: row.payment_date,
+      amount: Number(row.available_amount || 0)
+    })),
+    ...(deposits.data || []).map(row => ({
+      id: "deposit-" + row.deposit_receipt_id,
+      customerId: row.customer_id,
+      customer: row.customer_name,
+      phone: row.phone,
+      source: "Quotation deposit",
+      reference: "QCN-" + String(row.credit_note_number || "").padStart(6, "0"),
+      date: row.payment_date,
+      amount: Number(row.available_amount || 0)
+    }))
+  ].filter(row => row.amount > 0.005).sort((a,b) => String(b.date || "").localeCompare(String(a.date || "")));
+
+  const totalOwed = customerBalances.reduce((sum, row) => sum + row.amount, 0);
+  const customersOwed = new Set(customerBalances.map(row => row.customerId || row.customer)).size;
+  customerBalancesSummary.innerHTML = `
+    <div class="stat-card"><div class="stat-card__label">Total customer credit owed</div><div class="stat-card__value">${money(totalOwed)}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Customers with credit</div><div class="stat-card__value">${customersOwed}</div></div>
+    <div class="stat-card"><div class="stat-card__label">Open credit records</div><div class="stat-card__value">${customerBalances.length}</div></div>`;
+  customerBalancesTableBody.innerHTML = customerBalances.length
+    ? customerBalances.map(row => `<tr>
+        <td><strong>${escapeHtml(row.customer || "Customer")}</strong><small>${escapeHtml(row.phone || "")}</small></td>
+        <td>${escapeHtml(row.source)}<small>${escapeHtml(row.reference)}</small></td>
+        <td>${escapeHtml(dateLabel(row.date))}</td>
+        <td class="cash-out">${money(row.amount)}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="4" class="empty-state">No customer credit balances are currently owed.</td></tr>';
+}
+
 async function loadDayActivity() {
   const date = selectedBusinessDate();
   const reconciliationLocked = date >= dateInZimbabwe();
@@ -339,6 +397,11 @@ async function loadDayActivity() {
   }
 
   await Promise.all([
+    loadCustomerBalances().catch(error => {
+      console.error("Couldn't load customer balances owed:", error);
+      customerBalancesSummary.innerHTML = "";
+      customerBalancesTableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger)">${escapeHtml(error.message || String(error))}</td></tr>`;
+    }),
     loadLatestReconciliation(date).catch(error => {
       console.error("Couldn't load the saved reconciliation:", error);
       reconciliationHistory.textContent = `Couldn't load saved reconciliation: ${error.message || String(error)}`;
