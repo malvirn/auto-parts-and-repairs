@@ -140,7 +140,7 @@ function printCreditNote(note) {
     <section class="facts">
       <div class="fact"><small>Customer</small><strong>${escapeHtml(note.customer_name || "Customer")}</strong><span class="muted">${escapeHtml(note.customer_phone || "—")}</span></div>
       <div class="fact"><small>Quotation</small><strong>${escapeHtml(quote.quotation_number ?? "—")}</strong><span class="muted">Issued ${dateLabel(quote.created_at)}</span></div>
-      <div class="fact"><small>Checklist number</small><strong>${job?.checklist_number ? `#${escapeHtml(job.checklist_number)}` : "Not linked yet"}</strong><span class="muted">${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "A checklist appears when the quotation creates a job card"}</span></div>
+      <div class="fact"><small>Checklist number</small><strong>${job?.checklist_number ? `#${escapeHtml(job.checklist_number)}` : job ? "Not assigned yet" : "Not linked yet"}</strong><span class="muted">${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "A checklist appears when the quotation creates a job card"}</span></div>
       <div class="fact"><small>Payment details</small><strong>${escapeHtml(note.payment_method)}</strong><span class="muted">${dateLabel(note.payment_date)} · ${escapeHtml(note.reference || "No reference")}</span></div>
     </section>
     <div class="amount"><div><small>Original deposit</small><div class="muted">Available balance after applications and refunds</div></div><strong>${money(note.amount)}</strong></div>
@@ -215,7 +215,7 @@ function render() {
           <div class="credit-doc-facts">
             <div><small>Customer</small><strong>${escapeHtml(noteName)}</strong><span>${escapeHtml(note.customer_phone || "—")}</span></div>
             <div><small>Quotation</small><strong>#${escapeHtml(quoteNumber)}</strong><span>Issued ${dateLabel(quote.created_at)}</span></div>
-            <div><small>Checklist number</small><strong>${job?.checklist_number ? `#${escapeHtml(job.checklist_number)}` : "Pending job card"}</strong><span>${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Updates when a job card is created"}</span></div>
+            <div><small>Checklist number</small><strong>${job?.checklist_number ? `#${escapeHtml(job.checklist_number)}` : job ? "Not assigned yet" : "Pending job card"}</strong><span>${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Updates when a job card is created"}</span></div>
             <div><small>Payment</small><strong>${escapeHtml(note.payment_method)}</strong><span>${dateLabel(note.payment_date)} · ${escapeHtml(note.reference || "No reference")}</span></div>
           </div>
           <div class="credit-doc-totals"><div><small>Original deposit</small><strong>${money(note.amount)}</strong></div><div><small>Refunded</small><strong>${money(status.refunded)}</strong></div><div><small>Applied</small><strong>${money(status.applied)}</strong></div><div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div></div>
