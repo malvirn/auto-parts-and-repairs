@@ -648,9 +648,9 @@ select.st option{background:#10181a;color:#eef3ef}
       <select class="st" id="receipt-printer-type"><option value="standard">Standard printer · A4</option><option value="thermal">Thermal printer · 80 mm</option></select>
       <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
       <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+      <button class="btn btn--danger rc-void-action" id="d-void" type="button" hidden><i data-lucide="ban"></i> Void receipt</button>
     </div>
     <div class="rc-doc-wrap"><div id="doc"></div></div>
-    <div class="rc-document-footer" hidden><button class="btn btn--danger rc-void-action" id="d-void" type="button" hidden><i data-lucide="ban"></i> Void receipt</button></div>
   </section>
 </div>
 <div class="modal-overlay hidden" id="invoice-payment-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-payment-title">
@@ -667,7 +667,8 @@ select.st option{background:#10181a;color:#eef3ef}
     <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="invoice-payment-save">Save payment</button><button type="button" class="btn" id="invoice-payment-cancel">Cancel</button></div>
     <p id="invoice-payment-message" class="form-message" role="status" aria-live="polite"></p>
   </div>
-  <div class="modal-overlay hidden" id="receipt-edit-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-edit-title">
+</div>
+<div class="modal-overlay hidden" id="receipt-edit-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-edit-title">
     <div class="modal invoice-payment-modal">
       <h2 id="receipt-edit-title">Correct receipt amount</h2>
       <p id="receipt-edit-summary" class="section-note"></p>
@@ -689,7 +690,6 @@ select.st option{background:#10181a;color:#eef3ef}
       </div>
     </div>
   </div>
-</div>
 <!-- FOOTER: 4 buttons -->
 <nav class="ftbar" aria-label="Main">
   <a href="../index.html" aria-label="Home" title="Home">
@@ -1048,7 +1048,7 @@ function signalDocumentChange(table,label){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
 
 let creditActionMode=null;
 function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");creditActionMode=null }
@@ -1198,7 +1198,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  tab="receipts";
  open({
   kind:"receipt",
-  id:null,
+  id:payment.id,
   invoicePaymentReceipt:true,
   number:`PAY-${String(invoice.invoice_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
   date:payment.payment_date,
