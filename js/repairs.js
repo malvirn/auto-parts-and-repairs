@@ -1159,6 +1159,13 @@ editSaveBtn?.addEventListener("click", async () => {
       alert("Couldn't verify the job balance: " + paymentError.message);
       return;
     }
+    let appliedCredit;
+    try {
+      appliedCredit = await repairJobAppliedCredit(currentEditJobId);
+    } catch (creditError) {
+      alert("Couldn't verify applied customer credit: " + creditError.message);
+      return;
+    }
     const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
     let accountCredit = 0;
     try {
@@ -1167,8 +1174,8 @@ editSaveBtn?.addEventListener("click", async () => {
       alert(`Couldn't verify carry-forward customer credit: ${creditError.message}`);
       return;
     }
-    if (total - paid - accountCredit > 0.01) {
-      alert(`The job cannot be processed until it is fully paid or covered by customer account credit. Balance due: ${money(total - paid - accountCredit)}.`);
+    if (total - paid - appliedCredit - accountCredit > 0.01) {
+      alert(`The job cannot be processed until it is fully paid or covered by customer credit. Balance due: ${money(total - paid - appliedCredit - accountCredit)}.`);
       return;
     }
   }
@@ -1235,9 +1242,16 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
       alert("Couldn't verify the job balance: " + paymentError.message);
       return;
     }
+    let appliedCredit;
+    try {
+      appliedCredit = await repairJobAppliedCredit(currentEditJobId);
+    } catch (creditError) {
+      alert("Couldn't verify applied customer credit: " + creditError.message);
+      return;
+    }
     const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-    if (total - paid > 0.01) {
-      alert(`The vehicle cannot be collected until it is fully paid. Balance due: ${money(total - paid)}.`);
+    if (total - paid - appliedCredit > 0.01) {
+      alert(`The vehicle cannot be collected until it is fully paid. Balance due: ${money(total - paid - appliedCredit)}.`);
       return;
     }
   }
@@ -1313,6 +1327,15 @@ async function loadJobPayments(jobId) {
   }
   const payments = data || [];
   const paid = payments.filter(payment => !payment.voided_at).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  let applied;
+  try {
+    applied = await repairJobAppliedCredit(jobId);
+  } catch (applicationError) {
+    currentJobPaid = null;
+    summary.textContent = `Payments loaded, but applied customer credit couldn't be checked: ${applicationError.message}`;
+    console.error("Error loading applied customer credit:", applicationError);
+    return;
+  }
   currentJobPaid = paid;
   const total = currentJobTotal();
   let credit = 0;
@@ -1325,8 +1348,8 @@ async function loadJobPayments(jobId) {
       return;
     }
   }
-  const due = Math.max(0, total - paid - credit);
-  summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid)))}` : ""} · Balance ${money(due)}`;
+  const due = Math.max(0, total - paid - applied - credit);
+  summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${applied > 0.01 ? ` · Credit note applied ${money(applied)}` : ""}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid - applied)))}` : ""} · Balance ${money(due)}`;
   history.innerHTML = payments.length
     ? payments.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#ff6969;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}`}</span><strong>${money(payment.amount)}</strong></div>`).join("")
     : `<div class="empty-state">No payments recorded yet.</div>`;
@@ -1341,6 +1364,14 @@ async function availableCustomerCredit(customerId, excludingJobId) {
   const accountBalance = (data || []).reduce((balance, entry) =>
     entry.source_id === excludingJobId ? balance : balance + Number(entry.balance_due || 0), 0);
   return Math.max(0, -accountBalance);
+}
+
+async function repairJobAppliedCredit(jobId) {
+  const { data, error } = await supabase.from("customer_credit_movements").select("amount")
+    .eq("target_type", "repair_job").eq("target_id", jobId)
+    .eq("movement_type", "application").is("reversed_at", null);
+  if (error) throw new Error(error.message);
+  return (data || []).reduce((sum, movement) => sum + Number(movement.amount || 0), 0);
 }
 
 if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {

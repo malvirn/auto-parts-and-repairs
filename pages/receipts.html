@@ -357,6 +357,14 @@
 .invoice-editor-modal textarea{width:100%;min-height:88px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);font:inherit}
 .invoice-editor-modal .li{grid-template-columns:minmax(0,1fr) 70px 100px 32px}
 .rc-doc-wrap{overflow-x:auto;padding:2px}
+.customer-credit-table{width:100%;min-width:920px;border-collapse:collapse}
+.customer-credit-table th,.customer-credit-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.customer-credit-table th{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.07em}
+.customer-credit-actions{display:grid;grid-template-columns:minmax(150px,1fr) 110px auto;gap:7px;min-width:330px}
+.customer-credit-actions select,.customer-credit-actions input{min-width:0;min-height:38px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit}
+.customer-credit-history{margin-top:8px;color:var(--muted);font-size:.8rem}
+.customer-credit-history button{margin-left:8px}
+.customer-credit-empty{padding:18px 4px;color:var(--muted)}
 .receipt-list-filters{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(2,minmax(150px,.7fr)) auto;gap:12px;align-items:end;margin:16px 0}
 .receipt-list-filters label{display:grid;gap:6px;color:var(--muted);font-size:.76rem;font-weight:700}
 .receipt-list-filters input{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#0c1210;color:var(--text);font:inherit}
@@ -564,6 +572,11 @@ select.st option{background:#10181a;color:#eef3ef}
         </svg>
       </header>
 <div class="dash-content rc">
+  <section class="panel" id="customer-credit-panel">
+    <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn" id="customer-credit-refresh" type="button" title="Refresh customer credit"><i data-lucide="refresh-cw"></i></button></div>
+    <p class="invoice-billing-note">Deposits remain customer credit after the quotation expires. Staff can apply credit to the same customer’s repair or confirmed sale; refunds are restricted to Accounting-level users.</p>
+    <div class="rc-doc-wrap"><div id="customer-credit-list" aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
+  </section>
   <section class="panel" id="v-list">
     <div class="rc-tabs">
       <button class="seg" data-tab="receipts" aria-pressed="true">Receipts</button>
@@ -686,6 +699,7 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
   <script type="module" src="../js/dashboard-search.js"></script>
+<script type="module" src="../js/customer-credit.js"></script>
 <script>
 window.addEventListener("unhandledrejection",event=>{
  console.error("Unhandled receipt-page promise rejection:",event.reason);

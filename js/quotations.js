@@ -596,7 +596,7 @@ async function loadDocuments() {
     supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
   ]);
   quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => {
-    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
+    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}"><i data-lucide="badge-dollar-sign"></i> Deposit</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
   }).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
   orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Edit</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
   document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
@@ -1219,7 +1219,10 @@ async function saveOrderChanges() {
   closeModal(orderModal);
   await loadDocuments();
 
-  if (receiptOk && await window.aprConfirm("Sales order saved and a receipt has been recorded. View the printed receipt now?", { title: "View receipt", confirmLabel: "Open receipt" })) {
+  if (receiptOk === "deposit") {
+    window.aprToast?.("Sales order saved; the quotation deposit remains customer credit.", "success");
+  }
+  if (receiptOk === true && await window.aprConfirm("Sales order saved and a receipt has been recorded. View the printed receipt now?", { title: "View receipt", confirmLabel: "Open receipt" })) {
     window.location.href = `receipts.html?order=${encodeURIComponent(editingOrder.id)}`;
   }
 }
@@ -1228,6 +1231,20 @@ async function saveOrderChanges() {
 // order — this is what makes the amount show up in the Receipts page and
 // in the dashboard's revenue figures.
 async function ensureReceiptForOrder(orderId, amount) {
+  const { data: order, error: orderError } = await supabase.from("sales_orders").select("quotation_id").eq("id", orderId).single();
+  if (orderError) {
+    alert("Order saved, but its quotation deposit status couldn't be checked: " + orderError.message);
+    return false;
+  }
+  if (order.quotation_id) {
+    const { data: availableCredits, error: creditError } = await supabase.from("customer_credit_balances")
+      .select("deposit_receipt_id").eq("quotation_id", order.quotation_id).gt("available_amount", 0.005);
+    if (creditError) {
+      alert("Order saved, but its customer credit couldn't be checked: " + creditError.message);
+      return false;
+    }
+    if (availableCredits?.length) return "deposit";
+  }
   const { data: existing, error: checkError } = await supabase.from("receipts").select("id").eq("sales_order_id", orderId).limit(1);
   if (checkError) {
     alert("Order saved, but its existing receipt couldn't be checked: " + checkError.message);
