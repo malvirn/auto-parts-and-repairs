@@ -1828,9 +1828,13 @@ receiptBack.onclick=()=>{
  else if(from==="accounting")location.href="accounting.html";
  else show("list");
 };
-$("hs-input").oninput=render;
-["receipt-filter-search","receipt-filter-from","receipt-filter-to"].forEach(id=>$(id).addEventListener("input",render));
-$("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","hs-input"].forEach(id=>$(id).value="");render()};
+$("hs-input").oninput=()=>{visibleRows=3;render()};
+["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method"].forEach(id=>{
+ $(id).addEventListener("input",()=>{visibleRows=3;render()});
+ $(id).addEventListener("change",()=>{visibleRows=3;render()});
+});
+$("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method","hs-input"].forEach(id=>$(id).value="");visibleRows=3;render()};
+$("receipt-load-more").onclick=()=>{visibleRows+=3;render()};
 load().catch(error=>{console.error("Receipts page failed to load:",error);$("list").innerHTML=`<div class="ov-empty">Couldn't load receipts: ${esc(error?.message||String(error))}</div>`});
 </script>
 </body>
