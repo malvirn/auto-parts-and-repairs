@@ -63,10 +63,10 @@ function openDepositDialog(button) {
         p_idempotency_key: idempotencyKey,
       });
       if (error) throw error;
-      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded for $${Number(data.amount).toFixed(2)}.`;
+      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded. Opening its receipt…`;
       message.dataset.tone = "success";
       delete form.dataset.idempotencyKey;
-      setTimeout(close, 900);
+      window.location.href = `receipts.html?credit_note_id=${encodeURIComponent(data.id)}&from=quotations`;
     } catch (error) {
       message.textContent = error.message || "The deposit could not be recorded.";
       message.dataset.tone = "error";
