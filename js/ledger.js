@@ -142,7 +142,9 @@ function recalcBalance() {
   totalDebitEl.textContent = money(totalDebit);
   totalCreditEl.textContent = money(totalCredit);
 
-  const balanced = totalDebit > 0 && totalDebit === totalCredit;
+  const debitCents = Math.round((totalDebit + Number.EPSILON) * 100);
+  const creditCents = Math.round((totalCredit + Number.EPSILON) * 100);
+  const balanced = debitCents > 0 && debitCents === creditCents;
   balanceCheck.classList.toggle("balanced", balanced);
   balanceCheck.classList.toggle("unbalanced", !balanced);
   balanceStatusEl.textContent = balanced ? "Balanced ✓" : "Not balanced yet";
