@@ -1383,6 +1383,27 @@ ${extra}
 }
 @media print{#customer-credit-panel .customer-credit-record:not([open]){display:none}}
 
+
+/* Credit note list and unpaid job-card columns */
+#customer-credit-panel .customer-credit-record__summary{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center;gap:9px 12px!important;line-height:1.35}
+#customer-credit-panel .credit-note-id{grid-column:1;grid-row:1;justify-self:start}
+#customer-credit-panel .credit-note-customer{grid-column:1/-1;grid-row:2;min-width:0;overflow-wrap:anywhere}
+#customer-credit-panel .credit-note-balance{grid-column:1;grid-row:3;text-align:left}
+#customer-credit-panel .credit-note-status{grid-column:2;grid-row:3;justify-self:end;white-space:normal;text-align:center}
+#customer-credit-panel .customer-credit-record__summary>*{min-width:0}
+#customer-credit-panel .credit-note-customer strong{display:block;line-height:1.35}
+#customer-credit-panel .credit-note-customer small{display:block;line-height:1.4;white-space:normal}
+#customer-credit-panel .credit-unpaid-jobs{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+#customer-credit-panel .credit-unpaid-jobs h4{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:.9rem}
+#customer-credit-panel .credit-unpaid-jobs h4 span{padding:2px 8px;border-radius:20px;background:var(--surface-2);font-size:.72rem}
+#customer-credit-panel .credit-job-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+#customer-credit-panel .credit-job-table{width:100%;min-width:620px;border-collapse:collapse}
+#customer-credit-panel .credit-job-table th,#customer-credit-panel .credit-job-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;font-size:.78rem}
+#customer-credit-panel .credit-job-table th{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;background:var(--surface-2)}
+#customer-credit-panel .credit-job-table tr:last-child td{border-bottom:0}
+#customer-credit-panel .credit-job-status{display:inline-flex;padding:4px 8px;border:1px solid var(--line);border-radius:20px;background:var(--surface-2)}
+#customer-credit-panel .credit-job-balance{font-weight:800;font-variant-numeric:tabular-nums}
+
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
