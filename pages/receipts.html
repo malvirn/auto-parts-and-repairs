@@ -933,6 +933,12 @@ async function load(){
  }else{
   delete $("list").dataset.invoicePaymentsErr;
   const payments=invoicePaymentsResult.data||[];
+  const methodsByInvoice=new Map();
+  payments.forEach(payment=>{
+   const key=String(payment.invoice_id),method=String(payment.payment_method||"").trim();
+   if(method){if(!methodsByInvoice.has(key))methodsByInvoice.set(key,new Set());methodsByInvoice.get(key).add(method)}
+  });
+  rows.invoices.forEach(invoice=>{invoice.paymentMethod=[...(methodsByInvoice.get(String(invoice.id))||[])].join(" / ")});
   const paidByInvoice=new Map();
   payments.forEach(payment=>{
    const key=String(payment.invoice_id);
