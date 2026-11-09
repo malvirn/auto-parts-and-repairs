@@ -191,7 +191,7 @@ async function loadCustomerHistory(customer) {
       .select("id,sales_order_id,amount,payment_method,payment_date,created_at")
       .in("sales_order_id", orderIds).order("payment_date", { ascending: false }), warnings) : [],
     invoiceIds.length ? loadOptionalRows("Invoice payments", () => supabase.from("invoice_payments")
-      .select("id,invoice_id,amount,payment_method,payment_date,created_at")
+      .select("id,invoice_id,amount,payment_method,payment_date,created_at,voided_at,void_reason")
       .in("invoice_id", invoiceIds).order("payment_date", { ascending: false }), warnings) : [],
     loadOptionalRows("Credit notes", () => supabase.from("credit_notes")
       .select("id,credit_note_number,receipt_id,reason,refunded,amount")
@@ -250,7 +250,7 @@ async function loadCustomerHistory(customer) {
   }
   const invoicePaidById = new Map();
   for (const payment of invoicePayments) {
-    invoicePaidById.set(payment.invoice_id,
+    if (!payment.voided_at) invoicePaidById.set(payment.invoice_id,
       (invoicePaidById.get(payment.invoice_id) || 0) + Number(payment.amount || 0));
   }
 
@@ -400,10 +400,11 @@ async function loadCustomerHistory(customer) {
   for (const payment of invoicePayments) {
     const invoice = invoices.find(item => item.id === payment.invoice_id);
     events.push({
-      date: payment.payment_date || payment.created_at, title: "Invoice payment received",
-      detail: `${invoice?.reference || `INV-${invoice?.invoice_number || ""}`} · ${payment.payment_method}`,
-      amount: payment.amount, type: "payment",
-      details: [["Invoice", invoice?.reference || `INV-${invoice?.invoice_number || ""}`], ["Payment date", dateLabel(payment.payment_date || payment.created_at)], ["Method", payment.payment_method], ["Amount", money(payment.amount)]],
+      date: payment.payment_date || payment.created_at,
+      title: payment.voided_at ? "Voided invoice payment receipt" : "Invoice payment received",
+      detail: `${invoice?.reference || `INV-${invoice?.invoice_number || ""}`} · ${payment.payment_method}${payment.void_reason ? ` · ${payment.void_reason}` : ""}`,
+      amount: payment.amount, type: "payment", voided: Boolean(payment.voided_at),
+      details: [["Invoice", invoice?.reference || `INV-${invoice?.invoice_number || ""}`], ["Payment date", dateLabel(payment.payment_date || payment.created_at)], ["Method", payment.payment_method], ["Amount", money(payment.amount)], ["Status", payment.voided_at ? "VOID" : "Recorded"], ["Void reason", payment.void_reason]],
     });
   }
 
