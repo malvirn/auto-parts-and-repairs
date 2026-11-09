@@ -843,7 +843,7 @@ async function load(){
  if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
  const [creditLinksResult,creditRefundsResult]=await Promise.all([
   supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,repair_jobs(job_number,checklist_number)"),
-  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,customer_overpayment_credit_notes(note_number,customer_name,customer_phone)")
+  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone)")
  ]);
  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
  if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
@@ -852,7 +852,7 @@ async function load(){
   const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items),link=creditLinksByNote.get(String(note.id));
   return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:Number(note.customer_overpayment_credits?.available_amount??amount)||0,originalCreditAmount:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null};
  });
- const refundReceipts=(creditRefundsResult.data||[]).map(refund=>({kind:"receipt",id:refund.id,creditRefundReceipt:true,number:"RF-"+String(refund.refund_number).padStart(5,"0"),date:refund.payment_date||refund.created_at,customer:{name:refund.customer_overpayment_credit_notes?.customer_name||"Customer",phone:refund.customer_overpayment_credit_notes?.customer_phone||""},ref:"Refund for CN-"+String(refund.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0"),receiptAmount:Number(refund.amount)||0,paymentMethod:refund.payment_method||"Refund",items:[{d:"Refund of customer credit note",q:1,p:Number(refund.amount)||0}],jobPayment:null}));
+ const refundReceipts=(creditRefundsResult.data||[]).map(refund=>({kind:"receipt",id:refund.id,creditRefundReceipt:true,voidedAt:refund.voided_at,voidReason:refund.void_reason,number:"RF-"+String(refund.refund_number).padStart(5,"0"),date:refund.payment_date||refund.created_at,customer:{name:refund.customer_overpayment_credit_notes?.customer_name||"Customer",phone:refund.customer_overpayment_credit_notes?.customer_phone||""},ref:"Refund for CN-"+String(refund.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0"),receiptAmount:Number(refund.amount)||0,paymentMethod:refund.payment_method||"Refund",items:[{d:"Refund of customer credit note",q:1,p:Number(refund.amount)||0}],jobPayment:null}));
  rows.creditRefundReceipts=refundReceipts;
  rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=normalizeInvoiceItems(x.items),discount=Number(x.discount)||0,total=Number(x.total)||0,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customer_name,phone:x.customer_phone,email:x.customer_email},ref:x.reference,items,subtotal:Number(x.subtotal)||0,total,discount,vat:Number(x.vat_rate??5),vatBase:Number(x.vat_base??x.subtotal)||0,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
  const jobIds=[...new Set([
@@ -1048,7 +1048,7 @@ function signalDocumentChange(table,label){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.creditRefundReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
 
 let creditActionMode=null;
 function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");creditActionMode=null }
@@ -1285,9 +1285,11 @@ async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
 function closeVoidModal(){$("receipt-void-modal").classList.add("hidden")}
 async function voidReceipt(){
  if(!cur||cur.kind!=="receipt"||cur.voidedAt||!canVoidReceipt())return;
- $("receipt-void-warning").textContent=cur.invoicePaymentReceipt
-   ? `Void ${cur.number}? The payment will be removed from the invoice balance and its accounting journal will be reversed. This does not record a cash refund.`
-   : `Void ${cur.number}? Linked job payments will be reversed, or the sales order will be cancelled, its stock returned and its accounting journals reversed. This does not record a cash refund.`;
+ $("receipt-void-warning").textContent=cur.creditRefundReceipt
+   ? `Void ${cur.number}? The refund journal will be reversed and the amount will be restored to the customer's available credit. This does not issue another payment.`
+   : cur.invoicePaymentReceipt
+     ? `Void ${cur.number}? The payment will be removed from the invoice balance and its accounting journal will be reversed. This does not record a cash refund.`
+     : `Void ${cur.number}? Linked job payments will be reversed, or the sales order will be cancelled, its stock returned and its accounting journals reversed. This does not record a cash refund.`;
  $("receipt-void-reason").value="";
  $("receipt-void-message").textContent="";
  $("receipt-void-modal").classList.remove("hidden");
@@ -1305,9 +1307,11 @@ async function voidReceipt(){
  const button=$("d-void"),receiptId=cur.id,receiptNumber=cur.number;
  button.disabled=true;
  try{
-  const{error}=cur.invoicePaymentReceipt
-    ? await supabase.rpc("void_invoice_payment_receipt",{p_invoice_payment_id:receiptId,p_reason:reason.trim()})
-    : await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
+  const{error}=cur.creditRefundReceipt
+    ? await supabase.rpc("void_customer_credit_refund_receipt",{p_refund_id:receiptId,p_reason:reason.trim()})
+    : cur.invoicePaymentReceipt
+      ? await supabase.rpc("void_invoice_payment_receipt",{p_invoice_payment_id:receiptId,p_reason:reason.trim()})
+      : await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
    if(error)throw new Error(error.message);
   signalDocumentChange("receipts",receiptNumber);
   await load();
