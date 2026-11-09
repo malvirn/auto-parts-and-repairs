@@ -20,6 +20,7 @@ let movements = [];
 let targets = [];
 let accounts = [];
 let jobsById = new Map();
+let unpaidJobs = [];
 let canRefund = false;
 
 function showMessage(message, tone = "info") {
@@ -77,9 +78,17 @@ async function load() {
   jobsById = new Map();
   if (jobIds.length) {
     const { data: jobs, error } = await supabase.from("repair_jobs")
-      .select("id, job_number, cro_number, checklist_number")
+      .select("id, job_number, cro_number, checklist_number, status, vehicle_id, vehicles(make, model, year, license_plate)")
       .in("id", jobIds);
     if (!error) (jobs || []).forEach(job => jobsById.set(job.id, job));
+  }
+  const unpaidJobIds = [...new Set(targets.filter(row => row.source_type === "Repair job").map(row => row.source_id).filter(Boolean))];
+  unpaidJobs = [];
+  if (unpaidJobIds.length) {
+    const { data: jobs, error } = await supabase.from("repair_jobs")
+      .select("id, job_number, cro_number, checklist_number, status, customer_id, vehicle_id, vehicles(make, model, year, license_plate)")
+      .in("id", unpaidJobIds);
+    if (!error) unpaidJobs = jobs || [];
   }
   render();
 
@@ -153,6 +162,30 @@ function printCreditNote(note) {
   setTimeout(() => popup.print(), 350);
 }
 
+
+function renderUnpaidJobs(note) {
+  const name = String(note.customer_name || "").trim().toLocaleLowerCase();
+  const rows = targets.filter(row => row.source_type === "Repair job" && (
+    note.customer_id ? row.customer_id === note.customer_id :
+      String(row.customer_name || "").trim().toLocaleLowerCase() === name
+  ));
+  if (!rows.length) return '<section class="credit-unpaid-jobs"><h4>Unpaid job cards</h4><p>No unpaid job cards for this customer.</p></section>';
+  const byId = new Map(unpaidJobs.map(job => [job.id, job]));
+  return `<section class="credit-unpaid-jobs"><h4>Unpaid job cards <span>${rows.length}</span></h4>
+    <div class="credit-job-table-wrap"><table class="credit-job-table">
+    <thead><tr><th>Job card</th><th>Checklist</th><th>Vehicle</th><th>Job status</th><th>Balance due</th></tr></thead>
+    <tbody>${rows.map(row => {
+      const job = byId.get(row.source_id);
+      const vehicle = job?.vehicles || {};
+      const vehicleName = [vehicle.year, vehicle.make, vehicle.model, vehicle.license_plate].filter(Boolean).join(" ");
+      const number = job ? (job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : row.reference;
+      return `<tr><td><a href="repairs.html?highlight=${encodeURIComponent(row.source_id)}">${escapeHtml(number || "Job card")}</a></td>
+      <td>${job?.checklist_number ? "#" + escapeHtml(job.checklist_number) : "—"}</td>
+      <td>${escapeHtml(vehicleName || "—")}</td><td><span class="credit-job-status">${escapeHtml(job?.status || "Job card")}</span></td>
+      <td class="credit-job-balance">${money(row.balance_due)}</td></tr>`;
+    }).join("")}</tbody></table></div></section>`;
+}
+
 function render() {
   if (!creditNotes.length) {
     list.innerHTML = '<div class="customer-credit-empty">No quotation deposit credit notes have been issued yet.</div>';
@@ -221,6 +254,7 @@ function render() {
           <div class="credit-doc-totals"><div><small>Original deposit</small><strong>${money(note.amount)}</strong></div><div><small>Refunded</small><strong>${money(status.refunded)}</strong></div><div><small>Applied</small><strong>${money(status.applied)}</strong></div><div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div></div>
           <div class="credit-doc-actions"><button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print receipt</button>${job ? `<a class="btn" href="repairs.html?highlight=${encodeURIComponent(job.id)}"><i data-lucide="clipboard-list"></i> Open linked job card</a>` : ""}<span>${expired ? "Quotation deposit window expired. Existing credit remains available." : "Quotation deposit valid for seven days from issue."}</span></div>
           ${applyFields}${refundFields}${refundNotice}${history}
+          ${renderUnpaidJobs(note)}
         </div>
       </details>`;
     }).join("")}</div>`;
@@ -311,3 +345,10 @@ list.addEventListener("click", async event => {
 
 refreshButton?.addEventListener("click", load);
 load();
+
+const creditLiveChannel = supabase.channel("customer-credit-job-status")
+  .on("postgres_changes", { event: "*", schema: "public", table: "repair_jobs" }, () => load())
+  .on("postgres_changes", { event: "*", schema: "public", table: "quotations" }, () => load())
+  .subscribe();
+window.addEventListener("focus", () => load());
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
