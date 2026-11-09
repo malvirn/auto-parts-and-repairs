@@ -926,7 +926,7 @@ async function load(){
  const storedMethod=matchingPayment?.payment_method||matchingPayment?.method||matchingPayment?.account_name||(linkedAccount?`${linkedAccount.code} — ${linkedAccount.name}`:null);
  return{kind:"receipt",id:x.id,repairJobId:x.repair_job_id,salesOrderId:x.sales_order_id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,voidedAt:x.voided_at,voidReason:x.void_reason,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref:x.repair_job_id?(job.cro_number||`Job #${job.job_number||x.repair_jobs?.job_number}`):ref,receiptAmount:currentPaid,paymentMethod:storedMethod||x.sales_orders?.payment_method||"Not recorded",jobPayment:context,jobCard,items:saleItems.length?saleItems.map(item=>({d:item.part_name,q:Number(item.quantity)||1,p:Number(item.unit_price_usd)||0})):jobItems.length?jobItems:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:currentPaid}],discount:Number(x.sales_orders?.discount_usd)||0,vat:0,status:jobStatus||"paid"}});
  const invoicePaymentsResult=await supabase.from("invoice_payments")
-  .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id,invoices(id,invoice_number,repair_job_id,customer_name,customer_phone,customer_email,reference,items,subtotal,discount,vat_rate,vat_base,total,amount_paid)")
+  .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id,voided_at,void_reason,invoices(id,invoice_number,repair_job_id,customer_name,customer_phone,customer_email,reference,items,subtotal,discount,vat_rate,vat_base,total,amount_paid)")
   .order("payment_date",{ascending:false}).limit(2000);
  if(invoicePaymentsResult.error){
   console.error("Couldn't load historical invoice payments:",invoicePaymentsResult.error);
@@ -1048,7 +1048,7 @@ function signalDocumentChange(table,label){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.creditRefundReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
 
 let creditActionMode=null;
 function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");creditActionMode=null }
@@ -1285,7 +1285,9 @@ async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
 function closeVoidModal(){$("receipt-void-modal").classList.add("hidden")}
 async function voidReceipt(){
  if(!cur||cur.kind!=="receipt"||cur.voidedAt||!canVoidReceipt())return;
- $("receipt-void-warning").textContent=`Void ${cur.number}? Linked job payments will be reversed, or the sales order will be cancelled and its stock returned. This does not record a cash refund.`;
+ $("receipt-void-warning").textContent=cur.invoicePaymentReceipt
+   ? `Void ${cur.number}? The payment will be removed from the invoice balance and its accounting journal will be reversed. This does not record a cash refund.`
+   : `Void ${cur.number}? Linked job payments will be reversed, or the sales order will be cancelled, its stock returned and its accounting journals reversed. This does not record a cash refund.`;
  $("receipt-void-reason").value="";
  $("receipt-void-message").textContent="";
  $("receipt-void-modal").classList.remove("hidden");
