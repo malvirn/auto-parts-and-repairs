@@ -847,7 +847,14 @@ async function load(){
  ]);
  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
  if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
- const creditLinksByNote=new Map((creditLinksResult.data||[]).map(link=>[String(link.credit_note_id),link]));
+ const creditLinksByNote=new Map();
+ (creditLinksResult.data||[]).forEach(link=>{
+  const key=String(link.credit_note_id),previous=creditLinksByNote.get(key);
+  creditLinksByNote.set(key,{
+   ...link,
+   applied_amount:Number(previous?.applied_amount||0)+Number(link.applied_amount||0),
+  });
+ });
  rows.creditNotes=(creditNotesResult.data||[]).map(note=>{
   const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items),link=creditLinksByNote.get(String(note.id));
   return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||""},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:Number(note.customer_overpayment_credits?.available_amount??amount)||0,originalCreditAmount:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null,linkedAppliedAmount:Number(link?.applied_amount)||0};
