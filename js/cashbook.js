@@ -289,7 +289,7 @@ async function loadCustomerBalances() {
   customerBalancesTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading customer balances…</td></tr>';
   const [overpayments, deposits] = await Promise.all([
     supabase.from("customer_overpayment_credits")
-      .select("id,invoice_id,customer_id,customer_name,customer_phone,amount,available_amount,payment_date,invoice_payments(payment_method),invoices(invoice_number)")
+      .select("id,invoice_id,customer_id,customer_name,customer_phone,amount,available_amount,payment_date,invoices(invoice_number)")
       .gt("available_amount", 0.005)
       .order("payment_date", { ascending: false }),
     supabase.from("customer_credit_balances")
