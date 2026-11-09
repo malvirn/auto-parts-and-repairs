@@ -86,10 +86,16 @@ begin
   ) returning id into entry_id;
 
   insert into public.journal_lines (journal_entry_id, account_id, debit, credit, memo)
-  values
-    (entry_id, cash_account.id, round(p_amount, 2), 0, 'Cash received'),
-    (entry_id, receivable_account.id, 0, amount_applied, 'Amount applied to invoice'),
-    (entry_id, customer_credit_account.id, 0, overpayment, 'Customer overpayment held as credit');
+  values (entry_id, cash_account.id, round(p_amount, 2), 0, 'Cash received');
+
+  if amount_applied > 0.005 then
+    insert into public.journal_lines (journal_entry_id, account_id, debit, credit, memo)
+    values (entry_id, receivable_account.id, 0, amount_applied, 'Amount applied to invoice');
+  end if;
+  if overpayment > 0.005 then
+    insert into public.journal_lines (journal_entry_id, account_id, debit, credit, memo)
+    values (entry_id, customer_credit_account.id, 0, overpayment, 'Customer overpayment held as credit');
+  end if;
 
   insert into public.invoice_payments (invoice_id, amount, payment_date, payment_method, journal_entry_id, created_by)
   values (invoice_row.id, round(p_amount, 2), p_payment_date, cash_account.name, entry_id, auth.uid())
