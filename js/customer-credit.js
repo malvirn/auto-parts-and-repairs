@@ -220,7 +220,7 @@ function render() {
     const noteNumber = kind === "deposit" ? `QCN-${note.credit_note_number}` : `CN-${note.note_number}`;
     const haystack = [noteNumber, note.customer_name, note.customer_phone, invoice.invoice_number, note.reference, note.payment_method, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
     const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
-    const amount = Number(kind === "deposit" ? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
+    const amount = Number(kind === "deposit" ? note.available_amount ?? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
     const status = kind === "deposit" ? noteStatus(note, movements.filter(item => item.deposit_receipt_id === note.id)).tone
       : amount <= 0.005 ? "applied" : amount < Number(note.amount || 0) - 0.005 ? "partial" : "available";
     return (!query || haystack.includes(query)) && (!from || date >= from) && (!to || date <= to)
@@ -307,10 +307,12 @@ function render() {
       const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
       const noteNumber = "CN-" + String(note.note_number).padStart(5, "0");
       const invoiceNumber = invoice.invoice_number ? "INV-" + String(invoice.invoice_number).padStart(5, "0") : "Original invoice";
+      const available = Number(note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
+      const statusLabel = available <= 0.005 ? "Used / refunded" : available < Number(note.amount || 0) - 0.005 ? "Partially used" : "Available";
       return '<article class="customer-credit-record" style="display:grid;gap:8px;padding:15px;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:var(--surface)">' +
-        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><strong class="credit-note-id">' + noteNumber + '</strong><span class="credit-note-status status-available">Invoice overpayment</span></div>' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><strong class="credit-note-id">' + noteNumber + '</strong><span class="credit-note-status status-' + (available <= 0.005 ? 'applied' : available < Number(note.amount || 0) - 0.005 ? 'partial' : 'available') + '">' + statusLabel + '</span></div>' +
         '<div class="credit-note-customer"><strong>' + escapeHtml(note.customer_name || "Customer") + '</strong><small>' + escapeHtml(invoiceNumber) + ' · Issued ' + dateLabel(note.issued_at) + '</small></div>' +
-        '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span><small>Original invoice total</small><br><strong>' + money(invoice.total) + '</strong></span><span style="text-align:right"><small>Amount carried forward</small><br><strong style="color:var(--green-bright);font-size:1.1rem">' + money(note.customer_overpayment_credits?.available_amount ?? note.amount) + '</strong></span></div><a class="btn" href="?creditNote=' + encodeURIComponent(note.id) + '">Open credit note</a></article>';
+        '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span><small>Original invoice total</small><br><strong>' + money(invoice.total) + '</strong></span><span style="text-align:right"><small>Amount carried forward</small><br><strong style="color:var(--green-bright);font-size:1.1rem">' + money(available) + '</strong></span></div><a class="btn" href="?creditNote=' + encodeURIComponent(note.id) + '">Open credit note</a></article>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
