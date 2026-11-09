@@ -136,7 +136,7 @@ function showModal(receipt, built, lines) {
           </div>`).join("")}
       </div>
       <textarea id="cn-reason" placeholder="Reason (returned, overcharge, cancelled...)" style="width:100%;margin-top:14px;min-height:60px"></textarea>
-      <label style="display:block;margin-top:8px"><input type="checkbox" id="cn-refund"> Cash refunded to customer</label>
+      <p style="margin:8px 0 0;color:var(--muted);font-size:12px">This credit note records the amount credited. Any cash refund must be processed separately through the customer credit refund workflow so the Cash Book and Ledger are updated.</p>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap">
         <strong id="cn-total">Total: $0.00</strong>
         <span style="display:flex;gap:8px">
@@ -176,7 +176,7 @@ function showModal(receipt, built, lines) {
         p_receipt_id: receipt.id,
         p_customer_id: built.customer?.id || null,
         p_reason: overlay.querySelector("#cn-reason").value,
-        p_refunded: overlay.querySelector("#cn-refund").checked,
+        p_refunded: false,
         p_items: items,
       });
       if (error) throw error;
