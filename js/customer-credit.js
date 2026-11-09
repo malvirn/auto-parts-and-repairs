@@ -229,7 +229,8 @@ function render() {
   const filteredCreditNotes = creditNotes.filter(note => matches(note, "deposit"));
   const filteredOverpaymentNotes = overpaymentCreditNotes.filter(note => matches(note, "overpayment"));
   if (!filteredCreditNotes.length && !filteredOverpaymentNotes.length) {
-    list.innerHTML = '<div class="customer-credit-empty">No customer credit notes have been issued yet.</div>';
+    const hasFilters = query || from || to || statusFilter || min !== null || max !== null;
+    list.innerHTML = `<div class="customer-credit-empty">${hasFilters ? "No credit notes match these filters." : "No customer credit notes have been issued yet."}</div>`;
     return;
   }
   const accountOptions = accounts.map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} · ${escapeHtml(account.name)}</option>`).join("");
@@ -299,7 +300,7 @@ function render() {
         </div>
       </details>`;
     }).join("")}</div>${filteredCreditNotes.length > creditVisible ? `<div class="rc-load-more"><button type="button" class="btn" data-credit-more="deposits">More credit notes (${Math.min(creditVisible, filteredCreditNotes.length)} of ${filteredCreditNotes.length})</button></div>` : ""}`;
-  if (overpaymentCreditNotes.length) {
+  if (filteredOverpaymentNotes.length) {
     const overpaymentTotal = overpaymentCreditNotes.reduce((sum, note) => sum + Number(note.amount || 0), 0);
     const invoiceNotesHtml = filteredOverpaymentNotes.slice(0, overpaymentVisible).map(note => {
       const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
@@ -308,7 +309,7 @@ function render() {
       return '<article class="customer-credit-record" style="display:grid;gap:8px;padding:15px;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:var(--surface)">' +
         '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><strong class="credit-note-id">' + noteNumber + '</strong><span class="credit-note-status status-available">Invoice overpayment</span></div>' +
         '<div class="credit-note-customer"><strong>' + escapeHtml(note.customer_name || "Customer") + '</strong><small>' + escapeHtml(invoiceNumber) + ' · Issued ' + dateLabel(note.issued_at) + '</small></div>' +
-        '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span><small>Original invoice total</small><br><strong>' + money(invoice.total) + '</strong></span><span style="text-align:right"><small>Amount carried forward</small><br><strong style="color:var(--green-bright);font-size:1.1rem">' + money(note.amount) + '</strong></span></div></article>';
+        '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span><small>Original invoice total</small><br><strong>' + money(invoice.total) + '</strong></span><span style="text-align:right"><small>Amount carried forward</small><br><strong style="color:var(--green-bright);font-size:1.1rem">' + money(note.customer_overpayment_credits?.available_amount ?? note.amount) + '</strong></span></div></article>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
