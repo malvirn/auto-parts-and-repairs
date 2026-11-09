@@ -883,8 +883,9 @@
       (cr.data || []).forEach(r => credits.set(r.customer_id, (credits.get(r.customer_id) || 0) + Number(r.amount || 0)));
       const map = new Map();
       const getCustomer = e => {
-        let c = map.get(e.customer_id);
-        if (!c) map.set(e.customer_id, c = { id: e.customer_id, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0, availableCredit: 0 });
+        const key = e.customer_id || `walkin:${String(e.customer_name || "Unnamed customer").trim().toLocaleLowerCase()}:${String(e.phone || "").trim()}`;
+        let c = map.get(key);
+        if (!c) map.set(key, c = { id: e.customer_id || key, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0, availableCredit: 0 });
         return c;
       };
       if (customerCredit.error) console.warn("Customer deposit balances are unavailable:", customerCredit.error);
@@ -904,7 +905,7 @@
 
     function cards() {
       const sum = k => customers.reduce((s, c) => s + c[k], 0);
-      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length), usd(sum("availableCredit"))];
+      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length), usd(customers.reduce((s, c) => s + c.availableCredit + Math.max(0, -c.balance), 0))];
       document.querySelectorAll("#cs-cards .stat-card__value").forEach((el, i) => { el.textContent = vals[i]; });
       window.__aprOwed = { amount: customers.reduce((s, c) => s + Math.max(c.balance, 0), 0), count: customers.filter(c => c.balance > 0.01).length };
       document.dispatchEvent(new Event("apr:owed"));
@@ -931,7 +932,7 @@
         return `<details class="cs-cust" data-id="${esc(c.id)}"${openIds.has(c.id) ? " open" : ""}>
           <summary><div><div class="cs-name">${esc(c.name)}</div><div class="cs-sub">${esc(c.phone || "No phone")} · ${c.rows.length} invoice${c.rows.length === 1 ? "" : "s"}</div></div><div class="cs-bal ${owe ? "owe" : "ok"}">${label}</div></summary>
           <div class="cs-body">
-            <div class="cs-facts"><div>Invoiced<b>${usd(c.total)}</b></div><div>Paid<b>${usd(c.paid)}</b></div><div>Balance<b>${usd(c.balance)}</b></div><div>Credit notes<b>${usd(c.credits)}</b></div><div>Available credit<b>${usd(c.availableCredit)}</b></div><div>Last activity<b>${day(c.last)}</b></div><div>Email<b style="font-size:.8rem;overflow-wrap:anywhere">${esc(c.email || "—")}</b></div></div>
+            <div class="cs-facts"><div>Invoiced<b>${usd(c.total)}</b></div><div>Paid<b>${usd(c.paid)}</b></div><div>Balance<b>${usd(c.balance)}</b></div><div>Credit notes<b>${usd(c.credits)}</b></div><div>Available credit<b>${usd(c.availableCredit + Math.max(0, -c.balance))}</b></div><div>Last activity<b>${day(c.last)}</b></div><div>Email<b style="font-size:.8rem;overflow-wrap:anywhere">${esc(c.email || "—")}</b></div></div>
             <div class="cs-wrap"><table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Invoiced</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>${remind}
           </div></details>`;
       }).join("") + (!showAll && !q && list.length > 15 ? `<button type="button" class="btn" id="cs-all">Show all ${list.length} customers</button>` : "");

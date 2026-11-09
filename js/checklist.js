@@ -92,13 +92,14 @@ function validateInspection(){
 }
 const normalizeMatch=value=>String(value||"").trim().toLocaleUpperCase();
 function setEditable(value){
- editable=value;
+ editable=value&&!record?.voided_at;
  ["customer-name-input","vehicle-registration-input","checked-by-input"].forEach(id=>$(id).readOnly=!editable);
  ["customer-name-input","vehicle-registration-input","checked-by-input","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
  $("fuel").disabled=!editable;
  $("odometer").disabled=!editable;
  $("save-checklist").hidden=!editable;
- $("delete-checklist").hidden=!record;
+ $("delete-checklist").hidden=!record||Boolean(record.voided_at);
+ $("void-checklist").hidden=!record||Boolean(record.voided_at);
  $("confirm-check").checked=false;
  $("save-checklist").disabled=editable;
  $("confirm-label").classList.toggle("hidden",!editable);
@@ -119,6 +120,7 @@ function startNewChecklist(prefillJob=null){
  $("fuel").value=prefillJob?.fuel_level_in||"";
  $("odometer").value=prefillJob?.odometer_in??"";
  $("confirmed-notice").classList.add("hidden");
+ $("voided-notice").classList.add("hidden");
  $("open-job").classList.add("hidden");
  $("link-existing-fields").hidden=true;
  $("detail-status").textContent=prefillJob?"Complete the required drop-off details and confirm this checklist.":"Enter the customer and vehicle details, then complete the checklist.";
@@ -129,13 +131,15 @@ function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
   const customer=item.customer_name||item.customers?.full_name||"Customer not recorded";
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
-  const status=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"Ready to link to a job card";
-  return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a><button class="btn btn--danger" type="button" data-delete-checklist="${esc(item.id)}">Delete</button></div></div>`;
+  const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
+  const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Ready to link to a job card";
+  const activeActions=item.voided_at?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
+  return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a>${activeActions}</div></div>`;
  }).join(""):'<p class="message">No saved vehicle checklists yet. Create one to begin.</p>';
 }
 async function loadList(){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,voided_at,void_reason,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .order("updated_at",{ascending:false}).limit(300);
  if(error)throw new Error(`Couldn't load saved checklists: ${error.message}`);
  renderChecklistList(data||[]);
@@ -147,7 +151,7 @@ async function loadJob(jobId){
 }
 async function loadRecord(id){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,voided_at,voided_by,void_reason,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .eq("id",id).single();
  if(error)throw new Error(`Couldn't load this checklist: ${error.message}`);
  return data;
@@ -166,20 +170,22 @@ async function showRecord(item){
  $("job-meta").hidden=!item.job_id;
  $("job-meta").textContent=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"";
  $("fuel").value=item.fuel_level_in||"";$("odometer").value=item.odometer_in??"";
- $("detail-status").textContent=item.confirmed_at?`Confirmed ${new Date(item.confirmed_at).toLocaleString()}. Edit checklist details here and confirm again to save changes.`:"Complete the checklist and confirm before creating a job card.";
+ $("detail-status").textContent=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()}. ${item.void_reason||"No reason recorded"}`:item.confirmed_at?`Confirmed ${new Date(item.confirmed_at).toLocaleString()}. Edit checklist details here and confirm again to save changes.`:"Complete the checklist and confirm before creating a job card.";
  $("save-checklist").textContent=item.confirmed_at?"Save checklist changes":"Save and confirm checklist";
- $("confirmed-notice").textContent=item.confirmed_at?`✓ Checklist confirmed by ${item.checked_by||"staff"}.`:"";
+ $("confirmed-notice").textContent=item.confirmed_at?`Checklist confirmed by ${item.checked_by||"staff"}.`:"";
  $("confirmed-notice").classList.toggle("hidden",!item.confirmed_at);
- $("open-job").classList.toggle("hidden",!item.confirmed_at);
+ $("voided-notice").textContent=item.voided_at?`Checklist voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:"";
+ $("voided-notice").classList.toggle("hidden",!item.voided_at);
+ $("open-job").classList.toggle("hidden",!item.confirmed_at||Boolean(item.voided_at));
  $("open-job").textContent=item.job_id?"Open linked job card":"Create job card with checklist details";
  $("open-job").href=item.job_id
   ?`repairs.html?job=${encodeURIComponent(item.job_id)}`
   :`repairs.html?checklist=${encodeURIComponent(item.id)}`;
- $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id);
+ $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id)||Boolean(item.voided_at);
  $("link-job").disabled=true;
- setEditable(true);
+ setEditable(!item.voided_at);
  setDetailMessage("");
- if(item.confirmed_at&&!item.job_id)await loadMatchingJobs(item);
+ if(item.confirmed_at&&!item.job_id&&!item.voided_at)await loadMatchingJobs(item);
 }
 async function loadMatchingJobs(item){
  const{data,error}=await supabase.from("repair_jobs")
@@ -197,6 +203,7 @@ async function loadMatchingJobs(item){
 }
 async function saveAndConfirm(){
  const button=$("save-checklist");
+ if(record?.voided_at)return setDetailMessage("This checklist is voided and cannot be changed.",true);
  if(!validateInspection())return;
  const customerName=$("customer-name-input").value.trim();
  const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
@@ -263,7 +270,7 @@ function printChecklist(){
   }).join("")}</tbody></table></section>`).join("");
  const checklistNumber=record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
  const linkedJob=selectedJob?(selectedJob.cro_number||`JC-${String(selectedJob.job_number??"").padStart(5,"0")}`):"—";
- const confirmed=record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
+ const confirmed=record?.voided_at?`Voided ${new Date(record.voided_at).toLocaleString()} · ${record.void_reason||"No reason recorded"}`:record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
  const note=String(report.notes||"").trim();
  const logo=new URL("../assets/logo.png",location.href).href;
  printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Vehicle checklist ${checklistNumber}</title>
@@ -316,20 +323,24 @@ $("confirm-check").onchange=event=>{$("save-checklist").disabled=!event.target.c
 $("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-check").checked)return setDetailMessage("Confirm that the customer name and registration above are correct for this vehicle at drop-off.",true);saveAndConfirm()};
 $("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
 $("delete-checklist").onclick=()=>deleteChecklist(record?.id);
+$("void-checklist").onclick=()=>voidChecklist(record?.id);
 $("print-checklist").onclick=printChecklist;
 $("checklist-list").addEventListener("click",event=>{
+ const voidButton=event.target.closest("[data-void-checklist]");
+ if(voidButton){voidChecklist(voidButton.dataset.voidChecklist,voidButton);return}
  const button=event.target.closest("[data-delete-checklist]");
  if(button)deleteChecklist(button.dataset.deleteChecklist,button);
 });
 $("link-job").onclick=async()=>{
  const button=$("link-job"),jobId=$("job-select").value;
- if(!record?.id||!jobId)return;
+ if(!record?.id||record.voided_at||!jobId)return;
  button.disabled=true;setDetailMessage("");
  const{error}=await supabase.rpc("link_vehicle_condition_checklist",{p_checklist_id:record.id,p_job_id:jobId});
  if(error){setDetailMessage(`Couldn't link checklist: ${error.message}`,true);button.disabled=false;return}
  location.href=`checklist.html?id=${encodeURIComponent(record.id)}`;
 };
 async function deleteChecklist(checklistId,button=$("delete-checklist")){
+ if(record?.id===checklistId&&record.voided_at)return;
  if(!checklistId||!await window.aprConfirm("Delete this checklist? This cannot be undone.",{title:"Delete checklist",confirmLabel:"Delete checklist",danger:true}))return;
  button.disabled=true;showMessage("");
  const{data,error}=await supabase.from("job_condition_reports").delete().eq("id",checklistId).select("id").maybeSingle();
@@ -347,6 +358,23 @@ async function deleteChecklist(checklistId,button=$("delete-checklist")){
  }
  await loadList();
  showMessage("Checklist deleted.");
+}
+async function voidChecklist(checklistId,button=$("void-checklist")){
+ if(!checklistId)return;
+ const reason=prompt("Reason for voiding this checklist:")?.trim();
+ if(!reason)return;
+ if(!await window.aprConfirm("Void this checklist? Its audit history will be retained.",{title:"Void checklist",confirmLabel:"Void checklist",danger:true}))return;
+ button.disabled=true;
+ const{error}=await supabase.rpc("void_vehicle_condition_checklist",{p_checklist_id:checklistId,p_reason:reason});
+ if(error){
+  const message=`Couldn't void checklist: ${error.message}`;
+  if(record?.id===checklistId)setDetailMessage(message,true);else showMessage(message,true);
+  button.disabled=false;
+  return;
+ }
+ if(record?.id===checklistId)await showRecord(await loadRecord(checklistId));
+ await loadList();
+ showMessage("Checklist voided. Its record and reason remain available for review.");
 }
 
 function jobRef(job){return job.cro_number||`JC-${String(job.job_number??"").padStart(5,"0")}`}
@@ -392,7 +420,7 @@ async function initialize(){
  if(checklistId){await showRecord(await loadRecord(checklistId));return}
  if(jobId){
   selectedJob=await loadJob(jobId);
-  const{data:linked,error}=await supabase.from("job_condition_reports").select("id").eq("job_id",jobId).maybeSingle();
+  const{data:linked,error}=await supabase.from("job_condition_reports").select("id").eq("job_id",jobId).is("voided_at",null).maybeSingle();
   if(error)throw new Error(`Couldn't find the job's checklist: ${error.message}`);
   if(linked){await showRecord(await loadRecord(linked.id));return}
   startNewChecklist(selectedJob);return;

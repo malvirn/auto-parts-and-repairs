@@ -426,6 +426,10 @@
           </div>
           <div><button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button></div>
 
+          <div class="quotation-personal-grid">
+            <label for="quote-prepared-by">Quotation created by<input id="quote-prepared-by" maxlength="120" autocomplete="name" placeholder="Name of staff member"></label>
+            <label class="field" for="quote-vat-enabled"><span>VAT</span><span><input id="quote-vat-enabled" type="checkbox" checked> Apply 5% VAT to parts</span></label>
+          </div>
           <div class="quotation-total"><span>Quotation Total</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
           <button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button>
         </form>
@@ -434,7 +438,15 @@
 
       <section class="page-section" id="quotation-list">
         <div class="section-heading"><div><p class="section-kicker">Issued documents</p><h2><i class="section-heading-icon" data-lucide="files"></i>Quotation List</h2></div><span class="section-note">Amend, negotiate, or convert</span></div>
-        <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="8" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
+        <div class="quotation-search-filters" role="search" aria-label="Filter quotations">
+          <label>Search quotation, customer or creator<input id="quote-filter-search" type="search" placeholder="Name, quotation number, creator"></label>
+          <label>Quotation number<input id="quote-filter-number" type="search" inputmode="numeric" placeholder="e.g. 1024"></label>
+          <label>From date<input id="quote-filter-from" type="date"></label>
+          <label>To date<input id="quote-filter-to" type="date"></label>
+          <label>Status<select id="quote-filter-status"><option value="">All statuses</option><option>Draft</option><option>Approved</option><option>Amended</option></select></label>
+          <button type="button" class="btn" id="quote-filter-clear"><i data-lucide="x"></i> Clear</button>
+        </div>
+        <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Created by</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table"><tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
       </div>
 

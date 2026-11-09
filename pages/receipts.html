@@ -753,7 +753,7 @@ const calc=o=>{const sub=Number(normalizeInvoiceItems(o.items).reduce((s,i)=>s+i
 const totalPaid=o=>o.kind==="receipt"?Number(o.receiptAmount??calc(o).total):calc(o).total;
 
 /* ---------- the document (invoice or receipt) ---------- */
-function docHTML(o){const t=calc(o),inv=o.kind==="invoice",balance=Math.max(0,t.total-Number(o.amountPaid||0)),showSubtotal=inv||Boolean(o.salesOrderId)||Boolean(o.invoicePaymentReceipt)||Boolean(o.jobCard);
+function docHTML(o){const t=calc(o),inv=o.kind==="invoice",balance=Math.max(0,t.total-Number(o.amountPaid||0)),customerCredit=Math.max(0,Number(o.amountPaid||0)-t.total),showSubtotal=inv||Boolean(o.salesOrderId)||Boolean(o.invoicePaymentReceipt)||Boolean(o.jobCard);
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
 <div><h1>${inv?"INVOICE":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
 ${o.voidedAt?`<div class="void-banner">VOID</div><p class="void-reason">Reason: ${esc(o.voidReason||"Not provided")}</p>`:""}
@@ -762,7 +762,7 @@ ${o.checklistNumber||o.jobCard?.checklistNumber?`<div style="display:inline-bloc
 <div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
 ${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
 <table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
-<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
+<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>${customerCredit?`<div><span>Customer credit</span><span>${usd(customerCredit)}</span></div>`:""}`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
 ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 
 /* ---------- load lists ---------- */
@@ -930,7 +930,7 @@ function render(){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;$("d-delete").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=!(cur.kind==="invoice"&&Number(cur.amountPaid||0)<calc(cur).total-.005)}
+function updateDocumentActions(){if(!cur)return;$("d-delete").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice"}
 async function loadRepairJobInvoiceDetails(invoice){
  const jobId=invoice.repairJobId;
  const[jobResult,partsResult,extrasResult]=await Promise.all([
@@ -1138,12 +1138,11 @@ $("invoice-payment-method").addEventListener("change",()=>populatePaymentAccount
 function openInvoicePayment(){
  if(!cur||cur.kind!=="invoice")return;
  const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
- if(balance<=0.005){toast("This invoice is already fully paid.");return}
  $("invoice-payment-summary").textContent=`${cur.number} · ${cur.customer.name||"Customer"} · ${usd(balance)} still due`;
  $("invoice-payment-percent").value="";
- $("invoice-payment-amount").value=balance.toFixed(2);
- $("invoice-payment-amount").max=balance.toFixed(2);
- $("invoice-payment-breakdown").textContent=`Original invoice: ${usd(calc(cur).total)} · Previously paid: ${usd(cur.amountPaid||0)} · Remaining: ${usd(balance)}. Percentages are calculated from the original invoice total.`;
+ $("invoice-payment-amount").value=balance>0.005?balance.toFixed(2):"";
+ $("invoice-payment-amount").removeAttribute("max");
+ $("invoice-payment-breakdown").textContent=`Original invoice: ${usd(calc(cur).total)} · Previously paid: ${usd(cur.amountPaid||0)} · Remaining: ${usd(balance)}. Any excess payment remains as customer credit.`;
  $("invoice-payment-date").value=new Date().toISOString().slice(0,10);
  $("invoice-payment-message").textContent="";
  $("invoice-payment-method").value="";
@@ -1502,7 +1501,7 @@ $("invoice-payment-save").onclick=async()=>{
  const amount=Number($("invoice-payment-amount").value),paymentDate=$("invoice-payment-date").value,accountId=$("invoice-payment-account").value,paymentMethod=$("invoice-payment-method").value;
  const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
  const message=$("invoice-payment-message"),saveButton=$("invoice-payment-save");
- if(!Number.isFinite(amount)||amount<=0||amount>balance+.005){message.textContent=`Enter a payment greater than zero and no more than ${usd(balance)}.`;message.dataset.tone="error";return}
+ if(!Number.isFinite(amount)||amount<=0){message.textContent="Enter a payment amount greater than zero. Overpayments remain as customer credit.";message.dataset.tone="error";return}
  if(!paymentDate||!paymentMethod||!accountId){message.textContent="Choose a payment date, payment method (Cash, Card, EcoCash or Bank), and the matching ledger account.";message.dataset.tone="error";return}
  saveButton.disabled=true;message.textContent="Recording payment…";message.dataset.tone="info";
  let paymentSaved=false;
@@ -1520,7 +1519,7 @@ $("invoice-payment-save").onclick=async()=>{
   history.replaceState(null,"",`${location.pathname}${cleanParams.toString()?"?"+cleanParams.toString():""}`);
   await load();
   await openInvoicePaymentReceipt(journalEntryId,lastPaymentContext.method);
-  toast("Payment recorded. The receipt is open.");
+  toast(amount>balance+0.005?"Payment recorded; the excess is customer credit. The receipt is open.":"Payment recorded. The receipt is open.");
  }catch(error){console.error("Couldn't record customer invoice payment:",error);message.textContent=`${paymentSaved?"Payment recorded, but the receipt could not be opened":"Couldn't record payment"}: ${error.message||String(error)}.`;message.dataset.tone="error"}
  finally{saveButton.disabled=false}
 };

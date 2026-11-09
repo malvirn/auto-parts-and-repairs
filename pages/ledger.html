@@ -394,7 +394,7 @@
           </div>
           <div class="payment-summary">
             <div><span>Amount applied to job</span><strong id="jb-pay-applied">$0.00</strong></div>
-            <div><span>Change to return</span><strong id="jb-pay-change" class="change-due">$0.00</strong></div>
+            <div><span>Customer credit after payment</span><strong id="jb-pay-change" class="change-due">$0.00</strong></div>
           </div>
           <p id="jb-payment-message" class="form-message" role="status" aria-live="polite"></p>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
@@ -627,11 +627,13 @@
                          .map(l => ({ ...l, total: l.qty * l.price }));
       const partsTotal = lines.reduce((s, l) => s + l.total, 0);
       const labour = Number(job.labour_cost || 0);
-      const taxableSubtotal = job.total_cost != null ? Number(job.total_cost) : partsTotal + labour;
-      const vat = Math.round(partsTotal * 0.05 * 100) / 100;
-      const total = Math.round((taxableSubtotal + vat) * 100) / 100;
+      const vatRate = Number(job.vat_rate || 0);
+      const vat = Math.round(partsTotal * vatRate) / 100;
+      const jobTotal = Number(job.total_cost);
+      const taxableSubtotal = Number.isFinite(jobTotal) ? Math.max(0, jobTotal - vat) : partsTotal + labour;
+      const total = Number.isFinite(jobTotal) ? jobTotal : Math.round((taxableSubtotal + vat) * 100) / 100;
       paid = Math.max(paid, Number(invoicePaid || 0));
-      return { job, lines, partsTotal, labour, taxableSubtotal, vat, total, paid, balance: Math.max(0, total - paid) };
+      return { job, lines, partsTotal, labour, taxableSubtotal, vat, vatRate, total, paid, balance: Math.max(0, total - paid) };
     }
 
     async function load() {
@@ -663,7 +665,7 @@
     function message(r) {
       const j = r.job, name = j.customers?.full_name || "";
       const car = [veh(j.vehicles), j.vehicles?.license_plate].filter(Boolean).join(" ") || "your vehicle";
-      return `Hello${name ? " " + name : ""}, ${car} (${jn(j)}) is ready. Subtotal ${money(r.taxableSubtotal)} + VAT 5% ${money(r.vat)} = ${money(r.total)}. Amount due: ${money(r.balance)}. Thank you.\nCentric Auto Mobile`;
+      return `Hello${name ? " " + name : ""}, ${car} (${jn(j)}) is ready. Subtotal ${money(r.taxableSubtotal)}${r.vatRate ? ` + VAT ${r.vatRate}% ${money(r.vat)}` : " (VAT not applied)"} = ${money(r.total)}. Amount due: ${money(r.balance)}. Thank you.\nCentric Auto Mobile`;
     }
 
     function render() {
@@ -691,8 +693,8 @@
               <tr><th>Services rendered</th><th></th><th></th></tr>
               <tr><td>${esc(j.work_done || j.fault_reported || "Labour")}</td><td>Labour</td><td>${money(r.labour)}</td></tr>
               <tr><td colspan="2">Subtotal</td><td>${money(r.taxableSubtotal)}</td></tr>
-              <tr><td colspan="2">VAT (5%)</td><td>${money(r.vat)}</td></tr>
-              <tr class="tot"><td colspan="2">Total including VAT</td><td>${money(r.total)}</td></tr>
+              <tr><td colspan="2">${r.vatRate ? `VAT (${r.vatRate}%)` : "VAT not applied"}</td><td>${money(r.vat)}</td></tr>
+              <tr class="tot"><td colspan="2">${r.vatRate ? "Total including VAT" : "Job total"}</td><td>${money(r.total)}</td></tr>
               <tr><td colspan="2">Paid so far</td><td>${money(r.paid)}</td></tr>
               <tr class="tot"><td colspan="2">Balance due</td><td>${money(r.balance)}</td></tr>
             </table>
@@ -754,9 +756,9 @@
       const balance = Number(activePaymentJob.balance || 0);
       const valid = Number.isFinite(received) && received > 0;
       const applied = valid ? Math.min(received, balance) : 0;
-      const change = valid ? Math.max(0, received - balance) : 0;
+      const customerCredit = valid ? Math.max(0, received - balance) : 0;
       $("jb-pay-applied").textContent = money(applied);
-      $("jb-pay-change").textContent = money(change);
+      $("jb-pay-change").textContent = money(customerCredit);
     }
 
     function derivePaymentAccountId(method) {
@@ -836,7 +838,7 @@
       try {
         const jobId = activePaymentJob.job.id;
         const { data: job, error: jobError } = await supabase.from("repair_jobs")
-          .select("id,job_number,cro_number,customer_id,total_cost,labour_cost,labour_hours,labour_mode,job_description,fault_reported,work_done,customers(full_name,phone,email),vehicles(license_plate)")
+          .select("id,job_number,cro_number,customer_id,total_cost,vat_rate,labour_cost,labour_hours,labour_mode,job_description,fault_reported,work_done,customers(full_name,phone,email),vehicles(license_plate)")
           .eq("id", jobId).single();
         if (jobError) throw new Error(`Couldn't reload the job card: ${jobError.message}`);
 
@@ -858,10 +860,12 @@
         const previouslyPaid = (paymentsResult.data || []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
         let invoice = invoiceResult.data?.[0] || null;
         if (!invoice) {
-          const subtotal = Number(job.total_cost || 0);
+          const subtotalWithVat = Number(job.total_cost || 0);
           const partsSubtotal = parts.reduce((sum, part) => sum + Number(part.quantity || 0) * Number(part.price_at_time || 0), 0);
-          const vat = Math.round(partsSubtotal * 0.05 * 100) / 100;
-          const total = Math.round((subtotal + vat) * 100) / 100;
+          const vatRate = Number(job.vat_rate || 0);
+          const vat = Math.round(partsSubtotal * vatRate) / 100;
+          const subtotal = Math.max(0, subtotalWithVat - vat);
+          const total = subtotalWithVat;
           if (!(total > 0)) throw new Error("The job total must be greater than zero before billing.");
           const items = parts.map(part => ({
             d: part.parts?.description || part.part_name || "Part",
@@ -886,10 +890,10 @@
             customer_email: job.customers?.email || null,
             items,
             discount: 0,
-            vat_rate: 5,
+            vat_rate: vatRate,
             subtotal,
             total,
-            amount_paid: Math.min(previouslyPaid, total),
+            amount_paid: previouslyPaid,
             status: previouslyPaid > 0 ? (previouslyPaid >= total - 0.005 ? "paid" : "partially_paid") : "unpaid",
             vat_base: partsSubtotal,
             notes: `Created from ${jn(job)} in General Ledger. ${job.fault_reported || ""}`,
@@ -901,11 +905,10 @@
         }
 
         const invoiceBalance = Math.max(0, Number(invoice.total || 0) - Number(invoice.amount_paid || 0));
-        const appliedNow = Math.min(received, invoiceBalance);
-        if (appliedNow <= 0.005) throw new Error("The invoice has no outstanding balance to collect.");
+        if (invoiceBalance <= 0.005) throw new Error("The invoice has no outstanding balance to collect.");
         const { data: journalEntryId, error: paymentError } = await supabase.rpc("record_customer_invoice_payment", {
           p_invoice_id: invoice.id,
-          p_amount: appliedNow,
+          p_amount: received,
           p_account_id: accountId,
           p_payment_date: paymentDate
         });

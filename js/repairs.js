@@ -1584,15 +1584,24 @@ form?.addEventListener("submit", async (e) => {
   try {
     const quoteId = new URLSearchParams(window.location.search).get("quote");
     let quotedItems = [];
+    let linkedQuote = null;
+    let quotedVatRate = null;
     if (quoteId) {
       const { data: quote, error: quoteError } = await supabase.from("quotations")
-        .select("customer_id, vehicle_id")
+        .select("customer_id, vehicle_id, walk_in_name, vat_rate")
         .eq("id", quoteId)
         .single();
       if (quoteError) throw new Error("Couldn't verify the quotation: " + quoteError.message);
-      if (quote.customer_id !== customerValue || (quote.vehicle_id && quote.vehicle_id !== vehicleValue)) {
+      const intakeCustomerName = newCustomer ? newCustomerName : selectedCustomer()?.full_name || $("f-name").value.trim();
+      const customerMatches = quote.customer_id
+        ? quote.customer_id === customerValue
+        : String(quote.walk_in_name || "").trim().toLocaleLowerCase() === String(intakeCustomerName || "").trim().toLocaleLowerCase();
+      if (!customerMatches || (quote.vehicle_id && quote.vehicle_id !== vehicleValue)) {
         throw new Error("This intake no longer matches the customer or vehicle on the quotation. Reopen the job-card action from that quotation.");
       }
+      linkedQuote = quote;
+      quotedVatRate = Number(quote.vat_rate ?? 5);
+      $("job-vat-enabled").checked = quotedVatRate > 0;
       const { data: items, error: itemsError } = await supabase.from("quotation_items")
         .select("part_id, item_type, part_name, quantity, unit_price_usd, total_usd")
         .eq("quotation_id", quoteId);
@@ -1623,6 +1632,14 @@ form?.addEventListener("submit", async (e) => {
       }
     }
 
+    if (quoteId && linkedQuote && !linkedQuote.customer_id) {
+      const { error } = await supabase.rpc("link_quotation_deposit_customer", {
+        p_quotation_id: quoteId,
+        p_customer_id: customer_id,
+      });
+      if (error) throw new Error("Couldn't link this walk-in quotation and its credit to the registered customer: " + error.message);
+    }
+
     // ---- 2. Create or update the selected vehicle ----
     let vehicle_id = vehicleValue;
     const vehicleDetails = { body_type, make, model: model || null, year, chassis_number, engine_number };
@@ -1640,7 +1657,7 @@ form?.addEventListener("submit", async (e) => {
     }
 
     if (intakePath === "quote") {
-      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}`;
+      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}&vat=${$("job-vat-enabled").checked ? 5 : 0}`;
       return;
     }
 
@@ -1648,6 +1665,7 @@ form?.addEventListener("submit", async (e) => {
     const jobRow = {
       customer_id,
       vehicle_id,
+      vat_rate: quotedVatRate ?? ($("job-vat-enabled").checked ? 5 : 0),
       fault_reported,
       status: statusValue,
       fuel_level_in,

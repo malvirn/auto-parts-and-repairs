@@ -715,6 +715,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <div class="two"><label for="f-custom-qty">Quantity<input id="f-custom-qty" type="number" min="1" step="1" value="1"></label><button class="btn" id="add-custom-part" type="button">Add typed-in part</button></div>
       <p class="section-note">Typed-in parts are added to the Accounting queue and must be priced there before being billed.</p>
       <div id="build-parts-list" aria-live="polite"></div>
+      <label class="job-vat-option" for="job-vat-enabled"><input id="job-vat-enabled" type="checkbox"> Apply 5% VAT to parts</label>
       <h3>5 · Work</h3>
       <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
       <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
@@ -1622,6 +1623,7 @@ $("job-whatsapp-send").onclick=()=>{
 /* ---------- create flow ---------- */
 async function openBuilder(fromChecklist=null){
  const params=new URLSearchParams(location.search);
+ $("job-vat-enabled").checked=false;
  activeChecklist=fromChecklist&&fromChecklist.checklist_number?fromChecklist:null;
  selectedJobParts=[];vehicles=[];
  buildInspection=emptyReport();
@@ -1664,6 +1666,7 @@ async function openBuilder(fromChecklist=null){
    const customer=quotation?.customers;
    const vehicle=quotation?.vehicles;
    const details=quotation?.vehicle_details||{};
+  $("job-vat-enabled").checked=Number(quotation.vat_rate??5)>0;
 
    if(quotation.customer_id&&builderCustomers.some(item=>item.id===quotation.customer_id)){
     $("f-cust").value=quotation.customer_id;
@@ -1856,7 +1859,7 @@ $("save").onclick=async()=>{const b=$("save");
   };
   if(!vid&&($("f-make").value||$("f-plate").value)){const r=await supabase.from("vehicles").insert({...vehicleDetails,customer_id:cid}).select().single();if(r.error)throw r.error;vid=r.data.id}
   else if(vid){const{error:vehicleError}=await supabase.from("vehicles").update(vehicleDetails).eq("id",vid);if(vehicleError)throw new Error(`Couldn't update vehicle details: ${vehicleError.message}`);}
-  const row={status:"Draft",customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
+  const row={status:"Draft",customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,vat_rate:$("job-vat-enabled").checked?5:0,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
   let r=await supabase.from("repair_jobs").insert(row).select().single();
   if(r.error&&row.technician_id){delete row.technician_id;r=await supabase.from("repair_jobs").insert(row).select().single();if(!r.error)toast("Saved without technician (column differs)")}
   if(r.error)throw r.error;
@@ -1864,6 +1867,13 @@ $("save").onclick=async()=>{const b=$("save");
   savedJobId=createdJobId;
   const quotationId=new URLSearchParams(location.search).get("quote");
   if(quotationId){
+    const{data:quoteIdentity,error:quoteIdentityError}=await supabase.from("quotations").select("customer_id").eq("id",quotationId).single();
+    if(quoteIdentityError)throw new Error(`Couldn't verify the quotation customer: ${quoteIdentityError.message}`);
+    if(quoteIdentity.customer_id&&String(quoteIdentity.customer_id)!==String(cid))throw new Error("This job card customer does not match the quotation customer.");
+    if(!quoteIdentity.customer_id){
+     const{error:creditLinkError}=await supabase.rpc("link_quotation_deposit_customer",{p_quotation_id:quotationId,p_customer_id:cid});
+     if(creditLinkError)throw new Error(`Couldn't link the walk-in quotation credit to the customer: ${creditLinkError.message}`);
+    }
    const{error:quotationLinkError}=await supabase.from("quotations").update({
     repair_job_id:createdJobId,
     status:"Approved",

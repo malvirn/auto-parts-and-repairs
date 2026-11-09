@@ -10,6 +10,8 @@ const qtyInput = document.getElementById("quote-qty");
 const draftList = document.getElementById("quote-draft-items");
 const quoteTotal = document.getElementById("quote-total");
 const quoteTable = document.getElementById("quotations-table");
+const quoteVatEnabled = document.getElementById("quote-vat-enabled");
+if (new URLSearchParams(window.location.search).get("vat") === "0" && quoteVatEnabled) quoteVatEnabled.checked = false;
 const orderTable = document.getElementById("orders-table");
 const quoteModal = document.getElementById("quote-edit-modal");
 const orderModal = document.getElementById("order-edit-modal");
@@ -24,6 +26,7 @@ let editingOrder = null;
 let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
+let quotationRows = [];
 let quoteSubmissionInProgress = false;
 const busyActions = new WeakSet();
 const lib = src => new Promise((resolve, reject) => {
@@ -46,12 +49,13 @@ function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
 function lineTotalOf(item) { return Number((Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)); }
 function totalOf(items) { return items.reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + lineTotalOf(item), 0); }
-function quotationTotals(items) {
+function quotationTotals(items, vatRate = 5) {
   const subtotal = Number(totalOf(items || []).toFixed(2));
   const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
-  const vat = Number((partsSubtotal * 0.05).toFixed(2));
+  const vat = Number((partsSubtotal * Number(vatRate || 0) / 100).toFixed(2));
   return { subtotal, partsSubtotal, vat, total: Number((subtotal + vat).toFixed(2)) };
 }
+function quotationVatRate() { return quoteVatEnabled?.checked ? 5 : 0; }
 async function zigTotal(usd) { return Number((usd * await getRate()).toFixed(2)); }
 function itemType(item) {
   if (item.item_type) return item.item_type;
@@ -307,8 +311,9 @@ function renderDraft() {
     `).join("");
     draftList.querySelectorAll(".remove-quote-line").forEach(button => button.addEventListener("click", () => { draftItems.splice(Number(button.dataset.index), 1); renderDraft(); }));
   }
-  const totals = quotationTotals(draftItems);
-  quoteTotal.textContent = `${money(totals.total)} incl. VAT (${money(totals.vat)} on parts) / ZiG ${Number(totals.total * exchangeRate).toFixed(2)}`;
+  const vatRate = quotationVatRate();
+  const totals = quotationTotals(draftItems, vatRate);
+  quoteTotal.textContent = `${money(totals.total)}${vatRate ? ` incl. VAT (${money(totals.vat)} on parts)` : ""} / ZiG ${Number(totals.total * exchangeRate).toFixed(2)}`;
   if (window.lucide) lucide.createIcons();
 }
 
@@ -533,7 +538,8 @@ quoteForm.addEventListener("submit", async event => {
   }
 
   const rate = await getRate();
-  const quoteTotals = quotationTotals(draftItems);
+  const vatRate = quotationVatRate();
+  const quoteTotals = quotationTotals(draftItems, vatRate);
   const totalUsd = quoteTotals.total;
   const numericLimit = 9999999999.99;
   const itemRows = draftItems.map(item => {
@@ -561,6 +567,7 @@ quoteForm.addEventListener("submit", async event => {
   const notes = job?.diagnosis ? `Diagnosis: ${job.diagnosis}` : null;
   const { data: quote, error } = await supabase.from("quotations").insert([{
     customer_id, vehicle_id, fault_reported, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
+    vat_rate: vatRate, prepared_by: document.getElementById("quote-prepared-by").value.trim() || null,
     total_usd: totalUsd, total_zig: totalUsd * rate, vehicle_details: quotationVehicleDetails(),
     walk_in_name, walk_in_phone, walk_in_email, notes,
   }]).select().single();
@@ -589,24 +596,54 @@ quoteForm.addEventListener("submit", async event => {
 quoteForm.addEventListener("input", event => {
   event.target.removeAttribute("data-missing");
 });
+quoteVatEnabled?.addEventListener("change", renderDraft);
 
-async function loadDocuments() {
-  const [quotes, orders] = await Promise.all([
-    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, customer_id, vehicle_id, fault_reported, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
-    supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
-  ]);
-  quoteTable.innerHTML = quotes.data?.length ? quotes.data.map(quote => {
-    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}"><i data-lucide="badge-dollar-sign"></i> Deposit</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
-  }).join("") : `<tr><td colspan="8" class="empty-state"><i data-lucide="file-x-2"></i><span>No quotations yet</span></td></tr>`;
-  orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Edit</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
+function renderQuotationRows() {
+  const search = document.getElementById("quote-filter-search").value.trim().toLocaleLowerCase();
+  const number = document.getElementById("quote-filter-number").value.trim();
+  const from = document.getElementById("quote-filter-from").value;
+  const to = document.getElementById("quote-filter-to").value;
+  const status = document.getElementById("quote-filter-status").value;
+  const filtered = quotationRows.filter(quote => {
+    const customer = quote.customers?.full_name || quote.walk_in_name || "";
+    const createdBy = quote.prepared_by || "";
+    const createdDate = String(quote.created_at || "").slice(0, 10);
+    const queryMatch = !search || [quote.quotation_number, customer, createdBy, quote.status].some(value => String(value || "").toLocaleLowerCase().includes(search));
+    return queryMatch && (!number || String(quote.quotation_number).includes(number))
+      && (!from || createdDate >= from) && (!to || createdDate <= to)
+      && (!status || quote.status === status);
+  });
+  quoteTable.innerHTML = filtered.length ? filtered.map(quote =>
+    `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}"><i data-lucide="badge-dollar-sign"></i> Deposit</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`
+  ).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;
   document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
-  document.querySelectorAll(".open-quote-job").forEach(button => button.addEventListener("click", async () => {
+  document.querySelectorAll(".open-quote-job").forEach(button => button.addEventListener("click", () => {
     if (button.dataset.jobId) {
       window.location.href = `repairs.html?edit=${encodeURIComponent(button.dataset.jobId)}`;
       return;
     }
     openQuotationJobApproval(button.dataset.id);
   }));
+  if (window.lucide) lucide.createIcons();
+}
+
+["quote-filter-search", "quote-filter-number", "quote-filter-from", "quote-filter-to", "quote-filter-status"].forEach(id => {
+  document.getElementById(id).addEventListener("input", renderQuotationRows);
+  document.getElementById(id).addEventListener("change", renderQuotationRows);
+});
+document.getElementById("quote-filter-clear").addEventListener("click", () => {
+  ["quote-filter-search", "quote-filter-number", "quote-filter-from", "quote-filter-to", "quote-filter-status"].forEach(id => { document.getElementById(id).value = ""; });
+  renderQuotationRows();
+});
+
+async function loadDocuments() {
+  const [quotes, orders] = await Promise.all([
+    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, prepared_by, customer_id, vehicle_id, fault_reported, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
+    supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
+  ]);
+  quotationRows = quotes.data || [];
+  renderQuotationRows();
+  orderTable.innerHTML = orders.data?.length ? orders.data.map(order => `<tr><td>#${order.order_number}</td><td>${escapeHtml(order.customers?.full_name || order.walk_in_name || "—")}</td><td>${order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(order.status)}</td><td>${money(order.total_usd)}</td><td>${Number(order.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn edit-order" data-id="${order.id}"><i data-lucide="pencil"></i> Edit</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state"><i data-lucide="shopping-cart"></i><span>No sales orders yet</span></td></tr>`;
   document.querySelectorAll(".edit-order").forEach(button => button.addEventListener("click", () => openOrderEditor(button.dataset.id)));
   if (window.lucide) lucide.createIcons();
 }
@@ -632,7 +669,7 @@ async function fetchOrder(id) {
   return { data, error };
 }
 
-async function renderEditor(container, totalNode, items, rate = exchangeRate, isQuotation = false) {
+async function renderEditor(container, totalNode, items, rate = exchangeRate, isQuotation = false, vatRate = 5) {
   container.innerHTML = items.map((item, index) => {
     const isLabour = itemType(item) === "labour";
     const flatEstimate = isLabour && /provider estimate/i.test(item.part_name || "");
@@ -640,7 +677,7 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate, is
   }).join("");
   const recalc = () => {
     const current = items.map((item, index) => ({ ...item, quantity: Number(container.querySelectorAll(".amend-qty")[index].value || 0), unit_price_usd: Number(container.querySelectorAll(".amend-price")[index].value || 0) }));
-    const totals = isQuotation ? quotationTotals(current) : { total: totalOf(current), vat: 0 };
+    const totals = isQuotation ? quotationTotals(current, vatRate) : { total: totalOf(current), vat: 0 };
     totalNode.textContent = `${money(totals.total)}${totals.vat ? ` incl. VAT (${money(totals.vat)} on parts)` : ""} / ZiG ${Number(totals.total * rate).toFixed(2)}`;
   };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));
@@ -676,7 +713,8 @@ function buildDetailText(record, kind, items) {
   const vehicle = record.vehicles || job.vehicles || record.vehicle_details || {};
   const number = docNumber(record, kind);
   const isQuote = kind === "Quotation";
-  const totals = isQuote ? quotationTotals(items || []) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
+  const vatRate = Number(record.vat_rate ?? 5);
+  const totals = isQuote ? quotationTotals(items || [], vatRate) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
   const vehicleText = vehicle.license_plate || vehicleLabel(vehicle)
     ? `${vehicleLabel(vehicle) || "vehicle"}${vehicle.license_plate ? ` (registration ${vehicle.license_plate})` : ""}`
     : "";
@@ -706,7 +744,8 @@ function buildDetailText(record, kind, items) {
     isQuote ? `Quoted items:` : `Order items:`,
     lines || "(No items)",
     ``,
-    isQuote ? `Subtotal: ${usd(totals.subtotal)}\nVAT (5% of parts): ${usd(totals.vat)}\nTotal including VAT: ${usd(totals.total)} (${zig(totals.total * Number(record.usd_to_zig_rate || 0))} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)` : `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
+    isQuote && record.prepared_by ? `Created by: ${record.prepared_by}` : null,
+    isQuote ? `Subtotal: ${usd(totals.subtotal)}\n${vatRate ? `VAT (${vatRate}% of parts): ${usd(totals.vat)}\n` : "VAT: Not applied\n"}Total: ${usd(totals.total)} (${zig(totals.total * Number(record.usd_to_zig_rate || 0))} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)` : `Total: ${usd(record.total_usd)} (${zig(record.total_zig)} at ${Number(record.usd_to_zig_rate || 0).toFixed(4)} ZiG per US dollar)`,
     ``,
     isQuote
       ? `This quotation is valid for seven (7) days from the date above, and prices are subject to the availability of parts. To proceed, kindly reply to confirm and we will schedule the work.`
@@ -728,7 +767,8 @@ function buildDetailHtml(record, kind, items) {
   const vehicle = record.vehicles || job.vehicles || record.vehicle_details || {};
   const number = docNumber(record, kind);
   const isQuote = kind === "Quotation";
-  const totals = isQuote ? quotationTotals(items || []) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
+  const vatRate = Number(record.vat_rate ?? 5);
+  const totals = isQuote ? quotationTotals(items || [], vatRate) : { subtotal: totalOf(items || []), vat: 0, total: Number(record.total_usd || totalOf(items || [])) };
   const rows = (items || []).map(item => `
     <tr><td>${itemTypeLabel(item)}</td><td>${itemType(item) === "part" ? escapeHtml(item.part_name) : "—"}</td><td>${itemQuantityDisplay(item)}</td><td>${itemUnitPriceDisplay(item)}</td><td>${money(item.quantity * item.unit_price_usd)}</td></tr>
   `).join("") || `<tr><td colspan="5">No line items</td></tr>`;
@@ -748,6 +788,7 @@ function buildDetailHtml(record, kind, items) {
         <strong>${escapeHtml(customer.full_name)}</strong>
         <span>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? ` · ${escapeHtml(customer.email)}` : ""}</span>
       </section>
+      ${isQuote && record.prepared_by ? `<p class="quotation-paper-note">Created by: ${escapeHtml(record.prepared_by)}</p>` : ""}
       ${isQuote
         ? (vehicle.make || vehicle.model ? `<section class="quotation-paper-vehicle">
             ${vehicle.make ? `<div><span class="quotation-paper-kicker">Vehicle name</span><strong>${escapeHtml(vehicle.make)}</strong></div>` : ""}
@@ -768,7 +809,7 @@ function buildDetailHtml(record, kind, items) {
       <h3 class="quotation-paper-lines-title">${kind === "Quotation" ? "Quoted items" : "Order items"}</h3>
       <table class="quotation-paper-table"><thead><tr><th>Type</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
       <section class="quotation-paper-total">
-        ${isQuote ? `<span>Subtotal</span><span>${money(totals.subtotal)}</span><span>VAT (5% of parts)</span><span>${money(totals.vat)}</span>` : ""}
+        ${isQuote ? `<span>Subtotal</span><span>${money(totals.subtotal)}</span><span>${vatRate ? `VAT (${vatRate}% of parts)` : "VAT not applied"}</span><span>${money(totals.vat)}</span>` : ""}
         <span>Total payable</span>
         <strong>${money(totals.total)}</strong>
         <span>ZiG ${Number(totals.total * Number(record.usd_to_zig_rate || 0)).toFixed(2)}</span>
@@ -1071,7 +1112,7 @@ async function openQuoteEditor(id) {
   setText("edit-quote-number", editingQuote.quotation_number);
   editingQuoteDetailText = buildDetailText(editingQuote, "Quotation", editingQuote.quotation_items);
   document.getElementById("quote-detail-text").innerHTML = buildDetailHtml(editingQuote, "Quotation", editingQuote.quotation_items);
-  await renderEditor(document.getElementById("edit-quote-lines"), document.getElementById("edit-quote-total"), editingQuote.quotation_items, editingQuote.usd_to_zig_rate, true);
+  await renderEditor(document.getElementById("edit-quote-lines"), document.getElementById("edit-quote-total"), editingQuote.quotation_items, editingQuote.usd_to_zig_rate, true, Number(editingQuote.vat_rate ?? 5));
   quoteModal.classList.remove("hidden"); quoteModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
 }
@@ -1092,7 +1133,11 @@ async function saveQuoteChanges() {
     alert("The quotation exchange rate is invalid.");
     return;
   }
-  const { error } = await supabase.rpc("amend_customer_quotation", { p_quotation_id: editingQuote.id, p_items: items });
+  const { error } = await supabase.rpc("amend_customer_quotation_with_vat", {
+    p_quotation_id: editingQuote.id,
+    p_items: items,
+    p_vat_rate: Number(editingQuote.vat_rate ?? 5),
+  });
   if (error) {
     alert(`Couldn't save quotation changes: ${error.message}`);
     return;

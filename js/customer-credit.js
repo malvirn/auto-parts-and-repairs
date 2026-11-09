@@ -41,7 +41,7 @@ async function load() {
   list.innerHTML = `<div class="customer-credit-empty">Loading customer credit…</div>`;
   const [receiptsResult, balancesResult, movementsResult, targetsResult, accountsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
-      .select("id, credit_note_number, quotation_id, customer_id, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at), customers(full_name)")
+      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at), customers(full_name)")
       .order("created_at", { ascending: false }),
     supabase.from("customer_credit_balances").select("deposit_receipt_id, available_amount"),
     supabase.from("customer_credit_movements")
@@ -89,7 +89,10 @@ function render() {
       const quoteNumber = note.quotations?.quotation_number ?? "—";
       const createdDate = note.quotations?.created_at ? businessDate(note.quotations.created_at) : "";
       const expired = createdDate && businessDate() > new Date(Date.parse(`${createdDate}T00:00:00Z`) + 7 * 86400000).toISOString().slice(0, 10);
-      const quoteTargets = targets.filter(target => target.customer_id === note.customer_id);
+      const noteName = note.customer_name || note.customers?.full_name || "";
+      const quoteTargets = targets.filter(target => note.customer_id
+        ? target.customer_id === note.customer_id
+        : String(target.customer_name || "").trim().toLocaleLowerCase() === noteName.trim().toLocaleLowerCase());
       const targetOptions = quoteTargets.map(target => {
         const type = target.source_type === "Repair job" ? "repair_job" : target.source_type === "Sales order" ? "sales_order" : "invoice";
         return `<option value="${type}|${escapeHtml(target.source_id)}">${escapeHtml(target.reference)} · due ${money(target.balance_due)}</option>`;
@@ -123,7 +126,7 @@ function render() {
         : "";
       return `<tr>
         <td><strong>QCN-${String(note.credit_note_number).padStart(6, "0")}</strong><small>${escapeHtml(note.payment_method)}${note.reference ? ` · ${escapeHtml(note.reference)}` : ""}</small>${history}</td>
-        <td>${escapeHtml(note.customers?.full_name || "Customer")}<small>Quotation #${escapeHtml(quoteNumber)} · ${expired ? "Quote expired; credit remains available" : "7-day quote window"}</small></td>
+        <td>${escapeHtml(noteName || "Customer")}<small>${note.customer_phone ? `${escapeHtml(note.customer_phone)} · ` : ""}Quotation #${escapeHtml(quoteNumber)} · ${expired ? "Quote expired; credit remains available" : "7-day quote window"}</small></td>
         <td>${dateLabel(note.payment_date)}</td><td>${money(note.amount)}</td><td><strong>${money(note.available_amount)}</strong></td>
         <td>${applyFields}${refundFields}${refundNotice}</td>
       </tr>`;

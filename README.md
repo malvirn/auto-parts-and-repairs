@@ -24,6 +24,8 @@ For Quick Sale Bank/EcoCash payments and customer credit with later installment 
 
 For quotation deposit credit notes, customer-credit applications, partial refunds, and reversals, apply `supabase/migrations/quotation-deposits-customer-credit.sql` after the quotation, receipt-voiding, invoice-payment, Quick Sale, and customer-statement migrations. It creates liability account 2300 and updates the customer statement view while preserving existing receipt credit notes.
 
+For optional VAT on quotations and job cards, checklist voiding, and carrying job-payment overpayments as customer credit, apply `supabase/migrations/quotation-vat-checklist-void-overpayments.sql` after `workflow-integrity-fixes.sql`, `customer-invoice-payments.sql`, `vehicle-condition-checklist.sql`, and `quotation-deposits-customer-credit.sql`.
+
 Customers are archived with a `deleted_at` timestamp and can be restored from the archived-customer list; their historical jobs and account entries are retained. Bulk deletion for other supported records remains destructive and requires typing `DELETE`. All actions remain subject to the signed-in user's existing database policies. Generated records and login accounts continue to use their source-specific deletion and reauthentication flows.
 
 ## Main entry points
