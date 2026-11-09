@@ -59,6 +59,7 @@ function applyAccess(role, account = {}) {
   document.body.dataset.role = role;
   document.body.dataset.accountName = account.fullName || account.email || "Account";
   document.body.dataset.accountEmail = account.email || "";
+  document.body.dataset.accessLevel = String(account.accessLevel ?? "");
   const markDeleteControls = root => {
     root.querySelectorAll?.('button[id*="delete"], button[class*="delete"], button[id*="archive"], button[class*="archive"], .tier-del, .fp-del, [aria-label^="Delete"], [aria-label^="Remove"], [data-delete-document], .bulk-delete-toolbar').forEach(button => {
       button.classList.add("requires-super-admin-delete");
@@ -269,7 +270,7 @@ async function protectPage() {
   }
 
   authStage = "applying page access";
-  applyAccess(profile.role, { fullName: profile.full_name, email: user.email });
+  applyAccess(profile.role, { fullName: profile.full_name, email: user.email, accessLevel: profile.access_level });
 }
 
 if (!isLoginPage) {
