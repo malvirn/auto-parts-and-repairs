@@ -62,6 +62,8 @@ const formMessage = $("job-form-message");
 let currentEditJobId = null;
 let currentEditJob = null;
 let currentJobPaid = null;
+let currentJobAppliedCredit = null;
+let currentJobAccountCredit = null;
 let newlyCreatedJobId = null;
 let jobPartSubmissionInProgress = false;
 let incidentalSubmissionInProgress = false;
@@ -237,9 +239,10 @@ async function updateZigDisplay() {
   setText("jc-t-inc", money(cardIncidentalsTotal));
   setText("jc-t-total", money(total));
   if (currentEditJobId) {
-    setText("job-payment-summary", Number.isFinite(currentJobPaid)
-      ? `Total ${money(total)} · Paid ${money(currentJobPaid)} · Balance ${money(Math.max(0, total - currentJobPaid))}`
-      : "Payment balance unavailable");
+    setText("job-payment-summary",
+      Number.isFinite(currentJobPaid) && Number.isFinite(currentJobAppliedCredit) && Number.isFinite(currentJobAccountCredit)
+        ? `Total ${money(total)} · Paid ${money(currentJobPaid)} · Credit applied ${money(currentJobAppliedCredit)} · Account credit ${money(currentJobAccountCredit)} · Balance ${money(Math.max(0, total - currentJobPaid - currentJobAppliedCredit - currentJobAccountCredit))}`
+        : "Payment balance unavailable");
   }
   if (!zigTotal) return;
   const rate = await getRate();
@@ -1346,6 +1349,8 @@ async function loadJobPayments(jobId) {
     .order("paid_at");
   if (error) {
     currentJobPaid = null;
+    currentJobAppliedCredit = null;
+    currentJobAccountCredit = null;
     summary.textContent = `Couldn't load payments: ${error.message}`;
     console.error("Error loading job payments:", error);
     return;
@@ -1357,22 +1362,27 @@ async function loadJobPayments(jobId) {
     applied = await repairJobAppliedCredit(jobId);
   } catch (applicationError) {
     currentJobPaid = null;
+    currentJobAppliedCredit = null;
+    currentJobAccountCredit = null;
     summary.textContent = `Payments loaded, but applied customer credit couldn't be checked: ${applicationError.message}`;
     console.error("Error loading applied customer credit:", applicationError);
     return;
   }
   currentJobPaid = paid;
+  currentJobAppliedCredit = applied;
   const total = currentJobTotal();
   let credit = 0;
   if (currentEditJob?.customer_id) {
     try {
       credit = await availableCustomerCredit(currentEditJob.customer_id, jobId);
     } catch (creditError) {
+      currentJobAccountCredit = null;
       summary.textContent = `Payments loaded, but customer credit couldn't be checked: ${creditError.message}`;
       console.error("Error checking customer carry-forward credit:", creditError);
       return;
     }
   }
+  currentJobAccountCredit = credit;
   const due = Math.max(0, total - paid - applied - credit);
   summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${applied > 0.01 ? ` · Credit note applied ${money(applied)}` : ""}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid - applied)))}` : ""} · Balance ${money(due)}`;
   history.innerHTML = payments.length
