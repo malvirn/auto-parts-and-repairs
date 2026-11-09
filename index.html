@@ -780,11 +780,15 @@
        const sidebar = $("sidebar");
        const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
        const isMobile = () => matchMedia("(max-width: 768px)").matches;
-       try {
-         if (localStorage.getItem("apr-sidebar-collapsed") === "true") body.classList.add("sidebar-collapsed");
-       } catch (error) {
-         console.warn("Could not read saved sidebar state:", error);
-       }
+       // The saved "collapsed" choice is a desktop setting; on a phone the menu is a drawer.
+       const applySavedCollapse = () => {
+         let saved = false;
+         try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
+           console.warn("Could not read saved sidebar state:", error);
+         }
+         body.classList.toggle("sidebar-collapsed", saved && !isMobile());
+       };
+       applySavedCollapse();
        const syncSidebar = () => {
          const compact = body.classList.contains("sidebar-collapsed");
          const open = isMobile() ? body.classList.contains("sidebar-open") : !compact;
@@ -818,6 +822,7 @@
        });
        addEventListener("resize", () => {
          if (!isMobile()) body.classList.remove("sidebar-open");
+         applySavedCollapse();
          syncSidebar();
        }, { passive: true });
        document.addEventListener("apr:access-ready", () => setTimeout(syncSidebar, 0));

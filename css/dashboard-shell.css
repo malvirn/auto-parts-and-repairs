@@ -2117,3 +2117,12 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
     white-space: normal;
   }
 }
+
+/* Phones: the menu is a slide-in drawer. "Open" must always win over a leftover
+   desktop "collapsed" flag, otherwise the drawer stays off-screen. */
+@media (max-width: 768px) {
+  body.dashboard-page.dashboard-workshop.sidebar-open .sidebar {
+    transform: translateX(0) !important;
+    width: min(280px, 86vw) !important;
+  }
+}

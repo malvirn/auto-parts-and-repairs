@@ -486,11 +486,17 @@ function initializeNavigation() {
     const toggle = document.getElementById("dashboard-sidebar-toggle");
     const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
     const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
-    try {
-      if (localStorage.getItem("apr-sidebar-collapsed") === "true") document.body.classList.add("sidebar-collapsed");
-    } catch (error) {
-      console.warn("Could not read saved sidebar state:", error);
-    }
+    // The saved "collapsed" choice is a desktop setting. On a phone the menu is a
+    // slide-in drawer, and the collapsed flag used to keep that drawer off-screen
+    // while the toggle button still jumped over the header icons.
+    const applySavedCollapse = () => {
+      let saved = false;
+      try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
+        console.warn("Could not read saved sidebar state:", error);
+      }
+      document.body.classList.toggle("sidebar-collapsed", saved && !isMobile());
+    };
+    applySavedCollapse();
     const syncSidebar = () => {
       const compact = document.body.classList.contains("sidebar-collapsed");
       const open = isMobile() ? document.body.classList.contains("sidebar-open") : !compact;
@@ -546,6 +552,7 @@ function initializeNavigation() {
       });
       window.addEventListener("resize", () => {
         if (!isMobile()) document.body.classList.remove("sidebar-open");
+        applySavedCollapse();
         syncSidebar();
       }, { passive: true });
     }
