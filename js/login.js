@@ -9,6 +9,11 @@ const messageEl = document.getElementById("login-message");
 const submitBtn = document.getElementById("login-submit");
 const forgotPasswordBtn = document.getElementById("forgot-password");
 const openedFromFile = window.location.protocol === "file:";
+const ADMIN_LOGIN_EMAIL = "malvirngomo8@gmail.com";
+function resolveLoginEmail(value) {
+  const input = String(value || "").trim();
+  return input.toLowerCase() === "admin" ? ADMIN_LOGIN_EMAIL : input;
+}
 
 if (openedFromFile) {
   showMessage("This app cannot connect to Supabase reliably when opened as a file. Start a local web server or open the hosted HTTPS site.", "error");
@@ -37,13 +42,14 @@ function showMessage(text, tone) {
 
 forgotPasswordBtn?.addEventListener("click", async () => {
   const emailInput = document.getElementById("login-email");
-  const email = emailInput.value.trim();
+  const enteredLogin = emailInput.value.trim();
+  const email = resolveLoginEmail(enteredLogin);
   if (!email) {
     emailInput.focus();
     showMessage("Enter your email address first, then choose the password reset link.", "error");
     return;
   }
-  if (!emailInput.checkValidity()) {
+  if (enteredLogin.toLowerCase() !== "admin" && !emailInput.checkValidity()) {
     emailInput.reportValidity();
     return;
   }
@@ -187,7 +193,7 @@ form.addEventListener("submit", async (e) => {
   showMessage("", "");
   busy = true;
   setLoading();
-  const email = document.getElementById("login-email").value.trim();
+  const email = resolveLoginEmail(document.getElementById("login-email").value);
   const password = document.getElementById("login-password").value;
   const ok = await signIn({ step: 0, email, password });
   if (!ok) { busy = false; }
