@@ -116,6 +116,42 @@
     .checklist-row .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
     .checklist-row .actions .btn{text-align:center}
   }
+
+  /* Compact vehicle inspection layout: more breathing room, less vertical clutter. */
+  .checklist-page{max-width:1080px}
+  .checklist-page>.card{padding:clamp(14px,2.2vw,24px)}
+  .heading{margin-bottom:16px}
+  .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+  .fields>label{display:grid;gap:6px;min-width:0;color:var(--check-muted);font-size:.78rem;font-weight:700}
+  .condition-group{margin:12px 0 0;padding:13px}
+  .condition-group legend{padding:0 7px;font-size:.9rem}
+  .cond-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .cond-card{grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto;justify-items:stretch;align-items:center;gap:5px 9px;padding:9px 10px;text-align:left}
+  .cond-card .pi{grid-column:1;grid-row:1/3;width:36px;height:36px;margin:auto}
+  .cond-card .damage-name{grid-column:2;grid-row:1;min-height:0;margin:0;font-size:.76rem;line-height:1.25;text-align:left}
+  .cond-card .cond-select{grid-column:2;grid-row:2;width:100%;min-height:34px;margin:0;padding:5px 8px;font-size:.76rem}
+  .notes-field{display:grid;gap:7px;margin-top:14px;color:var(--check-muted);font-size:.8rem;font-weight:700}
+  .liability-note{margin-top:14px;padding:12px 14px;border-radius:10px;line-height:1.45}
+  .actions{gap:8px;margin-top:14px}
+  @media(max-width:900px){.cond-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){
+    .main{margin:0!important;padding:14px!important}
+    .heading{align-items:flex-start;margin-bottom:14px}
+    .heading>div{min-width:0}
+    .heading>.btn{width:auto;flex:none}
+    .card{padding:14px}
+    .fields{grid-template-columns:1fr;gap:10px}
+    .condition-group{padding:10px}
+    .cond-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    .cond-card{grid-template-columns:30px minmax(0,1fr);gap:4px 7px;padding:8px 7px}
+    .cond-card .pi{width:29px;height:29px}
+    .cond-card .damage-name{font-size:.7rem}
+    .cond-card .cond-select{min-height:32px;padding:4px 6px;font-size:.72rem}
+    .checklist-row{align-items:stretch}
+    .checklist-row>div:first-child{min-width:0;overflow-wrap:anywhere}
+    .checklist-row .actions{display:flex;flex-wrap:wrap;width:100%}
+  }
+
 </style>
 </head>
 <body class="dashboard-page dashboard-workshop">
