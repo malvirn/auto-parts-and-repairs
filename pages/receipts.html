@@ -1334,6 +1334,55 @@ html,body{margin:0;padding:0;background:#fff;color:#17211b;font:13px/1.55 "Inter
 ${extra}
 @page{size:A4;margin:10mm}
 @media print{html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}#doc{break-inside:avoid}}
+
+/* Quotation credit notes: clean job-card style, with a compact summary and printable detail. */
+#customer-credit-panel .customer-credit-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+#customer-credit-panel .customer-credit-summary>div{display:grid;gap:4px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+#customer-credit-panel .customer-credit-summary small,.credit-doc-facts small,.credit-doc-totals small{color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+#customer-credit-panel .customer-credit-summary strong{font-size:1.15rem;font-variant-numeric:tabular-nums}
+#customer-credit-panel .customer-credit-records{display:grid;gap:10px}
+#customer-credit-panel .customer-credit-record{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+#customer-credit-panel .customer-credit-record__summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:15px;cursor:pointer;list-style:none}
+#customer-credit-panel .customer-credit-record__summary::-webkit-details-marker{display:none}
+#customer-credit-panel .credit-note-id{padding:6px 9px;border-radius:8px;background:rgba(31,196,103,.13);color:var(--green-bright);font-weight:800;white-space:nowrap}
+#customer-credit-panel .credit-note-customer{display:grid;gap:3px;min-width:0}
+#customer-credit-panel .credit-note-customer small,#customer-credit-panel .credit-note-balance small{color:var(--muted);font-size:.78rem}
+#customer-credit-panel .credit-note-balance{display:grid;gap:3px;text-align:right}
+#customer-credit-panel .credit-note-status{display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;border:1px solid var(--line);border-radius:99px;font-size:.73rem;font-weight:750;white-space:nowrap}
+#customer-credit-panel .status-available{color:#20c477;background:rgba(32,196,119,.1)}
+#customer-credit-panel .status-partial{color:#f0b54a;background:rgba(240,181,74,.1)}
+#customer-credit-panel .status-refunded{color:#ff8a8a;background:rgba(255,107,107,.1)}
+#customer-credit-panel .status-applied{color:#8ab5ff;background:rgba(80,140,255,.1)}
+#customer-credit-panel .customer-credit-document{padding:17px;border-top:1px solid var(--line);background:var(--surface)}
+#customer-credit-panel .credit-doc-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+#customer-credit-panel .credit-doc-heading small{color:var(--orange);font-size:.68rem;font-weight:800;letter-spacing:.12em}
+#customer-credit-panel .credit-doc-heading h3{margin:3px 0 0;font-size:1.15rem}
+#customer-credit-panel .credit-doc-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#customer-credit-panel .credit-doc-facts>div,#customer-credit-panel .credit-doc-totals>div{display:grid;gap:4px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+#customer-credit-panel .credit-doc-facts strong{overflow-wrap:anywhere}
+#customer-credit-panel .credit-doc-facts span{color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+#customer-credit-panel .credit-doc-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}
+#customer-credit-panel .credit-doc-totals strong{font-size:1rem;font-variant-numeric:tabular-nums}
+#customer-credit-panel .credit-doc-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0;color:var(--muted);font-size:.8rem}
+#customer-credit-panel .customer-credit-actions{display:grid;grid-template-columns:minmax(170px,1fr) minmax(110px,.55fr) minmax(140px,.8fr) auto;align-items:center;gap:8px;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+#customer-credit-panel .customer-credit-actions select,#customer-credit-panel .customer-credit-actions input{min-width:0;width:100%;min-height:40px}
+#customer-credit-panel .credit-history-row{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+#customer-credit-panel .credit-history-row small{grid-column:1/-1;color:var(--muted)}
+#customer-credit-panel .credit-history-row .btn{grid-column:1/-1;justify-self:start}
+#customer-credit-panel .customer-credit-history{display:block;margin-top:12px}
+#customer-credit-panel .customer-credit-history summary{cursor:pointer;color:var(--muted);font-size:.84rem}
+@media(max-width:760px){
+ #customer-credit-panel .customer-credit-summary{grid-template-columns:1fr 1fr}
+ #customer-credit-panel .customer-credit-record__summary{grid-template-columns:1fr auto;gap:8px}
+ #customer-credit-panel .credit-note-customer{grid-column:1/-1;grid-row:2}
+ #customer-credit-panel .credit-note-balance{grid-column:1;grid-row:3;text-align:left}
+ #customer-credit-panel .credit-note-status{grid-column:2;grid-row:3;justify-self:end}
+ #customer-credit-panel .credit-doc-totals{grid-template-columns:1fr 1fr}
+ #customer-credit-panel .customer-credit-actions{grid-template-columns:1fr 1fr}
+ #customer-credit-panel .customer-credit-actions select:first-child,#customer-credit-panel .customer-credit-actions input.credit-reason{grid-column:1/-1}
+}
+@media print{#customer-credit-panel .customer-credit-record:not([open]){display:none}}
+
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
