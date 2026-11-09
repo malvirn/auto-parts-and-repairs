@@ -115,7 +115,8 @@ function renderActivityEvents() {
     .filter(({ event }) => activeHistoryFilter === "all"
       || (activeHistoryFilter === "charges" && ["charge", "sale", "invoice"].includes(event.type))
       || (activeHistoryFilter === "payments" && ["payment", "receipt"].includes(event.type))
-      || (activeHistoryFilter === "balances" && event.type === "balance"));
+      || (activeHistoryFilter === "balances" && event.type === "balance")
+      || (activeHistoryFilter === "overpayments" && ["overpayment", "credit"].includes(event.type)));
   activityList.innerHTML = matchingEvents.length
     ? matchingEvents.map(({ event, index }) => activityRow(event, index)).join("")
     : '<p class="section-note">No matching transactions were found.</p>';
@@ -147,7 +148,7 @@ async function loadCustomerHistory(customer) {
   directoryMessage.dataset.tone = "info";
 
   const warnings = [];
-  const [vehicles, jobs, quotations, orders, invoices] = await Promise.all([
+  const [vehicles, jobs, quotations, orders, invoices, overpaymentCredits] = await Promise.all([
     loadOptionalRows("Customer vehicles", () => supabase.from("vehicles")
       .select("id,license_plate,make,model,year,chassis_number,engine_number,body_type")
       .eq("customer_id", customer.id).order("license_plate"), warnings),
@@ -163,6 +164,9 @@ async function loadCustomerHistory(customer) {
     loadOptionalRows("Invoices", () => supabase.from("invoices")
       .select("id,invoice_number,total,amount_paid,status,issued_at,due_date,reference,items")
       .eq("customer_id", customer.id).order("issued_at", { ascending: false }), warnings),
+    loadOptionalRows("Customer overpayment credits", () => supabase.from("customer_overpayment_credits")
+      .select("id,amount,available_amount,payment_date,created_at,invoice_id,customer_overpayment_credit_notes(note_number)")
+      .eq("customer_id", customer.id).order("created_at", { ascending: false }), warnings),
   ]);
 
   const jobIds = jobs.map(job => job.id);
@@ -413,6 +417,19 @@ async function loadCustomerHistory(customer) {
     });
   }
 
+  for (const credit of overpaymentCredits) {
+    const note = Array.isArray(credit.customer_overpayment_credit_notes)
+      ? credit.customer_overpayment_credit_notes[0] : credit.customer_overpayment_credit_notes;
+    const available = Number(credit.available_amount || 0);
+    events.push({
+      date: credit.payment_date || credit.created_at,
+      title: `Invoice overpayment credit${note?.note_number ? ` CN-${String(note.note_number).padStart(5, "0")}` : ""}`,
+      detail: `Original overpayment ${money(credit.amount)} · available ${money(available)}`,
+      amount: available, type: "overpayment",
+      details: [["Original overpayment", money(credit.amount)], ["Available credit", money(available)], ["Payment date", dateLabel(credit.payment_date || credit.created_at)]],
+    });
+  }
+
   events.sort((left, right) => new Date(right.date || 0).getTime() - new Date(left.date || 0).getTime());
   currentEvents = events;
   activeHistoryFilter = "all";
@@ -420,10 +437,9 @@ async function loadCustomerHistory(customer) {
   const paymentCount = events.filter(event => event.type === "payment").length;
   const balance = totalCharges - totalPaid;
   const balanceLabel = balance > 0.01 ? "Outstanding balance" : balance < -0.01 ? "Net customer credit" : "Account balance";
+  const overpaymentCredit = overpaymentCredits.reduce((sum, credit) => sum + Number(credit.available_amount || 0), 0);
   const profile = [
     ["Customer type", customer.customer_type === "company" ? "Company" : "Individual"],
-    ["Phone", customer.phone || "Not recorded"],
-    ["Email", customer.email || "Not recorded"],
     ["Customer since", dateLabel(customer.created_at)],
     ["Record status", customer.deleted_at ? "Archived" : "Active"],
   ];
@@ -437,7 +453,8 @@ async function loadCustomerHistory(customer) {
       <button type="button" class="customer-history-stat" data-history-filter="charges" aria-pressed="false"><span>Total charges</span><strong>${money(totalCharges)}</strong><small>Click to view transactions</small></button>
       <button type="button" class="customer-history-stat" data-history-filter="payments" aria-pressed="false"><span>Recorded payments</span><strong>${money(totalPaid)}</strong><small>${paymentCount} payment record(s) · click to view</small></button>
       <button type="button" class="customer-history-stat" data-history-filter="balances" aria-pressed="false"><span>${escapeHtml(balanceLabel)}</span><strong class="${balance > 0.01 ? "customer-balance--due" : balance < -0.01 ? "customer-balance--credit" : ""}">${money(Math.abs(balance))}</strong><small>Click to view balances</small></button>
-      <button type="button" class="customer-history-stat" data-history-filter="all" aria-pressed="true"><span>Recorded interactions</span><strong>${events.length}</strong><small>Click to view all history</small></button>
+      <button type="button" class="customer-history-stat" data-history-filter="overpayments" aria-pressed="false"><span>Overpayment credit</span><strong class="customer-balance--credit">${money(overpaymentCredit)}</strong><small>Available to carry forward or refund</small></button>
+      <button type="button" class="customer-history-stat" data-history-filter="all" aria-pressed="true"><span>Recorded transactions</span><strong>${events.length}</strong><small>Click to view all history</small></button>
     </div>
     ${warnings.length ? `<p class="customer-activity-warnings" role="status">${warnings.map(escapeHtml).join("<br>")}</p>` : ""}
     <h4>Full interaction history</h4>
