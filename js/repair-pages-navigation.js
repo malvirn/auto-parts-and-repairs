@@ -581,6 +581,7 @@ function initializeNavigation() {
 }
 
 function ensureSidebarAccount(sidebar) {
+  if (!sidebar) return;
   let account = sidebar.querySelector(".sidebar-account");
   if (!account) {
     account = document.createElement("section");
@@ -595,11 +596,20 @@ function ensureSidebarAccount(sidebar) {
     name.className = "sidebar-account__name";
     const role = document.createElement("small");
     role.className = "sidebar-account__role";
-    details.append(name, role);
-    const signOut = document.createElement("button");
+    const online = document.createElement("small");
+    online.className = "sidebar-account__online";
+    details.append(name, role, online);
+    account.append(avatar, details);
+  }
+  let signOut = sidebar.querySelector(".sidebar-account__signout");
+  if (!signOut) {
+    signOut = document.createElement("button");
     signOut.type = "button";
     signOut.className = "sidebar-account__signout";
     signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i><span>Sign out</span>';
+  }
+  if (!signOut.dataset.bound) {
+    signOut.dataset.bound = "true";
     signOut.addEventListener("click", async () => {
       signOut.disabled = true;
       try {
@@ -613,9 +623,14 @@ function ensureSidebarAccount(sidebar) {
         signOut.disabled = false;
       }
     });
-    account.append(avatar, details, signOut);
-    sidebar.prepend(account);
   }
+  let footer = sidebar.querySelector(".sidebar-account__footer");
+  if (!footer) {
+    footer = document.createElement("div");
+    footer.className = "sidebar-account__footer";
+    footer.setAttribute("aria-label", "Account actions");
+  }
+  footer.append(signOut);
 
   let scrollArea = sidebar.querySelector(":scope > .sidebar-scroll");
   if (!scrollArea) {
@@ -623,21 +638,33 @@ function ensureSidebarAccount(sidebar) {
     scrollArea.className = "sidebar-scroll";
   }
   [...sidebar.children].forEach(child => {
-    if (child !== account && child !== scrollArea) scrollArea.append(child);
+    if (child !== account && child !== scrollArea && child !== footer) scrollArea.append(child);
   });
-  sidebar.append(scrollArea);
+  sidebar.style.setProperty("display", "flex", "important");
+  sidebar.style.setProperty("flex-direction", "column", "important");
+  sidebar.style.setProperty("overflow", "hidden", "important");
+  sidebar.prepend(account);
+  sidebar.append(scrollArea, footer);
 
   const accountName = document.body.dataset.accountName || "Account";
   const roleName = (document.body.dataset.role || "staff")
-    .split("_")
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+    .split("_").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+  const accessLevel = document.body.dataset.accessLevel;
   const name = account.querySelector(".sidebar-account__name");
   const role = account.querySelector(".sidebar-account__role");
   const avatar = account.querySelector(".sidebar-account__avatar");
+  const online = account.querySelector(".sidebar-account__online");
   if (name) name.textContent = accountName;
-  if (role) role.textContent = `Access level · ${roleName}`;
-  if (avatar) avatar.textContent = accountName.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "A";
+  if (role) role.textContent = accessLevel ? `Access level ${accessLevel} · ${roleName}` : `Access · ${roleName}`;
+  if (avatar) avatar.textContent = accountName.trim().split(/\\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "A";
+  const updateOnline = () => {
+    if (!online) return;
+    online.dataset.state = navigator.onLine ? "online" : "offline";
+    online.textContent = navigator.onLine ? "Online" : "Offline";
+  };
+  updateOnline();
+  window.addEventListener("online", updateOnline);
+  window.addEventListener("offline", updateOnline);
 }
 
 async function initializeAfterAccess() {
