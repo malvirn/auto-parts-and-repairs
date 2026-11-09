@@ -2126,3 +2126,16 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
     width: min(280px, 86vw) !important;
   }
 }
+
+
+/* Account identity stays visible at the top; sign out is pinned to the bottom. */
+body.dashboard-page .sidebar-account{flex:none;margin:0 0 12px}
+body.dashboard-page .sidebar-scroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+body.dashboard-page .sidebar-account__details{gap:5px}
+body.dashboard-page .sidebar-account__role{display:inline-flex;width:max-content;max-width:100%;padding:4px 7px;border:1px solid rgba(31,196,103,.32);border-radius:7px;background:rgba(31,196,103,.1);color:#a8f2c7;font-size:9px;letter-spacing:.04em;white-space:normal}
+body.dashboard-page .sidebar-account__online{display:inline-flex;align-items:center;gap:6px;color:#7ce5a9;font-size:10px;font-weight:700}
+body.dashboard-page .sidebar-account__online::before{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.75);content:""}
+body.dashboard-page .sidebar-account__online[data-state="offline"]{color:#ff9a6b}
+body.dashboard-page .sidebar-account__online[data-state="offline"]::before{background:#ff7a12;box-shadow:0 0 8px rgba(255,122,18,.65)}
+body.dashboard-page .sidebar-account__footer{flex:none;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
+body.dashboard-page .sidebar-account__footer .sidebar-account__signout{width:100%;min-height:44px;justify-content:center;font-size:13px}
