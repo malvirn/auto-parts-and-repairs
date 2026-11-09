@@ -1055,8 +1055,8 @@ function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");c
 function openCreditAction(mode){
  if(!cur||cur.kind!=="credit_note")return;
  creditActionMode=mode;
- $("credit-action-title").textContent=mode==="link"?"Link credit note to job card":"Refund customer credit";
- $("credit-action-summary").textContent=cur.number+" · Available credit "+usd(cur.availableAmount);
+ $("credit-action-title").textContent=mode==="link"?"Apply credit to job card":"Refund customer credit";
+ $("credit-action-summary").textContent=cur.number+" · Available credit "+usd(cur.availableAmount)+(cur.linkedChecklist?" · Previously applied to checklist #"+cur.linkedChecklist+": "+usd(cur.linkedAppliedAmount):"");
  $("credit-link-fields").hidden=mode!=="link";
  $("credit-refund-fields").hidden=mode!=="refund";
  $("credit-action-message").textContent="";
