@@ -219,7 +219,7 @@ function render() {
             <div><small>Payment</small><strong>${escapeHtml(note.payment_method)}</strong><span>${dateLabel(note.payment_date)} · ${escapeHtml(note.reference || "No reference")}</span></div>
           </div>
           <div class="credit-doc-totals"><div><small>Original deposit</small><strong>${money(note.amount)}</strong></div><div><small>Refunded</small><strong>${money(status.refunded)}</strong></div><div><small>Applied</small><strong>${money(status.applied)}</strong></div><div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div></div>
-          <div class="credit-doc-actions"><button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print receipt</button><span>${expired ? "Quotation deposit window expired. Existing credit remains available." : "Quotation deposit valid for seven days from issue."}</span></div>
+          <div class="credit-doc-actions"><button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print receipt</button>${job ? `<a class="btn" href="repairs.html?highlight=${encodeURIComponent(job.id)}"><i data-lucide="clipboard-list"></i> Open linked job card</a>` : ""}<span>${expired ? "Quotation deposit window expired. Existing credit remains available." : "Quotation deposit valid for seven days from issue."}</span></div>
           ${applyFields}${refundFields}${refundNotice}${history}
         </div>
       </details>`;
