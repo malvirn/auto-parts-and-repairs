@@ -1404,6 +1404,31 @@ ${extra}
 #customer-credit-panel .credit-job-status{display:inline-flex;padding:4px 8px;border:1px solid var(--line);border-radius:20px;background:var(--surface-2)}
 #customer-credit-panel .credit-job-balance{font-weight:800;font-variant-numeric:tabular-nums}
 
+
+/* Credit note presentation follows the job-card document layout. */
+#customer-credit-panel .customer-credit-document{padding:0 0 16px;overflow:hidden;border-radius:0 0 13px 13px}
+#customer-credit-panel .credit-doc-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px;margin:0;padding:20px 22px 17px;background:#29384f;color:#f4f7fb}
+#customer-credit-panel .credit-doc-heading small{color:#ff9a42;letter-spacing:.1em}
+#customer-credit-panel .credit-doc-heading h3{margin:5px 0 0;font-size:1.25rem;color:#fff}
+#customer-credit-panel .credit-doc-heading .credit-note-status{grid-column:1/-1;justify-self:start;margin-top:3px;background:#fff2df;color:#94431f;border-color:#f3d7b5}
+#customer-credit-panel .credit-doc-facts{padding:14px 18px 4px;gap:0 14px}
+#customer-credit-panel .credit-doc-facts>div{border:0;border-radius:0;background:transparent;border-bottom:1px solid var(--line);padding:12px 4px}
+#customer-credit-panel .credit-doc-facts small{font-size:.67rem;letter-spacing:.08em}
+#customer-credit-panel .credit-doc-facts strong{font-size:.95rem}
+#customer-credit-panel .credit-doc-totals{grid-template-columns:1fr;gap:0;margin:8px 18px 14px;border-top:1px solid var(--line)}
+#customer-credit-panel .credit-doc-totals>div{display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;border-radius:0;border-bottom:1px solid var(--line);background:transparent;padding:14px 4px}
+#customer-credit-panel .credit-doc-totals small{font-size:.82rem;letter-spacing:0;text-transform:none;color:var(--text)}
+#customer-credit-panel .credit-doc-totals strong{font-size:1rem}
+#customer-credit-panel .credit-doc-totals>div:last-child{border-top:2px solid var(--line);font-weight:800}
+#customer-credit-panel .credit-doc-actions,#customer-credit-panel .customer-credit-actions,#customer-credit-panel .customer-credit-history,#customer-credit-panel .credit-unpaid-jobs{margin-left:18px;margin-right:18px}
+#customer-credit-panel .credit-doc-actions{margin-top:14px}
+@media(max-width:760px){
+ #customer-credit-panel .credit-doc-heading{padding:17px}
+ #customer-credit-panel .credit-doc-facts{grid-template-columns:1fr 1fr;padding:10px 14px}
+ #customer-credit-panel .credit-doc-totals{margin-left:14px;margin-right:14px}
+ #customer-credit-panel .credit-doc-actions,#customer-credit-panel .customer-credit-actions,#customer-credit-panel .customer-credit-history,#customer-credit-panel .credit-unpaid-jobs{margin-left:14px;margin-right:14px}
+}
+
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
