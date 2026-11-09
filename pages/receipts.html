@@ -877,6 +877,49 @@ async function load(){
  const linkedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
  const storedMethod=matchingPayment?.payment_method||matchingPayment?.method||matchingPayment?.account_name||(linkedAccount?`${linkedAccount.code} — ${linkedAccount.name}`:null);
  return{kind:"receipt",id:x.id,repairJobId:x.repair_job_id,salesOrderId:x.sales_order_id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,voidedAt:x.voided_at,voidReason:x.void_reason,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref:x.repair_job_id?(job.cro_number||`Job #${job.job_number||x.repair_jobs?.job_number}`):ref,receiptAmount:currentPaid,paymentMethod:storedMethod||x.sales_orders?.payment_method||"Not recorded",jobPayment:context,jobCard,items:saleItems.length?saleItems.map(item=>({d:item.part_name,q:Number(item.quantity)||1,p:Number(item.unit_price_usd)||0})):jobItems.length?jobItems:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:currentPaid}],discount:Number(x.sales_orders?.discount_usd)||0,vat:0,status:jobStatus||"paid"}});
+ const invoicePaymentsResult=await supabase.from("invoice_payments")
+  .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id,invoices(id,invoice_number,repair_job_id,customer_name,customer_phone,customer_email,reference,items,subtotal,discount,vat_rate,vat_base,total,amount_paid)")
+  .order("payment_date",{ascending:false}).limit(2000);
+ if(invoicePaymentsResult.error){
+  console.error("Couldn't load historical invoice payments:",invoicePaymentsResult.error);
+  $("list").dataset.invoicePaymentsErr="Some invoice payment receipts could not be loaded: "+invoicePaymentsResult.error.message;
+ }else{
+  delete $("list").dataset.invoicePaymentsErr;
+  const payments=invoicePaymentsResult.data||[];
+  const paidByInvoice=new Map();
+  payments.forEach(payment=>{
+   const key=String(payment.invoice_id);
+   paidByInvoice.set(key,(paidByInvoice.get(key)||0)+Number(payment.amount||0));
+  });
+  const invoicePaymentReceipts=payments.filter(payment=>payment.invoices).map(payment=>{
+   const invoice=payment.invoices,items=normalizeInvoiceItems(invoice.items);
+   const total=Number(invoice.total)||Number(invoice.subtotal)||0;
+   const paidBefore=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-Number(payment.amount||0));
+   const amount=Number(payment.amount)||0;
+   const applied=Math.min(amount,Math.max(0,total-paidBefore));
+   const totalApplied=Math.min(total,paidBefore+applied);
+   const credit=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-total);
+   return{
+    kind:"receipt",id:null,invoicePaymentReceipt:true,
+    number:"PAY-"+String(invoice.invoice_number).padStart(5,"0")+"-"+String(payment.id).slice(0,6).toUpperCase(),
+    date:payment.payment_date,repairJobId:invoice.repair_job_id,
+    customer:{name:invoice.customer_name||"Customer",phone:invoice.customer_phone||"",email:invoice.customer_email||""},
+    ref:invoice.reference||"INV-"+String(invoice.invoice_number).padStart(5,"0"),
+    receiptAmount:amount,paymentMethod:payment.payment_method||"Not recorded",
+    items:items.map(item=>({d:item.d,q:item.q,p:item.p})),
+    discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),
+    vatBase:Number(invoice.vat_base??invoice.subtotal)||0,
+    carriedForward:credit,
+    jobPayment:{
+     jobTotal:total,previousPaid:paidBefore,currentPaid:applied,received:amount,
+     customerCredit:credit,totalPaid:totalApplied,balance:Math.max(0,total-totalApplied),
+     status:total-totalApplied<=0.005?"paid":totalApplied>0?"partially_paid":"unpaid"
+    }
+   };
+  });
+  rows.receipts=[...rows.receipts,...invoicePaymentReceipts]
+   .sort((left,right)=>new Date(right.date||0)-new Date(left.date||0));
+ }
  if(r.error||paymentResult.error){
   const loadError=r.error||paymentResult.error;
   console.error("Couldn't load complete receipt details:",loadError);
