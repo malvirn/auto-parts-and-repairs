@@ -524,6 +524,15 @@ select.st option{background:#10181a;color:#eef3ef}
 .pane-switch{display:none;gap:8px;margin:14px 0}
 .pane-btn{flex:1;min-height:44px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--muted);font:600 .9rem var(--font);cursor:pointer}
 .pane-btn[aria-pressed="true"]{background:var(--green);color:#fff;border-color:transparent}
+.jc-wrap{container-type:inline-size;container-name:jc}
+/* Switch to the Details / Job card tabs whenever the job card itself is too narrow for two columns,
+   even on wide screens (e.g. desktop-site mode with the sidebar open). */
+@container jc (max-width:880px){
+  .jc-split{grid-template-columns:1fr}
+  .pane-switch{display:flex}
+  .jc-split[data-pane="details"] .jc-right{display:none}
+  .jc-split[data-pane="card"] .jc-left{display:none}
+}
 @media(max-width:760px){
   .jc-split{grid-template-columns:1fr}
   .pane-switch{display:flex}
@@ -732,6 +741,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <button class="btn btn--primary" id="s-inv"><i data-lucide="receipt"></i> Create invoice</button>
       <button class="btn btn--primary" id="close-job-card" type="button"><i data-lucide="circle-check"></i> Close job card</button>
     </div>
+    <div class="jc-wrap">
     <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="card" aria-pressed="false">Job card</button></div>
     <div class="jc-split" id="jc-split" data-pane="details">
       <div class="jc-left">
@@ -751,6 +761,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <div class="jc-right">
     <div class="rc-doc-wrap"><div id="doc"></div></div>
       </div>
+    </div>
     </div>
   </section>
 </div>
