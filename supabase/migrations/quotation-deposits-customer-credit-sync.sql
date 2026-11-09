@@ -18,6 +18,7 @@ values ('2300', 'Customer Deposits', 'liability', 'credit', true)
 on conflict (code) do update set is_active = true;
 
 alter table public.quotations alter column customer_id drop not null;
+alter table public.quotation_deposit_receipts alter column customer_id drop not null;
 alter table public.quotation_deposit_receipts
   add column if not exists customer_name text,
   add column if not exists customer_phone text;
