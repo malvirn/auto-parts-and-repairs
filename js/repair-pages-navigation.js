@@ -489,12 +489,17 @@ function initializeNavigation() {
     // The saved "collapsed" choice is a desktop setting. On a phone the menu is a
     // slide-in drawer, and the collapsed flag used to keep that drawer off-screen
     // while the toggle button still jumped over the header icons.
+    // Tablets (769 to 1100px) start with the menu collapsed, like the dashboard, so the
+    // page gets the full width. Laptops start expanded. Each size remembers its own choice.
+    const isTablet = () => window.matchMedia("(min-width: 769px) and (max-width: 1100px)").matches;
+    const collapseKey = () => isTablet() ? "apr-sidebar-collapsed-tablet" : "apr-sidebar-collapsed";
     const applySavedCollapse = () => {
-      let saved = false;
-      try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
+      let saved = null;
+      try { saved = localStorage.getItem(collapseKey()); } catch (error) {
         console.warn("Could not read saved sidebar state:", error);
       }
-      document.body.classList.toggle("sidebar-collapsed", saved && !isMobile());
+      const collapsed = saved === null ? isTablet() : saved === "true";
+      document.body.classList.toggle("sidebar-collapsed", collapsed && !isMobile());
     };
     applySavedCollapse();
     const syncSidebar = () => {
@@ -513,7 +518,7 @@ function initializeNavigation() {
         if (isMobile()) document.body.classList.toggle("sidebar-open");
         else {
           document.body.classList.toggle("sidebar-collapsed");
-          try { localStorage.setItem("apr-sidebar-collapsed", String(document.body.classList.contains("sidebar-collapsed"))); } catch (error) {
+          try { localStorage.setItem(collapseKey(), String(document.body.classList.contains("sidebar-collapsed"))); } catch (error) {
             console.warn("Could not save sidebar state:", error);
           }
         }
