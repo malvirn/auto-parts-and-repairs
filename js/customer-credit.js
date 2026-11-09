@@ -23,6 +23,8 @@ let accounts = [];
 let jobsById = new Map();
 let unpaidJobs = [];
 let canRefund = false;
+let creditVisible = 3;
+let overpaymentVisible = 3;
 
 function showMessage(message, tone = "info") {
   let status = document.getElementById("customer-credit-status");
@@ -62,7 +64,7 @@ async function load() {
   }
 
   const overpaymentResult = await supabase.from("customer_overpayment_credit_notes")
-    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,total,subtotal,vat_rate,vat_base)")
+    .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,total,subtotal,vat_rate,vat_base),customer_overpayment_credits(available_amount)")
     .order("issued_at", { ascending: false }).limit(500);
   if (overpaymentResult.error) {
     console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
@@ -206,7 +208,27 @@ function renderUnpaidJobs(note) {
 }
 
 function render() {
-  if (!creditNotes.length && !overpaymentCreditNotes.length) {
+  const query = document.getElementById("customer-credit-search")?.value.trim().toLocaleLowerCase() || "";
+  const from = document.getElementById("customer-credit-from")?.value || "";
+  const to = document.getElementById("customer-credit-to")?.value || "";
+  const statusFilter = document.getElementById("customer-credit-status")?.value || "";
+  const min = document.getElementById("customer-credit-min")?.value === "" ? null : Number(document.getElementById("customer-credit-min")?.value);
+  const max = document.getElementById("customer-credit-max")?.value === "" ? null : Number(document.getElementById("customer-credit-max")?.value);
+  const dateKey = value => value ? String(value).slice(0, 10) : "";
+  const matches = (note, kind) => {
+    const invoice = note.invoices || {};
+    const noteNumber = kind === "deposit" ? `QCN-${note.credit_note_number}` : `CN-${note.note_number}`;
+    const haystack = [noteNumber, note.customer_name, note.customer_phone, invoice.invoice_number, note.reference, note.payment_method, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
+    const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
+    const amount = Number(kind === "deposit" ? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
+    const status = kind === "deposit" ? noteStatus(note, movements.filter(item => item.deposit_receipt_id === note.id)).tone : amount <= 0.005 ? "applied" : "available";
+    return (!query || haystack.includes(query)) && (!from || date >= from) && (!to || date <= to)
+      && (min === null || amount >= min) && (max === null || amount <= max)
+      && (!statusFilter || status === statusFilter || (statusFilter === "partial" && status === "partial"));
+  };
+  const filteredCreditNotes = creditNotes.filter(note => matches(note, "deposit"));
+  const filteredOverpaymentNotes = overpaymentCreditNotes.filter(note => matches(note, "overpayment"));
+  if (!filteredCreditNotes.length && !filteredOverpaymentNotes.length) {
     list.innerHTML = '<div class="customer-credit-empty">No customer credit notes have been issued yet.</div>';
     return;
   }
@@ -216,7 +238,7 @@ function render() {
   const totalRefunded = creditNotes.reduce((sum, note) => sum + noteStatus(note, movements.filter(m => m.deposit_receipt_id === note.id)).refunded, 0);
   list.innerHTML = `
     <div class="customer-credit-summary"><div><small>Deposits issued</small><strong>${money(totalOriginal)}</strong></div><div><small>Refunded</small><strong>${money(totalRefunded)}</strong></div><div><small>Credit remaining</small><strong>${money(totalAvailable)}</strong></div></div>
-    <div class="customer-credit-records">${creditNotes.map(note => {
+    <div class="customer-credit-records">${filteredCreditNotes.slice(0, creditVisible).map(note => {
       const quote = note.quotations || {};
       const job = quote.repair_job_id ? jobsById.get(quote.repair_job_id) : null;
       const quoteNumber = quote.quotation_number ?? "—";
@@ -276,10 +298,10 @@ function render() {
           ${renderUnpaidJobs(note)}
         </div>
       </details>`;
-    }).join("")}</div>`;
+    }).join("")}</div>${filteredCreditNotes.length > creditVisible ? `<div class="rc-load-more"><button type="button" class="btn" data-credit-more="deposits">More credit notes (${Math.min(creditVisible, filteredCreditNotes.length)} of ${filteredCreditNotes.length})</button></div>` : ""}`;
   if (overpaymentCreditNotes.length) {
     const overpaymentTotal = overpaymentCreditNotes.reduce((sum, note) => sum + Number(note.amount || 0), 0);
-    const invoiceNotesHtml = overpaymentCreditNotes.map(note => {
+    const invoiceNotesHtml = filteredOverpaymentNotes.slice(0, overpaymentVisible).map(note => {
       const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
       const noteNumber = "CN-" + String(note.note_number).padStart(5, "0");
       const invoiceNumber = invoice.invoice_number ? "INV-" + String(invoice.invoice_number).padStart(5, "0") : "Original invoice";
@@ -290,7 +312,7 @@ function render() {
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
-      '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div></section>');
+      '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div>' + (filteredOverpaymentNotes.length > overpaymentVisible ? '<div class="rc-load-more"><button type="button" class="btn" data-credit-more="overpayments">More overpayment notes (' + Math.min(overpaymentVisible, filteredOverpaymentNotes.length) + ' of ' + filteredOverpaymentNotes.length + ')</button></div>' : '') + '</section>');
   }
   window.lucide?.createIcons();
 }
@@ -377,6 +399,22 @@ list.addEventListener("click", async event => {
   }
 });
 
+["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-min","customer-credit-max"].forEach(id => {
+  const field = document.getElementById(id);
+  field?.addEventListener("input", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
+  field?.addEventListener("change", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
+});
+document.getElementById("customer-credit-clear")?.addEventListener("click", () => {
+  ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
+  creditVisible = 3; overpaymentVisible = 3; render();
+});
+list.addEventListener("click", event => {
+  const more = event.target.closest("[data-credit-more]");
+  if (!more) return;
+  if (more.dataset.creditMore === "deposits") creditVisible += 3;
+  else overpaymentVisible += 3;
+  render();
+});
 refreshButton?.addEventListener("click", load);
 load();
 
