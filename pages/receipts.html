@@ -762,7 +762,7 @@ ${o.checklistNumber||o.jobCard?.checklistNumber?`<div style="display:inline-bloc
 <div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
 ${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
 <table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
-<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>${customerCredit?`<div><span>Customer credit</span><span>${usd(customerCredit)}</span></div>`:""}`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>This payment</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total paid to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div><div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
+<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv?`<div><span>VAT (5%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":o.voidedAt?"Voided amount":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>${customerCredit?`<div><span>Customer credit</span><span>${usd(customerCredit)}</span></div>`:""}`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>Amount received</span><span>${usd(o.jobPayment.received??o.jobPayment.currentPaid)}</span></div><div><span>Applied to invoice</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total applied to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div>${Number(o.jobPayment.customerCredit||0)>0?'<div><span>Customer credit held by workshop</span><span>'+usd(o.jobPayment.customerCredit)+'</span></div>':""}<div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
 ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 
 /* ---------- load lists ---------- */
@@ -1002,8 +1002,13 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const amount=Number(payment.amount)||0;
  const items=normalizeInvoiceItems(invoice.items).map(item=>({d:item.d,q:item.q,p:item.p}));
  const total=Number(invoice.total)||Number(items.reduce((sum,item)=>sum+item.q*item.p,0).toFixed(2));
- const totalPaid=Math.max(Number(invoice.amount_paid)||0,amount);
+ const totalPaid=Math.min(total,Number(invoice.amount_paid)||0);
  const balance=Math.max(0,total-totalPaid);
+ const[{data:creditRow,error:creditError}]=await Promise.all([
+  supabase.from("customer_overpayment_credits").select("amount,available_amount").eq("invoice_payment_id",payment.id).maybeSingle()
+ ]);
+ if(creditError)throw new Error(`Couldn't load the customer's overpayment credit: ${creditError.message}`);
+ const customerCredit=Math.max(Number(creditRow?.available_amount)||0,Math.max(0,(Number(invoice.amount_paid)||0)-total));
  const status=balance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid";
  tab="receipts";
  open({
@@ -1020,7 +1025,9 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   jobPayment:{
    jobTotal:total,
    previousPaid:Math.max(0,totalPaid-amount),
-   currentPaid:amount,
+   currentPaid:Math.min(amount,Math.max(0,total-(totalPaid- Math.min(amount,totalPaid)))),
+   received:amount,
+   customerCredit,
    totalPaid,
    balance,
    status
