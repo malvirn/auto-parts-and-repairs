@@ -937,7 +937,7 @@ function render(){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice"}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-void").parentElement.hidden=$("d-void").hidden;$("d-paid").hidden=cur.kind!=="invoice"}
 async function loadRepairJobInvoiceDetails(invoice){
  const jobId=invoice.repairJobId;
  const[jobResult,partsResult,extrasResult]=await Promise.all([
