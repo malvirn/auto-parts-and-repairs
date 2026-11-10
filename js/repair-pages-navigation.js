@@ -223,7 +223,7 @@ async function normalizeDashboardSidebar(sidebar) {
     if (!sharedChromeCss) {
       sharedChromeCss = document.createElement("link");
       sharedChromeCss.rel = "stylesheet";
-      sharedChromeCss.href = new URL("../css/dashboard-chrome.css?v=52e96cb", import.meta.url).href;
+      sharedChromeCss.href = new URL("../css/dashboard-chrome.css?v=jobcards-pink-1", import.meta.url).href;
       sharedChromeCss.dataset.sharedDashboardChrome = "true";
       const cssLoaded = new Promise(resolve => {
         sharedChromeCss.addEventListener("load", resolve, { once: true });
