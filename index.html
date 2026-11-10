@@ -7,8 +7,8 @@
       if (!window.location.pathname.endsWith("/login.html")) {
         let hasSession = false;
         try {
-          hasSession = Object.keys(sessionStorage).some(key =>
-            key.includes("-auth-token") && sessionStorage.getItem(key)
+          hasSession = Object.keys(localStorage).some(key =>
+            key.includes("-auth-token") && localStorage.getItem(key)
           );
         } catch (_) {}
         if (!hasSession) window.location.replace("login.html");
