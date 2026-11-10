@@ -297,6 +297,11 @@ async function normalizeDashboardSidebar(sidebar) {
     const existingHeader = document.querySelector("body.dashboard-workshop > .dashboard-topbar");
     if (existingHeader) existingHeader.replaceWith(header);
     else document.body.insertBefore(header, document.body.firstChild);
+    const refreshButton = header.querySelector("#dashboard-refresh, .dashboard-refresh");
+    if (refreshButton && !refreshButton.dataset.sharedRefreshBound) {
+      refreshButton.dataset.sharedRefreshBound = "true";
+      refreshButton.addEventListener("click", () => window.location.reload());
+    }
 
     const toggle = sourceToggle.cloneNode(true);
     document.getElementById("dashboard-sidebar-toggle")?.replaceWith(toggle);
