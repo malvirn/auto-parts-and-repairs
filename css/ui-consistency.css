@@ -492,3 +492,20 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
 :root[data-theme="light"] body.dashboard-page .site-masthead :is(button,a){color:#172b40!important}
 :root[data-theme="light"] body.dashboard-page .app-header :is(button,a) svg,
 :root[data-theme="light"] body.dashboard-page .site-masthead :is(button,a) svg{color:#172b40!important;stroke:#172b40!important;opacity:1!important;filter:none!important}
+
+/* Modal controls and document footer spacing. */
+#customer-credit-panel .credit-doc-heading{position:relative;padding-right:58px!important}
+#customer-credit-panel .credit-modal-close{
+  display:grid;place-items:center;width:38px;height:38px;flex:none;
+  border:1px solid rgba(23,43,64,.22);border-radius:10px;
+  background:#fff;color:#172b40;font-size:25px;line-height:1;cursor:pointer;
+}
+#customer-credit-panel .credit-doc-heading>div{min-width:0}
+#customer-credit-panel .credit-doc-heading .credit-modal-close{
+  position:absolute;top:14px;right:16px;
+}
+#customer-credit-panel .overpayment-credit-record__body>.credit-doc-actions{
+  position:sticky;bottom:-1px;background:#f2f7fc;z-index:2;
+  box-shadow:0 -8px 18px rgba(23,43,64,.08);
+}
+#customer-credit-panel .credit-doc-actions--footer{padding-bottom:18px!important}
