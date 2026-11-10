@@ -2276,3 +2276,88 @@ body.dashboard-workshop .dashboard-connection-label{display:inline;font-size:10p
   background: #171717 !important;
   border-right-color: #303030 !important;
 }
+
+
+/* Shared module chrome: consistent header and button treatment across every workshop module.
+   Styling only. Existing links, handlers, forms, and permission logic remain untouched. */
+body.dashboard-page.dashboard-workshop .dashboard-topbar{
+  min-height:46px!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:0!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{
+  min-height:44px!important;
+  border-radius:12px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{
+  align-items:center!important;
+  gap:8px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .theme-toggle{
+  width:38px!important;height:38px!important;min-width:38px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border:1px solid var(--toolbar-border,rgba(148,163,184,.28))!important;
+  border-radius:11px!important;background:var(--toolbar-surface,#fff)!important;
+  color:var(--toolbar-ink,#172b40)!important;box-shadow:0 2px 8px rgba(15,23,42,.08)!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions svg{
+  width:18px!important;height:18px!important;stroke:currentColor!important;opacity:1!important;
+}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop{
+  --toolbar-surface:#fff;--toolbar-ink:#172b40;--toolbar-border:#d6dee8;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop{
+  --toolbar-surface:#202a38;--toolbar-ink:#f4f7fb;--toolbar-border:#46556a;
+}
+body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button"]){
+  min-height:40px;
+  border-radius:11px!important;
+  font-family:inherit!important;
+  font-weight:650!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s,transform .16s!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button"]):focus-visible{
+  outline:3px solid rgba(31,196,103,.35)!important;outline-offset:2px!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button"]):disabled,
+body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button"])[aria-disabled="true"]{
+  background:#e8edf2!important;border-color:#d7dee7!important;color:#8994a3!important;
+  box-shadow:none!important;cursor:not-allowed!important;opacity:1!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(.btn-primary,.btn--primary,.primary,.primary-btn,[data-variant="primary"],[data-style="primary"]){
+  background:#12a150!important;border:1px solid #12a150!important;color:#fff!important;
+  box-shadow:0 4px 11px rgba(18,161,80,.18)!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(.btn-danger,.btn--danger,.danger,.danger-btn,[data-variant="danger"],[data-action="delete"],[data-action="void"]){
+  background:#dc3545!important;border:1px solid #dc3545!important;color:#fff!important;
+  box-shadow:0 4px 11px rgba(220,53,69,.16)!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(.btn-success,.btn--success,.success,.success-btn,[data-variant="success"]){
+  background:#12a150!important;border:1px solid #12a150!important;color:#fff!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(.btn-warning,.btn--warning,.warning,.warning-btn,[data-variant="warning"]){
+  background:#f58220!important;border:1px solid #f58220!important;color:#fff!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(button:not(.btn-primary):not(.btn--primary):not(.primary):not(.primary-btn):not(.btn-danger):not(.btn--danger):not(.danger):not(.danger-btn):not(.btn-success):not(.btn--success):not(.success):not(.success-btn):not(.btn-warning):not(.btn--warning):not(.warning):not(.warning-btn),.btn:not(.btn-primary):not(.btn--primary):not(.primary):not(.primary-btn):not(.btn-danger):not(.btn--danger):not(.danger):not(.danger-btn):not(.btn-success):not(.btn--success):not(.success):not(.success-btn):not(.btn-warning):not(.btn--warning):not(.warning):not(.warning-btn),a.btn:not(.btn-primary):not(.btn--primary):not(.primary):not(.primary-btn):not(.btn-danger):not(.btn--danger):not(.danger):not(.danger-btn):not(.btn-success):not(.btn--success):not(.success):not(.success-btn):not(.btn-warning):not(.btn--warning):not(.warning):not(.warning-btn)){
+  background:#fff!important;border:1px solid #d5dee8!important;color:#18304b!important;
+  box-shadow:0 2px 7px rgba(15,23,42,.06)!important;
+}
+body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button"]):hover:not(:disabled):not([aria-disabled="true"]){
+  transform:translateY(-1px);
+}
+@media(max-width:760px){
+ body.dashboard-page.dashboard-workshop .dashboard-topbar{gap:6px!important}
+ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:5px!important}
+ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
+ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .theme-toggle{
+  width:34px!important;height:34px!important;min-width:34px!important;border-radius:10px!important;
+ }
+}
