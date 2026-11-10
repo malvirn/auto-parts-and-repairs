@@ -1,27 +1,68 @@
 import supabase from "./supabaseClient.js";
 
-const host = document.getElementById("credit-voucher-panel");
-const list = document.getElementById("credit-voucher-list");
-const search = document.getElementById("credit-voucher-search");
-const statusFilter = document.getElementById("credit-voucher-status");
-const refresh = document.getElementById("credit-voucher-refresh");
+let host = document.getElementById("credit-voucher-panel");
+let list = document.getElementById("credit-voucher-list");
+let search = document.getElementById("credit-voucher-search");
+let statusFilter = document.getElementById("credit-voucher-status");
+let refresh = document.getElementById("credit-voucher-refresh");
 const tabButton = document.getElementById("credit-voucher-tab");
 const notesTabButton = document.getElementById("credit-notes-tab");
-const redeemCode = document.getElementById("voucher-redeem-code");
-const redeemCheck = document.getElementById("voucher-redeem-check");
-const redeemScan = document.getElementById("voucher-redeem-scan");
-const redeemPreview = document.getElementById("voucher-redeem-preview");
-const redeemTarget = document.getElementById("voucher-redeem-target");
-const redeemAmount = document.getElementById("voucher-redeem-amount");
-const redeemApply = document.getElementById("voucher-redeem-apply");
-const redeemMessage = document.getElementById("voucher-redeem-message");
-const redeemVideo = document.getElementById("voucher-redeem-video");
+let redeemCode = document.getElementById("voucher-redeem-code");
+let redeemCheck = document.getElementById("voucher-redeem-check");
+let redeemScan = document.getElementById("voucher-redeem-scan");
+let redeemPreview = document.getElementById("voucher-redeem-preview");
+let redeemTarget = document.getElementById("voucher-redeem-target");
+let redeemAmount = document.getElementById("voucher-redeem-amount");
+let redeemApply = document.getElementById("voucher-redeem-apply");
+let redeemMessage = document.getElementById("voucher-redeem-message");
+let redeemVideo = document.getElementById("voucher-redeem-video");
+const notesPanel = document.getElementById("customer-credit-panel");
+let launcher = null;
+if (!host) {
+  host = document.createElement("section");
+  host.id = "credit-voucher-panel";
+  host.hidden = true;
+  host.className = "credit-voucher-overlay";
+  host.innerHTML = '<header><div><small>CENTRIC AUTO MOBILE</small><h2>Customer Credit Vouchers</h2></div><button type="button" id="credit-voucher-close" aria-label="Close vouchers">×</button></header>' +
+    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
+    '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
+    '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
+    '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
+    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
+    '<div id="credit-voucher-list" aria-live="polite"></div>';
+  document.body.append(host);
+  launcher = document.createElement("button");
+  launcher.type = "button";
+  launcher.className = "credit-voucher-launcher";
+  launcher.textContent = "Redeem voucher";
+  launcher.setAttribute("aria-label","Open customer credit vouchers");
+  document.body.append(launcher);
+  const style = document.createElement("style");
+  style.textContent = '.credit-voucher-launcher{position:fixed;right:16px;bottom:86px;z-index:9990;padding:12px 17px;border:0;border-radius:28px;background:#f58220;color:#fff;font-weight:800;box-shadow:0 8px 24px #0004}.credit-voucher-overlay{position:fixed;z-index:9991;inset:4vh 3vw auto auto;width:min(720px,94vw);max-height:90vh;overflow:auto;padding:18px;border:1px solid #526174;border-radius:16px;background:#10181a;color:#eef3ef;box-shadow:0 18px 60px #0008}.credit-voucher-overlay[hidden]{display:none}.credit-voucher-overlay>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.credit-voucher-overlay>header h2{margin:3px 0 12px}.credit-voucher-overlay>header button{font-size:25px;background:transparent;color:inherit;border:0}.credit-voucher-overlay-tools{display:grid;grid-template-columns:minmax(0,1fr) 140px auto;gap:8px;margin:12px 0}.credit-voucher-overlay input,.credit-voucher-overlay select{min-width:0;padding:10px;border:1px solid #53635a;border-radius:8px;background:#0c1210;color:inherit}.credit-voucher-overlay .credit-voucher-card{background:#14211b}.credit-voucher-overlay .credit-voucher-actions{display:flex;flex-wrap:wrap;gap:7px}.credit-voucher-overlay .credit-voucher-actions button,.credit-voucher-overlay-tools button{padding:9px;border-radius:8px}.credit-voucher-overlay .credit-voucher-redeem{display:grid;gap:9px;margin:12px 0;padding:14px;border:1px solid #40564a;border-radius:12px}.credit-voucher-overlay .credit-voucher-code-entry{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.credit-voucher-overlay .credit-voucher-redeem button{min-height:42px}.credit-voucher-overlay #voucher-redeem-apply{width:100%;background:#f58220;color:#fff;border:0;border-radius:8px;font-weight:800}.credit-voucher-overlay .credit-voucher-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.credit-voucher-overlay .credit-voucher-code{font-size:20px}.credit-voucher-overlay video{width:100%;max-height:230px;object-fit:cover}.credit-voucher-overlay .credit-voucher-history{margin-top:12px}.credit-voucher-overlay .credit-voucher-preview{padding:10px;border:1px solid #40564a;border-radius:8px}.credit-voucher-overlay .credit-voucher-expired-note{color:#fbbf24}@media(max-width:560px){.credit-voucher-overlay{inset:2vh 2vw auto;width:96vw;max-height:94vh;padding:12px}.credit-voucher-overlay-tools{grid-template-columns:1fr 1fr}.credit-voucher-overlay-tools input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-code-entry{grid-template-columns:1fr 1fr}.credit-voucher-overlay .credit-voucher-code-entry input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-facts{grid-template-columns:1fr 1fr}}';
+  document.head.append(style);
+  launcher.addEventListener("click", async () => {
+    host.hidden = false;
+    try { await load(); } catch (error) { list.textContent = error.message || String(error); }
+  });
+  host.querySelector("#credit-voucher-close").addEventListener("click", () => { host.hidden = true; stopScanner(); });
+}
+if (!host || !list) throw new Error("Credit voucher panel is missing.");
+search = search || host.querySelector("#credit-voucher-search");
+statusFilter = statusFilter || host.querySelector("#credit-voucher-status");
+refresh = refresh || host.querySelector("#credit-voucher-refresh");
+redeemCode = redeemCode || host.querySelector("#voucher-redeem-code");
+redeemCheck = redeemCheck || host.querySelector("#voucher-redeem-check");
+redeemScan = redeemScan || host.querySelector("#voucher-redeem-scan");
+redeemPreview = redeemPreview || host.querySelector("#voucher-redeem-preview");
+redeemTarget = redeemTarget || host.querySelector("#voucher-redeem-target");
+redeemAmount = redeemAmount || host.querySelector("#voucher-redeem-amount");
+redeemApply = redeemApply || host.querySelector("#voucher-redeem-apply");
+redeemMessage = redeemMessage || host.querySelector("#voucher-redeem-message");
+redeemVideo = redeemVideo || host.querySelector("#voucher-redeem-video");
 let checkedVoucher = null;
 let redeemTargets = [];
 let scannerStream = null;
 let scannerActive = false;
-const notesPanel = document.getElementById("customer-credit-panel");
-if (!host || !list || !tabButton) throw new Error("Credit voucher panel is missing.");
 
 const money = value => "$" + Number(value || 0).toFixed(2);
 const esc = value => {
@@ -309,10 +350,10 @@ async function manage(voucherId, action, extra = {}) {
   await load();
 }
 
-tabButton.addEventListener("click", async () => {
+tabButton?.addEventListener("click", async () => {
   const showVouchers = host.hidden;
   host.hidden = !showVouchers;
-  notesPanel.hidden = showVouchers;
+  if (notesPanel) notesPanel.hidden = showVouchers;
   tabButton.setAttribute("aria-pressed", String(showVouchers));
   notesTabButton?.setAttribute("aria-pressed", String(!showVouchers));
   if (showVouchers) {
@@ -321,7 +362,7 @@ tabButton.addEventListener("click", async () => {
 });
 notesTabButton?.addEventListener("click", () => {
   host.hidden = true;
-  notesPanel.hidden = false;
+  if (notesPanel) notesPanel.hidden = false;
   tabButton.setAttribute("aria-pressed", "false");
   notesTabButton.setAttribute("aria-pressed", "true");
 });
