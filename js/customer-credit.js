@@ -124,7 +124,7 @@ async function load() {
     cleanParams.delete("credit_note_id");
     history.replaceState(null, "", `${location.pathname}${cleanParams.toString() ? "?" + cleanParams.toString() : ""}${location.hash}`);
     const card = list.querySelector(`[data-credit-note-id="${CSS.escape(requestedId)}"]`);
-    if (card) openCreditModal(card);
+    if (card) openCreditDetails(card);
     else showMessage("The requested quotation credit note could not be found. You can still view all previous receipts below.", "error");
   }
 }
@@ -298,7 +298,7 @@ function render() {
         <div class="customer-credit-document">
           <header class="credit-modal-header">
             <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
-            <div class="credit-modal-close-column"><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div>
+            
           </header>
           <section class="credit-available-card">
             <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
@@ -356,73 +356,35 @@ function render() {
   window.lucide?.createIcons();
 }
 
-let activeCreditModal = null;
-
-function closeCreditModal(record) {
-  const overlay = activeCreditModal || document.querySelector(".credit-modal-overlay");
-  if (!overlay) return;
-  overlay.remove();
-  activeCreditModal = null;
-  document.body.classList.remove("credit-modal-open");
-  document.body.style.overflow = overlay.dataset.previousBodyOverflow || "";
-}
-
-function openCreditModal(record) {
+function openCreditDetails(record) {
   if (!record) return;
-  if (activeCreditModal) closeCreditModal();
-  const documentContent = record.querySelector(":scope > .customer-credit-document, :scope > .overpayment-credit-record__body");
-  if (!documentContent) return;
-
-  const overlay = document.createElement("div");
-  overlay.className = "credit-modal-overlay";
-  overlay.setAttribute("role", "presentation");
-  overlay.dataset.previousBodyOverflow = document.body.style.overflow;
-
-  const sheet = document.createElement("section");
-  sheet.className = "credit-modal-sheet";
-  sheet.setAttribute("role", "dialog");
-  sheet.setAttribute("aria-modal", "true");
-  sheet.setAttribute("aria-label", "Customer credit note");
-
-  const modalContent = documentContent.cloneNode(true);
-  modalContent.classList.add("credit-modal-content");
-  const styleScope = document.createElement("div");
-  styleScope.className = "customer-credit-panel-scope credit-modal-portal-scope";
-  styleScope.appendChild(modalContent);
-  sheet.appendChild(styleScope);
-  overlay.appendChild(sheet);
-  document.body.appendChild(overlay);
-  modalOpenedAt = Date.now();
-
-  activeCreditModal = overlay;
-  document.body.classList.add("credit-modal-open");
-  document.body.style.overflow = "hidden";
-  window.lucide?.createIcons({ root: overlay });
-  overlay.querySelector(".credit-modal-close")?.focus({ preventScroll: true });
+  record.open = true;
+  requestAnimationFrame(() => {
+    record.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeCreditModal();
-});
+const creditInlineStyle = document.createElement("style");
+creditInlineStyle.id = "customer-credit-inline-details";
+creditInlineStyle.textContent = `
+  body.credit-modal-open { overflow-y:auto!important; }
+  .credit-modal-overlay,.credit-modal-sheet { display:none!important; }
+  .customer-credit-record[open] > .customer-credit-document {
+    display:block!important; position:static!important; width:100%!important;
+    max-width:none!important; max-height:none!important; height:auto!important;
+    overflow:visible!important; margin:14px 0 20px!important;
+    box-sizing:border-box!important; transform:none!important;
+  }
+  .customer-credit-record { scroll-margin-top:90px; }
+  .customer-credit-document .credit-modal-close-column,
+  .customer-credit-document .credit-modal-close { display:none!important; }
+  html,body { overflow-y:auto!important; height:auto!important; }
+`;
+document.head.appendChild(creditInlineStyle);
 
 document.addEventListener("click", async event => {
   const target = event.target instanceof Element ? event.target : event.target?.parentElement;
   if (!target) return;
-  const closeButton = target.closest("[data-credit-modal-close]");
-  if (closeButton) {
-    closeCreditModal();
-    return;
-  }
-  if (target.classList?.contains("credit-modal-overlay")) {
-    if (Date.now() - modalOpenedAt > 400) closeCreditModal();
-    return;
-  }
-  const creditSummary = target.closest(".customer-credit-record > summary");
-  if (creditSummary) {
-    event.preventDefault();
-    openCreditModal(creditSummary.parentElement);
-    return;
-  }
   const printButton = target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
