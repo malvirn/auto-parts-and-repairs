@@ -255,7 +255,43 @@
       .customer-activity-trigger { grid-template-columns:1fr auto; }
       .customer-activity-trigger time { grid-column:1 / -1; }
     }
-  </style>
+  
+/* Customer Accounts: tap a customer row to expand its activity inline. */
+#customer-accounts-table .customer-account-main-row{cursor:pointer;transition:background .15s ease}
+#customer-accounts-table .customer-account-main-row:hover,
+#customer-accounts-table .customer-account-main-row[aria-expanded="true"]{background:rgba(31,196,103,.09)}
+#customer-accounts-table .account-detail-count{display:inline-flex;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:.78rem;font-weight:700}
+#customer-accounts-table .customer-account-detail-row>td{padding:0!important;background:rgba(0,0,0,.12)}
+.customer-transaction-list{display:grid;gap:10px;padding:14px!important;min-width:0}
+.customer-transaction{display:grid;grid-template-columns:minmax(150px,1.5fr) repeat(5,minmax(75px,1fr));gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--surface,#202a35);min-width:0}
+.customer-inline-payment{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px;border:1px solid var(--accent,var(--success));border-radius:12px;background:var(--surface,#202a35)}
+.customer-inline-payment>strong,.customer-inline-payment .form-message,.customer-inline-payment-actions{grid-column:1/-1}
+.customer-inline-payment label{display:grid;gap:5px;font-size:.8rem;font-weight:650;min-width:0}
+.customer-inline-payment input,.customer-inline-payment select{width:100%;min-width:0;min-height:42px}
+.customer-inline-payment-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@media(max-width:700px){
+ #customer-accounts-table{min-width:0!important;width:100%!important}
+ #customer-accounts-table thead{display:none}
+ #customer-accounts-table tbody tr.customer-account-main-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px;border-bottom:1px solid var(--border)}
+ #customer-accounts-table tbody tr.customer-account-main-row>td{display:block!important;padding:2px!important;text-align:left!important;min-width:0;overflow-wrap:anywhere}
+ #customer-accounts-table tbody tr.customer-account-main-row>td:first-child{grid-column:1/-1}
+ #customer-accounts-table tbody tr.customer-account-main-row>td:nth-child(2){grid-column:1}
+ #customer-accounts-table tbody tr.customer-account-main-row>td:nth-child(3),
+ #customer-accounts-table tbody tr.customer-account-main-row>td:nth-child(4),
+ #customer-accounts-table tbody tr.customer-account-main-row>td:nth-child(5){font-size:.8rem}
+ #customer-accounts-table tbody tr.customer-account-main-row>td:last-child{grid-column:1/-1}
+ #customer-accounts-table .customer-account-actions{justify-content:flex-start}
+ #customer-accounts-table tbody tr.customer-account-detail-row{display:table-row}
+ #customer-accounts-table tbody tr.customer-account-detail-row>td{display:block!important;width:100%;max-width:100%;overflow:hidden}
+ .customer-transaction-list{padding:10px!important}
+ .customer-transaction{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:10px;font-size:.78rem}
+ .customer-transaction>*:first-child{grid-column:1/-1;font-weight:700;overflow-wrap:anywhere}
+ .customer-transaction>*{min-width:0;overflow-wrap:anywhere}
+ .customer-inline-payment{grid-template-columns:minmax(0,1fr)}
+ .customer-inline-payment>*{grid-column:1!important}
+ .customer-inline-payment-actions>*{flex:1 1 130px}
+}
+</style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
