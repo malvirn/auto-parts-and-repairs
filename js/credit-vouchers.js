@@ -354,7 +354,7 @@ async function resolveExpiredCredit(v) {
   const query = supabase.from("accounts").select("id,code,name,type").eq("is_active", true);
   const { data: accounts, error } = action === "refund"
     ? await query.eq("type", "asset").like("code", "10%").order("code")
-    : await query.eq("type", "income").order("code");
+    : await query.eq("type", "revenue").order("code");
   if (error) throw error;
   if (!accounts?.length) throw new Error(action === "refund" ? "No active cash or bank accounts were found." : "No active income accounts were found.");
   const choices = accounts.map(a => a.code + " · " + a.name).join("\n");
