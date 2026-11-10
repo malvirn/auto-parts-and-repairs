@@ -355,12 +355,49 @@ function render() {
   window.lucide?.createIcons();
 }
 
+let activeCreditDialog = null;
+let activeCreditPlaceholder = null;
+let activeCreditRecord = null;
+
+function closeCreditDetails() {
+  if (!activeCreditDialog) return;
+  const documentPanel = activeCreditDialog.querySelector(".credit-dialog-content");
+  if (documentPanel && activeCreditPlaceholder?.parentNode) {
+    activeCreditPlaceholder.parentNode.insertBefore(documentPanel.firstElementChild, activeCreditPlaceholder);
+    activeCreditPlaceholder.remove();
+  }
+  activeCreditDialog.remove();
+  activeCreditDialog = null;
+  activeCreditPlaceholder = null;
+  if (activeCreditRecord) activeCreditRecord.open = false;
+  activeCreditRecord = null;
+  document.body.style.overflow = "";
+}
+
 function openCreditDetails(record) {
   if (!record) return;
-  record.open = true;
-  requestAnimationFrame(() => {
-    record.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  if (activeCreditDialog) closeCreditDetails();
+  const details = record.querySelector(".customer-credit-document, .overpayment-credit-record__body");
+  if (!details) return;
+  const placeholder = document.createComment("credit note details return point");
+  details.parentNode.insertBefore(placeholder, details);
+  const overlay = document.createElement("div");
+  overlay.className = "credit-note-dialog-overlay";
+  overlay.setAttribute("role", "presentation");
+  overlay.innerHTML = `<section class="credit-note-dialog" role="dialog" aria-modal="true" aria-label="Customer credit note details">
+    <header class="credit-note-dialog-head"><strong>Customer credit note</strong><button type="button" class="credit-note-dialog-close" aria-label="Close credit note">×</button></header>
+    <div class="credit-dialog-content"></div>
+  </section>`;
+  overlay.querySelector(".credit-dialog-content").appendChild(details);
+  document.body.appendChild(overlay);
+  record.open = false;
+  activeCreditDialog = overlay;
+  activeCreditPlaceholder = placeholder;
+  activeCreditRecord = record;
+  document.body.style.overflow = "hidden";
+  overlay.querySelector(".credit-note-dialog-close").addEventListener("click", closeCreditDetails);
+  overlay.addEventListener("click", event => { if (event.target === overlay) closeCreditDetails(); });
+  requestAnimationFrame(() => overlay.querySelector(".credit-note-dialog-close")?.focus());
 }
 
 const creditInlineStyle = document.createElement("style");
@@ -481,6 +518,28 @@ creditInlineStyle.textContent = `
 html,body{max-width:100%!important;overflow-x:hidden!important}
 `;
 document.head.appendChild(creditInlineStyle);
+creditInlineStyle.textContent += `
+.credit-note-dialog-overlay{position:fixed!important;inset:0!important;z-index:2147483600!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(10px,3vw,24px)!important;background:rgba(5,9,14,.78)!important;backdrop-filter:blur(5px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+.credit-note-dialog{display:flex!important;flex-direction:column!important;width:min(760px,100%)!important;max-width:100%!important;max-height:calc(100dvh - 24px)!important;min-width:0!important;margin:auto!important;overflow:hidden!important;border:1px solid #526174!important;border-radius:16px!important;background:#1b232e!important;box-shadow:0 24px 80px rgba(0,0,0,.55)!important}
+.credit-note-dialog-head{position:sticky!important;top:0!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex:none!important;padding:12px 16px!important;border-bottom:1px solid #3c4857!important;background:#252f3c!important;color:#f2f5f8!important;font-size:14px!important}
+.credit-note-dialog-close{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;flex:none!important;border:1px solid #566477!important;border-radius:9px!important;background:#354253!important;color:#fff!important;font-size:25px!important;line-height:1!important;cursor:pointer!important}
+.credit-dialog-content{min-width:0!important;max-width:100%!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+.credit-note-dialog .customer-credit-document,.credit-note-dialog .overpayment-credit-record__body{width:100%!important;max-width:100%!important;min-width:0!important;max-height:none!important;overflow:visible!important;border:0!important;border-radius:0!important}
+@media(max-width:600px){.credit-note-dialog-overlay{align-items:center!important;padding:10px!important}.credit-note-dialog{width:100%!important;max-height:calc(100dvh - 20px)!important;border-radius:14px!important}.credit-note-dialog .customer-credit-document,.credit-note-dialog .overpayment-credit-record__body{padding:12px!important}}
+`;
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && activeCreditDialog) closeCreditDetails();
+});
+
+document.addEventListener("click", event => {
+  const summary = event.target instanceof Element ? event.target.closest(".customer-credit-record__summary, .overpayment-credit-record__summary") : null;
+  if (!summary) return;
+  const record = summary.closest("details[data-credit-note-id], details[data-overpayment-credit-id]");
+  if (!record) return;
+  event.preventDefault();
+  openCreditDetails(record);
+}, true);
 
 document.addEventListener("click", async event => {
   const target = event.target instanceof Element ? event.target : event.target?.parentElement;
