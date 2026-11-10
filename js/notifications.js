@@ -180,7 +180,7 @@ async function checkLowStock() {
 
 async function checkExpiringContracts() {
   try {
-    const { data } = await supabase.from("technicians").select("id, full_name, contract_end").eq("is_active", true).not("contract_end", "is", null);
+    const { data } = await supabase.from("technician_directory").select("id, full_name, contract_end").eq("is_active", true).not("contract_end", "is", null);
     const today = new Date().toISOString().slice(0, 10);
     const in30 = new Date(); in30.setDate(in30.getDate() + 30);
     const in30Str = in30.toISOString().slice(0, 10);
