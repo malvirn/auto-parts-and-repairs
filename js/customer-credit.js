@@ -209,6 +209,8 @@ function renderUnpaidJobs(note) {
 }
 
 function render() {
+  const openModalRecord = document.querySelector(".credit-note-modal[open]");
+  if (openModalRecord) closeCreditModal(openModalRecord);
   const query = document.getElementById("customer-credit-search")?.value.trim().toLocaleLowerCase() || "";
   const from = document.getElementById("customer-credit-from")?.value || "";
   const to = document.getElementById("customer-credit-to")?.value || "";
@@ -275,7 +277,7 @@ function render() {
         ? `<div class="customer-credit-actions" data-credit-id="${escapeHtml(note.id)}" data-action="apply">
             <select class="credit-target" aria-label="Apply credit to" ${quoteTargets.length ? "" : "disabled"}><option value="">${quoteTargets.length ? "Apply to customer balance…" : "No same-customer balance"}</option>${targetOptions}</select>
             <input class="credit-amount" type="number" min="0.01" max="${note.available_amount}" step="0.01" placeholder="Amount" aria-label="Credit amount">
-            <button type="button" class="btn customer-credit-apply" ${quoteTargets.length ? "" : "disabled"}>Apply credit</button>
+            <button type="button" class="btn customer-credit-apply" ${quoteTargets.length ? "" : "disabled"} aria-disabled="${quoteTargets.length ? "false" : "true"}">Apply credit</button>
           </div>` : "";
       return `<details class="customer-credit-record" data-credit-note-id="${escapeHtml(note.id)}">
         <summary class="customer-credit-record__summary">
@@ -285,12 +287,35 @@ function render() {
           <span class="credit-note-status status-${status.tone}">${status.label}</span>
         </summary>
         <div class="customer-credit-document">
-          <div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div><span class="credit-note-status status-${status.tone}">${status.label}</span></div>
-          <p class="credit-note-narrative">${escapeHtml(noteName)} (${escapeHtml(note.customer_phone || "no phone number recorded")}) paid a ${money(note.amount)} deposit by ${escapeHtml(note.payment_method || "an unrecorded payment method")} on ${dateLabel(note.payment_date)} for Quotation #${escapeHtml(quoteNumber)}, issued on ${dateLabel(quote.created_at)}. ${note.reference ? `The payment reference is ${escapeHtml(note.reference)}. ` : "No payment reference was recorded. "} ${job ? `The quotation is linked to job card ${escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`)} with checklist number ${job.checklist_number ? "#" + escapeHtml(job.checklist_number) : "not yet assigned"}. ` : "A job card has not yet been created, so the checklist number is pending. "}The original deposit was ${money(note.amount)}. ${status.refunded > 0 ? `${money(status.refunded)} has been refunded. ` : "Nothing has been refunded. "} ${status.applied > 0 ? `${money(status.applied)} has been applied to the customer's balance. ` : "None of the deposit has been applied. "}This leaves ${money(note.available_amount)} available as customer credit.</p>
+          <header class="credit-modal-header">
+            <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
+            <button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button>
+          </header>
+          <section class="credit-available-card">
+            <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
+            <span class="credit-unused-badge">Unused</span>
+          </section>
+          <section class="credit-details-card" aria-label="Credit note details">
+            <h4>Credit note details</h4>
+            <div class="credit-detail-row"><span>Customer</span><strong>${escapeHtml(noteName)}<small>${escapeHtml(note.customer_phone || "No phone recorded")}</small></strong></div>
+            <div class="credit-detail-row"><span>Source</span><strong>Deposit · Quotation #${escapeHtml(quoteNumber)}</strong></div>
+            <div class="credit-detail-row"><span>Paid by</span><strong>${escapeHtml(note.payment_method || "Not recorded")} · ${dateLabel(note.payment_date)}</strong></div>
+            <div class="credit-detail-row"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
+            <div class="credit-detail-row"><span>Applied</span><strong>${money(status.applied)}</strong></div>
+            <div class="credit-detail-row"><span>Refunded</span><strong>${money(status.refunded)}</strong></div>
+            <div class="credit-detail-row"><span>Job card</span><strong>${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Pending"}</strong></div>
+          </section>
           <p class="credit-note-validity">${expired ? "Quotation deposit window expired. Existing credit remains available." : "Quotation deposit valid for seven days from issue."}</p>
-          ${applyFields}${history}
+          <section class="credit-apply-section">
+            <h4>Apply this credit</h4>
+            ${applyFields || '<p class="credit-apply-empty">No credit is currently available to apply.</p>'}
+          </section>
+          ${history}
           ${renderUnpaidJobs(note)}
-          <div class="credit-doc-actions credit-doc-actions--footer"><button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print credit note</button>${job ? `<a class="btn" href="repairs.html?highlight=${encodeURIComponent(job.id)}"><i data-lucide="clipboard-list"></i> Open linked job card</a>` : ""}</div>
+          <div class="credit-doc-actions credit-doc-actions--footer">
+            <button type="button" class="btn credit-refund-placeholder" disabled title="Quotation deposit refunds are not yet supported by the current accounting workflow">Refund</button>
+            <button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print</button>
+          </div>
         </div>
       </details>`;
     }).join("")}</div>`;
@@ -326,10 +351,39 @@ function closeCreditModal(record) {
   if (!record) return;
   record.open = false;
   record.classList.remove("credit-note-modal");
+  const overlay = record._creditModalOverlay;
   const placeholder = record._creditModalPlaceholder;
   if (placeholder?.parentNode) placeholder.replaceWith(record);
+  if (overlay?.isConnected) overlay.remove();
   delete record._creditModalPlaceholder;
-  if (!document.querySelector(".credit-note-modal[open]")) document.body.classList.remove("credit-modal-open");
+  delete record._creditModalOverlay;
+  document.body.classList.remove("credit-modal-open");
+  document.body.style.overflow = record._creditPreviousBodyOverflow || "";
+  delete record._creditPreviousBodyOverflow;
+}
+
+function openCreditModal(record) {
+  if (!record || record._creditModalOverlay) return;
+  const overlay = document.createElement("div");
+  overlay.className = "credit-modal-overlay";
+  overlay.setAttribute("role", "presentation");
+  const sheet = document.createElement("div");
+  sheet.className = "credit-modal-sheet";
+  sheet.setAttribute("role", "dialog");
+  sheet.setAttribute("aria-modal", "true");
+  sheet.setAttribute("aria-label", "Customer credit note");
+  record._creditModalPlaceholder = document.createComment("Credit note location");
+  record.parentNode?.insertBefore(record._creditModalPlaceholder, record);
+  record._creditPreviousBodyOverflow = document.body.style.overflow;
+  record._creditModalOverlay = overlay;
+  record.open = true;
+  record.classList.add("credit-note-modal");
+  sheet.appendChild(record);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  document.body.classList.add("credit-modal-open");
+  document.body.style.overflow = "hidden";
+  overlay.querySelector(".credit-modal-close")?.focus({ preventScroll: true });
 }
 
 document.addEventListener("keydown", event => {
@@ -337,6 +391,21 @@ document.addEventListener("keydown", event => {
 });
 
 document.addEventListener("click", async event => {
+  const closeButton = event.target.closest("[data-credit-modal-close]");
+  if (closeButton) {
+    closeCreditModal(closeButton.closest(".credit-note-modal"));
+    return;
+  }
+  if (event.target.classList?.contains("credit-modal-overlay")) {
+    closeCreditModal(event.target.querySelector(".credit-note-modal"));
+    return;
+  }
+  const creditSummary = event.target.closest(".customer-credit-record:not(.overpayment-credit-record) > summary");
+  if (creditSummary) {
+    event.preventDefault();
+    openCreditModal(creditSummary.parentElement);
+    return;
+  }
   const printButton = event.target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
