@@ -29,10 +29,10 @@ let hasLoadedCreditNotes = false;
 let requestedCreditNoteHandled = false;
 
 function showMessage(message, tone = "info") {
-  let status = document.getElementById("customer-credit-status");
+  let status = document.getElementById("customer-credit-message");
   if (!status) {
     status = document.createElement("p");
-    status.id = "customer-credit-status";
+    status.id = "customer-credit-message";
     status.className = "form-message";
     status.setAttribute("role", "status");
     list.before(status);
