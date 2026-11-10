@@ -247,6 +247,13 @@ end;
 $$;
 
 
+alter table public.customer_credit_movements drop constraint if exists customer_credit_movement_target_check;
+alter table public.customer_credit_movements add constraint customer_credit_movement_target_check check (
+  ((movement_type='application') and target_type in ('repair_job','sales_order','invoice') and target_id is not null and payment_account_id is null)
+  or ((movement_type='application') and target_type='income_transfer' and target_id is not null and payment_account_id is null)
+  or ((movement_type='refund') and target_type is null and target_id is null and payment_account_id is not null)
+);
+
 create table if not exists public.credit_voucher_expiry_resolutions (
   id uuid primary key default gen_random_uuid(),
   voucher_id uuid not null references public.customer_credit_vouchers(id),
@@ -276,7 +283,7 @@ set search_path=public,pg_temp
 as $
 declare
   uid uuid:=auth.uid(); v public.customer_credit_vouchers%rowtype;
-  account_row public.accounts%rowtype; balance_value numeric(12,2);
+  account_row public.accounts%rowtype; balance_value numeric(12,2); liability_account_id uuid;
   amount_value numeric(12,2); entry_id uuid; resolution_id uuid; movement_key uuid:=gen_random_uuid();
 begin
   if uid is null or public.current_access_level()<1 then
@@ -299,6 +306,8 @@ begin
   if p_decision='move_to_income' and account_row.type<>'income' then
     raise exception 'Choose an active income account';
   end if;
+  select id into liability_account_id from public.accounts where code='2300' and is_active and type='liability';
+  if liability_account_id is null then raise exception 'Customer Deposits liability account 2300 is missing or inactive'; end if;
   balance_value:=public.credit_voucher_available_balance(v.id);
   amount_value:=round(p_amount,2);
   if amount_value<=0 or amount_value>balance_value+0.005 then
@@ -311,7 +320,7 @@ begin
     'credit_voucher_expiry_resolution',v.id,uid)
   returning id into entry_id;
   insert into public.journal_lines(journal_entry_id,account_id,debit,credit,memo)
-  values(entry_id,(select id from public.accounts where code='2300' and is_active and type='liability'),amount_value,0,
+  values(entry_id,liability_account_id,amount_value,0,
     'Release expired customer credit liability'),
     (entry_id,account_row.id,0,amount_value,
     case when p_decision='refund' then 'Refund expired customer credit' else 'Recognise expired customer credit as income' end);
