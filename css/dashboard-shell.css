@@ -2271,3 +2271,8 @@ body.dashboard-workshop .dashboard-connection-label{display:inline;font-size:10p
 :root[data-theme="light"] body.dashboard-page.dashboard-workshop .tile svg {
   color: #008069 !important;
 }
+
+:root[data-theme="dark"] body.dashboard-page .sidebar {
+  background: #171717 !important;
+  border-right-color: #303030 !important;
+}
