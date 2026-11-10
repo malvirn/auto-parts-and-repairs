@@ -175,9 +175,9 @@ function addDashboardToolbar(main) {
     toolbar.append(actions);
   }
   addToolbarUtilities(actions, true);
-  toolbar.querySelectorAll(".theme-toggle, #global-notif-bell").forEach(control => {
-    if (control !== actions && !actions.contains(control)) actions.append(control);
-  });
+  // The theme control stays in the sidebar, exactly like the home page.
+  const notification = document.querySelector("#global-notif-bell");
+  if (notification && !actions.contains(notification)) actions.append(notification);
   main.querySelectorAll(":scope > .app-header, :scope > .main__header").forEach(header => header.remove());
   main.querySelectorAll(":scope > .site-foot").forEach(footer => footer.remove());
 
@@ -286,7 +286,7 @@ async function normalizeDashboardSidebar(sidebar) {
       group.querySelector(".nav-grp")?.setAttribute("aria-expanded", String(shouldOpen));
     });
     sidebar.replaceWith(canonical);
-    ensureSidebarAccount(canonical);
+    // Keep the home page sidebar untouched: no extra account/access-level card.
     canonical.removeAttribute("inert");
     window.lucide?.createIcons();
   } catch (error) {
