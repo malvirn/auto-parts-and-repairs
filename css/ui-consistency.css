@@ -171,3 +171,79 @@ body.dashboard-page :focus-visible {
     min-height:40px;
   }
 }
+
+
+/* System-wide action hierarchy: controls must stand apart from their surfaces. */
+body.dashboard-page :is(button,.btn,[role="button"],a.btn) {
+  min-height:38px;
+  border:1px solid var(--cam-border) !important;
+  border-radius:10px !important;
+  background:linear-gradient(180deg,var(--cam-surface),var(--cam-surface-2)) !important;
+  color:var(--cam-text) !important;
+  box-shadow:0 2px 0 rgba(0,0,0,.22),0 5px 12px rgba(0,0,0,.12);
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease,filter .16s ease;
+}
+body.dashboard-page :is(button,.btn,[role="button"],a.btn):hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color:var(--cam-green) !important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--cam-green) 17%,var(--cam-surface)),var(--cam-surface-2)) !important;
+  box-shadow:0 3px 0 rgba(0,0,0,.2),0 7px 16px rgba(0,0,0,.18);
+  transform:translateY(-1px);
+}
+body.dashboard-page :is(button,.btn,[role="button"],a.btn):active:not(:disabled) {
+  transform:translateY(0);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.22);
+}
+body.dashboard-page :is(.btn--primary,.btn-primary,.button-primary,[data-variant="primary"]) {
+  border-color:var(--cam-green-deep) !important;
+  background:linear-gradient(180deg,var(--cam-green),var(--cam-green-deep)) !important;
+  color:#fff !important;
+  box-shadow:0 3px 0 color-mix(in srgb,var(--cam-green-deep) 72%,#000),0 7px 16px rgba(0,0,0,.2);
+}
+body.dashboard-page :is(.btn--primary,.btn-primary,.button-primary,[data-variant="primary"]):hover:not(:disabled) {
+  background:linear-gradient(180deg,#2bd879,var(--cam-green-deep)) !important;
+  border-color:var(--cam-green) !important;
+}
+body.dashboard-page :is(.btn--danger,.btn-danger,.button-danger,[data-variant="danger"],.btn--delete) {
+  border-color:#b83232 !important;
+  background:linear-gradient(180deg,#e34b4b,#b92f36) !important;
+  color:#fff !important;
+}
+body.dashboard-page :is(.btn--secondary,.btn-secondary,.button-secondary) {
+  border-color:#536477 !important;
+  background:linear-gradient(180deg,#354252,#263241) !important;
+  color:#edf3fa !important;
+}
+body.dashboard-page :is(button,.btn,[role="button"]):disabled,
+body.dashboard-page :is(button,.btn,[role="button"])[aria-disabled="true"] {
+  opacity:.42;
+  cursor:not-allowed;
+  filter:saturate(.45);
+  transform:none;
+  box-shadow:none;
+}
+/* Keep navigation and icon-only shell controls visually integrated with the shell. */
+body.dashboard-page :is(.nav-grp,.dashboard-sidebar-toggle,.sidebar-toggle,.dashboard-sidebar-backdrop,.sidebar-backdrop,.apr-bottom-nav > button,.apr-more-toggle,.customer-activity-trigger) {
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+/* Debts and amounts still owed are consistently red. Customer credits stay green. */
+body.dashboard-page :is(.customer-balance--due,.balance-due,.amount-due,.outstanding-balance,.balance-outstanding,.text-danger,.is-overdue,.overdue,.negative-balance,.debt-amount),
+body.dashboard-page .customer-activity-item__amount.is-outstanding,
+body.dashboard-page .customer-transaction .is-outstanding {
+  color:#ff666d !important;
+  font-weight:750 !important;
+}
+body.dashboard-page :is(.customer-balance--credit,.customer-credit,.credit-balance,.amount-credit) {
+  color:#35d58a !important;
+  font-weight:750 !important;
+}
+body.dashboard-page .customer-balance--due,
+body.dashboard-page .is-overdue {
+  background:rgba(239,68,68,.10);
+  border-radius:7px;
+}
+:root[data-theme="light"] body.dashboard-page :is(.customer-balance--due,.balance-due,.amount-due,.outstanding-balance,.balance-outstanding,.text-danger,.is-overdue,.overdue,.negative-balance,.debt-amount),
+:root[data-theme="light"] body.dashboard-page .customer-activity-item__amount.is-outstanding {
+  color:#c62832 !important;
+}
