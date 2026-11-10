@@ -482,7 +482,7 @@ $$;
 create or replace function public.list_customer_credit_vouchers()
 returns table(
   voucher_id uuid,voucher_code text,credit_note_type text,credit_note_id uuid,
-  status text,expires_at date,holder_note text,customer_name text,
+  status text,expires_at date,holder_note text,customer_name text,customer_phone text,
   original_amount numeric,available_amount numeric,credit_note_number text
 ) language plpgsql security definer
 set search_path = public, pg_temp
@@ -498,6 +498,7 @@ begin
          else v.status end,
     v.expires_at,v.holder_note,
     case when v.credit_note_type='quotation_deposit' then d.customer_name else o.customer_name end,
+    case when v.credit_note_type='quotation_deposit' then d.customer_phone else o.customer_phone end,
     case when v.credit_note_type='quotation_deposit' then d.amount else o.amount end,
     public.credit_voucher_available_balance(v.id),
     case when v.credit_note_type='quotation_deposit' then 'QCN-'||lpad(d.credit_note_number::text,6,'0')
