@@ -541,3 +541,64 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
 #customer-credit-panel .credit-doc-actions{background:#fff!important;border-top-color:#dfe7e1!important}
 #customer-credit-panel .credit-modal-close{background:#f3f7f4!important;color:#17211b!important;border-color:#dfe7e1!important}
 #customer-credit-panel .credit-note-validity{color:#66756c!important}
+
+
+/* Credit note modal is portalled to body so page panels and headers cannot cover it. */
+body.credit-modal-open{overflow:hidden!important}
+body>.credit-note-modal[open]{
+  position:fixed!important;inset:0!important;z-index:2147483647!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  max-width:none!important;margin:0!important;padding:22px!important;
+  overflow:hidden!important;border:0!important;border-radius:0!important;
+  background:rgba(7,13,19,.78)!important;box-shadow:none!important;
+  isolation:isolate!important;backdrop-filter:blur(5px);
+}
+body>.credit-note-modal[open]>.customer-credit-record__summary,
+body>.credit-note-modal[open]>.overpayment-credit-record__summary{display:none!important}
+body>.credit-note-modal[open]>.customer-credit-document,
+body>.credit-note-modal[open]>.overpayment-credit-record__body{
+  display:block!important;position:relative!important;width:min(920px,100%)!important;
+  max-height:calc(100dvh - 44px)!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;padding:0 0 20px!important;
+  border:1px solid #c8d5e2!important;border-radius:16px!important;
+  background:#fff!important;color:#17211b!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.55)!important;
+}
+body>.credit-note-modal[open] .credit-doc-heading{
+  position:relative!important;display:flex!important;align-items:flex-start!important;
+  justify-content:space-between!important;gap:16px!important;
+  margin:0 0 18px!important;padding:18px 66px 18px 22px!important;
+  border-bottom:1px solid #dfe7e1!important;background:#fff!important;color:#17211b!important;
+}
+body>.credit-note-modal[open] .credit-doc-heading>div{min-width:0}
+body>.credit-note-modal[open] .credit-modal-close{
+  position:absolute!important;top:14px!important;right:16px!important;
+  display:grid!important;place-items:center!important;width:38px!important;height:38px!important;
+  border:1px solid #dfe7e1!important;border-radius:10px!important;
+  background:#f3f7f4!important;color:#17211b!important;font-size:25px!important;cursor:pointer;
+}
+body>.credit-note-modal[open] .credit-doc-facts,
+body>.credit-note-modal[open] .credit-doc-totals{padding:14px 18px!important}
+body>.credit-note-modal[open] .credit-doc-facts>div,
+body>.credit-note-modal[open] .credit-doc-totals>div{
+  padding:12px!important;border:1px solid #dfe7e1!important;
+  border-radius:10px!important;background:#f3f7f4!important;color:#17211b!important;
+}
+body>.credit-note-modal[open] .credit-doc-actions{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;
+  margin:18px 0 0!important;padding:16px 18px!important;
+  border-top:1px solid #dfe7e1!important;background:#fff!important;
+}
+body>.credit-note-modal[open] .credit-note-narrative{
+  margin:16px 18px!important;padding:14px 16px!important;
+  border:1px solid #dfe7e1!important;border-radius:10px!important;
+  background:#fbfcfb!important;color:#26372d!important;line-height:1.65!important;
+}
+@media(max-width:600px){
+  body>.credit-note-modal[open]{padding:10px!important}
+  body>.credit-note-modal[open]>.customer-credit-document,
+  body>.credit-note-modal[open]>.overpayment-credit-record__body{max-height:calc(100dvh - 20px)!important}
+  body>.credit-note-modal[open] .credit-doc-actions{padding:14px!important}
+}
