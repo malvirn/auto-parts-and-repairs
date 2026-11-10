@@ -7,6 +7,19 @@ const statusFilter = document.getElementById("credit-voucher-status");
 const refresh = document.getElementById("credit-voucher-refresh");
 const tabButton = document.getElementById("credit-voucher-tab");
 const notesTabButton = document.getElementById("credit-notes-tab");
+const redeemCode = document.getElementById("voucher-redeem-code");
+const redeemCheck = document.getElementById("voucher-redeem-check");
+const redeemScan = document.getElementById("voucher-redeem-scan");
+const redeemPreview = document.getElementById("voucher-redeem-preview");
+const redeemTarget = document.getElementById("voucher-redeem-target");
+const redeemAmount = document.getElementById("voucher-redeem-amount");
+const redeemApply = document.getElementById("voucher-redeem-apply");
+const redeemMessage = document.getElementById("voucher-redeem-message");
+const redeemVideo = document.getElementById("voucher-redeem-video");
+let checkedVoucher = null;
+let redeemTargets = [];
+let scannerStream = null;
+let scannerActive = false;
 const notesPanel = document.getElementById("customer-credit-panel");
 if (!host || !list || !tabButton) throw new Error("Credit voucher panel is missing.");
 
@@ -23,6 +36,154 @@ let vouchers = [];
 let redemptions = [];
 let terms = "Redeemable against eligible Centric Auto Mobile job cards, invoices and sales orders. Not redeemable for cash. Subject to available balance and expiry date.";
 let qrPromise;
+
+function setRedeemMessage(message, tone = "info") {
+  if (!redeemMessage) return;
+  redeemMessage.textContent = message;
+  redeemMessage.dataset.tone = tone;
+}
+
+function targetLabel(row) {
+  const type = row.source_type === "Repair job" ? "repair_job" : row.source_type === "Sales order" ? "sales_order" : "invoice";
+  return { ...row, target_type: type, label: row.reference + " · due " + money(row.balance_due) };
+}
+
+async function loadRedeemTargets() {
+  const { data, error } = await supabase.from("customer_account_statement")
+    .select("customer_id,customer_name,source_id,source_type,reference,balance_due")
+    .gt("balance_due", 0.005);
+  if (error) throw error;
+  redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type)).map(targetLabel);
+  redeemTarget.innerHTML = '<option value="">Choose an outstanding balance…</option>' +
+    redeemTargets.map(row => '<option value="' + esc(row.target_type + "|" + row.source_id) + '">' + esc(row.label) + '</option>').join("");
+  redeemTarget.disabled = !redeemTargets.length || !checkedVoucher || checkedVoucher.status !== "active";
+}
+
+function updateRedeemAmount() {
+  const [type,id] = (redeemTarget.value || "").split("|");
+  const target = redeemTargets.find(row => row.target_type === type && row.source_id === id);
+  if (!target || !checkedVoucher) {
+    redeemAmount.value = "";
+    redeemApply.disabled = true;
+    return;
+  }
+  const amount = Math.min(Number(target.balance_due) || 0, Number(checkedVoucher.available_amount) || 0);
+  redeemAmount.value = amount > 0 ? amount.toFixed(2) : "";
+  redeemAmount.max = String(amount);
+  redeemAmount.disabled = amount <= 0;
+  redeemApply.disabled = amount <= 0;
+}
+
+async function previewVoucher() {
+  const code = redeemCode.value.trim().toUpperCase();
+  if (!code) { setRedeemMessage("Enter a voucher code first.", "error"); return; }
+  redeemCheck.disabled = true;
+  redeemApply.disabled = true;
+  checkedVoucher = null;
+  redeemPreview.textContent = "Checking voucher…";
+  try {
+    const { data, error } = await supabase.rpc("lookup_credit_voucher", { p_code: code });
+    if (error) throw error;
+    checkedVoucher = data;
+    const masked = (data.customer_first_name || "Customer") + (data.phone_last4 ? " · phone ending " + data.phone_last4 : "");
+    redeemPreview.innerHTML = '<strong>' + esc(masked) + '</strong><span>' + money(data.available_amount) +
+      ' available · expires ' + dateLabel(data.expires_at) + '</span><small>Status: ' + esc(data.status) + '</small>';
+    if (data.status !== "active" || Number(data.available_amount) <= 0.005) {
+      redeemTarget.innerHTML = '<option value="">This voucher cannot be redeemed</option>';
+      redeemTarget.disabled = true;
+      redeemAmount.value = "";
+      redeemAmount.disabled = true;
+      setRedeemMessage("This voucher is " + data.status + " and cannot be applied.", "error");
+      return;
+    }
+    await loadRedeemTargets();
+    if (!redeemTargets.length) throw new Error("There are no outstanding job cards, invoices or confirmed sales orders.");
+    setRedeemMessage("Voucher verified. Choose the balance to apply it to.");
+    updateRedeemAmount();
+  } catch (error) {
+    checkedVoucher = null;
+    redeemPreview.textContent = "";
+    redeemTarget.innerHTML = '<option value="">Check a voucher first</option>';
+    redeemTarget.disabled = true;
+    redeemAmount.value = "";
+    redeemAmount.disabled = true;
+    setRedeemMessage(error.message || String(error), "error");
+  } finally { redeemCheck.disabled = false; }
+}
+
+async function applyVoucher() {
+  if (!checkedVoucher) return;
+  const [targetType,targetId] = (redeemTarget.value || "").split("|");
+  const amount = Number(redeemAmount.value);
+  const target = redeemTargets.find(row => row.target_type === targetType && row.source_id === targetId);
+  if (!targetType || !target || !Number.isFinite(amount) || amount <= 0) {
+    setRedeemMessage("Choose a valid target and amount.", "error");
+    return;
+  }
+  redeemApply.disabled = true;
+  setRedeemMessage("Applying voucher and posting the accounting entry…");
+  try {
+    const { data, error } = await supabase.rpc("redeem_credit_voucher", {
+      p_code: redeemCode.value.trim().toUpperCase(),
+      p_amount: amount,
+      p_target_type: targetType,
+      p_target_id: targetId,
+      p_idempotency_key: crypto.randomUUID(),
+    });
+    if (error) throw error;
+    const { data: refreshed, error: refreshError } = await supabase.from("customer_account_statement")
+      .select("balance_due").eq("source_id", targetId).eq("source_type", target.source_type).maybeSingle();
+    if (refreshError) throw refreshError;
+    const remainingDue = Math.max(0, Number(refreshed?.balance_due) || 0);
+    await load();
+    await previewVoucher();
+    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: " +
+      money(data.remaining_balance) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
+  } catch (error) {
+    setRedeemMessage(error.message || String(error), "error");
+    redeemApply.disabled = false;
+  }
+}
+
+function stopScanner() {
+  scannerActive = false;
+  if (scannerStream) scannerStream.getTracks().forEach(track => track.stop());
+  scannerStream = null;
+  if (redeemVideo) { redeemVideo.pause(); redeemVideo.srcObject = null; redeemVideo.hidden = true; }
+}
+
+async function startScanner() {
+  if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) {
+    setRedeemMessage("QR scanning is not supported by this browser. Enter the voucher code manually.");
+    return;
+  }
+  try {
+    const detector = new BarcodeDetector({ formats: ["qr_code"] });
+    scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+    redeemVideo.srcObject = scannerStream;
+    redeemVideo.hidden = false;
+    await redeemVideo.play();
+    scannerActive = true;
+    setRedeemMessage("Point the camera at the voucher QR code.");
+    const scanFrame = async () => {
+      if (!scannerActive) return;
+      try {
+        const codes = await detector.detect(redeemVideo);
+        if (codes.length && codes[0].rawValue) {
+          redeemCode.value = codes[0].rawValue;
+          stopScanner();
+          await previewVoucher();
+          return;
+        }
+      } catch (error) { console.warn("Voucher QR scan frame failed:", error); }
+      if (scannerActive) requestAnimationFrame(scanFrame);
+    };
+    scanFrame();
+  } catch (error) {
+    stopScanner();
+    setRedeemMessage("Camera access failed. Enter the voucher code manually.", "error");
+  }
+}
 
 async function loadQrLibrary() {
   if (window.QRCode) return;
@@ -169,6 +330,12 @@ refresh?.addEventListener("click", async () => {
   try { await load(); } catch (error) { list.innerHTML = '<div class="customer-credit-empty">' + esc(error.message || error) + '</div>'; }
   finally { refresh.disabled = false; }
 });
+redeemCheck?.addEventListener("click", previewVoucher);
+redeemScan?.addEventListener("click", startScanner);
+redeemApply?.addEventListener("click", applyVoucher);
+redeemTarget?.addEventListener("change", updateRedeemAmount);
+redeemCode?.addEventListener("input", () => { checkedVoucher = null; redeemApply.disabled = true; });
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopScanner(); });
 search?.addEventListener("input", render);
 statusFilter?.addEventListener("change", render);
 
