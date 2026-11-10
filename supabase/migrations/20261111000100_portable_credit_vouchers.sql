@@ -478,10 +478,43 @@ begin
 end;
 $$;
 
+
+create or replace function public.list_customer_credit_vouchers()
+returns table(
+  voucher_id uuid,voucher_code text,credit_note_type text,credit_note_id uuid,
+  status text,expires_at date,holder_note text,customer_name text,
+  original_amount numeric,available_amount numeric,credit_note_number text
+) language plpgsql security definer
+set search_path = public, pg_temp
+as $
+begin
+  if auth.uid() is null or public.current_access_level()<1 then
+    raise exception 'Authorised staff access is required' using errcode='42501';
+  end if;
+  return query
+  select v.id,v.voucher_code,v.credit_note_type,v.credit_note_id,
+    case when v.status='active' and v.expires_at<current_date and public.credit_voucher_available_balance(v.id)>0.005 then 'expired'
+         when v.status='active' and public.credit_voucher_available_balance(v.id)<=0.005 then 'redeemed'
+         else v.status end,
+    v.expires_at,v.holder_note,
+    case when v.credit_note_type='quotation_deposit' then d.customer_name else o.customer_name end,
+    case when v.credit_note_type='quotation_deposit' then d.amount else o.amount end,
+    public.credit_voucher_available_balance(v.id),
+    case when v.credit_note_type='quotation_deposit' then 'QCN-'||lpad(d.credit_note_number::text,6,'0')
+         else 'CN-'||lpad(o.note_number::text,5,'0') end
+  from public.customer_credit_vouchers v
+  left join public.quotation_deposit_receipts d on v.credit_note_type='quotation_deposit' and d.id=v.credit_note_id
+  left join public.customer_overpayment_credit_notes o on v.credit_note_type='invoice_overpayment' and o.id=v.credit_note_id
+  order by v.issued_at desc;
+end;
+$;
+
+revoke all on function public.list_customer_credit_vouchers() from public, anon;
 revoke all on function public.lookup_credit_voucher(text) from public, anon;
 revoke all on function public.redeem_credit_voucher(text,numeric,text,uuid,uuid) from public, anon;
 revoke all on function public.manage_credit_voucher(uuid,text,text,date,uuid) from public, anon;
 revoke all on function public.update_credit_voucher_settings(integer,text) from public, anon;
+grant execute on function public.list_customer_credit_vouchers() to authenticated;
 grant execute on function public.lookup_credit_voucher(text) to authenticated;
 grant execute on function public.redeem_credit_voucher(text,numeric,text,uuid,uuid) to authenticated;
 grant execute on function public.manage_credit_voucher(uuid,text,text,date,uuid) to authenticated;
