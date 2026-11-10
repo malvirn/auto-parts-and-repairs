@@ -322,7 +322,7 @@ begin
   if p_decision='refund' and not (account_row.type='asset' and account_row.code like '10%') then
     raise exception 'Refunds must use an active cash or bank account';
   end if;
-  if p_decision='move_to_income' and account_row.type<>'income' then
+  if p_decision='move_to_income' and account_row.type<>'revenue' then
     raise exception 'Choose an active income account';
   end if;
   select id into liability_account_id from public.accounts where code='2300' and is_active and type='liability';
