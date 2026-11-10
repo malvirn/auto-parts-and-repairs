@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<script>
+/* Keep the real phone layout even when Chrome requests the desktop site. */
+(function(){
+  try {
+    const phoneWidth = Math.min(Number(screen.width)||9999, Number(screen.height)||9999);
+    const touchDevice = (navigator.maxTouchPoints||0)>0 || matchMedia("(pointer:coarse)").matches;
+    if(touchDevice && phoneWidth<=600) document.documentElement.classList.add("phone-layout");
+  } catch (_) {}
+})();
+</script>
 <title>Centric Auto Mobile — Receipts &amp; Invoices</title>
 <link rel="icon" type="image/png" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2392,6 +2402,66 @@ body.dashboard-page input,body.dashboard-page select,body.dashboard-page button{
  .customer-credit-panel-scope .credit-detail-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:3px!important}
  .customer-credit-panel-scope .credit-detail-row>strong{text-align:left!important}
 }
+
+/* Physical-phone layout, including Chrome's desktop-site mode */
+html.phone-layout,html.phone-layout body{width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:hidden!important}
+html.phone-layout body.dashboard-page{font-size:16px!important;line-height:1.5!important;padding:0 0 calc(76px + env(safe-area-inset-bottom,0px))!important}
+html.phone-layout body.dashboard-page .sidebar,
+html.phone-layout body.dashboard-page .menu-scrim{display:none!important}
+html.phone-layout body.dashboard-page .app-shell,
+html.phone-layout body.dashboard-page .main,
+html.phone-layout body.dashboard-page .dash-content,
+html.phone-layout body.dashboard-page .dash-content.rc,
+html.phone-layout body.dashboard-page #v-list,
+html.phone-layout body.dashboard-page #customer-credit-panel{
+  display:block!important;position:relative!important;left:auto!important;right:auto!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;
+  min-height:0!important;margin:0!important;transform:none!important;overflow:visible!important;
+}
+html.phone-layout body.dashboard-page .main{padding:0 10px!important}
+html.phone-layout body.dashboard-page .app-header{
+  position:sticky!important;top:0!important;z-index:60!important;
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+  width:100%!important;min-width:0!important;padding:10px!important;
+}
+html.phone-layout body.dashboard-page .hdr-brand,
+html.phone-layout body.dashboard-page .hdr-right{min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+html.phone-layout body.dashboard-page .panel{width:100%!important;min-width:0!important;max-width:100%!important;margin:10px 0!important;padding:12px!important}
+html.phone-layout body.dashboard-page .rc-stats{grid-template-columns:minmax(0,1fr)!important}
+html.phone-layout body.dashboard-page .receipt-list-filters,
+html.phone-layout body.dashboard-page .credit-note-filters{grid-template-columns:minmax(0,1fr)!important}
+html.phone-layout body.dashboard-page .receipt-list-filters>*,
+html.phone-layout body.dashboard-page .credit-note-filters>*{grid-column:1!important;min-width:0!important;width:100%!important}
+html.phone-layout body.dashboard-page input,
+html.phone-layout body.dashboard-page select,
+html.phone-layout body.dashboard-page textarea{width:100%!important;min-width:0!important;max-width:100%!important;font-size:16px!important}
+html.phone-layout .customer-credit-panel-scope .customer-credit-records{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;min-width:0!important}
+html.phone-layout .customer-credit-panel-scope .customer-credit-record,
+html.phone-layout .customer-credit-panel-scope .overpayment-credit-record{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important}
+html.phone-layout .customer-credit-panel-scope .customer-credit-record__summary,
+html.phone-layout .customer-credit-panel-scope .overpayment-credit-record__summary{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  width:100%!important;min-width:0!important;gap:8px!important;padding:13px!important;
+}
+html.phone-layout .customer-credit-panel-scope .customer-credit-document,
+html.phone-layout .customer-credit-panel-scope .overpayment-credit-record__body{
+  display:block!important;position:static!important;inset:auto!important;float:none!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;
+  max-height:none!important;overflow:visible!important;transform:none!important;
+  margin:0!important;padding:13px!important;box-sizing:border-box!important;
+  font-size:14px!important;line-height:1.55!important;overflow-wrap:anywhere!important;
+}
+html.phone-layout .customer-credit-panel-scope .credit-doc-heading,
+html.phone-layout .customer-credit-panel-scope .credit-doc-facts,
+html.phone-layout .customer-credit-panel-scope .credit-doc-totals{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;min-width:0!important;width:100%!important;
+}
+html.phone-layout .customer-credit-panel-scope .credit-doc-actions,
+html.phone-layout .customer-credit-panel-scope .customer-credit-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important}
+html.phone-layout .customer-credit-panel-scope .credit-doc-actions>*,
+html.phone-layout .customer-credit-panel-scope .customer-credit-actions>*{width:100%!important;min-width:0!important}
+html.phone-layout body.dashboard-page table{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important}
+html.phone-layout body.dashboard-page .site-foot{width:100%!important;flex-wrap:wrap!important}
 </style>
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
 window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
