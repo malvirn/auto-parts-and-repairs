@@ -1860,5 +1860,6 @@ $("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-
 $("receipt-load-more").onclick=()=>{visibleRows+=3;render()};
 load().catch(error=>{console.error("Receipts page failed to load:",error);$("list").innerHTML=`<div class="ov-empty">Couldn't load receipts: ${esc(error?.message||String(error))}</div>`});
 </script>
+<script type="module" src="../js/phone-inputs.js"></script>
 </body>
 </html>
