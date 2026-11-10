@@ -2523,6 +2523,11 @@ $("invoice-payment-save").onclick=async()=>{
   if(error)throw new Error(error.message);
   paymentSaved=true;
   if(!journalEntryId)throw new Error("The payment was saved, but the ledger did not return a receipt reference. Verify the invoice payment before retrying.");
+  let linkedSyncWarning="";
+  if(cur.repairJobId){
+   const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:cur.repairJobId});
+   if(syncError){linkedSyncWarning=" The linked job invoice could not be refreshed: "+syncError.message;console.error("Invoice payment saved but linked job invoice synchronization failed:",syncError)}
+  }
   signalDocumentChange("invoices",cur.number);
   lastPaymentContext={jobId:cur.repairJobId,amount,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
   closeInvoicePayment();
@@ -2530,7 +2535,7 @@ $("invoice-payment-save").onclick=async()=>{
   history.replaceState(null,"",`${location.pathname}${cleanParams.toString()?"?"+cleanParams.toString():""}`);
   await load();
   await openInvoicePaymentReceipt(journalEntryId,lastPaymentContext.method);
-  toast(amount>balance+0.005?"Payment recorded; the excess is customer credit. The receipt is open.":"Payment recorded. The receipt is open.");
+  toast((amount>balance+0.005?"Payment recorded; the excess is customer credit. The receipt is open.":"Payment recorded. The receipt is open.")+linkedSyncWarning);
  }catch(error){console.error("Couldn't record customer invoice payment:",error);message.textContent=`${paymentSaved?"Payment recorded, but the receipt could not be opened":"Couldn't record payment"}: ${error.message||String(error)}.`;message.dataset.tone="error"}
  finally{saveButton.disabled=false}
 };
