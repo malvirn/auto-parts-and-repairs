@@ -1978,6 +1978,101 @@ ${extra}
   #customer-credit-panel .customer-credit-actions>*{grid-column:1!important}
 }
 
+
+/* Quotation credit note modal: body-level portal layer */
+.credit-modal-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483000!important;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(2,7,5,.78);backdrop-filter:blur(7px);
+}
+.credit-modal-sheet{
+  width:min(100%,760px);max-height:90vh;overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid rgba(48,205,116,.3);border-radius:20px;
+  background:#0d1511;color:#eef7f0;box-shadow:0 28px 90px rgba(0,0,0,.62);
+}
+.credit-modal-sheet .customer-credit-record.credit-note-modal{
+  display:block!important;position:static!important;inset:auto!important;
+  width:100%!important;max-height:none!important;overflow:visible!important;
+  margin:0!important;border:0!important;border-radius:20px!important;
+  box-shadow:none!important;background:transparent!important;
+}
+.credit-modal-sheet .customer-credit-record.credit-note-modal>.customer-credit-record__summary{display:none!important}
+.credit-modal-sheet .customer-credit-document{
+  display:block!important;padding:22px!important;background:transparent!important;
+}
+.credit-modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 18px}
+.credit-modal-title{display:grid;gap:7px;min-width:0}
+.credit-modal-title small{color:#9eafa5;font-size:.68rem;font-weight:800;letter-spacing:.1em}
+.credit-modal-title h3{margin:0;color:#55df91;font-size:1.55rem;line-height:1.2;overflow-wrap:anywhere}
+.credit-modal-close{
+  flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;
+  display:grid!important;place-items:center!important;margin:0!important;padding:0!important;
+  border:1px solid #34473b!important;border-radius:12px!important;background:#17231c!important;
+  color:#f2fff6!important;font-size:27px!important;line-height:1!important;cursor:pointer;
+}
+.credit-available-card{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:0 0 16px;padding:17px 18px;border:1px solid rgba(62,220,128,.42);
+  border-radius:14px;background:linear-gradient(120deg,rgba(34,173,91,.2),rgba(20,42,29,.92));
+}
+.credit-available-card>div{display:grid;gap:5px}
+.credit-available-card small{color:#a9cbb5;font-size:.76rem;font-weight:700}
+.credit-available-card strong{color:#75efa5;font-size:1.65rem;font-weight:850;font-variant-numeric:tabular-nums}
+.credit-unused-badge{padding:6px 10px;border:1px solid rgba(117,239,165,.38);border-radius:99px;background:rgba(50,181,99,.16);color:#8af0ae;font-size:.72rem;font-weight:800}
+.credit-details-card{
+  padding:16px 18px;border:1px solid #293a30;border-radius:14px;background:#111c16;
+}
+.credit-details-card h4,.credit-apply-section h4{margin:0 0 9px;color:#e7f4eb;font-size:.95rem}
+.credit-detail-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+  padding:11px 0;border-bottom:1px solid rgba(164,190,173,.12);
+}
+.credit-detail-row:last-child{border-bottom:0;padding-bottom:2px}
+.credit-detail-row>span{color:#9cad9f;font-size:.82rem;flex:0 0 38%}
+.credit-detail-row>strong{min-width:0;color:#edf8f0;font-size:.85rem;text-align:right;overflow-wrap:anywhere}
+.credit-detail-row>strong small{display:block;margin-top:4px;color:#9cad9f;font-size:.76rem;font-weight:500}
+.credit-note-validity{margin:12px 2px 17px!important;color:#a9b9ae!important;font-size:.76rem!important;line-height:1.45}
+.credit-apply-section{margin:0 0 16px;padding:16px 18px;border:1px solid #293a30;border-radius:14px;background:#111c16}
+.credit-apply-section .customer-credit-actions{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;
+  min-width:0!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+}
+.credit-apply-section .customer-credit-actions>*{width:100%!important;min-width:0!important;min-height:46px!important;grid-column:1!important}
+.credit-apply-section .customer-credit-actions select,
+.credit-apply-section .customer-credit-actions input{
+  box-sizing:border-box!important;padding:11px 12px!important;border:1px solid #34483b!important;
+  border-radius:10px!important;background:#0b120e!important;color:#eef7f0!important;font:inherit!important;
+}
+.credit-apply-section .customer-credit-apply{justify-content:center!important;background:#24a85e!important;color:#fff!important;font-weight:800!important}
+.credit-apply-section .customer-credit-apply:disabled{opacity:.42!important;cursor:not-allowed!important}
+.credit-apply-empty{margin:0;color:#9cad9f;font-size:.82rem}
+.credit-modal-sheet .credit-doc-actions--footer{
+  display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;
+  margin:16px 0 0!important;padding:0!important;
+}
+.credit-modal-sheet .credit-doc-actions--footer .btn{
+  min-height:44px!important;display:flex!important;align-items:center;justify-content:center;
+}
+.credit-modal-sheet .credit-refund-placeholder{opacity:.48!important;cursor:not-allowed!important}
+.credit-modal-sheet .customer-credit-history,
+.credit-modal-sheet .credit-unpaid-jobs{margin:12px 0!important}
+body.credit-modal-open{overscroll-behavior:none}
+@media(max-width:640px){
+  .credit-modal-overlay{align-items:flex-end!important;padding:0!important}
+  .credit-modal-sheet{
+    width:100%!important;max-width:none!important;max-height:90vh!important;
+    border-radius:20px 20px 0 0!important;padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .credit-modal-sheet .customer-credit-record.credit-note-modal{border-radius:20px 20px 0 0!important}
+  .credit-modal-sheet .customer-credit-document{padding:19px 16px calc(18px + env(safe-area-inset-bottom,0px))!important}
+  .credit-modal-header{gap:10px}
+  .credit-modal-title small{font-size:.61rem;letter-spacing:.07em}
+  .credit-modal-title h3{font-size:1.38rem}
+  .credit-detail-row{gap:10px}
+  .credit-detail-row>span{flex-basis:35%}
+  .credit-modal-sheet .credit-doc-actions--footer{grid-template-columns:1fr 1fr!important}
+}
+
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
