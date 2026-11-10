@@ -1475,10 +1475,6 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
         const content = (node.innerText || node.textContent || "").toUpperCase();
         if (content.includes("ACCESS LEVEL") || (content.includes("SUPER ADMIN") && content.includes("ONLINE"))) node.remove();
       });
-      sidebar.querySelectorAll(".theme-toggle").forEach(button => {
-        if (button.closest(".dashboard-topbar")) return;
-        button.remove();
-      });
     };
     removeAccessCard();
     if (sidebar) new MutationObserver(removeAccessCard).observe(sidebar,{childList:true,subtree:true});
