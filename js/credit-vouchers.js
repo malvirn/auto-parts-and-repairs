@@ -323,6 +323,8 @@ function phoneForWhatsApp(phone) {
 }
 
 async function printVoucher(v) {
+  const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "printed" });
+  if (auditError) throw auditError;
   const qr = await qrDataUrl(v.voucher_code);
   const popup = window.open("", "_blank", "width=900,height=720");
   if (!popup) throw new Error("Allow pop-ups to print the voucher.");
@@ -446,6 +448,8 @@ list.addEventListener("click", async event => {
   try {
     if (button.dataset.voucherPrint) await printVoucher(v);
     else if (button.dataset.voucherWhatsapp) {
+      const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "whatsapp_shared" });
+      if (auditError) throw auditError;
       const phone = phoneForWhatsApp(v.customer_phone);
       if (!phone) throw new Error("No WhatsApp number is saved for this customer.");
       const message = "Hello " + (v.customer_name || "Customer") + ", your Centric Auto Mobile credit voucher is ready.\n\nValue: " + money(v.available_amount) +
