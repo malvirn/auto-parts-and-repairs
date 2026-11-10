@@ -75,11 +75,7 @@ function contractWarningLabel(employee) {
 
 // ---- Load + render employee table ----
 async function loadEmployees() {
-  const { data, error } = await supabase
-    .from("technicians")
-    .select("*")
-    .order("department")
-    .order("full_name");
+  const { data, error } = await supabase.rpc("get_technicians_admin");
 
   if (error) {
     console.error("Error loading employees:", error);
