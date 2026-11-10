@@ -46,7 +46,7 @@ async function load() {
   if (!hasLoadedCreditNotes) list.innerHTML = '<div class="customer-credit-empty">Loading credit notes…</div>';
   const [receiptsResult, balancesResult, movementsResult, targetsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
-      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at, repair_job_id), customers(email)")
+      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, voucher_code, voucher_status, expires_at, holder_note, quotations(quotation_number, created_at, repair_job_id), customers(email)")
       .order("created_at", { ascending: false }),
     supabase.from("customer_credit_balances").select("deposit_receipt_id, available_amount"),
     supabase.from("customer_credit_movements")
@@ -68,7 +68,7 @@ async function load() {
 
   const [overpaymentResult, overpaymentRefundsResult] = await Promise.all([
     supabase.from("customer_overpayment_credit_notes")
-      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method)),customer_overpayment_credit_job_links(repair_job_id,applied_amount,repair_jobs(job_number,checklist_number,cro_number))")
+      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,voucher_code,voucher_status,expires_at,holder_note,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method)),customer_overpayment_credit_job_links(repair_job_id,applied_amount,repair_jobs(job_number,checklist_number,cro_number))")
       .order("issued_at", { ascending: false }).limit(500),
     supabase.from("customer_overpayment_credit_refunds")
       .select("credit_note_id,amount,voided_at"),
@@ -140,7 +140,43 @@ function noteStatus(note, noteMovements) {
   return { label: "Available", tone: "available", refunded, applied };
 }
 
-function printCreditNote(note) {
+let voucherQrLibraryPromise;
+async function voucherQrDataUrl(code) {
+  if (!code) return "";
+  if (!window.QRCode) {
+    if (!voucherQrLibraryPromise) voucherQrLibraryPromise = new Promise((resolve,reject) => {
+      const script=document.createElement("script");
+      script.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+      script.onload=resolve;script.onerror=()=>reject(new Error("QR generator could not load."));
+      document.head.append(script);
+    });
+    await voucherQrLibraryPromise;
+  }
+  const node=document.createElement("div");
+  new window.QRCode(node,{text:code,width:220,height:220,correctLevel:window.QRCode.CorrectLevel.M});
+  await new Promise(resolve=>setTimeout(resolve,80));
+  const canvas=node.querySelector("canvas");
+  const image=node.querySelector("img");
+  return canvas?canvas.toDataURL("image/png"):(image?.src||"");
+}
+async function renderVoucherQrCodes(root=list) {
+  const nodes=[...root.querySelectorAll("[data-voucher-qr]")].filter(node=>node.dataset.voucherQr&&!node.dataset.rendered);
+  if(!nodes.length)return;
+  try {
+    if(!window.QRCode) {
+      if(!voucherQrLibraryPromise) voucherQrLibraryPromise = new Promise((resolve,reject)=>{
+        const script=document.createElement("script");
+        script.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+        script.onload=resolve;script.onerror=()=>reject(new Error("QR generator could not load."));
+        document.head.append(script);
+      });
+      await voucherQrLibraryPromise;
+    }
+    nodes.forEach(node=>{new window.QRCode(node,{text:node.dataset.voucherQr,width:112,height:112,correctLevel:window.QRCode.CorrectLevel.M});node.dataset.rendered="true";});
+  } catch(error){console.warn("Voucher QR preview could not be rendered:",error);}
+}
+
+async function printCreditNote(note) {
   const quote = note.quotations || {};
   const job = quote.repair_job_id ? jobsById.get(quote.repair_job_id) : null;
   const number = `QCN-${String(note.credit_note_number).padStart(6, "0")}`;
@@ -149,6 +185,7 @@ function printCreditNote(note) {
   const jobRef = job ? (job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Not created yet";
   const validUntil = quote.created_at ? dateLabel(new Date(Date.parse(quote.created_at) + 7 * 86400000).toISOString()) : "—";
   const activityRows = movementsForNote.map(item => `<tr><td>${escapeHtml(item.movement_type === "refund" ? "Refund" : "Credit applied")}</td><td>${dateLabel(item.created_at)}</td><td>${money(item.amount)}</td><td>${escapeHtml(item.reason || "—")}</td></tr>`).join("");
+  const qrData = note.voucher_code ? await voucherQrDataUrl(note.voucher_code) : "";
   const popup = window.open("", "_blank", "width=900,height=720");
   if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
   const logoUrl = window.location.origin + "/assets/logo.png";
@@ -181,8 +218,11 @@ function printCreditNote(note) {
       <tr><td>Source</td><td>Quotation #${escapeHtml(quote.quotation_number ?? "—")}</td></tr>
       <tr><td>Date and payment method</td><td>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</td></tr>
       <tr><td>Job card</td><td>${escapeHtml(jobRef)}</td></tr>
-      <tr><td>Valid until</td><td>${validUntil}</td></tr>
+      <tr><td>Credit note valid until</td><td>${validUntil}</td></tr>
+      <tr><td>Portable voucher code</td><td>${escapeHtml(note.voucher_code || "Not issued")}</td></tr>
+      <tr><td>Voucher expiry</td><td>${dateLabel(note.expires_at)}</td></tr>
     </tbody></table>
+    ${qrData ? `<h2>Portable voucher</h2><div style="text-align:center;padding:12px"><img src="${qrData}" alt="Voucher QR code" style="width:130px;height:130px"><div style="font:800 18px ui-monospace,monospace;letter-spacing:.1em">${escapeHtml(note.voucher_code)}</div></div>` : ""}
     <h2>Credit summary</h2><table class="totals"><tbody>
       <tr><td>Original deposit</td><td>${money(note.amount)}</td></tr>
       <tr><td>Applied</td><td>${money(status.applied)}</td></tr>
@@ -306,12 +346,14 @@ function render() {
             <div class="credit-detail-row"><span>Source</span><strong>Quotation #${escapeHtml(quoteNumber)}</strong></div>
             <div class="credit-detail-row"><span>Date and payment method</span><strong>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</strong></div>
             <div class="credit-detail-row"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
+            <div class="credit-detail-row"><span>Portable voucher</span><strong>${escapeHtml(note.voucher_code || "Not issued")}<small>Expires ${dateLabel(note.expires_at)}</small></strong></div>
             <div class="credit-detail-row"><span>Applied</span><strong>${money(status.applied)}</strong></div>
             <div class="credit-detail-row"><span>Refunded</span><strong>${money(status.refunded)}</strong></div>
             <div class="credit-detail-row"><span>Job card</span><strong>${escapeHtml(job ? (job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Not created yet")}</strong></div>
             <div class="credit-detail-row"><span>Valid until</span><strong>${quote.created_at ? dateLabel(new Date(Date.parse(quote.created_at) + 7 * 86400000).toISOString()) : "—"}${expired ? " · Expired" : ""}</strong></div>
           </section>
           <section class="credit-note-validity">${expired ? "The seven-day validity period has ended. Any remaining credit is still shown above." : "This credit note is valid for seven days from the issue date."}</section>
+          ${note.voucher_code ? `<section class="credit-voucher-modal-qr"><div><small>PORTABLE VOUCHER CODE</small><strong>${escapeHtml(note.voucher_code)}</strong></div><div data-voucher-qr="${escapeHtml(note.voucher_code)}" aria-label="Voucher QR code"></div></section>` : ""}
           <section class="credit-apply-section">
             <h4>Apply credit</h4>
             ${applyFields || '<p class="credit-apply-empty">There is no available credit to apply at this time.</p>'}
@@ -345,13 +387,14 @@ function render() {
       const linked = jobLink.repair_job_id || "";
       const link = linked ? '<a class="btn" href="repairs.html?highlight=' + encodeURIComponent(linked) + '">Open linked job card</a>' :
         '<section class="overpayment-job-link"><h4>Link carried-forward amount to the next job card</h4><p>Enter the customer name, email, phone number and checklist number. The name, email and phone must match the original credit note.</p><div class="overpayment-job-link__fields" data-overpayment-link="' + escapeHtml(note.id) + '" data-credit-note-id="' + escapeHtml(note.id) + '"><input data-match="name" placeholder="Customer full name" required><input data-match="email" type="email" placeholder="Customer email address" required><input data-match="phone" type="tel" placeholder="Customer phone number" required><input data-match="checklist" placeholder="Next job card checklist number" required><button class="btn btn--primary" type="button" data-link-overpayment-job>Verify and link next job card</button></div></section>';
-      return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customer_name || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div><div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + '</div>' + link + '</div></details>';
+      return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customer_name || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Portable voucher</small><strong>' + escapeHtml(note.voucher_code || "Not issued") + '</strong></div><div><small>Voucher expiry</small><strong>' + dateLabel(note.expires_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div><div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + '</div>' + link + '</div></details>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
       '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div>' + '</section>');
   }
   window.lucide?.createIcons();
+  renderVoucherQrCodes(list);
 }
 
 let activeCreditDialog = null;
@@ -617,7 +660,7 @@ document.addEventListener("click", async event => {
   const printButton = target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
-    if (note) printCreditNote(note);
+    if (note) await printCreditNote(note);
     return;
   }
   const overpaymentPrintButton = target.closest("[data-overpayment-print]");
@@ -629,6 +672,7 @@ document.addEventListener("click", async event => {
     const refunded = overpaymentRefunds.filter(row => row.credit_note_id === note.id && !row.voided_at)
       .reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
+    const qrData = note.voucher_code ? await voucherQrDataUrl(note.voucher_code) : "";
     const popup = window.open("", "_blank", "width=900,height=720");
     if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
     popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>CN-" +
@@ -645,7 +689,7 @@ document.addEventListener("click", async event => {
       "</strong></div></section><section class='totals'><div class='line'><span>Applied</span><strong>" + money(applied) +
       "</strong></div><div class='line'><span>Refunded</span><strong>" + money(refunded) +
       "</strong></div><div class='line'><span>Carried forward</span><strong>" + money(available) +
-      "</strong></div></section><footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main></body></html>");
+      "</strong></div></section>"+(qrData ? "<section style=\"text-align:center;padding:12px\"><img src=\"" + qrData + "\" style=\"width:130px;height:130px\"><p style=\"font:800 18px monospace\">" + escapeHtml(note.voucher_code) + "</p></section>" : "")+"<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main></body></html>");
     popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 350);
     return;
   }
