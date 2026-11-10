@@ -293,7 +293,7 @@ function render() {
           </header>
           <section class="credit-available-card">
             <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
-            <span class="credit-unused-badge">Unused</span>
+            <span class="credit-unused-badge">${status.applied > 0.005 || status.refunded > 0.005 ? escapeHtml(status.label) : "Unused"}</span>
           </section>
           <section class="credit-details-card" aria-label="Credit note details">
             <h4>Credit note details</h4>
