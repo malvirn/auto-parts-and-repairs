@@ -2135,6 +2135,57 @@ body.credit-modal-open{overscroll-behavior:none}
 
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
+
+<style id="credit-note-modal-portal-fix">
+body.credit-modal-open{overflow:hidden!important}
+.credit-modal-overlay{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;
+  z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;padding:24px!important;overflow:hidden!important;isolation:isolate!important;
+  background:rgba(2,7,5,.86)!important;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+.credit-modal-sheet{
+  position:relative!important;display:block!important;width:min(760px,100%)!important;max-width:760px!important;
+  max-height:90vh!important;max-height:90dvh!important;overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;box-sizing:border-box!important;
+  border:1px solid rgba(48,205,116,.42)!important;border-radius:20px!important;
+  background:#0d1511!important;color:#eef7f0!important;box-shadow:0 28px 90px rgba(0,0,0,.72)!important;
+}
+.credit-modal-sheet .customer-credit-document{
+  display:block!important;width:100%!important;box-sizing:border-box!important;padding:22px!important;
+  background:transparent!important;
+}
+.credit-modal-sheet .credit-modal-header{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;
+}
+.credit-modal-sheet .credit-modal-title{flex:1 1 auto!important;min-width:0!important}
+.credit-modal-sheet .credit-modal-close-column{
+  display:flex!important;flex:0 0 44px!important;flex-direction:column!important;align-items:stretch!important;
+}
+.credit-modal-sheet .credit-modal-close{
+  position:static!important;float:none!important;flex:0 0 44px!important;width:44px!important;height:44px!important;
+  min-width:44px!important;margin:0!important;
+}
+.credit-modal-sheet .customer-credit-actions{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;width:100%!important;
+}
+.credit-modal-sheet .customer-credit-actions>*{
+  grid-column:1!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;
+}
+@media(max-width:640px){
+  .credit-modal-overlay{align-items:flex-end!important;justify-content:center!important;padding:0!important}
+  .credit-modal-sheet{
+    width:100vw!important;max-width:100vw!important;max-height:90vh!important;max-height:90dvh!important;
+    margin:0!important;border-radius:20px 20px 0 0!important;
+    padding-bottom:env(safe-area-inset-bottom,0px)!important;
+  }
+  .credit-modal-sheet .customer-credit-document{
+    padding:19px 16px calc(18px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .credit-modal-sheet .credit-modal-header{gap:10px!important}
+  .credit-modal-sheet .credit-modal-title h3{overflow-wrap:anywhere}
+}
+</style>
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
 window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
 <\/scr${"ipt"}></bo${"dy"}></html>`}
