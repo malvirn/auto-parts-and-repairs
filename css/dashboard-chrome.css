@@ -350,3 +350,34 @@ body.dashboard-page.dashboard-workshop .sidebar-quick-access>a[aria-current="pag
   color:rgba(255,255,255,.9) !important;
 }
 body.dashboard-page.dashboard-workshop .sidebar .sidebar__brand{display:none !important}
+
+
+/* The live indicator is a status dot, not a Lucide icon.
+   Use a pseudo-element so icon rendering cannot replace or remove it. */
+body.dashboard-workshop .dashboard-topbar .hdr-live{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  color:var(--green-bright,#22c55e)!important;
+}
+body.dashboard-workshop .dashboard-topbar .hdr-live::before{
+  content:""!important;
+  display:inline-block!important;
+  flex:0 0 9px!important;
+  width:9px!important;
+  height:9px!important;
+  border-radius:50%!important;
+  background:#22c55e!important;
+  box-shadow:0 0 0 2px rgba(34,197,94,.16),0 0 9px rgba(34,197,94,.75)!important;
+}
+body.dashboard-workshop .dashboard-topbar .hdr-live>i,
+body.dashboard-workshop .dashboard-topbar .hdr-live>svg{
+  display:none!important;
+}
+body.dashboard-workshop .dashboard-topbar .hdr-live[data-state="offline"]::before{
+  background:#f97316!important;
+  box-shadow:0 0 0 2px rgba(249,115,22,.16),0 0 9px rgba(249,115,22,.7)!important;
+}
+body.dashboard-workshop .dashboard-topbar .hdr-live[data-state="offline"]{
+  color:#f97316!important;
+}
