@@ -6,6 +6,7 @@ const search = document.getElementById("credit-voucher-search");
 const statusFilter = document.getElementById("credit-voucher-status");
 const refresh = document.getElementById("credit-voucher-refresh");
 const tabButton = document.getElementById("credit-voucher-tab");
+const notesTabButton = document.getElementById("credit-notes-tab");
 const notesPanel = document.getElementById("customer-credit-panel");
 if (!host || !list || !tabButton) throw new Error("Credit voucher panel is missing.");
 
@@ -152,9 +153,16 @@ tabButton.addEventListener("click", async () => {
   host.hidden = !showVouchers;
   notesPanel.hidden = showVouchers;
   tabButton.setAttribute("aria-pressed", String(showVouchers));
+  notesTabButton?.setAttribute("aria-pressed", String(!showVouchers));
   if (showVouchers) {
     try { await load(); } catch (error) { list.innerHTML = '<div class="customer-credit-empty">Could not load vouchers: ' + esc(error.message || error) + '</div>'; }
   }
+});
+notesTabButton?.addEventListener("click", () => {
+  host.hidden = true;
+  notesPanel.hidden = false;
+  tabButton.setAttribute("aria-pressed", "false");
+  notesTabButton.setAttribute("aria-pressed", "true");
 });
 refresh?.addEventListener("click", async () => {
   refresh.disabled = true;
