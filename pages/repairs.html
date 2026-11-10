@@ -682,6 +682,41 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:8px!imp
 }
 </style>
 
+
+<style id="job-card-action-and-status-fix">
+/* Keep every Job Cards action visible and readable. */
+body.dashboard-workshop .rc .btn,body.dashboard-workshop .rc button.btn,body.dashboard-workshop .rc .seg{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+ min-height:38px!important;padding:9px 13px!important;border:1px solid #d4deea!important;border-radius:10px!important;
+ background:#fff!important;color:#20334d!important;font:650 12px Inter,"Segoe UI",sans-serif!important;
+ opacity:1!important;visibility:visible!important;box-shadow:0 2px 7px rgba(22,40,65,.07)!important;
+}
+body.dashboard-workshop .rc .btn--primary,body.dashboard-workshop .rc .btn-primary{
+ background:#128a4b!important;border-color:#128a4b!important;color:#fff!important;
+}
+body.dashboard-workshop .rc .btn--danger,body.dashboard-workshop .rc .danger{
+ background:#c9363e!important;border-color:#c9363e!important;color:#fff!important;
+}
+body.dashboard-workshop .rc .btn:disabled,body.dashboard-workshop .rc button:disabled{
+ background:#e8edf2!important;border-color:#d7dee7!important;color:#8793a2!important;box-shadow:none!important;
+}
+body.dashboard-workshop .rc .seg[aria-pressed="true"]{background:#183568!important;border-color:#183568!important;color:#fff!important}
+body.dashboard-workshop .rc .pill{display:inline-flex!important;align-items:center!important;padding:4px 9px!important;border:1px solid transparent!important;border-radius:999px!important;font-size:11px!important;font-weight:750!important;line-height:1.25!important}
+body.dashboard-workshop .rc .pill.status-draft,body.dashboard-workshop .rc .pill.status-received{background:#edf1f5!important;border-color:#dce3eb!important;color:#526174!important}
+body.dashboard-workshop .rc .pill.status-diagnosing{background:#f0eaff!important;border-color:#dfd1ff!important;color:#6844a0!important}
+body.dashboard-workshop .rc .pill.status-processing{background:#fff1df!important;border-color:#f4d8b5!important;color:#9c5b16!important}
+body.dashboard-workshop .rc .pill.status-processed,body.dashboard-workshop .rc .pill.status-ready,body.dashboard-workshop .rc .pill.status-collected{background:#e6f6ec!important;border-color:#c8ead5!important;color:#167344!important}
+body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;border-color:#f4d0ca!important;color:#ad3932!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .btn,:root[data-theme="dark"] body.dashboard-workshop .rc .seg{background:#202c3d!important;border-color:#45566e!important;color:#eaf0f7!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .btn--primary{background:#168b50!important;border-color:#168b50!important;color:#fff!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .seg[aria-pressed="true"]{background:#30496c!important;border-color:#54739c!important;color:#fff!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-draft,:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-received{background:rgba(148,163,184,.15)!important;border-color:rgba(148,163,184,.28)!important;color:#d5dfeb!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-diagnosing{background:rgba(167,139,250,.16)!important;border-color:rgba(167,139,250,.3)!important;color:#c9b5ff!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-processing{background:rgba(245,158,11,.15)!important;border-color:rgba(245,158,11,.28)!important;color:#ffc477!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-processed,:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-ready,:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-collected{background:rgba(34,197,94,.15)!important;border-color:rgba(34,197,94,.28)!important;color:#80e4a9!important}
+:root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-unclaimed{background:rgba(239,68,68,.15)!important;border-color:rgba(239,68,68,.28)!important;color:#ffaaa3!important}
+</style>
+
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -1206,6 +1241,7 @@ function damageSummaryHTML(j){
 const veh=v=>v?[v.year,v.make,v.model].filter(Boolean).join(" "):"";
 const jn=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
 const stClass=s=>/complet|deliver|closed|collect|paid/i.test(s||"")?"paid":"";
+const statusTone=s=>{const v=String(s||"").toLowerCase();if(v==="draft")return"draft";if(v==="received")return"received";if(v==="diagnosing")return"diagnosing";if(v==="processing")return"processing";if(v==="processed"||v==="ready for pickup")return"ready";if(v==="collected")return"collected";if(v==="unclaimed")return"unclaimed";return"draft"};
 const money=v=>"$"+Number(v||0).toFixed(2);
 const localDate=v=>v?new Date(v).toLocaleDateString():"";
 const isTerminalStatus=status=>String(status||"").toLowerCase()===COLLECTED_STATUS.toLowerCase();
@@ -1276,7 +1312,7 @@ function render(){
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)}">${esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
+ $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)} status-${statusTone(j.status)}">${esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
  $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]));
  const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
  if(CL.length){
