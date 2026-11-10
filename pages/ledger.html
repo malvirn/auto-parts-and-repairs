@@ -982,10 +982,11 @@
           return;
         }
         const receiptUrl = new URL("receipts.html", window.location.href);
+        receiptUrl.searchParams.set("tab", "receipts");
         receiptUrl.searchParams.set("invoicePayment", journalEntryId);
         receiptUrl.searchParams.set("paymentMethod", paymentMethod);
         receiptUrl.searchParams.set("from", "ledger");
-        window.location.href = receiptUrl.href;
+        window.location.assign(receiptUrl.href);
       } catch (error) {
         console.error("Ledger job payment failed:", error);
         message.textContent = `Payment was not completed: ${error.message || error}`;
