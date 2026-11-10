@@ -5,6 +5,7 @@ let list = document.getElementById("credit-voucher-list");
 let search = document.getElementById("credit-voucher-search");
 let statusFilter = document.getElementById("credit-voucher-status");
 let refresh = document.getElementById("credit-voucher-refresh");
+let settingsButton = document.getElementById("credit-voucher-settings");
 const tabButton = document.getElementById("credit-voucher-tab");
 const notesTabButton = document.getElementById("credit-notes-tab");
 let redeemCode = document.getElementById("voucher-redeem-code");
@@ -24,7 +25,7 @@ if (!host) {
   host.hidden = true;
   host.className = "credit-voucher-overlay";
   host.innerHTML = '<header><div><small>CENTRIC AUTO MOBILE</small><h2>Customer Credit Vouchers</h2></div><button type="button" id="credit-voucher-close" aria-label="Close vouchers">×</button></header>' +
-    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
+    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-settings" type="button">Settings</button><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
     '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
     '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
     '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
@@ -52,6 +53,7 @@ if (!list) throw new Error("Credit voucher list is missing.");
 search = search || host.querySelector("#credit-voucher-search");
 statusFilter = statusFilter || host.querySelector("#credit-voucher-status");
 refresh = refresh || host.querySelector("#credit-voucher-refresh");
+settingsButton = settingsButton || host.querySelector("#credit-voucher-settings");
 redeemCode = redeemCode || host.querySelector("#voucher-redeem-code");
 redeemCheck = redeemCheck || host.querySelector("#voucher-redeem-check");
 redeemScan = redeemScan || host.querySelector("#voucher-redeem-scan");
@@ -368,6 +370,24 @@ notesTabButton?.addEventListener("click", () => {
   if (notesPanel) notesPanel.hidden = false;
   tabButton.setAttribute("aria-pressed", "false");
   notesTabButton.setAttribute("aria-pressed", "true");
+});
+settingsButton?.addEventListener("click", async () => {
+  try {
+    const { data, error } = await supabase.from("credit_voucher_settings").select("default_expiry_days,terms").eq("id", true).single();
+    if (error) throw error;
+    const days = prompt("Default voucher expiry in days (applies to new vouchers):", String(data.default_expiry_days));
+    if (days === null) return;
+    const parsedDays = Number(days);
+    if (!Number.isInteger(parsedDays) || parsedDays < 1 || parsedDays > 3650) throw new Error("Expiry must be a whole number between 1 and 3650 days.");
+    const nextTerms = prompt("Voucher terms and conditions:", data.terms || terms);
+    if (nextTerms === null) return;
+    const { error: saveError } = await supabase.rpc("update_credit_voucher_settings", {
+      p_default_expiry_days: parsedDays, p_terms: nextTerms,
+    });
+    if (saveError) throw saveError;
+    terms = nextTerms;
+    alert("Voucher settings updated. The new expiry applies to vouchers issued from now on.");
+  } catch (error) { alert(error.message || String(error)); }
 });
 refresh?.addEventListener("click", async () => {
   refresh.disabled = true;
