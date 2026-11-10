@@ -109,7 +109,7 @@
   style.textContent = `
     .progressive-more-wrap{display:flex;justify-content:center;align-items:center;padding:12px 0 18px}
     .progressive-more-wrap[hidden]{display:none!important}
-    .progressive-more-btn{min-width:112px;min-height:42px;padding:9px 22px;border:1px solid #75dba4;border-radius:11px;background:linear-gradient(180deg,#267d50,#145c38);color:#fff;font:700 14px/1.2 inherit;letter-spacing:.02em;box-shadow:0 3px 0 #0c4027,0 5px 12px rgba(0,0,0,.2);cursor:pointer}
+    .progressive-more-btn{min-width:112px;min-height:42px;padding:9px 22px;border:1px solid #75dba4;border-radius:11px;background:linear-gradient(180deg,#267d50,#145c38);color:#fff;font-family:inherit;font-size:14px;font-weight:700;line-height:1.2;letter-spacing:.02em;box-shadow:0 3px 0 #0c4027,0 5px 12px rgba(0,0,0,.2);cursor:pointer}
     .progressive-more-btn:hover{background:linear-gradient(180deg,#319b63,#1c7045);border-color:#b4f2ce}
     .progressive-more-btn:focus-visible{outline:3px solid #f58220;outline-offset:3px}
     .progressive-more-btn:active{transform:translateY(1px);box-shadow:0 1px 0 #0c4027}
