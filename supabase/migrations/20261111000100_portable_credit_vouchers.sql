@@ -257,7 +257,7 @@ begin
   insert into public.credit_voucher_lookup_limits(user_id) values(uid) on conflict(user_id) do nothing;
   select * into limit_row from public.credit_voucher_lookup_limits where user_id=uid for update;
   if limit_row.blocked_until is not null and limit_row.blocked_until>now() then
-    raise exception 'Too many incorrect voucher codes. Try again after %',to_char(limit_row.blocked_until at time zone 'Africa/Harare','HH24:MI');
+    return jsonb_build_object('error','Too many incorrect voucher codes. Try again after '||to_char(limit_row.blocked_until at time zone 'Africa/Harare','HH24:MI'),'blocked_until',limit_row.blocked_until);
   end if;
   clean_code := upper(regexp_replace(coalesce(p_code,''),'[^A-Z0-9]','','g'));
   select * into v from public.customer_credit_vouchers
@@ -272,7 +272,7 @@ begin
     end if;
     insert into public.credit_voucher_audit(voucher_code,action,details,performed_by)
     values(null,'lookup_failed',jsonb_build_object('code_suffix',right(clean_code,2)),uid);
-    raise exception 'Voucher code not found';
+    return jsonb_build_object('error','Voucher code not found');
   end if;
   balance_value:=public.credit_voucher_available_balance(v.id);
   status_value:=case when v.status='active' and v.expires_at<current_date and balance_value>0.005 then 'expired'
