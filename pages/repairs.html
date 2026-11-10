@@ -1324,6 +1324,10 @@ $("jm-apply").onclick=async()=>{
   const{data,error}=await supabase.rpc("apply_quotation_deposits_to_repair_job",{p_quotation_id:button.dataset.quote,p_repair_job_id:job.id});
   if(error)throw error;
   const applied=Number(data?.applied_amount||0);
+  if(applied>0.005){
+   const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:job.id});
+   if(syncError)console.error("Quotation deposit applied but linked invoice synchronization failed:",syncError);
+  }
   toast(applied>0.005?`Quotation deposit of ${money(applied)} applied to this job card.`:"No quotation deposit credit is available to apply.");
   await refreshJobMoney(job);
  }catch(error){toast("Couldn't apply the deposit: "+(error.message||error))}
