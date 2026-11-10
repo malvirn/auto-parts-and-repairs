@@ -509,3 +509,35 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
   box-shadow:0 -8px 18px rgba(23,43,64,.08);
 }
 #customer-credit-panel .credit-doc-actions--footer{padding-bottom:18px!important}
+
+/* Match credit-note modal documents to the green-and-white receipt/invoice paper. */
+#customer-credit-panel .customer-credit-document,
+#customer-credit-panel .overpayment-credit-record__body{
+  background:#fff!important;color:#17211b!important;
+}
+#customer-credit-panel .credit-doc-heading{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  gap:16px!important;margin:0 0 18px!important;padding:18px 22px!important;
+  border-bottom:1px solid #dfe7e1!important;background:#fff!important;color:#17211b!important;
+}
+#customer-credit-panel .credit-doc-heading small{color:#12783d!important;letter-spacing:.09em!important}
+#customer-credit-panel .credit-doc-heading h3{color:#12783d!important;font-size:1.45rem!important;letter-spacing:.06em}
+#customer-credit-panel .credit-doc-facts,
+#customer-credit-panel .credit-doc-totals{padding:14px 18px!important}
+#customer-credit-panel .credit-doc-facts>div,
+#customer-credit-panel .credit-doc-totals>div{
+  padding:12px!important;border:1px solid #dfe7e1!important;
+  border-radius:10px!important;background:#f3f7f4!important;color:#17211b!important;
+}
+#customer-credit-panel .credit-doc-facts small,
+#customer-credit-panel .credit-doc-totals small{color:#66756c!important}
+#customer-credit-panel .credit-doc-facts strong,
+#customer-credit-panel .credit-doc-totals strong{color:#17211b!important}
+#customer-credit-panel .credit-note-narrative{
+  margin:16px 18px!important;padding:14px 16px!important;
+  border:1px solid #dfe7e1!important;border-radius:10px!important;
+  background:#fbfcfb!important;color:#26372d!important;line-height:1.65!important;
+}
+#customer-credit-panel .credit-doc-actions{background:#fff!important;border-top-color:#dfe7e1!important}
+#customer-credit-panel .credit-modal-close{background:#f3f7f4!important;color:#17211b!important;border-color:#dfe7e1!important}
+#customer-credit-panel .credit-note-validity{color:#66756c!important}
