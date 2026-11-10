@@ -88,3 +88,6 @@ begin
   return jsonb_build_object('resolution_id',resolution_id,'amount',amount_value,'remaining_balance',balance_value,'journal_entry_id',entry_id);
 end;
 $$;
+
+revoke all on function public.resolve_expired_credit_voucher(uuid,text,numeric,uuid,text) from public, anon;
+grant execute on function public.resolve_expired_credit_voucher(uuid,text,numeric,uuid,text) to authenticated;
