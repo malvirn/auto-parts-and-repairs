@@ -1265,7 +1265,7 @@ async function confirmDraftChecklist(){
   toast("Checklist confirmed. The job card is now Received.");
   const id=cur.id;await load();
   const fresh=jobs.find(x=>String(x.id)===String(id));if(fresh)await open(fresh);
- }catch(error){msg.textContent=error.message||"Couldn't confirm the checklist.";msg.classList.add("err")}
+ }catch(error){const detail=error.message||"Couldn't confirm the checklist.";msg.textContent=detail.includes("positive repair-job subtotal")?"Add a labour or priced-parts amount before confirming. An invoice is created when the checklist is confirmed.":detail;msg.classList.add("err")}
  finally{button.disabled=false}
 }
 const cents=v=>Math.round((Number(v)||0)*100)/100;
