@@ -95,3 +95,9 @@ body.dashboard-page .theme-toggle svg{width:20px;height:20px}
 @media(max-width:480px){body.dashboard-page .app-header{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"brand brand" "search actions"!important;row-gap:8px}body.dashboard-page .hdr-header-actions{justify-self:end;gap:3px}body.dashboard-page .hdr-brand .dashboard-hero__logo{width:40px}body.dashboard-page .hdr-brand{gap:8px}body.dashboard-page .hdr-name{font-size:18px}body.dashboard-page .hdr-header-actions .dashboard-toolbar-button,body.dashboard-page .hdr-header-actions .dashboard-connection-status,body.dashboard-page .hdr-header-actions #global-notif-bell,body.dashboard-page .hdr-header-actions .theme-toggle,body.dashboard-page .hdr-header-actions .hdr-more{width:32px;height:32px;border-radius:8px}body.dashboard-page .hdr-header-actions .dashboard-connection-status>svg{width:14px;height:14px}}
 @media(max-width:360px){body.dashboard-page .hdr-header-actions{gap:2px}body.dashboard-page .hdr-header-actions .dashboard-toolbar-button,body.dashboard-page .hdr-header-actions .dashboard-connection-status,body.dashboard-page .hdr-header-actions #global-notif-bell,body.dashboard-page .hdr-header-actions .theme-toggle,body.dashboard-page .hdr-header-actions .hdr-more{width:28px;height:28px}}
 @media(max-width:560px){body.dashboard-page .hdr-clock{display:none}}
+
+
+/* Mobile toolbar: keep connection status icon-only so it cannot collide with refresh. */
+body.dashboard-page .dashboard-connection-status .dashboard-connection-label{display:none!important}
+body.dashboard-page .hdr-header-actions .dashboard-connection-status{width:38px;min-width:38px;max-width:38px;overflow:hidden;gap:0}
+@media(max-width:480px){body.dashboard-page .hdr-header-actions{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;min-width:max-content}body.dashboard-page .hdr-header-actions .dashboard-connection-status{width:32px;min-width:32px;max-width:32px;height:32px}}
