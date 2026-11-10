@@ -67,9 +67,7 @@ function setupPeriodFields() {
 }
 
 async function loadEmployees() {
-  const { data, error } = await supabase.from("technicians")
-    .select("id, full_name, department, salary, deductions, email, phone, is_active")
-    .order("full_name");
+  const { data, error } = await supabase.rpc("get_technicians_admin");
   if (error) throw new Error("Couldn't load employees: " + error.message);
   employees = (data || []).filter(employee => employee.is_active !== false);
   employeesBody.innerHTML = employees.length ? employees.map(employee => `
