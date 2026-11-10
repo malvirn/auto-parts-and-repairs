@@ -46,7 +46,9 @@ if (!host) {
   });
   host.querySelector("#credit-voucher-close").addEventListener("click", () => { host.hidden = true; stopScanner(); });
 }
-if (!host || !list) throw new Error("Credit voucher panel is missing.");
+if (!host) throw new Error("Credit voucher panel is missing.");
+list = list || host.querySelector("#credit-voucher-list");
+if (!list) throw new Error("Credit voucher list is missing.");
 search = search || host.querySelector("#credit-voucher-search");
 statusFilter = statusFilter || host.querySelector("#credit-voucher-status");
 refresh = refresh || host.querySelector("#credit-voucher-refresh");
