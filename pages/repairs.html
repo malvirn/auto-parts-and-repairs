@@ -500,6 +500,19 @@ select.st option{background:#10181a;color:#eef3ef}
 :root[data-theme="light"] body.dashboard-page .apr-global-search-results{border-color:#d9dcdf;background:#fff;color:#111}
 :root[data-theme="light"] body.dashboard-page .apr-global-search-results .global-search__item{color:#111}
 
+/* Job payments summary + close dialog payments */
+.job-money{margin:14px 0}
+.job-money[hidden]{display:none}
+.jm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.jm-grid>div{display:grid;gap:4px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.jm-grid small{color:var(--muted);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.jm-grid b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+.jm-grid b.due{color:#ff9a6b}.jm-grid b.ok{color:var(--green-bright)}
+#jm-note{margin:10px 0 0}#jm-note.err{color:#ff6b6b}
+#jm-apply{margin-top:10px}
+.close-job-context dl.close-job-money{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.close-job-money dd.due{color:#ff9a6b;font-weight:700}
+@media(max-width:520px){.jm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* Draft job cards: everything is faded until a matching checklist number is confirmed. */
 #v-doc.is-draft .rc-bar>button:not(#s-edit),#v-doc.is-draft .jc-wrap,#v-doc.is-draft #daily-update-warning{opacity:.35;filter:grayscale(1);pointer-events:none;user-select:none}
 .draft-gate{margin:14px 0;border-color:var(--green-bright)}
@@ -778,6 +791,16 @@ select.st option{background:#10181a;color:#eef3ef}
       <p class="section-note">This job card stays a draft until it is linked to a confirmed vehicle checklist. Enter the checklist number. The customer name and vehicle registration on the checklist must match this job card.</p>
       <div class="draft-row"><input id="draft-checklist-no" type="number" inputmode="numeric" min="1" step="1" placeholder="Checklist number" aria-label="Checklist number"><button class="btn btn--primary" id="draft-confirm" type="button">Confirm checklist</button></div>
       <p id="draft-msg" class="section-note" role="status"></p>
+    </section>
+    <section class="panel job-money" id="job-money" hidden aria-label="Job payments and credit">
+      <div class="jm-grid">
+        <div><small>Job total</small><b id="jm-total">—</b></div>
+        <div><small>Paid</small><b id="jm-paid">—</b></div>
+        <div><small>Credit / deposit applied</small><b id="jm-credit">—</b></div>
+        <div><small>Balance due</small><b id="jm-balance">—</b></div>
+      </div>
+      <p class="section-note" id="jm-note" role="status"></p>
+      <button class="btn" id="jm-apply" type="button" hidden>Apply quotation deposit</button>
     </section>
     <p id="daily-update-warning" class="section-note" role="status"></p>
     <div class="rc-bar" style="margin:16px 0">
@@ -1243,6 +1266,49 @@ async function confirmDraftChecklist(){
  }catch(error){msg.textContent=error.message||"Couldn't confirm the checklist.";msg.classList.add("err")}
  finally{button.disabled=false}
 }
+const cents=v=>Math.round((Number(v)||0)*100)/100;
+async function loadJobMoney(job){
+ const[{data:row,error:e1},{data:pays,error:e2},{data:moves,error:e3},{data:quotes,error:e4}]=await Promise.all([
+  supabase.from("repair_jobs").select("total_cost").eq("id",job.id).single(),
+  supabase.from("repair_job_payments").select("amount,voided_at").eq("repair_job_id",job.id),
+  supabase.from("customer_credit_movements").select("amount").eq("target_type","repair_job").eq("target_id",job.id).eq("movement_type","application").is("reversed_at",null),
+  supabase.from("quotations").select("id").eq("repair_job_id",job.id).limit(1),
+ ]);
+ const err=e1||e2||e3||e4;if(err)throw err;
+ const total=cents(row?.total_cost),paid=cents((pays||[]).filter(x=>!x.voided_at).reduce((a,x)=>a+Number(x.amount||0),0)),credit=cents((moves||[]).reduce((a,x)=>a+Number(x.amount||0),0));
+ return{total,paid,credit,balance:Math.max(0,cents(total-paid-credit)),quotationId:quotes?.[0]?.id||null};
+}
+async function refreshJobMoney(job){
+ const box=$("job-money"),note=$("jm-note"),apply=$("jm-apply");
+ box.hidden=false;note.classList.remove("err");note.textContent="Loading payments…";apply.hidden=true;
+ try{
+  const m=await loadJobMoney(job);
+  if(!cur||cur.id!==job.id)return;
+  $("jm-total").textContent=money(m.total);$("jm-paid").textContent=money(m.paid);$("jm-credit").textContent=money(m.credit);
+  const bal=$("jm-balance");bal.textContent=money(m.balance);bal.className=m.balance>0.005?"due":"ok";
+  note.textContent=m.balance>0.005?"Balance still due on this job card.":"Fully covered.";
+  apply.hidden=!(m.quotationId&&m.balance>0.005);apply.dataset.quote=m.quotationId||"";
+ }catch(error){if(cur&&cur.id===job.id){note.classList.add("err");note.textContent="Couldn't load payments: "+(error.message||error)}}
+}
+$("jm-apply").onclick=async()=>{
+ if(!cur)return;const button=$("jm-apply"),job=cur;button.disabled=true;
+ try{
+  const{data,error}=await supabase.rpc("apply_quotation_deposits_to_repair_job",{p_quotation_id:button.dataset.quote,p_repair_job_id:job.id});
+  if(error)throw error;
+  const applied=Number(data?.applied_amount||0);
+  toast(applied>0.005?`Quotation deposit of ${money(applied)} applied to this job card.`:"No quotation deposit credit is available to apply.");
+  await refreshJobMoney(job);
+ }catch(error){toast("Couldn't apply the deposit: "+(error.message||error))}
+ finally{button.disabled=false}
+};
+async function fillCloseMoney(job){
+ const el=$("close-job-money");if(!el)return;
+ try{
+  const m=await loadJobMoney(job);
+  if(!cur||cur.id!==job.id||!$("close-job-money"))return;
+  el.innerHTML=`<dt>Job total</dt><dd>${money(m.total)}</dd><dt>Paid</dt><dd>${money(m.paid)}</dd><dt>Credit / deposit applied</dt><dd>${money(m.credit)}</dd><dt>Balance due</dt><dd class="${m.balance>0.005?"due":""}">${money(m.balance)}${m.balance>0.005?" (still unpaid)":""}</dd>`;
+ }catch(error){el.innerHTML=`<dt>Payments</dt><dd>Couldn't load: ${esc(error.message||String(error))}</dd>`}
+}
 $("draft-confirm").onclick=confirmDraftChecklist;
 $("draft-checklist-no").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();confirmDraftChecklist()}});
 async function open(j){
@@ -1270,6 +1336,7 @@ async function open(j){
  $("v-doc").classList.toggle("is-draft",isDraft);
  $("draft-gate").hidden=!isDraft;
  $("draft-checklist-no").value="";$("draft-msg").textContent="";$("draft-msg").classList.remove("err");
+ refreshJobMoney(j);
  $("d-work-done").value=j.work_done||"";
  $("d-work-missing").value=j.work_missing||"";
  $("d-update-note").value="";
@@ -1558,7 +1625,9 @@ $("close-job-card").onclick=()=>{
    <dt>Current status</dt><dd>${esc(cur.status||"Open")}</dd>
    <dt>Reported fault</dt><dd>${esc(cur.fault_reported||"—")}</dd>
    <div class="close-job-parts"><dt>Parts on this card</dt><dd><ul>${curParts.map(part=>`<li>${esc(part.parts?.description||part.part_name)} × ${esc(part.quantity)}</li>`).join("")||"<li>No parts recorded</li>"}</ul></dd></div>
-  </dl>`;
+  </dl>
+  <dl id="close-job-money" class="close-job-money"><dt>Payments</dt><dd>Loading…</dd></dl>`;
+ fillCloseMoney(cur);
  $("close-tested-by").value=cur.tested_by||"";
  $("close-next-service").value=cur.next_service_mileage??"";
  $("close-job-message").textContent="";
@@ -1945,10 +2014,17 @@ $("save").onclick=async()=>{const b=$("save");
    if(cleanupErrors.length)throw new Error(`${error.message||String(error)}. Cleanup needs attention: ${cleanupErrors.join("; ")}`);
    throw error;
   }
+  let depositNote="";
+  const depositQuoteId=new URLSearchParams(location.search).get("quote");
+  if(depositQuoteId){
+   const{data:dep,error:depError}=await supabase.rpc("apply_quotation_deposits_to_repair_job",{p_quotation_id:depositQuoteId,p_repair_job_id:savedJobId});
+   if(depError){console.error("Quotation deposit not applied:",depError);depositNote=` The quotation deposit was not applied automatically (${depError.message}). Open the job card and tap Apply quotation deposit.`}
+   else if(Number(dep?.applied_amount||0)>0.005)depositNote=` Quotation deposit of ${money(dep.applied_amount)} applied.`;
+  }
   const checklistToLink=activeChecklist;activeChecklist=null;let linkError=null;
   if(checklistToLink){const{error:le}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:savedJobId,p_checklist_number:checklistToLink.checklist_number});linkError=le||null}
   await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);
-  toast(checklistToLink?(linkError?`Saved as a Draft. Couldn't link checklist #${checklistToLink.checklist_number}: ${linkError.message}`:`Job card created from checklist #${checklistToLink.checklist_number}.`):"Draft job card saved. Link a vehicle checklist to finish creating it.")
+  toast((checklistToLink?(linkError?`Saved as a Draft. Couldn't link checklist #${checklistToLink.checklist_number}: ${linkError.message}`:`Job card created from checklist #${checklistToLink.checklist_number}.`):"Draft job card saved. Link a vehicle checklist to finish creating it.")+depositNote)
  }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
 
 /* ---------- share ---------- */
