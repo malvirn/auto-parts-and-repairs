@@ -350,6 +350,7 @@ function closeCreditModal(record) {
   const overlay = activeCreditModal || document.querySelector(".credit-modal-overlay");
   if (!overlay) return;
   overlay.remove();
+  if (panel && panel.id === "customer-credit-panel-background") panel.id = "customer-credit-panel";
   activeCreditModal = null;
   document.body.classList.remove("credit-modal-open");
   document.body.style.overflow = overlay.dataset.previousBodyOverflow || "";
@@ -373,7 +374,12 @@ function openCreditModal(record) {
 
   const modalContent = documentContent.cloneNode(true);
   modalContent.classList.add("credit-modal-content");
-  sheet.appendChild(modalContent);
+  const styleScope = document.createElement("div");
+  styleScope.id = "customer-credit-panel";
+  styleScope.className = "credit-modal-portal-scope";
+  styleScope.appendChild(modalContent);
+  if (panel?.id === "customer-credit-panel") panel.id = "customer-credit-panel-background";
+  sheet.appendChild(styleScope);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
 
