@@ -2317,6 +2317,81 @@ body.credit-modal-open{overflow:hidden!important}
   .credit-modal-sheet .credit-modal-header{gap:10px!important}
   .credit-modal-sheet .credit-modal-title h3{overflow-wrap:anywhere}
 }
+
+/* Mobile-first receipts and inline credit note readability */
+html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+body.dashboard-page{font-family:Inter,"Segoe UI",Arial,sans-serif!important;font-size:16px!important;line-height:1.5!important}
+body.dashboard-page .app-shell,body.dashboard-page .main,
+body.dashboard-page main,body.dashboard-page #customer-credit-panel,
+body.dashboard-page #customer-credit-list{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:visible!important}
+body.dashboard-page .main{padding-inline:clamp(10px,2.5vw,24px)!important}
+.credit-modal-overlay,.credit-modal-sheet{display:none!important}
+.customer-credit-panel-scope .customer-credit-record[open],
+.customer-credit-panel-scope .overpayment-credit-record[open]{
+  position:relative!important;inset:auto!important;transform:none!important;
+  width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;
+  overflow:visible!important;margin:12px 0!important;z-index:auto!important
+}
+.customer-credit-panel-scope .customer-credit-document,
+.customer-credit-panel-scope .overpayment-credit-record__body{
+  display:block!important;position:static!important;inset:auto!important;
+  width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;
+  overflow:visible!important;transform:none!important;visibility:visible!important;
+  opacity:1!important;margin:0!important;padding:clamp(14px,3vw,24px)!important;
+  border-radius:0 0 14px 14px!important;box-sizing:border-box!important;
+  background:#f5f7fa!important;color:#17212b!important;font-size:15px!important;line-height:1.55!important;
+}
+.customer-credit-panel-scope .customer-credit-document h3,
+.customer-credit-panel-scope .customer-credit-document h4,
+.customer-credit-panel-scope .overpayment-credit-record__body h3,
+.customer-credit-panel-scope .overpayment-credit-record__body h4{color:#17212b!important;line-height:1.35!important}
+.customer-credit-panel-scope .credit-modal-title small,
+.customer-credit-panel-scope .credit-doc-heading small{font-size:12px!important;line-height:1.5!important;letter-spacing:.04em!important}
+.customer-credit-panel-scope .credit-detail-row,
+.customer-credit-panel-scope .credit-doc-facts>div,
+.customer-credit-panel-scope .credit-doc-totals>div{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:6px 12px!important;padding:10px 0!important;
+  border-bottom:1px solid #d9e0e8!important;min-width:0!important
+}
+.customer-credit-panel-scope .credit-detail-row>span,
+.customer-credit-panel-scope .credit-doc-facts small,
+.customer-credit-panel-scope .credit-doc-totals small{color:#526174!important;font-size:13px!important}
+.customer-credit-panel-scope .credit-detail-row>strong,
+.customer-credit-panel-scope .credit-doc-facts strong,
+.customer-credit-panel-scope .credit-doc-totals strong{color:#17212b!important;font-size:14px!important;text-align:right!important;overflow-wrap:anywhere!important}
+.customer-credit-panel-scope .credit-available-card{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;padding:14px!important;background:#e7edf3!important;color:#17212b!important}
+.customer-credit-panel-scope .credit-available-card strong{color:#17212b!important;font-size:clamp(20px,4vw,28px)!important}
+.customer-credit-panel-scope .credit-apply-section,
+.customer-credit-panel-scope .credit-unpaid-jobs,
+.customer-credit-panel-scope .customer-credit-history{color:#17212b!important}
+.customer-credit-panel-scope .credit-apply-section h4,
+.customer-credit-panel-scope .credit-unpaid-jobs h4{font-size:16px!important}
+.customer-credit-panel-scope input,.customer-credit-panel-scope select,
+body.dashboard-page input,body.dashboard-page select,body.dashboard-page button{
+  max-width:100%;font-family:inherit
+}
+@media(max-width:760px){
+ body.dashboard-page .main{padding:10px!important}
+ body.dashboard-page .app-header{padding:12px 10px!important}
+ body.dashboard-page .receipt-list-filters,
+ body.dashboard-page .invoice-filters,
+ body.dashboard-page .customer-credit-summary{grid-template-columns:minmax(0,1fr)!important}
+ body.dashboard-page .customer-credit-records{gap:12px!important}
+ body.dashboard-page .customer-credit-record__summary,
+ body.dashboard-page .overpayment-credit-record__summary{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:14px!important}
+ body.dashboard-page input,body.dashboard-page select,body.dashboard-page textarea{font-size:16px!important;min-width:0!important}
+ .customer-credit-panel-scope .credit-doc-facts{grid-template-columns:minmax(0,1fr)!important}
+ .customer-credit-panel-scope .credit-doc-actions{display:grid!important;grid-template-columns:1fr!important}
+ .customer-credit-panel-scope .credit-doc-actions>*{width:100%!important;min-width:0!important}
+}
+@media(max-width:420px){
+ body.dashboard-page .main{padding:8px!important}
+ .customer-credit-panel-scope .customer-credit-document,
+ .customer-credit-panel-scope .overpayment-credit-record__body{padding:12px!important;font-size:14px!important}
+ .customer-credit-panel-scope .credit-detail-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:3px!important}
+ .customer-credit-panel-scope .credit-detail-row>strong{text-align:left!important}
+}
 </style>
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
 window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
