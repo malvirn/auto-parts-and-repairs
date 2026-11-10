@@ -165,7 +165,8 @@ function printCreditNote(note) {
     table{width:100%;border-collapse:collapse;margin:12px 0 24px}th,td{padding:10px;text-align:left;border-bottom:1px solid #e5e9ed}th{background:#f5f7f9;font-size:10px;text-transform:uppercase;color:#64748b}
     footer{margin:0 30px 24px;padding-top:14px;border-top:1px solid #e5e9ed;text-align:center;color:#657384;font-size:11px}
     .print{display:block;margin:0 auto 14px;padding:10px 16px;border:0;border-radius:8px;background:#17212b;color:#fff;font-weight:700;cursor:pointer}
-    @media print{body{padding:0;background:#fff}.sheet{border:0;border-radius:0}.print{display:none}}
+    @page{size:auto;margin:0}
+    @media print{html,body{margin:0!important;padding:10mm!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}.print{display:none!important}}
     @media(max-width:600px){body{padding:10px}.hero{padding:20px}.hero-top{flex-direction:column}.hero .amount{font-size:23px}.section{padding:0 16px}.meta{grid-template-columns:1fr}}
   </style></head><body><button class="print" onclick="window.print()">Print credit note</button><main class="sheet">
     <header class="hero"><div class="hero-top"><div><h1>${number}</h1><div class="sub"><span>Quotation #${escapeHtml(quote.quotation_number ?? "—")}</span><span>${dateLabel(note.payment_date)}</span></div></div><div class="amount">${money(note.amount)}</div></div>
