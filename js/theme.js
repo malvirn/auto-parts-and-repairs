@@ -24,6 +24,8 @@
       button.setAttribute("title", "Switch to " + next + " mode");
       button.innerHTML = '<i aria-hidden="true" data-lucide="' + (next === "light" ? "sun" : "moon") + '"></i>';
     });
+    var sidebarLabel = document.getElementById("sidebar-theme-label");
+    if (sidebarLabel) sidebarLabel.textContent = theme === "dark" ? "Dark mode" : "Light mode";
     if (window.lucide) window.lucide.createIcons();
   }
   apply();
@@ -36,12 +38,16 @@
     var header = document.querySelector("body.dashboard-page .site-masthead, body.dashboard-page .app-header, body.dashboard-page .main__header");
     var dashboardTopbar = document.querySelector("body.dashboard-workshop .dashboard-topbar");
     if (!header && !dashboardTopbar) return;
-    var button = dashboardTopbar?.querySelector(".theme-toggle") || header?.querySelector(".theme-toggle");
-    if (button && !dashboardTopbar) return;
+    var sidebarButton = document.querySelector("body.dashboard-workshop .sidebar-theme-row .theme-toggle");
+    var button = sidebarButton || dashboardTopbar?.querySelector(".theme-toggle") || header?.querySelector(".theme-toggle");
+    if (button && !dashboardTopbar && !sidebarButton) return;
     if (!button) {
       button = document.createElement("button");
       button.type = "button";
       button.className = "theme-toggle";
+    }
+    if (!button.dataset.themeBound) {
+      button.dataset.themeBound = "true";
       button.addEventListener("click", function () {
         mode = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
         try { localStorage.setItem("apr-theme", mode); } catch (e) {}
@@ -49,12 +55,16 @@
         window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: mode } }));
       });
     }
+    if (sidebarButton) {
+      var label = document.getElementById("sidebar-theme-label");
+      if (label) label.textContent = mode === "dark" ? "Dark mode" : "Light mode";
+    }
     var menuWrap = header?.querySelector(".hdr-menu-wrap");
     var headerActions = header?.querySelector(".hdr-header-actions");
     var actions = headerActions ||
       header?.querySelector(".site-masthead__actions, .site-masthead__status, .hdr-right") || header;
     var dashboardActions = dashboardTopbar?.querySelector(".dashboard-topbar-actions") || dashboardTopbar;
-    if (dashboardActions) dashboardActions.insertBefore(button, dashboardActions.querySelector("#global-notif-bell"));
+    if (sidebarButton) return; // Keep the dashboard theme control in the sidebar, not the header.\n    if (dashboardActions) dashboardActions.insertBefore(button, dashboardActions.querySelector("#global-notif-bell"));
     else if (headerActions && menuWrap) headerActions.insertBefore(button, menuWrap);
     else if (menuWrap) menuWrap.insertBefore(button, menuWrap.querySelector("#hdr-menu-btn"));
     else actions?.append(button);
