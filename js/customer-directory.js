@@ -101,7 +101,7 @@ function activityRow(item, index) {
     <button type="button" class="customer-activity-trigger" data-event-index="${index}" aria-expanded="${expanded}">
       <time datetime="${escapeHtml(item.date || "")}">${escapeHtml(dateTimeLabel(item.date))}</time>
       <span><strong>${escapeHtml(item.title)}${escapeHtml(voidText)}</strong><small>${escapeHtml(item.detail || "")}</small></span>
-      <span class="customer-activity-item__amount">${escapeHtml(amount)}</span>
+      <span class="customer-activity-item__amount${item.type === "balance" && Number(item.amount) > 0.005 ? " is-outstanding" : ""}">${escapeHtml(amount)}</span>
     </button>
     ${expanded ? `<div class="customer-activity-expanded">${(item.details || []).map(([label, value]) => `<p><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value || "Not recorded")}</span></p>`).join("") || "<p>No additional transaction details were recorded.</p>"}</div>` : ""}
   </article>`;
