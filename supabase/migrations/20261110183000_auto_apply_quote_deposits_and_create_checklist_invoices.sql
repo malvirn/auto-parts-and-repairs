@@ -145,7 +145,7 @@ begin
     'applied_amount', coalesce((application_result ->> 'applied_amount')::numeric, 0)
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.sync_repair_job_invoice(p_repair_job_id uuid)
@@ -313,7 +313,7 @@ begin
     returning * into invoice_row;
   end if;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.link_draft_job_card_to_checklist(p_job_id uuid, p_checklist_number bigint)
@@ -343,7 +343,7 @@ AS $function$
 
   perform public.sync_repair_job_invoice(p_job_id);
                                                                                                                                                   end;
-                                                                                                                                                  $function$
+                                                                                                                                                  $function$;
 
 
 revoke all on function public.record_quotation_deposit(uuid, numeric, text, date, text, uuid) from public, anon;
