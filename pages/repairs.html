@@ -1270,14 +1270,40 @@ async function confirmDraftChecklist(){
 }
 const cents=v=>Math.round((Number(v)||0)*100)/100;
 async function loadJobMoney(job){
- const[{data:row,error:e1},{data:pays,error:e2},{data:moves,error:e3},{data:quotes,error:e4}]=await Promise.all([
+ const[{data:row,error:e1},{data:pays,error:e2},{data:moves,error:e3},{data:quotes,error:e4},{data:invoices,error:e5},{data:overpaymentLinks,error:e6}]=await Promise.all([
   supabase.from("repair_jobs").select("total_cost").eq("id",job.id).single(),
   supabase.from("repair_job_payments").select("amount,voided_at").eq("repair_job_id",job.id),
   supabase.from("customer_credit_movements").select("amount").eq("target_type","repair_job").eq("target_id",job.id).eq("movement_type","application").is("reversed_at",null),
   supabase.from("quotations").select("id").eq("repair_job_id",job.id).limit(1),
+  supabase.from("invoices").select("id").eq("repair_job_id",job.id),
+  supabase.from("customer_overpayment_credit_job_links").select("applied_amount").eq("repair_job_id",job.id).gt("applied_amount",0),
  ]);
- const err=e1||e2||e3||e4;if(err)throw err;
- const total=cents(row?.total_cost),paid=cents((pays||[]).filter(x=>!x.voided_at).reduce((a,x)=>a+Number(x.amount||0),0)),credit=cents((moves||[]).reduce((a,x)=>a+Number(x.amount||0),0));
+ const err=e1||e2||e3||e4||e5||e6;if(err)throw err;
+ const invoiceIds=(invoices||[]).map(x=>x.id);
+ let invoicePayments=[],invoiceCredits=[],overpaymentCredits=[];
+ if(invoiceIds.length){
+  const[{data:payments,error:paymentError},{data:credits,error:creditError}]=await Promise.all([
+   supabase.from("invoice_payments").select("id,amount").in("invoice_id",invoiceIds).is("voided_at",null),
+   supabase.from("customer_credit_movements").select("amount").eq("target_type","invoice").in("target_id",invoiceIds).eq("movement_type","application").is("reversed_at",null),
+  ]);
+  if(paymentError||creditError)throw paymentError||creditError;
+  invoicePayments=payments||[];invoiceCredits=credits||[];
+  const paymentIds=invoicePayments.map(x=>x.id);
+  if(paymentIds.length){
+   const{data,error}=await supabase.from("customer_overpayment_credits").select("invoice_payment_id,amount").in("invoice_payment_id",paymentIds);
+   if(error)throw error;
+   overpaymentCredits=data||[];
+  }
+ }
+ const directPaid=(pays||[]).filter(x=>!x.voided_at).reduce((a,x)=>a+Number(x.amount||0),0);
+ const invoiceCash=Math.max(0,invoicePayments.reduce((a,x)=>a+Number(x.amount||0),0)-overpaymentCredits.reduce((a,x)=>a+Number(x.amount||0),0));
+ const paid=cents(directPaid+invoiceCash);
+ const credit=cents(
+  (moves||[]).reduce((a,x)=>a+Number(x.amount||0),0)
+  +invoiceCredits.reduce((a,x)=>a+Number(x.amount||0),0)
+  +(overpaymentLinks||[]).reduce((a,x)=>a+Number(x.applied_amount||0),0)
+ );
+ const total=cents(row?.total_cost);
  return{total,paid,credit,balance:Math.max(0,cents(total-paid-credit)),quotationId:quotes?.[0]?.id||null};
 }
 async function refreshJobMoney(job){
@@ -1307,9 +1333,25 @@ window.addEventListener("pageshow",()=>{if(cur)refreshJobMoney(cur)});
 window.addEventListener("focus",()=>{if(cur)refreshJobMoney(cur)});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&cur)refreshJobMoney(cur)});
 const jobCreditChannel=supabase.channel("job-card-credit-live")
- .on("postgres_changes",{event:"INSERT",schema:"public",table:"customer_credit_movements"},event=>{
-  const movement=event.new;
+ .on("postgres_changes",{event:"*",schema:"public",table:"customer_credit_movements"},event=>{
+  const movement=event.new||event.old;
   if(cur&&movement?.target_type==="repair_job"&&String(movement.target_id)===String(cur.id))refreshJobMoney(cur);
+  else if(cur&&movement?.target_type==="invoice")refreshJobMoney(cur);
+ })
+ .on("postgres_changes",{event:"*",schema:"public",table:"repair_job_payments"},event=>{
+  const payment=event.new||event.old;
+  if(cur&&String(payment?.repair_job_id)===String(cur.id))refreshJobMoney(cur);
+ })
+ .on("postgres_changes",{event:"*",schema:"public",table:"invoice_payments"},async event=>{
+  if(!cur)return;
+  const payment=event.new||event.old;
+  if(!payment?.invoice_id)return;
+  const{data}=await supabase.from("invoices").select("id").eq("repair_job_id",cur.id);
+  if((data||[]).some(invoice=>String(invoice.id)===String(payment.invoice_id)))refreshJobMoney(cur);
+ })
+ .on("postgres_changes",{event:"*",schema:"public",table:"customer_overpayment_credit_job_links"},event=>{
+  const link=event.new||event.old;
+  if(cur&&String(link?.repair_job_id)===String(cur.id))refreshJobMoney(cur);
  })
  .subscribe();
 async function fillCloseMoney(job){
