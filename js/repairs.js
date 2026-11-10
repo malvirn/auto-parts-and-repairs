@@ -1892,7 +1892,11 @@ form?.addEventListener("submit", async (e) => {
         });
         if (depositError) throw depositError;
         const appliedDeposit = Number(depositResult?.applied_amount || 0);
-        if (appliedDeposit > 0.005) depositNote = ` Quotation deposit of ${money(appliedDeposit)} applied to the job card.`;
+        if (appliedDeposit > 0.005) {
+          depositNote = ` Quotation deposit of ${money(appliedDeposit)} applied to the job card.`;
+          const { error: invoiceSyncError } = await supabase.rpc("sync_repair_job_invoice", { p_repair_job_id: job.id });
+          if (invoiceSyncError) console.error("Quotation deposit applied but linked invoice synchronization failed:", invoiceSyncError);
+        }
       } catch (depositError) {
         console.error("Quotation deposit was not applied to the new job card:", depositError);
         quoteLinkWarning += ` The job was created, but its quotation deposit was not applied: ${depositError.message || String(depositError)}.`;
