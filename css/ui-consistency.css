@@ -247,3 +247,71 @@ body.dashboard-page .is-overdue {
 :root[data-theme="light"] body.dashboard-page .customer-activity-item__amount.is-outstanding {
   color:#c62832 !important;
 }
+
+
+/* High-contrast action controls. Deliberately stronger than the card surface. */
+body.dashboard-page :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]),
+body.system-page :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]) {
+  min-height:40px !important;
+  padding:9px 15px;
+  border:1px solid #718096 !important;
+  border-radius:11px !important;
+  background:linear-gradient(180deg,#405166 0%,#303e50 100%) !important;
+  color:#f7f9fc !important;
+  font-weight:700 !important;
+  text-shadow:0 1px 1px rgba(0,0,0,.2);
+  box-shadow:0 3px 0 #202b38,0 6px 14px rgba(0,0,0,.24) !important;
+  transition:filter .15s ease,transform .15s ease,box-shadow .15s ease,border-color .15s ease !important;
+}
+body.dashboard-page :is(button,.btn,a.btn,[role="button"],input[type="button],input[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]),
+body.system-page :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]) {
+  filter:brightness(1.16);
+  border-color:#a8b8ca !important;
+  transform:translateY(-1px);
+}
+body.dashboard-page :is(button,.btn,a.btn,[role="button"]):active:not(:disabled),
+body.system-page :is(button,.btn,a.btn,[role="button"]):active:not(:disabled) {
+  transform:translateY(2px);
+  box-shadow:0 1px 0 #202b38,inset 0 2px 4px rgba(0,0,0,.25) !important;
+}
+body.dashboard-page :is(.btn--primary,.btn-primary,.button-primary,.btn.primary,[data-variant="primary"],button[type="submit"]),
+body.system-page :is(.btn--primary,.btn-primary,.button-primary,.btn.primary,[data-variant="primary"],button[type="submit"]) {
+  border:1px solid #35e18a !important;
+  background:linear-gradient(180deg,#27d978 0%,#0e9c50 100%) !important;
+  color:#071b10 !important;
+  text-shadow:none;
+  box-shadow:0 3px 0 #08713a,0 7px 16px rgba(0,0,0,.26) !important;
+}
+body.dashboard-page :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.btn-dangerous,[data-variant="danger"]),
+body.system-page :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.btn-dangerous,[data-variant="danger"]) {
+  border:1px solid #ff8585 !important;
+  background:linear-gradient(180deg,#ff666d 0%,#c92f3b 100%) !important;
+  color:#fff !important;
+  box-shadow:0 3px 0 #8f202b,0 7px 16px rgba(0,0,0,.25) !important;
+}
+body.dashboard-page :is(.btn--warning,.btn-warning,.button-warning,[data-variant="warning"]),
+body.system-page :is(.btn--warning,.btn-warning,.button-warning,[data-variant="warning"]) {
+  border:1px solid #ffc078 !important;
+  background:linear-gradient(180deg,#ffad42 0%,#df7415 100%) !important;
+  color:#241306 !important;
+}
+body.dashboard-page :is(.btn--success,.btn-success,.button-success,[data-variant="success"]),
+body.system-page :is(.btn--success,.btn-success,.button-success,[data-variant="success"]) {
+  border:1px solid #35e18a !important;
+  background:linear-gradient(180deg,#27d978 0%,#0e9c50 100%) !important;
+  color:#071b10 !important;
+}
+body.dashboard-page :is(button,.btn,a.btn,[role="button"]):disabled,
+body.system-page :is(button,.btn,a.btn,[role="button"]):disabled {
+  opacity:.45 !important;
+  filter:grayscale(.35);
+  cursor:not-allowed !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+/* Shell/navigation controls retain their compact, quiet appearance. */
+body.dashboard-page :is(.dashboard-toolbar-button,.dashboard-connection-status,.theme-toggle,#global-notif-bell,.sidebar-toggle,.dashboard-sidebar-toggle,.apr-more-toggle,.nav-link,.tile),
+body.system-page :is(.dashboard-toolbar-button,.dashboard-connection-status,.theme-toggle,#global-notif-bell,.sidebar-toggle,.dashboard-sidebar-toggle,.nav-link) {
+  box-shadow:none !important;
+  text-shadow:none !important;
+}
