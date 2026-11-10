@@ -450,12 +450,12 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actio
 }
 
 
-/* Job Cards is the fixed pink Quick Access shortcut on every module page. */
+/* Job Cards is the fixed orange Quick Access shortcut on every module page. */
 body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]{
-  background:#ec4899!important;
+  background:#f58220!important;
   color:#fff!important;
-  border:1px solid #db2777!important;
-  box-shadow:0 2px 8px rgba(236,72,153,.22)!important;
+  border:1px solid #e87512!important;
+  box-shadow:0 2px 8px rgba(245,130,32,.22)!important;
 }
 body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]>svg,
 body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"] .quick-arrow{
@@ -463,7 +463,7 @@ body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"] .
   stroke:#fff!important;
 }
 body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:hover{
-  background:#db2777!important;
+  background:#e87512!important;
   color:#fff!important;
 }
 
