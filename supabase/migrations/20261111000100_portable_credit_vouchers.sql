@@ -486,7 +486,7 @@ returns table(
   original_amount numeric,available_amount numeric,credit_note_number text
 ) language plpgsql security definer
 set search_path = public, pg_temp
-as $
+as $$
 begin
   if auth.uid() is null or public.current_access_level()<1 then
     raise exception 'Authorised staff access is required' using errcode='42501';
