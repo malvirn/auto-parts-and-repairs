@@ -56,7 +56,9 @@ function addToolbarUtilities(container, isModuleToolbar) {
     status.className = "dashboard-connection-status";
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
-    status.innerHTML = '<i data-lucide="wifi" aria-hidden="true"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="dashboard-connection-label">Online</span>';
+    status.setAttribute("aria-label", "Connection status");
+    status.title = "Connection status";
+    status.innerHTML = '<i data-lucide="wifi" aria-hidden="true"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span>';
     container.append(status);
 
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
