@@ -1779,6 +1779,60 @@ ${extra}
 @media(max-width:600px){
   #customer-credit-panel .customer-credit-record__summary,
   #customer-credit-panel .overpayment-credit-record__summary{padding:14px!important;min-height:76px}
+
+/* Credit note headers: keep each detail distinct instead of squeezing four columns. */
+#customer-credit-panel .customer-credit-records{display:grid!important;gap:14px!important}
+#customer-credit-panel .customer-credit-record__summary,
+#customer-credit-panel .overpayment-credit-record__summary{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  gap:10px 14px!important;
+  min-width:0;
+  padding:16px 18px!important;
+}
+#customer-credit-panel .customer-credit-record__summary>*,
+#customer-credit-panel .overpayment-credit-record__summary>*{min-width:0}
+#customer-credit-panel .credit-note-customer,
+#customer-credit-panel .overpayment-credit-record__summary>span:first-child{min-width:0}
+#customer-credit-panel .credit-note-customer strong,
+#customer-credit-panel .overpayment-credit-record__summary>span:first-child strong{
+  display:block;overflow-wrap:anywhere;line-height:1.35
+}
+#customer-credit-panel .credit-note-customer small,
+#customer-credit-panel .overpayment-credit-record__summary>span:first-child small{
+  display:block;margin-top:3px;line-height:1.4;white-space:normal;overflow-wrap:anywhere
+}
+#customer-credit-panel .credit-note-balance,
+#customer-credit-panel .overpayment-credit-record__summary>strong{
+  display:grid;gap:3px;text-align:right;white-space:nowrap
+}
+#customer-credit-panel .credit-note-status{justify-self:end;max-width:100%;white-space:normal;text-align:center}
+@media(max-width:900px){
+  #customer-credit-panel .customer-credit-record__summary,
+  #customer-credit-panel .overpayment-credit-record__summary{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:9px 12px!important;padding:14px!important
+  }
+  #customer-credit-panel .credit-note-id,
+  #customer-credit-panel .overpayment-credit-record__summary>span:first-child{grid-column:1;grid-row:1}
+  #customer-credit-panel .credit-note-status,
+  #customer-credit-panel .overpayment-credit-record__summary>.credit-note-status{grid-column:2;grid-row:1;justify-self:end}
+  #customer-credit-panel .credit-note-customer{grid-column:1/-1;grid-row:2}
+  #customer-credit-panel .credit-note-balance,
+  #customer-credit-panel .overpayment-credit-record__summary>strong{
+    grid-column:1/-1;grid-row:3;display:flex;align-items:baseline;gap:8px;text-align:left
+  }
+}
+@media(max-width:420px){
+  #customer-credit-panel .customer-credit-record__summary,
+  #customer-credit-panel .overpayment-credit-record__summary{padding:12px!important;gap:8px!important}
+  #customer-credit-panel .credit-note-id{font-size:.78rem}
+  #customer-credit-panel .credit-note-status{font-size:.68rem;padding:4px 8px}
+  #customer-credit-panel .credit-note-balance strong,
+  #customer-credit-panel .overpayment-credit-record__summary>strong{font-size:1.05rem}
+}
+
 }
 
 </style>`}
