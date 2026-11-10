@@ -267,10 +267,11 @@ tbody.addEventListener("submit", async event => {
     if (error) throw new Error(error.message);
     if (!journalEntryId) throw new Error("The payment was recorded, but the ledger did not return a receipt reference. Verify the payment before retrying.");
     const receiptUrl = new URL("receipts.html", window.location.href);
+    receiptUrl.searchParams.set("tab", "receipts");
     receiptUrl.searchParams.set("quickSalePayment", journalEntryId);
     receiptUrl.searchParams.set("paymentMethod", paymentMethod);
     receiptUrl.searchParams.set("from", "ledger");
-    window.location.href = receiptUrl.href;
+    window.location.assign(receiptUrl.href);
   } catch (error) {
     formMessage.textContent = `Couldn't record payment: ${error.message || String(error)}.`;
     submit.disabled = false;
