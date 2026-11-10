@@ -20,12 +20,9 @@ let overpaymentCreditNotes = [];
 let overpaymentRefunds = [];
 let movements = [];
 let targets = [];
-let accounts = [];
 let jobsById = new Map();
 let unpaidJobs = [];
 let canRefund = false;
-let creditVisible = 3;
-let overpaymentVisible = 3;
 
 function showMessage(message, tone = "info") {
   let status = document.getElementById("customer-credit-status");
@@ -42,7 +39,7 @@ function showMessage(message, tone = "info") {
 
 async function load() {
   list.innerHTML = '<div class="customer-credit-empty">Loading quotation credit notes…</div>';
-  const [receiptsResult, balancesResult, movementsResult, targetsResult, accountsResult, authResult] = await Promise.all([
+  const [receiptsResult, balancesResult, movementsResult, targetsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
       .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at, repair_job_id), customers(email)")
       .order("created_at", { ascending: false }),
@@ -53,8 +50,6 @@ async function load() {
     supabase.from("customer_account_statement")
       .select("customer_id, customer_name, source_id, source_type, reference, balance_due")
       .gt("balance_due", 0.005),
-    supabase.from("accounts").select("id, code, name")
-      .eq("is_active", true).eq("type", "asset").like("code", "10%").order("code"),
     supabase.auth.getUser(),
   ]);
 
@@ -92,7 +87,6 @@ async function load() {
   creditNotes = creditNotes.map(row => ({ ...row, available_amount: balanceById.get(row.id) || 0 }));
   movements = movementsResult.data || [];
   targets = (targetsResult.data || []).filter(row => ["Repair job", "Sales order", "Invoice"].includes(row.source_type));
-  accounts = accountsResult.error ? [] : (accountsResult.data || []);
 
   const jobIds = [...new Set(creditNotes.map(note => note.quotations?.repair_job_id).filter(Boolean))];
   jobsById = new Map();
@@ -255,7 +249,7 @@ function render() {
   const totalRefunded = creditNotes.reduce((sum, note) => sum + noteStatus(note, movements.filter(m => m.deposit_receipt_id === note.id)).refunded, 0);
   list.innerHTML = `
     <div class="customer-credit-summary"><div><small>Deposits issued</small><strong>${money(totalOriginal)}</strong></div><div><small>Refunded</small><strong>${money(totalRefunded)}</strong></div><div><small>Credit remaining</small><strong>${money(totalAvailable)}</strong></div></div>
-    <div class="customer-credit-records">${filteredCreditNotes.slice(0, creditVisible).map(note => {
+    <div class="customer-credit-records">${filteredCreditNotes.map(note => {
       const quote = note.quotations || {};
       const job = quote.repair_job_id ? jobsById.get(quote.repair_job_id) : null;
       const quoteNumber = quote.quotation_number ?? "—";
@@ -278,16 +272,6 @@ function render() {
           : "";
         return `<div class="credit-history-row"><span>${label} · ${dateLabel(movement.created_at)}</span><strong>${money(movement.amount)}</strong><small>${escapeHtml(movement.reason || "")}${reversed}</small>${reverseAction}</div>`;
       }).join("")}</details>` : '<small class="customer-credit-history">No applications or refunds recorded.</small>';
-      const refundFields = canRefund && accounts.length && note.available_amount > 0.005
-        ? `<div class="customer-credit-actions" data-credit-id="${escapeHtml(note.id)}" data-action="refund">
-            <select class="credit-account" aria-label="Refund payment account"><option value="">Refund from…</option>${accountOptions}</select>
-            <input class="credit-amount" type="number" min="0.01" max="${note.available_amount}" step="0.01" placeholder="Amount" aria-label="Refund amount">
-            <input class="credit-reason" maxlength="240" placeholder="Refund reason" aria-label="Refund reason">
-            <button type="button" class="btn btn--danger customer-credit-refund">Refund</button>
-          </div>` : "";
-      const refundNotice = canRefund && !accounts.length
-        ? '<small>Refund accounts are unavailable; refunding is disabled.</small>'
-        : canRefund ? "" : '<small>Refunds require Accounting or Super Admin access.</small>';
       const applyFields = note.available_amount > 0.005
         ? `<div class="customer-credit-actions" data-credit-id="${escapeHtml(note.id)}" data-action="apply">
             <select class="credit-target" aria-label="Apply credit to" ${quoteTargets.length ? "" : "disabled"}><option value="">${quoteTargets.length ? "Apply to customer balance…" : "No same-customer balance"}</option>${targetOptions}</select>
@@ -305,15 +289,15 @@ function render() {
           <div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div><span class="credit-note-status status-${status.tone}">${status.label}</span></div>
           <p class="credit-note-narrative">${escapeHtml(noteName)} (${escapeHtml(note.customer_phone || "no phone number recorded")}) paid a ${money(note.amount)} deposit by ${escapeHtml(note.payment_method || "an unrecorded payment method")} on ${dateLabel(note.payment_date)} for Quotation #${escapeHtml(quoteNumber)}, issued on ${dateLabel(quote.created_at)}. ${note.reference ? `The payment reference is ${escapeHtml(note.reference)}. ` : "No payment reference was recorded. "} ${job ? `The quotation is linked to job card ${escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`)} with checklist number ${job.checklist_number ? "#" + escapeHtml(job.checklist_number) : "not yet assigned"}. ` : "A job card has not yet been created, so the checklist number is pending. "}The original deposit was ${money(note.amount)}. ${status.refunded > 0 ? `${money(status.refunded)} has been refunded. ` : "Nothing has been refunded. "} ${status.applied > 0 ? `${money(status.applied)} has been applied to the customer's balance. ` : "None of the deposit has been applied. "}This leaves ${money(note.available_amount)} available as customer credit.</p>
           <p class="credit-note-validity">${expired ? "Quotation deposit window expired. Existing credit remains available." : "Quotation deposit valid for seven days from issue."}</p>
-          ${applyFields}${refundFields}${refundNotice}${history}
+          ${applyFields}${history}
           ${renderUnpaidJobs(note)}
           <div class="credit-doc-actions credit-doc-actions--footer"><button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print credit note</button>${job ? `<a class="btn" href="repairs.html?highlight=${encodeURIComponent(job.id)}"><i data-lucide="clipboard-list"></i> Open linked job card</a>` : ""}</div>
         </div>
       </details>`;
-    }).join("")}</div>${filteredCreditNotes.length > creditVisible ? `<div class="rc-load-more"><button type="button" class="btn" data-credit-more="deposits">More credit notes (${Math.min(creditVisible, filteredCreditNotes.length)} of ${filteredCreditNotes.length})</button></div>` : ""}`;
+    }).join("")}</div>`;
   if (filteredOverpaymentNotes.length) {
     const overpaymentTotal = overpaymentCreditNotes.reduce((sum, note) => sum + Number(note.amount || 0), 0);
-    const invoiceNotesHtml = filteredOverpaymentNotes.slice(0, overpaymentVisible).map(note => {
+    const invoiceNotesHtml = filteredOverpaymentNotes.map(note => {
       const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
       const number = "CN-" + String(note.note_number).padStart(5, "0");
       const invoiceNumber = invoice.invoice_number ? "INV-" + String(invoice.invoice_number).padStart(5, "0") : "Original invoice";
@@ -334,7 +318,7 @@ function render() {
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
-      '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div>' + (filteredOverpaymentNotes.length > overpaymentVisible ? '<div class="rc-load-more"><button type="button" class="btn" data-credit-more="overpayments">More overpayment notes (' + Math.min(overpaymentVisible, filteredOverpaymentNotes.length) + ' of ' + filteredOverpaymentNotes.length + ')</button></div>' : '') + '</section>');
+      '<p class="invoice-billing-note">Credit notes issued when a customer pays more than the invoice or job total. These amounts remain customer credit and are not counted as new income.</p><div class="customer-credit-records">' + invoiceNotesHtml + '</div>' + '</section>');
   }
   window.lucide?.createIcons();
 }
@@ -354,70 +338,6 @@ document.addEventListener("keydown", event => {
 });
 
 document.addEventListener("click", async event => {
-  const closeButton = event.target.closest("[data-credit-modal-close]");
-  if (closeButton) { closeCreditModal(closeButton.closest(".customer-credit-record")); return; }
-  const modalBackdrop = event.target.closest(".credit-note-modal[open]");
-  if (modalBackdrop && event.target === modalBackdrop) { closeCreditModal(modalBackdrop); return; }
-  const summary = event.target.closest(".customer-credit-record__summary, .overpayment-credit-record__summary");
-  if (summary) {
-    const record = summary.closest(".customer-credit-record");
-    if (record && !record.open) {
-      event.preventDefault();
-      record.open = true;
-      record.classList.add("credit-note-modal");
-      record._creditModalPlaceholder = document.createComment("credit-note-position");
-      record.parentNode.insertBefore(record._creditModalPlaceholder, record);
-      document.body.append(record);
-      document.body.classList.add("credit-modal-open");
-    }
-    return;
-  }
-  const printButton = event.target.closest("[data-overpayment-print]");
-  if (printButton) {
-    const note = overpaymentCreditNotes.find(item => item.id === printButton.dataset.overpaymentPrint);
-    if (!note) return;
-    const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
-    const popup = window.open("", "_blank", "width=850,height=700");
-    if (!popup) { showMessage("Allow pop-ups to print this credit note.", "error"); return; }
-    popup.document.write('<!doctype html><html><head><title>CN-' + String(note.note_number).padStart(5,"0") + '</title><style>body{font:14px Arial;padding:24px;color:#17212b}.sheet{max-width:760px;margin:auto;border:1px solid #ccd3dc;padding:28px}.hero{background:#26364b;color:white;padding:22px}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:20px 0}.facts div{background:#f1f3f6;padding:12px}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Print</button><main class="sheet"><header class="hero"><h1>CN-' + String(note.note_number).padStart(5,"0") + '</h1><p>Invoice overpayment credit note</p><h2>' + money(note.amount) + '</h2></header><section class="facts"><div>Customer: <b>' + escapeHtml(note.customer_name) + '</b></div><div>Phone: <b>' + escapeHtml(note.customer_phone) + '</b></div><div>Email: <b>' + escapeHtml(invoice.customer_email || "—") + '</b></div><div>Invoice: <b>' + escapeHtml(invoice.invoice_number || "—") + '</b></div><div>Invoice total: <b>' + money(invoice.total) + '</b></div><div>Issued: <b>' + dateLabel(note.issued_at) + '</b></div></section><div class="row"><span>Amount carried forward</span><b>' + money(note.customer_overpayment_credits?.available_amount ?? note.amount) + '</b></div></main></body></html>');
-    popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 300); return;
-  }
-  const linkButton = event.target.closest("[data-link-overpayment-job]");
-  if (!linkButton) return;
-  const form = linkButton.closest("[data-overpayment-link]");
-  const value = key => String(form.querySelector('[data-match="' + key + '"]')?.value || "").trim();
-  const name = value("name"), phone = value("phone").replace(/\\D/g, ""), checklist = value("checklist");
-  if (!name || !phone || !checklist) { showMessage("Enter the customer's name, phone number and next job card checklist number.", "error"); return; }
-  linkButton.disabled = true;
-  try {
-    const { data: jobs, error } = await supabase.from("repair_jobs").select("id,checklist_number,customers(full_name,phone)").eq("checklist_number", checklist);
-    if (error) throw error;
-    const norm = value => String(value || "").trim().replace(/\\s+/g, " ").toLocaleLowerCase();
-    const match = (jobs || []).find(job => {
-      const customer = Array.isArray(job.customers) ? job.customers[0] : job.customers;
-      return norm(customer?.full_name) === norm(name) && String(customer?.phone || "").replace(/\\D/g, "") === phone && norm(job.checklist_number) === norm(checklist);
-    });
-    if (!match) throw new Error("No next job card matches the customer name, phone number and checklist number.");
-    const { data: linkId, error: linkError } = await supabase.rpc("link_overpayment_credit_to_job", {
-      p_credit_note_id: form.dataset.creditNoteId,
-      p_repair_job_id: match.id,
-    });
-    if (linkError) throw linkError;
-    if (!linkId) throw new Error("The credit note could not be linked. Refresh and try again.");
-    showMessage("Customer name, phone and checklist number verified. Credit linked to the next job card.", "success");
-    await load();
-  } catch (error) { showMessage(error.message || "Could not link this credit note.", "error"); linkButton.disabled = false; }
-});
-
-document.addEventListener("input", event => {
-  const action = event.target.closest("[data-action]");
-  if (action) delete action.dataset.idempotencyKey;
-});
-document.addEventListener("change", event => {
-  const action = event.target.closest("[data-action]");
-  if (action) delete action.dataset.idempotencyKey;
-});
-document.addEventListener("click", async event => {
   const printButton = event.target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
@@ -425,9 +345,8 @@ document.addEventListener("click", async event => {
     return;
   }
   const applyButton = event.target.closest(".customer-credit-apply");
-  const refundButton = event.target.closest(".customer-credit-refund");
   const reverseButton = event.target.closest(".customer-credit-reverse");
-  if (!applyButton && !refundButton && !reverseButton) return;
+  if (!applyButton && !reverseButton) return;
 
   if (reverseButton) {
     const reason = prompt("Reason for reversing this customer-credit transaction:")?.trim();
@@ -447,7 +366,7 @@ document.addEventListener("click", async event => {
     return;
   }
 
-  const action = (applyButton || refundButton).closest("[data-action]");
+  const action = applyButton.closest("[data-action]");
   const amount = Number(action.querySelector(".credit-amount")?.value);
   if (!Number.isFinite(amount) || amount <= 0) {
     showMessage("Enter an amount greater than zero.", "error");
@@ -455,56 +374,34 @@ document.addEventListener("click", async event => {
   }
   const idempotencyKey = action.dataset.idempotencyKey || crypto.randomUUID();
   action.dataset.idempotencyKey = idempotencyKey;
-  (applyButton || refundButton).disabled = true;
+  applyButton.disabled = true;
   try {
-    let result;
-    if (applyButton) {
-      const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
-      if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
-      result = await supabase.rpc("apply_customer_credit", {
-        p_deposit_receipt_id: action.dataset.creditId,
-        p_amount: amount,
-        p_target_type: targetType,
-        p_target_id: targetId,
-        p_reason: "Staff-applied quotation deposit",
-        p_idempotency_key: idempotencyKey,
-      });
-    } else {
-      if (!canRefund) throw new Error("Only Accounting or Super Admin users can refund customer credit.");
-      const accountId = action.querySelector(".credit-account")?.value;
-      const reason = action.querySelector(".credit-reason")?.value.trim();
-      if (!accountId || !reason) throw new Error("Choose a refund account and enter a reason.");
-      result = await supabase.rpc("refund_customer_credit", {
-        p_deposit_receipt_id: action.dataset.creditId,
-        p_amount: amount,
-        p_payment_account_id: accountId,
-        p_reason: reason,
-        p_idempotency_key: idempotencyKey,
-      });
-    }
+    const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
+    if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
+    const result = await supabase.rpc("apply_customer_credit", {
+      p_deposit_receipt_id: action.dataset.creditId,
+      p_amount: amount,
+      p_target_type: targetType,
+      p_target_id: targetId,
+      p_reason: "Staff-applied quotation deposit",
+      p_idempotency_key: idempotencyKey,
+    });
     if (result.error) throw result.error;
     await load();
-    showMessage(applyButton ? "Credit applied to the customer balance." : "Refund recorded. Available credit and dashboard totals have been reduced.", "success");
+    showMessage("Credit applied to the customer balance.", "success");
   } catch (error) {
     showMessage(error.message || "The customer-credit transaction could not be completed.", "error");
-    (applyButton || refundButton).disabled = false;
+    applyButton.disabled = false;
   }
 });
 
 ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => {
   const field = document.getElementById(id);
-  field?.addEventListener("input", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
-  field?.addEventListener("change", () => { creditVisible = 3; overpaymentVisible = 3; render(); });
+  field?.addEventListener("input", render);
+  field?.addEventListener("change", render);
 });
 document.getElementById("customer-credit-clear")?.addEventListener("click", () => {
   ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
-  creditVisible = 3; overpaymentVisible = 3; render();
-});
-list.addEventListener("click", event => {
-  const more = event.target.closest("[data-credit-more]");
-  if (!more) return;
-  if (more.dataset.creditMore === "deposits") creditVisible += 3;
-  else overpaymentVisible += 3;
   render();
 });
 refreshButton?.addEventListener("click", load);
