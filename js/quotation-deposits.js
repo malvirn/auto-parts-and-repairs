@@ -64,10 +64,20 @@ function openDepositDialog(button) {
       });
       if (error) throw error;
       const appliedAmount = Number(data.applied_amount || 0);
-      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded.${appliedAmount > 0.005 ? ` ${appliedAmount.toFixed(2)} was automatically applied to the linked job card.` : ""} Opening its receipt…`;
+      let linkedSyncWarning = "";
+      if (button.dataset.jobId) {
+        const { error: syncError } = await supabase.rpc("sync_repair_job_invoice", {
+          p_repair_job_id: button.dataset.jobId,
+        });
+        if (syncError) {
+          linkedSyncWarning = " The linked job invoice could not be refreshed: " + syncError.message;
+          console.error("Quotation deposit saved but linked invoice synchronization failed:", syncError);
+        }
+      }
+      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded.${appliedAmount > 0.005 ? ` ${appliedAmount.toFixed(2)} was automatically applied to the linked job card.` : ""}${linkedSyncWarning} Opening its receipt…`;
       message.dataset.tone = "success";
       delete form.dataset.idempotencyKey;
-      window.location.href = `receipts.html?credit_note_id=${encodeURIComponent(data.id)}&from=quotations`;
+      window.location.assign(`receipts.html?credit_note_id=${encodeURIComponent(data.id)}&from=quotations`);
     } catch (error) {
       message.textContent = error.message || "The deposit could not be recorded.";
       message.dataset.tone = "error";
