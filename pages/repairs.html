@@ -2044,7 +2044,14 @@ $("save").onclick=async()=>{const b=$("save");
   const checklistToLink=activeChecklist;activeChecklist=null;let linkError=null;
   if(checklistToLink){const{error:le}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:savedJobId,p_checklist_number:checklistToLink.checklist_number});linkError=le||null}
   await load();open(jobs.find(x=>x.id===savedJobId)||jobs[0]);
-  toast((checklistToLink?(linkError?`Saved as a Draft. Couldn't link checklist #${checklistToLink.checklist_number}: ${linkError.message}`:`Job card created from checklist #${checklistToLink.checklist_number}.`):"Draft job card saved. Link a vehicle checklist to finish creating it.")+depositNote)
+  const checklistMessage=!checklistToLink
+   ?"Draft job card saved. Link a vehicle checklist to finish creating it."
+   :!linkError
+    ? "Job card created from checklist #"+checklistToLink.checklist_number+"."
+    :linkError.message?.includes("positive repair-job subtotal")
+     ?"Saved as a Draft. Add a labour or priced-parts amount before confirming. The invoice is created during checklist confirmation."
+     :"Saved as a Draft. Could not link checklist #"+checklistToLink.checklist_number+": "+linkError.message;
+  toast(checklistMessage+depositNote)
  }catch(e){console.error(e);toast("Couldn't save: "+(e.message||e))}b.disabled=false};
 
 /* ---------- share ---------- */
