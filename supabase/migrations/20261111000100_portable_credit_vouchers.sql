@@ -508,7 +508,7 @@ begin
   left join public.customer_overpayment_credit_notes o on v.credit_note_type='invoice_overpayment' and o.id=v.credit_note_id
   order by v.issued_at desc;
 end;
-$;
+$$;
 
 revoke all on function public.list_customer_credit_vouchers() from public, anon;
 revoke all on function public.lookup_credit_voucher(text) from public, anon;
