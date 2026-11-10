@@ -332,3 +332,21 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 :root[data-theme="light"] body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-refresh svg{color:#183568!important;stroke:#183568!important}
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-theme-row{background:#202a38!important;border-color:#46556a!important;color:#f3f6fb!important}
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle{background:#f2b84b!important;color:#172033!important}
+
+
+/* Keep the active Quick Access shortcut identical to the Index orange action. */
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a.is-current,
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a[aria-current="page"]{
+  background:#f58220 !important;
+  color:#fff !important;
+  box-shadow:0 2px 7px rgba(245,130,32,.22) !important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a.is-current>svg,
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a[aria-current="page"]>svg{
+  color:#fff !important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a.is-current .quick-arrow,
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a[aria-current="page"] .quick-arrow{
+  color:rgba(255,255,255,.9) !important;
+}
+body.dashboard-page.dashboard-workshop .sidebar .sidebar__brand{display:none !important}
