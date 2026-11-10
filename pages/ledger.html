@@ -975,6 +975,14 @@
           p_payment_date: paymentDate
         });
         if (paymentError) throw new Error(paymentError.message);
+        if (job?.id) {
+          const { error: linkedInvoiceSyncError } = await supabase.rpc("sync_repair_job_invoice", {
+            p_repair_job_id: job.id,
+          });
+          if (linkedInvoiceSyncError) {
+            console.error("Invoice payment saved, but the linked job invoice could not be synchronized:", linkedInvoiceSyncError);
+          }
+        }
         closeJobPayment();
         if (!journalEntryId) {
           $("jb-message").textContent = "Payment was recorded, but the Ledger did not return a receipt reference. Open Receipts and select the invoice to verify the payment.";
