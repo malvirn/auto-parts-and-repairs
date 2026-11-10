@@ -279,6 +279,11 @@ begin
     when balance_value<=0.005 and v.status='active' then 'redeemed' else v.status end;
   if status_value<>v.status then
     update public.customer_credit_vouchers set status=status_value,updated_at=now() where id=v.id;
+    if v.credit_note_type='quotation_deposit' then
+      update public.quotation_deposit_receipts set voucher_status=status_value where id=v.credit_note_id;
+    else
+      update public.customer_overpayment_credit_notes set voucher_status=status_value where id=v.credit_note_id;
+    end if;
   end if;
   if v.credit_note_type='quotation_deposit' then
     select customer_name,customer_phone into note_name,note_phone from public.quotation_deposit_receipts where id=v.credit_note_id;
@@ -392,7 +397,10 @@ begin
     where n.id=v.credit_note_id and c.id=n.overpayment_credit_id;
   end if;
   balance_value:=public.credit_voucher_available_balance(v.id);
-  update public.customer_credit_vouchers set status=case when balance_value<=0.005 then 'redeemed' else 'active' end,updated_at=now() where id=v.id;
+  new_status:=case when balance_value<=0.005 then 'redeemed' else 'active' end;
+  update public.customer_credit_vouchers set status=new_status,updated_at=now() where id=v.id;
+  if v.credit_note_type='quotation_deposit' then update public.quotation_deposit_receipts set voucher_status=new_status where id=v.credit_note_id;
+  else update public.customer_overpayment_credit_notes set voucher_status=new_status where id=v.credit_note_id; end if;
   insert into public.credit_voucher_audit(voucher_id,voucher_code,action,details,performed_by)
   values(v.id,v.voucher_code,'redeemed',jsonb_build_object('amount',amount_value,'target_type',p_target_type,'target_id',p_target_id,'journal_entry_id',entry_id),uid);
   return jsonb_build_object('id',redemption_id,'amount',amount_value,'remaining_balance',balance_value,'journal_entry_id',entry_id);
@@ -407,7 +415,7 @@ as $$
 declare
   uid uuid:=auth.uid(); v public.customer_credit_vouchers%rowtype;
   r public.credit_voucher_redemptions%rowtype; entry_id uuid; reversal_id uuid;
-  deposit_account_id uuid; receivable_account_id uuid; balance_value numeric(12,2);
+  deposit_account_id uuid; receivable_account_id uuid; balance_value numeric(12,2); new_status text;
 begin
   if uid is null or public.current_access_level()<1 then raise exception 'Authorised staff access is required' using errcode='42501'; end if;
   if nullif(btrim(p_reason),'') is null then raise exception 'A reason is required for this change'; end if;
@@ -420,13 +428,13 @@ begin
     else update public.customer_overpayment_credit_notes set voucher_status='cancelled' where id=v.credit_note_id; end if;
   elsif p_action='set_expiry' then
     if p_new_expiry is null then raise exception 'Choose a new expiry date'; end if;
-    update public.customer_credit_vouchers set expires_at=p_new_expiry,
-      status=case when public.credit_voucher_available_balance(v.id)<=0.005 then 'redeemed' when p_new_expiry<current_date then 'expired' else 'active' end,
-      updated_at=now() where id=v.id;
+    balance_value:=public.credit_voucher_available_balance(v.id);
+    new_status:=case when balance_value<=0.005 then 'redeemed' when p_new_expiry<current_date then 'expired' else 'active' end;
+    update public.customer_credit_vouchers set expires_at=p_new_expiry,status=new_status,updated_at=now() where id=v.id;
     if v.credit_note_type='quotation_deposit' then
-      update public.quotation_deposit_receipts set expires_at=p_new_expiry,voucher_status='active' where id=v.credit_note_id;
+      update public.quotation_deposit_receipts set expires_at=p_new_expiry,voucher_status=new_status where id=v.credit_note_id;
     else
-      update public.customer_overpayment_credit_notes set expires_at=p_new_expiry,voucher_status='active' where id=v.credit_note_id;
+      update public.customer_overpayment_credit_notes set expires_at=p_new_expiry,voucher_status=new_status where id=v.credit_note_id;
     end if;
   elsif p_action='reverse' then
     select * into r from public.credit_voucher_redemptions where id=p_redemption_id and voucher_id=v.id for update;
@@ -453,7 +461,10 @@ begin
       where n.id=r.credit_note_id and c.id=n.overpayment_credit_id;
     end if;
     balance_value:=public.credit_voucher_available_balance(v.id);
-    update public.customer_credit_vouchers set status=case when v.expires_at<current_date then 'expired' when balance_value>0.005 then 'active' else 'redeemed' end,updated_at=now() where id=v.id;
+    new_status:=case when balance_value<=0.005 then 'redeemed' when v.expires_at<current_date then 'expired' else 'active' end;
+    update public.customer_credit_vouchers set status=new_status,updated_at=now() where id=v.id;
+    if v.credit_note_type='quotation_deposit' then update public.quotation_deposit_receipts set voucher_status=new_status where id=v.credit_note_id;
+    else update public.customer_overpayment_credit_notes set voucher_status=new_status where id=v.credit_note_id; end if;
   else
     raise exception 'Unsupported voucher action';
   end if;
