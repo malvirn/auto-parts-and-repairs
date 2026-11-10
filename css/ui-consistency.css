@@ -315,3 +315,78 @@ body.system-page :is(.dashboard-toolbar-button,.dashboard-connection-status,.the
   box-shadow:none !important;
   text-shadow:none !important;
 }
+
+
+/* Make header and utility icons unmistakable in both colour themes. */
+body.dashboard-page .hdr-header-actions :is(.dashboard-toolbar-button,.dashboard-connection-status,#global-notif-bell,.theme-toggle,.hdr-more),
+body.dashboard-page :is(.dashboard-sidebar-toggle,.sidebar-toggle) {
+  display:inline-grid !important;
+  place-items:center !important;
+  background:linear-gradient(180deg,#3c4c60,#263548) !important;
+  border:1px solid #71849a !important;
+  color:#ffffff !important;
+  min-width:42px;
+  min-height:42px;
+  border-radius:11px !important;
+  box-shadow:0 2px 0 #1b2633,0 4px 10px rgba(0,0,0,.22) !important;
+}
+body.dashboard-page .hdr-header-actions :is(.dashboard-toolbar-button,.dashboard-connection-status,#global-notif-bell,.theme-toggle,.hdr-more) svg,
+body.dashboard-page :is(.dashboard-sidebar-toggle,.sidebar-toggle) svg {
+  width:22px !important;
+  height:22px !important;
+  color:#fff !important;
+  stroke:#fff !important;
+  stroke-width:2.5px !important;
+  opacity:1 !important;
+}
+body.dashboard-page .hdr-header-actions :is(.dashboard-toolbar-button,.dashboard-connection-status,#global-notif-bell,.theme-toggle,.hdr-more):hover,
+body.dashboard-page :is(.dashboard-sidebar-toggle,.sidebar-toggle):hover {
+  background:linear-gradient(180deg,#526982,#34485f) !important;
+  border-color:#a8bfd6 !important;
+}
+:root[data-theme="light"] body.dashboard-page .hdr-header-actions :is(.dashboard-toolbar-button,.dashboard-connection-status,#global-notif-bell,.theme-toggle,.hdr-more),
+:root[data-theme="light"] body.dashboard-page :is(.dashboard-sidebar-toggle,.sidebar-toggle) {
+  background:linear-gradient(180deg,#35475d,#243448) !important;
+  border-color:#647b94 !important;
+  color:#fff !important;
+}
+body.dashboard-page .overpayment-credit-record__summary {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+  padding:15px;
+  cursor:pointer;
+  list-style:none;
+}
+body.dashboard-page .overpayment-credit-record__summary::-webkit-details-marker {display:none}
+body.dashboard-page .overpayment-credit-record__summary > span:first-child {display:grid;gap:4px;min-width:0}
+body.dashboard-page .overpayment-credit-record__summary small {display:block;color:var(--cam-muted);font-size:12px}
+body.dashboard-page .overpayment-credit-record__amount {font-size:18px;text-align:right;color:#35d58a}
+body.dashboard-page .overpayment-credit-record__body {display:grid;gap:14px;padding:16px;border-top:1px solid var(--cam-border)}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-facts {display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-facts > div,
+body.dashboard-page .overpayment-credit-record__body .credit-doc-totals > div {
+  min-width:0;padding:12px;border:1px solid var(--cam-border);border-radius:10px;background:var(--cam-surface-2);
+}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-facts small,
+body.dashboard-page .overpayment-credit-record__body .credit-doc-totals small {display:block;color:var(--cam-muted);font-size:11px}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-facts strong,
+body.dashboard-page .overpayment-credit-record__body .credit-doc-totals strong {display:block;margin-top:5px;overflow-wrap:anywhere}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-totals {display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-actions,
+body.dashboard-page .overpayment-job-link__fields {display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+body.dashboard-page .overpayment-job-link {padding:14px;border:1px solid var(--cam-border);border-radius:12px;background:var(--cam-surface-2)}
+body.dashboard-page .overpayment-job-link h4 {margin:0 0 6px}
+body.dashboard-page .overpayment-job-link p {margin:0 0 12px;color:var(--cam-muted);font-size:13px}
+body.dashboard-page .overpayment-job-link__fields input {flex:1 1 190px;min-width:0}
+body.dashboard-page .overpayment-job-link__fields button {flex:1 1 100%}
+body.dashboard-page .overpayment-credit-record__body .credit-doc-actions a,
+body.dashboard-page .overpayment-credit-record__body .credit-doc-actions button {min-height:42px}
+@media(max-width:560px) {
+  body.dashboard-page .overpayment-credit-record__summary {align-items:flex-start}
+  body.dashboard-page .overpayment-credit-record__summary > * {flex:1 1 42%}
+  body.dashboard-page .overpayment-credit-record__amount {text-align:left}
+  body.dashboard-page .overpayment-credit-record__body .credit-doc-actions > * {flex:1 1 100%;justify-content:center}
+}
