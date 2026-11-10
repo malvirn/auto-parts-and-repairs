@@ -146,50 +146,50 @@ function printCreditNote(note) {
   const number = `QCN-${String(note.credit_note_number).padStart(6, "0")}`;
   const movementsForNote = movements.filter(item => item.deposit_receipt_id === note.id);
   const status = noteStatus(note, movementsForNote);
-  const vehicle = job?.vehicles || {};
-  const vehicleLabel = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ");
   const jobRef = job ? (job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "Not created yet";
+  const validUntil = quote.created_at ? dateLabel(new Date(Date.parse(quote.created_at) + 7 * 86400000).toISOString()) : "—";
   const activityRows = movementsForNote.map(item => `<tr><td>${escapeHtml(item.movement_type === "refund" ? "Refund" : "Credit applied")}</td><td>${dateLabel(item.created_at)}</td><td>${money(item.amount)}</td><td>${escapeHtml(item.reason || "—")}</td></tr>`).join("");
   const popup = window.open("", "_blank", "width=900,height=720");
   if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
+  const logoUrl = window.location.origin + "/assets/logo.png";
   popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${number} · Centric Auto Mobile</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;padding:28px;background:#eef1f4;color:#17212b;font:14px/1.5 Inter,Arial,sans-serif}
-    .sheet{max-width:820px;margin:auto;background:#fff;border:1px solid #dce2e8;border-radius:12px;overflow:hidden}
-    .hero{padding:28px 30px;background:#27364d;color:#fff}.hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
-    .hero h1{font-size:23px;margin:0}.hero .amount{font-size:27px;font-weight:800;white-space:nowrap}
-    .hero .sub{display:flex;justify-content:space-between;gap:10px;margin-top:8px;color:#c8d2df}
-    .pill{display:inline-block;margin-top:18px;padding:6px 14px;border-radius:99px;background:#fff2df;color:#94431f;font-weight:800}
-    .customer{margin-top:18px;font-size:22px}.vehicle{color:#c8d2df;font-size:16px}
-    .section{padding:0 30px}.section h2{margin:22px 0 0;padding:12px 16px;background:#f1f3f6;color:#596779;font-size:13px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #dce2e8}
-    .line{display:flex;justify-content:space-between;gap:14px;padding:15px 16px;border-bottom:1px solid #e2e6eb;font-size:15px}
-    .line strong{font-variant-numeric:tabular-nums;text-align:right}.line.total{font-weight:800;border-top:2px solid #cbd3dc}
-    .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:18px 0}.meta div{padding:12px;background:#f5f7f9;border-radius:8px;min-width:0}.meta small{display:block;color:#687789;font-size:10px;text-transform:uppercase;letter-spacing:.07em}.meta strong{display:block;margin-top:4px;overflow-wrap:anywhere}
-    table{width:100%;border-collapse:collapse;margin:12px 0 24px}th,td{padding:10px;text-align:left;border-bottom:1px solid #e5e9ed}th{background:#f5f7f9;font-size:10px;text-transform:uppercase;color:#64748b}
-    footer{margin:0 30px 24px;padding-top:14px;border-top:1px solid #e5e9ed;text-align:center;color:#657384;font-size:11px}
-    .print{display:block;margin:0 auto 14px;padding:10px 16px;border:0;border-radius:8px;background:#17212b;color:#fff;font-weight:700;cursor:pointer}
-    @page{size:auto;margin:0}
-    @media print{html,body{margin:0!important;padding:10mm!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}.print{display:none!important}}
-    @media(max-width:600px){body{padding:10px}.hero{padding:20px}.hero-top{flex-direction:column}.hero .amount{font-size:23px}.section{padding:0 16px}.meta{grid-template-columns:1fr}}
-  </style></head><body><button class="print" onclick="window.print()">Print credit note</button><main class="sheet">
-    <header class="hero"><div class="hero-top"><div><h1>${number}</h1><div class="sub"><span>Quotation #${escapeHtml(quote.quotation_number ?? "—")}</span><span>${dateLabel(note.payment_date)}</span></div></div><div class="amount">${money(note.amount)}</div></div>
-    <div class="pill">${status.label}</div><div class="customer">${escapeHtml(note.customer_name || "Customer")}</div>
-    <div class="vehicle">${escapeHtml(vehicleLabel || "Quotation deposit")} · ${escapeHtml(vehicle.license_plate || (job ? "Registration not recorded" : "Job card pending"))}</div></header>
-    <section class="section"><h2>Credit note details</h2><div class="meta">
-      <div><small>Job card</small><strong>${escapeHtml(jobRef)}</strong></div>
-      <div><small>Checklist number</small><strong>${job?.checklist_number ? "#" + escapeHtml(job.checklist_number) : "Pending"}</strong></div>
-      <div><small>Job status</small><strong>${escapeHtml(job?.status || "Awaiting job card")}</strong></div>
-      <div><small>Payment method / reference</small><strong>${escapeHtml(note.payment_method)} · ${escapeHtml(note.reference || "No reference")}</strong></div>
-      <div><small>Customer phone</small><strong>${escapeHtml(note.customer_phone || "—")}</strong></div>
-      <div><small>Quotation issued</small><strong>${dateLabel(quote.created_at)}</strong></div>
-    </div></section>
-    <section class="section"><h2>Credit summary</h2>
-      <div class="line"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
-      <div class="line"><span>Refunded</span><strong>${money(status.refunded)}</strong></div>
-      <div class="line"><span>Applied to customer work</span><strong>${money(status.applied)}</strong></div>
-      <div class="line total"><span>Available credit</span><strong>${money(note.available_amount)}</strong></div>
-    </section>
-    <section class="section"><h2>Credit activity</h2><table><thead><tr><th>Action</th><th>Date</th><th>Amount</th><th>Details</th></tr></thead><tbody>${activityRows || '<tr><td colspan="4">No credit movements recorded.</td></tr>'}</tbody></table></section>
+    *{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#17212b;font:12px/1.5 Arial,sans-serif}
+    .sheet{width:190mm;min-height:277mm;margin:0 auto;padding:16mm;background:#fff}
+    .brand{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:2px solid #172b49}
+    .brand img{width:54px;height:54px;object-fit:contain}.brand strong{display:block;font-size:16px;letter-spacing:.08em}.brand small{color:#64748b}
+    h1{margin:18px 0 4px;font-size:22px}.number{font-size:14px;font-weight:800;color:#334155}
+    .status{display:inline-block;margin:10px 0 16px;padding:5px 12px;border-radius:30px;background:#e2e8f0;color:#334155;font-weight:700}
+    .amount{margin:0 0 18px;padding:14px 16px;border:1px solid #d8e0e8;border-radius:8px;background:#f7f9fb}
+    .amount small{display:block;color:#64748b}.amount strong{font-size:25px}
+    h2{margin:18px 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#526174}
+    table{width:100%;border-collapse:collapse}td,th{padding:9px 10px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top}
+    td:first-child{width:42%;color:#64748b}td:last-child{text-align:right;font-weight:700;overflow-wrap:anywhere}
+    .totals td{font-size:13px}.totals tr:last-child td{border-top:2px solid #94a3b8;font-size:15px;font-weight:800}
+    .activity td:last-child{text-align:left;font-weight:400}.activity th{background:#f1f5f9;font-size:10px;text-transform:uppercase;color:#64748b}
+    footer{margin-top:28px;padding-top:12px;border-top:1px solid #dbe2ea;text-align:center;color:#64748b;font-size:10px}
+    @page{size:A4;margin:0}
+    @media print{html,body{width:210mm;min-height:297mm}.sheet{width:210mm;min-height:297mm;margin:0;padding:16mm;page-break-after:avoid}}
+  </style></head><body><main class="sheet">
+    <header class="brand"><img src="${logoUrl}" alt="Centric Auto Mobile"><div><strong>CENTRIC AUTO MOBILE</strong><small>Auto Parts &amp; Repairs · Norton, Zimbabwe</small></div></header>
+    <h1>Customer Credit Note</h1><div class="number">${number}</div>
+    <span class="status">${escapeHtml(status.label)}</span>
+    <section class="amount"><small>Available credit</small><strong>${money(note.available_amount)}</strong></section>
+    <h2>Credit note details</h2><table><tbody>
+      <tr><td>Customer</td><td>${escapeHtml(note.customer_name || "—")}</td></tr>
+      <tr><td>Phone</td><td>${escapeHtml(note.customer_phone || "—")}</td></tr>
+      <tr><td>Source</td><td>Quotation #${escapeHtml(quote.quotation_number ?? "—")}</td></tr>
+      <tr><td>Date and payment method</td><td>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</td></tr>
+      <tr><td>Job card</td><td>${escapeHtml(jobRef)}</td></tr>
+      <tr><td>Valid until</td><td>${validUntil}</td></tr>
+    </tbody></table>
+    <h2>Credit summary</h2><table class="totals"><tbody>
+      <tr><td>Original deposit</td><td>${money(note.amount)}</td></tr>
+      <tr><td>Applied</td><td>${money(status.applied)}</td></tr>
+      <tr><td>Refunded</td><td>${money(status.refunded)}</td></tr>
+      <tr><td>Available credit</td><td>${money(note.available_amount)}</td></tr>
+    </tbody></table>
+    <h2>Credit activity</h2><table class="activity"><thead><tr><th>Action</th><th>Date</th><th>Amount</th><th>Details</th></tr></thead><tbody>${activityRows || '<tr><td colspan="4">No credit movements recorded.</td></tr>'}</tbody></table>
     <footer>Customer deposit liability account 2300 · Retain this document for your records.<br>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer>
   </main></body></html>`);
   popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 350);
