@@ -305,7 +305,7 @@ begin
   if uid is null or public.current_access_level()<1 then
     raise exception 'Authorised staff access is required' using errcode='42501';
   end if;
-  if p_decision not in ('refund','move_to_income') then raise exception 'Choose refund or move to income'; end if;
+  if p_decision is null or p_decision not in ('refund','move_to_income') then raise exception 'Choose refund or move to income'; end if;
   if p_amount is null or p_amount<=0 or p_account_id is null or nullif(btrim(p_reason),'') is null then
     raise exception 'Enter an amount, account and reason';
   end if;
