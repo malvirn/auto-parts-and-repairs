@@ -140,6 +140,15 @@ function noteStatus(note, noteMovements) {
   return { label: "Available", tone: "available", refunded, applied };
 }
 
+async function auditCreditVoucherAction(code, action) {
+  if (!code) return;
+  const { data, error } = await supabase.from("customer_credit_vouchers").select("id").eq("voucher_code", code).maybeSingle();
+  if (error) throw error;
+  if (!data?.id) return;
+  const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: data.id, p_action: action });
+  if (auditError) throw auditError;
+}
+
 let voucherQrLibraryPromise;
 async function voucherQrDataUrl(code) {
   if (!code) return "";
@@ -186,7 +195,7 @@ async function printCreditNote(note) {
   const validUntil = quote.created_at ? dateLabel(new Date(Date.parse(quote.created_at) + 7 * 86400000).toISOString()) : "—";
   const activityRows = movementsForNote.map(item => `<tr><td>${escapeHtml(item.movement_type === "refund" ? "Refund" : "Credit applied")}</td><td>${dateLabel(item.created_at)}</td><td>${money(item.amount)}</td><td>${escapeHtml(item.reason || "—")}</td></tr>`).join("");
   let qrData = "";
-  if (note.voucher_code) { try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Credit note QR could not be generated:", error); } }
+  if (note.voucher_code) { await auditCreditVoucherAction(note.voucher_code, "printed"); try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Credit note QR could not be generated:", error); } }
   const popup = window.open("", "_blank", "width=900,height=720");
   if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
   const logoUrl = window.location.origin + "/assets/logo.png";
@@ -674,7 +683,7 @@ document.addEventListener("click", async event => {
       .reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
     let qrData = "";
-    if (note.voucher_code) { try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Overpayment QR could not be generated:", error); } }
+    if (note.voucher_code) { await auditCreditVoucherAction(note.voucher_code, "printed"); try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Overpayment QR could not be generated:", error); } }
     const popup = window.open("", "_blank", "width=900,height=720");
     if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
     popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>CN-" +
