@@ -281,6 +281,7 @@ function render() {
     '</strong></div></div><div class="customer-credit-records credit-voucher-records">' +
     rows.map(v => {
       const history = redemptions.filter(r => r.voucher_id === v.voucher_id);
+      const resolutionHistory = resolutions.filter(r => r.voucher_id === v.voucher_id);
       const last = history.find(r => !r.reversed_at);
       const canCancel = ["active","expired"].includes(v.status);
       const canResolve = v.status === "expired" && Number(v.available_amount) > 0.005;
