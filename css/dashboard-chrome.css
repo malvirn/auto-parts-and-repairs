@@ -493,3 +493,27 @@ body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:h
     margin-right:0!important;
   }
 }
+
+
+/* Physical phones: never retain the desktop collapsed-sidebar offset.
+   The sidebar is hidden on phone layouts, so the workspace must use the full viewport. */
+html.phone-layout body.dashboard-page.dashboard-workshop .main,
+html.phone-layout body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
+  position:relative!important;
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding-left:10px!important;
+  padding-right:10px!important;
+  transform:none!important;
+}
+html.phone-layout body.dashboard-page.dashboard-workshop .app-shell{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+}
