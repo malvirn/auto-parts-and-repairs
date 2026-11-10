@@ -1267,11 +1267,20 @@ document.getElementById("customer-credit-clear")?.addEventListener("click", () =
   render();
 });
 async function safeLoad() {
+  let timer;
   try {
-    await load();
+    await Promise.race([
+      load(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Customer credit request timed out. Check your connection and tap refresh to try again.")), 15000);
+      }),
+    ]);
   } catch (error) {
     console.error("Customer credit notes failed to load:", error);
-    list.innerHTML = `<div class="customer-credit-empty">Couldn't load credit notes: ${escapeHtml(error?.message || String(error))}. Tap refresh to try again.</div>`;
+    list.innerHTML = '<div class="customer-credit-empty">Could not load credit notes: ' + escapeHtml(error?.message || String(error)) + '<br><button type="button" class="btn" id="customer-credit-load-retry" style="margin-top:12px">Try again</button></div>';
+    document.getElementById("customer-credit-load-retry")?.addEventListener("click", safeLoad);
+  } finally {
+    clearTimeout(timer);
   }
 }
 refreshButton?.addEventListener("click", safeLoad);
