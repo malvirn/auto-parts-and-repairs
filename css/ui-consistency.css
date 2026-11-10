@@ -390,3 +390,54 @@ body.dashboard-page .overpayment-credit-record__body .credit-doc-actions button 
   body.dashboard-page .overpayment-credit-record__amount {text-align:left}
   body.dashboard-page .overpayment-credit-record__body .credit-doc-actions > * {flex:1 1 100%;justify-content:center}
 }
+
+
+/* Zimbabwe-first phone fields: +263 is prefilled in every telephone input. */
+body.dashboard-page input[type="tel"],
+body.dashboard-page input[inputmode="tel"],
+body.system-page input[type="tel"],
+body.system-page input[inputmode="tel"] {
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.02em;
+}
+
+/* The page refresh control is a primary utility, not a low-contrast outline icon. */
+body.dashboard-page .dashboard-refresh,
+body.dashboard-page button.dashboard-refresh,
+.dashboard-refresh,
+button.dashboard-refresh {
+  display:inline-grid !important;
+  place-items:center !important;
+  min-width:46px !important;
+  min-height:46px !important;
+  padding:0 !important;
+  border:1px solid #ffc27d !important;
+  border-radius:12px !important;
+  color:#ffffff !important;
+  background:linear-gradient(180deg,#ff9b35 0%,#e86b08 100%) !important;
+  box-shadow:0 3px 0 #a74700,0 5px 12px rgba(0,0,0,.28) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+}
+body.dashboard-page .dashboard-refresh svg,
+body.dashboard-page .dashboard-refresh i,
+.dashboard-refresh svg,
+.dashboard-refresh i {
+  width:23px !important;
+  height:23px !important;
+  color:#ffffff !important;
+  stroke:#ffffff !important;
+  stroke-width:2.8px !important;
+  opacity:1 !important;
+}
+body.dashboard-page .dashboard-refresh:hover,
+.dashboard-refresh:hover {
+  background:linear-gradient(180deg,#ffad57 0%,#f27b17 100%) !important;
+  border-color:#ffe0b9 !important;
+  transform:translateY(-1px);
+}
+body.dashboard-page .dashboard-refresh:focus-visible,
+.dashboard-refresh:focus-visible {
+  outline:3px solid #ffd19c !important;
+  outline-offset:3px !important;
+}
