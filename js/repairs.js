@@ -1817,28 +1817,14 @@ form?.addEventListener("submit", async (e) => {
       console.error("Could not save transferred quotation totals:", totalsError);
     }
 
-    let quotationDepositApplied = 0;
-    if (quoteId) {
-      const { data: creditResult, error: creditApplyError } = await supabase.rpc("apply_quotation_deposits_to_repair_job", {
-        p_quotation_id: quoteId,
-        p_repair_job_id: job.id,
-      });
-      if (creditApplyError) {
-        quoteLinkWarning += ` The quotation deposit could not be applied automatically: ${creditApplyError.message}. It remains available under Customer Credit Notes.`;
-        console.error("Could not apply the quotation deposit to its job card:", creditApplyError);
-      } else {
-        quotationDepositApplied = Number(creditResult?.applied_amount || 0);
-      }
-    }
+    // Quotation deposits remain customer credit until a staff member explicitly applies them.
+    // Do not auto-apply here: the job-card receivable posting must be verified first.
 
     resetIntakeForm();
     const label = job.cro_number || (job.job_number != null ? `#${String(job.job_number).padStart(4, "0")}` : "");
-    const depositMessage = quotationDepositApplied > 0.005
-      ? ` Quotation deposit of ${money(quotationDepositApplied)} applied to this job card.`
-      : "";
     showFormMessage(skipped.length
-      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${depositMessage}${quoteLinkWarning}`
-      : `Job card ${label} created.${depositMessage}${quoteLinkWarning}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
+      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}`
+      : `Job card ${label} created.${quoteLinkWarning}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
     await Promise.all([loadJobs(), loadPartsIntoSelect(), loadCustomers()]);
     await refreshBusyMechanics();
     refreshTechnicianOptions(newTechnician, null);
