@@ -409,15 +409,15 @@ document.addEventListener("click", async event => {
   } catch (error) { showMessage(error.message || "Could not link this credit note.", "error"); linkButton.disabled = false; }
 });
 
-list.addEventListener("input", event => {
+document.addEventListener("input", event => {
   const action = event.target.closest("[data-action]");
   if (action) delete action.dataset.idempotencyKey;
 });
-list.addEventListener("change", event => {
+document.addEventListener("change", event => {
   const action = event.target.closest("[data-action]");
   if (action) delete action.dataset.idempotencyKey;
 });
-list.addEventListener("click", async event => {
+document.addEventListener("click", async event => {
   const printButton = event.target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
