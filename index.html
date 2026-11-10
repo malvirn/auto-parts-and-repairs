@@ -693,32 +693,70 @@
       :root[data-theme="light"] body.dashboard-workshop .cs-wrap td{font-size:11px;padding:7px 4px}
     }
 
+/* INDEX ONLY: polished light dashboard shell */
+body.dashboard-page.dashboard-workshop{background:#f3f6fb!important;color:#17233d!important;padding:0!important}
+body.dashboard-page.dashboard-workshop .main{margin:0 0 0 244px!important;padding:88px clamp(18px,3vw,42px) 42px!important;background:#f3f6fb!important}
+body.dashboard-page.dashboard-workshop .app-header{display:none!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar{position:fixed;z-index:1200;top:0;right:0;left:244px;height:68px;padding:0 22px;display:flex;align-items:center;gap:20px;background:rgba(255,255,255,.98);border-bottom:1px solid #e4eaf2;box-shadow:0 3px 16px rgba(24,42,75,.045)}
+body.dashboard-page.dashboard-workshop .dashboard-header-date{display:flex;align-items:center;gap:8px;flex:none;color:#233654;font-size:12px;font-weight:650;white-space:nowrap}
+body.dashboard-page.dashboard-workshop .dashboard-header-date svg{width:17px;height:17px;color:#183568}.header-separator{color:#b8c2d0;margin:0 2px}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs{flex:1;min-width:100px;max-width:none}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{height:42px;border:1px solid #e0e6ef;border-radius:11px;background:#f7f9fc;padding:0 12px;gap:9px;box-shadow:none}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar>svg{width:18px;height:18px;color:#718096}
+body.dashboard-page.dashboard-workshop .dashboard-topbar #hs-input{color:#17233d;font-size:13px}body.dashboard-page.dashboard-workshop .dashboard-topbar #hs-input::placeholder{color:#8995a7}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-kbd{color:#75839a;border-color:#dce3ec}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{display:flex;align-items:center;gap:12px;flex:none}
+body.dashboard-page.dashboard-workshop .dashboard-login-level{display:flex;align-items:center;gap:8px;min-width:0;color:#17233d}
+body.dashboard-page.dashboard-workshop .dashboard-user-avatar{display:grid;width:38px;height:38px;flex:none;place-items:center;border-radius:50%;background:linear-gradient(145deg,#2457b5,#183568);color:white;font-size:13px;font-weight:800}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:grid;gap:2px;min-width:0}body.dashboard-page.dashboard-workshop .dashboard-user-copy strong{max-width:140px;overflow:hidden;color:#17233d;font-size:12px;text-overflow:ellipsis;white-space:nowrap}body.dashboard-page.dashboard-workshop .dashboard-user-copy small{color:#728096;font-size:10px;text-transform:capitalize}
+body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{position:relative;inset:auto;width:40px;height:40px;border:1px solid #e0e6ef;border-radius:11px;background:white;color:#183568;box-shadow:none}
+body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell:hover{border-color:#12a150;background:#f1faf5}
+body.dashboard-page.dashboard-workshop #global-notif-panel{top:60px!important;right:18px!important;border:1px solid #e1e7ef;background:white;color:#17233d;box-shadow:0 16px 40px rgba(24,42,75,.14)}
+body.dashboard-page.dashboard-workshop .sidebar{position:fixed!important;z-index:1300!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;display:flex!important;flex-direction:column;width:244px!important;height:100dvh!important;padding:14px 12px!important;overflow-x:hidden!important;overflow-y:auto!important;visibility:visible!important;transform:none!important;border:0!important;border-right:1px solid #e4e9f0!important;background:#fff!important;box-shadow:8px 0 28px rgba(24,42,75,.045)!important;gap:2px}
+body.dashboard-page.dashboard-workshop .sidebar__brand{display:flex;justify-content:center;align-items:center;min-height:88px;margin:0 0 10px!important;padding:8px 0 12px;border-bottom:1px solid #edf0f4}
+body.dashboard-page.dashboard-workshop .sidebar .brand-logo{width:164px;max-height:72px;object-fit:contain}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link{min-height:37px;padding:8px 10px;border-radius:9px;color:#263750!important;font-size:11px;font-weight:600}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link>svg{width:17px;height:17px;color:#526783}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link:hover{background:#f1f5fa!important;color:#183568!important}body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{background:#12a150!important;color:white!important}body.dashboard-page.dashboard-workshop .sidebar .nav-link.active>svg{color:white}
+body.dashboard-page.dashboard-workshop .sidebar .nav-group{margin:2px 0}body.dashboard-page.dashboard-workshop .sidebar .nav-grp{min-height:36px;padding:7px 9px;color:#354762;font-size:10px;letter-spacing:.04em}body.dashboard-page.dashboard-workshop .sidebar .nav-grp>svg{color:#12a150}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:#f3f6fa;border-color:#e8edf3;color:#183568}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grpwrap{padding-left:7px}body.dashboard-page.dashboard-workshop .sidebar .nav-grpwrap .nav-link{min-height:32px;padding:6px 8px;font-size:10px}
+body.dashboard-page.dashboard-workshop .sidebar-promo{margin-top:auto;overflow:hidden;border:1px solid #e6ebf2;border-radius:11px;background:#f5f7fb;text-align:center}body.dashboard-page.dashboard-workshop .sidebar-promo img{display:block;width:100%;height:82px;object-fit:cover;object-position:center 55%}body.dashboard-page.dashboard-workshop .sidebar-promo strong{display:block;padding:7px 6px 2px;color:#183568;font-size:11px}body.dashboard-page.dashboard-workshop .sidebar-promo span{display:block;padding:0 8px 8px;color:#68778d;font-size:9px;line-height:1.35}
+body.dashboard-page.dashboard-workshop .sidebar-theme-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:8px 9px;border:1px solid #e6ebf2;border-radius:10px;background:white;color:#34435e;font-size:10px;font-weight:700}body.dashboard-page.dashboard-workshop .sidebar-theme-row>span{display:flex;align-items:center;gap:6px}body.dashboard-page.dashboard-workshop .sidebar-theme-row>span svg{width:16px;height:16px;color:#f58220}
+body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle{position:relative!important;display:grid!important;width:38px;height:22px;place-items:center;padding:0;border:0;border-radius:20px;background:#183568;color:white}body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{width:14px;height:14px}
+body.dashboard-page.dashboard-workshop .sidebar-footer{padding:9px 3px 0;border-top:1px solid #edf0f4;margin-top:8px;color:#7b8798;font-size:9px}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{position:fixed!important;z-index:1301!important;top:16px!important;left:254px!important;width:34px!important;height:34px!important;border:1px solid #e0e6ef!important;border-radius:9px!important;background:white!important;color:#183568!important;box-shadow:0 2px 7px rgba(24,42,75,.06)!important}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-backdrop{display:none}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar{width:74px!important}body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{margin-left:74px!important}body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:74px}body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar__brand .brand-logo{width:48px}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{font-size:0;justify-content:center}body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grpwrap,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-promo,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-theme-row,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-footer{display:none!important}body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:84px!important}
+body.dashboard-page.dashboard-workshop .hero{margin:0 0 22px;padding:22px 24px;border:1px solid #e5eaf1;border-radius:16px;background:linear-gradient(110deg,#fff,#f2f6fc);box-shadow:0 5px 18px rgba(24,42,75,.045)}body.dashboard-page.dashboard-workshop .hero-bg,body.dashboard-page.dashboard-workshop .hero::after{display:none}body.dashboard-page.dashboard-workshop .hero-copy{padding:0}body.dashboard-page.dashboard-workshop .welcome{color:#718096;font-size:11px;letter-spacing:.12em}body.dashboard-page.dashboard-workshop .hero-title{color:#10234e;font-size:clamp(24px,3vw,34px);text-shadow:none}body.dashboard-page.dashboard-workshop .hero-lede{color:#66738a;font-size:13px;text-shadow:none}
+body.dashboard-page.dashboard-workshop .dash-content{max-width:1600px;padding:0 0 36px;gap:24px;background:transparent}body.dashboard-page.dashboard-workshop .dash-content h2{color:#10234e}body.dashboard-page.dashboard-workshop .dash-content .section-kicker{color:#f58220}
+body.dashboard-page.dashboard-workshop .dash-content .panel,body.dashboard-page.dashboard-workshop .dash-content .stat-card,body.dashboard-page.dashboard-workshop .dash-content .objective-card{border:1px solid #e5eaf1;border-radius:14px;background:white;color:#17233d;box-shadow:0 5px 18px rgba(24,42,75,.055)}
+body.dashboard-page.dashboard-workshop .dash-content .stat-card{display:flex;align-items:center;gap:12px;padding:15px;text-decoration:none}body.dashboard-page.dashboard-workshop .dash-content .stat-card-icon{display:grid;width:42px;height:42px;flex:none;place-items:center;border-radius:12px}body.dashboard-page.dashboard-workshop .dash-content .stat-card-icon svg{width:21px;height:21px;stroke-width:2.2}
+body.dashboard-page.dashboard-workshop .dash-content .stat-card[data-tone="green"] .stat-card-icon{background:#e9f8ef;color:#12a150}body.dashboard-page.dashboard-workshop .dash-content .stat-card[data-tone="blue"] .stat-card-icon{background:#eaf2ff;color:#2878e5}body.dashboard-page.dashboard-workshop .dash-content .stat-card[data-tone="purple"] .stat-card-icon{background:#f2ecff;color:#8050d8}body.dashboard-page.dashboard-workshop .dash-content .stat-card[data-tone="orange"] .stat-card-icon{background:#fff2e5;color:#f58220}
+body.dashboard-page.dashboard-workshop .dash-content .stat-card__label{color:#68778d;font-size:10px;letter-spacing:.03em}body.dashboard-page.dashboard-workshop .dash-content .stat-card__value{color:#10234e;font-size:clamp(20px,2vw,27px)}body.dashboard-page.dashboard-workshop .dash-content .kpi-sub{color:#7a8798;font-size:10px}
+body.dashboard-page.dashboard-workshop .dash-content th{background:#f0f3f8;color:#34435e}body.dashboard-page.dashboard-workshop .dash-content td{color:#263750;border-bottom:1px solid #edf0f4}body.dashboard-page.dashboard-workshop .dash-content .btn{border:1px solid #d9e1eb;background:white;color:#183568}body.dashboard-page.dashboard-workshop .dash-content .btn--primary{border-color:#12a150;background:#12a150;color:white}
+@media(max-width:900px){body.dashboard-page.dashboard-workshop .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:768px){body.dashboard-page.dashboard-workshop .sidebar{width:min(300px,86vw)!important;transform:translateX(-105%)!important;visibility:hidden!important;transition:transform .24s,visibility .24s!important}body.dashboard-page.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important;visibility:visible!important}body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{display:block;position:fixed;inset:0;z-index:1290;background:rgba(15,28,50,.35)}body.dashboard-page.dashboard-workshop .main{margin:0!important;padding:76px 14px 34px!important}body.dashboard-page.dashboard-workshop .dashboard-topbar{left:0;right:0;height:60px;padding:0 9px 0 52px;gap:8px}body.dashboard-page.dashboard-workshop .dashboard-header-date{gap:4px;font-size:9px}body.dashboard-page.dashboard-workshop .dashboard-header-date svg{width:13px;height:13px}body.dashboard-page.dashboard-workshop .dashboard-header-date .header-separator,body.dashboard-page.dashboard-workshop .dashboard-header-date svg:nth-of-type(2),body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock{display:none}body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{height:37px;padding:0 8px}body.dashboard-page.dashboard-workshop .dashboard-topbar #hs-input{font-size:10px}body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:none}body.dashboard-page.dashboard-workshop .dashboard-user-avatar{width:32px;height:32px}body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{width:33px;height:33px}body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{top:12px!important;left:9px!important;width:32px!important;height:32px!important}body.dashboard-page.dashboard-workshop .hero{padding:17px;border-radius:13px}body.dashboard-page.dashboard-workshop .dash-content{gap:17px}body.dashboard-page.dashboard-workshop .dash-content .panel{padding:14px}body.dashboard-page.dashboard-workshop .dash-content table{width:100%;table-layout:fixed;font-size:11px}body.dashboard-page.dashboard-workshop .dash-content th,body.dashboard-page.dashboard-workshop .dash-content td{padding:7px 5px;white-space:normal;overflow-wrap:anywhere}}
+@media(max-width:480px){body.dashboard-page.dashboard-workshop .dashboard-header-date span#dashboard-date{max-width:66px;overflow:hidden;text-overflow:ellipsis}body.dashboard-page.dashboard-workshop .dashboard-topbar{gap:5px;padding-right:6px}body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:5px}body.dashboard-page.dashboard-workshop .kpi-grid{grid-template-columns:1fr}body.dashboard-page.dashboard-workshop .dash-content .stat-card{padding:12px}}
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
 </head>
 <body class="dashboard-page dashboard-workshop">
-  <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard tools">
-    <div class="hs" id="hs">
-      <div class="hs-bar" role="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel" />
-        <span class="hs-kbd" aria-hidden="true">/</span>
-      </header>
-      <div class="hs-panel" id="hs-panel" hidden>
-        <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div>
-        <div id="hs-results" aria-live="polite"></div>
-      </div>
-    </div>
-  </div>
-  <div class="app-shell">
+  <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard header">
+<div class="dashboard-header-date"><i data-lucide="calendar-days"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3"></i><span id="hdr-clock">--:--</span></div>
+<div class="hs" id="hs"><div class="hs-bar" role="search"><i data-lucide="search"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div></div>
+<div class="dashboard-topbar-actions"><div class="dashboard-login-level" id="dashboard-login-level"><span class="dashboard-user-avatar" id="dashboard-user-avatar">U</span><span class="dashboard-user-copy"><strong id="dashboard-user-name">Account</strong><small id="dashboard-user-role">Signed in</small></span></div></div>
+</header>
+<div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
     <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
-      <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+      <div class="nav-group open" data-group="workshop">
+        <button type="button" class="nav-grp" aria-expanded="true" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="pages/checklist.html" title="Vehicle Checklist"><i data-lucide="clipboard-check"></i> Vehicle Checklist</a>
@@ -726,8 +764,8 @@
           <a class="nav-link" href="pages/technicians.html" data-level="2" title="Employees &amp; Staff"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
         </div>
       </div>
-      <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+      <div class="nav-group open" data-group="sales">
+        <button type="button" class="nav-grp" aria-expanded="true" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/shop.html" data-level="2" title="Parts &amp; Stock"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="pages/quotations.html" data-level="2" title="Quotations"><i data-lucide="file-text"></i> Quotations</a>
@@ -735,8 +773,8 @@
           <a class="nav-link" href="pages/suppliers.html" data-level="2" title="Suppliers"><i data-lucide="truck"></i> Suppliers</a>
         </div>
       </div>
-      <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+      <div class="nav-group open" data-group="accounting">
+        <button type="button" class="nav-grp" aria-expanded="true" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/accounting.html" title="Overview"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="pages/ledger.html" title="Ledger"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -749,13 +787,13 @@
           <a class="nav-link" href="pages/landed-cost.html" title="Landed Cost"><i data-lucide="ship"></i> Landed Cost</a>
         </div>
       </div>
-      <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+      <div class="nav-group open" data-group="system">
+        <button type="button" class="nav-grp" aria-expanded="true" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/settings.html" title="Settings"><i data-lucide="settings"></i> Settings</a>
         </div>
       </div>
-    </aside>
+    <div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div><div class="sidebar-theme-row"><span><i data-lucide="sun"></i> Light mode</span></div><div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
     <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><i data-lucide="chevrons-left"></i></button>
 
     <main class="main">
@@ -1188,8 +1226,11 @@
         ["Suppliers", b.suppliers ?? dash, "", "pages/suppliers.html"],
         ["Active Staff", b.staff ?? dash, "", "pages/technicians.html"],
       ];
-      $("ov-kpis").innerHTML = cards.map(([label, value, sub, href]) =>
-        `<a class="stat-card" href="${href}"><div class="stat-card__label">${esc(label)}</div><div class="stat-card__value">${esc(String(value))}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ""}</a>`).join("");
+      const kpiIcons = ["clipboard-list","wrench","car-front","wallet","users","file-text","package","boxes","receipt","user-round","truck","users-round"];
+      const kpiTones = ["green","blue","purple","orange"];
+      $("ov-kpis").innerHTML = cards.map(([label, value, sub, href], index) =>
+        `<a class="stat-card" data-tone="${kpiTones[index % kpiTones.length]}" href="${href}"><span class="stat-card-icon"><i data-lucide="${kpiIcons[index % kpiIcons.length]}"></i></span><div class="stat-card-copy"><div class="stat-card__label">${esc(label)}</div><div class="stat-card__value">${esc(String(value))}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ""}</div></a>`).join("");
+      if (window.lucide) window.lucide.createIcons();
       $("ov-updated").textContent = "Updated " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
       // job cards by status
@@ -1238,5 +1279,29 @@
   </script>
 <script type="module" src="js/phone-inputs.js"></script>
 <script defer src="js/progressive-lists.js"></script>
+<script>
+(() => {
+  const syncAccount = () => {
+    const name = document.body.dataset.accountName || "Account";
+    const role = (document.body.dataset.role || "Signed in").replace(/_/g," ");
+    const level = document.body.dataset.accessLevel;
+    const nameNode = document.getElementById("dashboard-user-name");
+    const roleNode = document.getElementById("dashboard-user-role");
+    const avatar = document.getElementById("dashboard-user-avatar");
+    if (nameNode) nameNode.textContent = name;
+    if (roleNode) roleNode.textContent = level ? role + " · Level " + level : role;
+    if (avatar) avatar.textContent = name.split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase() || "U";
+  };
+  document.addEventListener("apr:access-ready", syncAccount);
+  document.addEventListener("DOMContentLoaded", () => {
+    syncAccount();
+    const themeButton = document.querySelector(".dashboard-topbar .theme-toggle");
+    const themeSlot = document.querySelector(".sidebar-theme-row");
+    if (themeButton && themeSlot) themeSlot.appendChild(themeButton);
+    document.querySelectorAll(".sidebar .nav-group").forEach(group => { group.classList.add("open"); group.querySelector(".nav-grp")?.setAttribute("aria-expanded","true"); });
+    if (window.lucide) window.lucide.createIcons();
+  });
+})();
+</script>
 </body>
 </html>
