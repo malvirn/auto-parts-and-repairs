@@ -311,8 +311,7 @@ declare
   balance_value numeric(12,2); amount_value numeric(12,2);
   target_total numeric(12,2); target_paid numeric(12,2):=0; target_applied numeric(12,2):=0;
   deposit_account_id uuid; receivable_account_id uuid; entry_id uuid; redemption_id uuid;
-  existing_row public.credit_voucher_redemptions%rowtype; target_label text;
-  note_number text;
+  existing_row public.credit_voucher_redemptions%rowtype; target_label text; new_status text;
 begin
   if uid is null or public.current_access_level()<1 then raise exception 'Authorised staff access is required' using errcode='42501'; end if;
   if p_idempotency_key is null or p_amount is null or p_amount<=0 or p_target_id is null then raise exception 'Enter a valid amount and target'; end if;
