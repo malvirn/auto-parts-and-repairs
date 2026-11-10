@@ -739,6 +739,44 @@ body.dashboard-page.dashboard-workshop .dash-content th{background:#f0f3f8;color
 @media(max-width:900px){body.dashboard-page.dashboard-workshop .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:768px){body.dashboard-page.dashboard-workshop .sidebar{width:min(300px,86vw)!important;transform:translateX(-105%)!important;visibility:hidden!important;transition:transform .24s,visibility .24s!important}body.dashboard-page.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important;visibility:visible!important}body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{display:block;position:fixed;inset:0;z-index:1290;background:rgba(15,28,50,.35)}body.dashboard-page.dashboard-workshop .main{margin:0!important;padding:76px 14px 34px!important}body.dashboard-page.dashboard-workshop .dashboard-topbar{left:0;right:0;height:60px;padding:0 9px 0 52px;gap:8px}body.dashboard-page.dashboard-workshop .dashboard-header-date{gap:4px;font-size:9px}body.dashboard-page.dashboard-workshop .dashboard-header-date svg{width:13px;height:13px}body.dashboard-page.dashboard-workshop .dashboard-header-date .header-separator,body.dashboard-page.dashboard-workshop .dashboard-header-date svg:nth-of-type(2),body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock{display:none}body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{height:37px;padding:0 8px}body.dashboard-page.dashboard-workshop .dashboard-topbar #hs-input{font-size:10px}body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:none}body.dashboard-page.dashboard-workshop .dashboard-user-avatar{width:32px;height:32px}body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{width:33px;height:33px}body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{top:12px!important;left:9px!important;width:32px!important;height:32px!important}body.dashboard-page.dashboard-workshop .hero{padding:17px;border-radius:13px}body.dashboard-page.dashboard-workshop .dash-content{gap:17px}body.dashboard-page.dashboard-workshop .dash-content .panel{padding:14px}body.dashboard-page.dashboard-workshop .dash-content table{width:100%;table-layout:fixed;font-size:11px}body.dashboard-page.dashboard-workshop .dash-content th,body.dashboard-page.dashboard-workshop .dash-content td{padding:7px 5px;white-space:normal;overflow-wrap:anywhere}}
 @media(max-width:480px){body.dashboard-page.dashboard-workshop .dashboard-header-date span#dashboard-date{max-width:66px;overflow:hidden;text-overflow:ellipsis}body.dashboard-page.dashboard-workshop .dashboard-topbar{gap:5px;padding-right:6px}body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:5px}body.dashboard-page.dashboard-workshop .kpi-grid{grid-template-columns:1fr}body.dashboard-page.dashboard-workshop .dash-content .stat-card{padding:12px}}
+/* INDEX ONLY: clean editorial sidebar and Claude-style collapse control */
+body.dashboard-page.dashboard-workshop .sidebar{background:#fff!important;background-image:none!important}
+body.dashboard-page.dashboard-workshop .sidebar::before,body.dashboard-page.dashboard-workshop .sidebar::after{content:none!important;display:none!important;background-image:none!important}
+body.dashboard-page.dashboard-workshop .sidebar__brand{background:none!important;background-image:none!important;box-shadow:none!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link,body.dashboard-page.dashboard-workshop .sidebar .nav-grp{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link{min-height:35px;padding:7px 10px!important;color:#43516a!important;font-size:12px!important;font-weight:650!important;letter-spacing:.005em!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link>svg{color:#7a879b!important;width:17px!important;height:17px!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link:hover{background:#f5f7fa!important;color:#183568!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{background:#edf8f1!important;color:#087c40!important;border-left:3px solid #12a150!important;font-weight:750!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link.active>svg{color:#12a150!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-group{margin:7px 0!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp{min-height:34px!important;padding:7px 9px!important;display:flex!important;align-items:center!important;gap:9px!important;color:#172b4d!important;font-size:11px!important;font-weight:800!important;letter-spacing:.075em!important;text-transform:uppercase!important;background:transparent!important;border:0!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp>svg{color:#12a150!important;width:16px!important;height:16px!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:transparent!important;color:#10234e!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grpwrap{padding:2px 0 3px 10px!important;border-left:1px solid #e9edf2!important;margin-left:16px!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grpwrap .nav-link{font-size:11px!important;font-weight:550!important;min-height:31px!important;padding:6px 9px!important}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access{margin:12px 2px 8px;padding-top:12px;border-top:1px solid #edf0f4}
+body.dashboard-page.dashboard-workshop .sidebar-section-label{margin:0 0 7px 8px;color:#97a2b1;font-size:9px;font-weight:800;letter-spacing:.13em}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a{display:flex;align-items:center;gap:9px;min-height:34px;padding:7px 9px;color:#46556e;text-decoration:none;font-size:11px;font-weight:650;border-radius:8px}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a:hover{background:#f4f7fa;color:#183568}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access>a>svg:first-child{width:16px;height:16px;color:#2878e5}
+body.dashboard-page.dashboard-workshop .sidebar-quick-access .quick-arrow{width:12px;height:12px;margin-left:auto;color:#a5afbd}
+body.dashboard-page.dashboard-workshop .sidebar-workspace-note{display:flex;gap:9px;align-items:flex-start;margin:8px 2px 10px;padding:10px;border:1px solid #e9eef5;border-radius:10px;background:linear-gradient(135deg,#f7faff,#f4fbf7)}
+body.dashboard-page.dashboard-workshop .workspace-note-icon{display:grid;place-items:center;width:27px;height:27px;flex:none;border-radius:8px;background:#fff2e5;color:#f58220}
+body.dashboard-page.dashboard-workshop .workspace-note-icon svg{width:15px;height:15px}
+body.dashboard-page.dashboard-workshop .sidebar-workspace-note strong{display:block;color:#213653;font-size:10px;font-weight:800}
+body.dashboard-page.dashboard-workshop .sidebar-workspace-note p{margin:3px 0 0;color:#778499;font-size:9px;line-height:1.4}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:254px!important;top:14px!important;width:38px!important;height:38px!important;border:1px solid #e4e9f0!important;border-radius:50%!important;background:#fff!important;color:#183568!important;box-shadow:0 2px 9px rgba(20,35,60,.09)!important}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle:hover{border-color:#12a150!important;background:#f6fbf8!important}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle .sidebar-toggle-mark{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:84px!important;transform:none!important;width:34px!important;height:34px!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar__brand{min-height:58px!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{border:0!important;background:transparent!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-quick-access,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-workspace-note{display:none!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-group{margin:5px 0!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>svg,body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link svg{color:#63748e!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link.active>svg{color:#12a150!important}
+@media(max-width:768px){body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:9px!important;top:12px!important;width:34px!important;height:34px!important}body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(258px,calc(86vw - 42px))!important}}
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
@@ -793,8 +831,17 @@ body.dashboard-page.dashboard-workshop .dash-content th{background:#f0f3f8;color
           <a class="nav-link" href="pages/settings.html" title="Settings"><i data-lucide="settings"></i> Settings</a>
         </div>
       </div>
-    <div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div><div class="sidebar-theme-row"><span><i data-lucide="sun"></i> Light mode</span></div><div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
-    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><i data-lucide="chevrons-left"></i></button>
+    <div class="sidebar-quick-access">
+  <p class="sidebar-section-label">QUICK ACCESS</p>
+  <a href="pages/repairs.html" title="Create and manage job cards"><i data-lucide="clipboard-plus"></i><span>Job Cards</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
+  <a href="pages/customers.html" title="Open customers"><i data-lucide="users"></i><span>Customers</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
+  <a href="pages/shop.html" title="Open parts and stock"><i data-lucide="package"></i><span>Parts &amp; Stock</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
+</div>
+<div class="sidebar-workspace-note"><span class="workspace-note-icon"><i data-lucide="lightbulb"></i></span><div><strong>Keep work moving</strong><p>Jobs, parts and payments, all in one workspace.</p></div></div>
+<div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div>
+<div class="sidebar-theme-row"><span><i data-lucide="sun"></i> Light mode</span></div>
+<div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
+    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg></button>
 
     <main class="main">
       <!-- HERO -->
@@ -1252,12 +1299,12 @@ body.dashboard-page.dashboard-workshop .dash-content th{background:#f0f3f8;color
   const syncAccount = () => {
     const name = document.body.dataset.accountName || "Account";
     const role = (document.body.dataset.role || "Signed in").replace(/_/g," ");
-    const level = document.body.dataset.accessLevel;
+    
     const nameNode = document.getElementById("dashboard-user-name");
     const roleNode = document.getElementById("dashboard-user-role");
     const avatar = document.getElementById("dashboard-user-avatar");
     if (nameNode) nameNode.textContent = name;
-    if (roleNode) roleNode.textContent = level ? role + " · Level " + level : role;
+    if (roleNode) roleNode.textContent = "Centric workspace";
     if (avatar) avatar.textContent = name.split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase() || "U";
   };
   document.addEventListener("apr:access-ready", syncAccount);
@@ -1269,6 +1316,24 @@ body.dashboard-page.dashboard-workshop .dash-content th{background:#f0f3f8;color
     document.querySelectorAll(".sidebar .nav-group").forEach(group => { group.classList.add("open"); group.querySelector(".nav-grp")?.setAttribute("aria-expanded","true"); });
     if (window.lucide) window.lucide.createIcons();
   });
+})();
+</script>
+<script>
+(() => {
+  const arrangeHeader = () => {
+    const actions = document.querySelector(".dashboard-topbar-actions");
+    const bell = document.getElementById("global-notif-bell");
+    if (actions && bell && bell.parentElement !== actions) actions.insertBefore(bell, actions.firstChild);
+    const name = document.body.dataset.accountName || "Account";
+    const nameNode = document.getElementById("dashboard-user-name");
+    const roleNode = document.getElementById("dashboard-user-role");
+    const avatar = document.getElementById("dashboard-user-avatar");
+    if (nameNode) nameNode.textContent = name;
+    if (roleNode) roleNode.textContent = "Centric workspace";
+    if (avatar) avatar.textContent = name.split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase() || "U";
+  };
+  document.addEventListener("DOMContentLoaded", () => { arrangeHeader(); setTimeout(arrangeHeader, 250); setTimeout(arrangeHeader, 900); });
+  document.addEventListener("apr:access-ready", arrangeHeader);
 })();
 </script>
 </body>
