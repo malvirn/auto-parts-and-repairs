@@ -260,6 +260,8 @@ async function normalizeDashboardSidebar(sidebar) {
     const canonical = source.cloneNode(true);
     canonical.id = "sidebar";
     canonical.dataset.dashboardCanonical = "true";
+    // The Index reference sidebar starts with search, not a second Centric logo.
+    canonical.querySelector(".sidebar__brand")?.remove();
     canonical.querySelector("#dashboard-sidebar-toggle")?.remove();
     canonical.querySelectorAll("img[src]").forEach(image => {
       image.src = new URL(image.getAttribute("src"), indexUrl).href;
@@ -286,6 +288,13 @@ async function normalizeDashboardSidebar(sidebar) {
       link.href = target.pathname + target.search + target.hash;
       const isCurrent = pageName(target.pathname) === currentPage;
       link.classList.toggle("active", isCurrent);
+      if (isCurrent) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+    canonical.querySelectorAll(".sidebar-quick-access a").forEach(link => {
+      const target = new URL(link.getAttribute("href"), indexUrl);
+      const isCurrent = pageName(target.pathname) === currentPage;
+      link.classList.toggle("is-current", isCurrent);
       if (isCurrent) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
@@ -331,6 +340,18 @@ async function normalizeDashboardSidebar(sidebar) {
     if (!document.querySelector(".dashboard-sidebar-backdrop")) canonical.before(backdrop);
 
     canonical.removeAttribute("inert");
+
+    // cloneNode does not copy event listeners, so explicitly reconnect the
+    // Index sidebar theme switch to the app-wide theme controller.
+    const sidebarThemeButton = canonical.querySelector("#sidebar-theme-toggle");
+    if (sidebarThemeButton && !sidebarThemeButton.dataset.themeBound) {
+      sidebarThemeButton.dataset.themeBound = "true";
+      sidebarThemeButton.addEventListener("click", () => {
+        const nextMode = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        try { localStorage.setItem("apr-theme", nextMode); } catch (error) {}
+        window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: nextMode } }));
+      });
+    }
     window.lucide?.createIcons();
   } catch (error) {
     delete sidebar.dataset.dashboardCanonicalizing;
