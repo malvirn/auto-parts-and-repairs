@@ -468,20 +468,20 @@ body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:h
 }
 
 
-/* Keep every module's content flush with the available workspace width.
-   The main column must begin exactly where the expanded/collapsed sidebar ends. */
+/* Workspace alignment follows the exact sidebar widths used above:
+   224px expanded and 76px collapsed. */
 @media(min-width:769px){
   body.dashboard-page.dashboard-workshop .main{
     display:block!important;
     width:auto!important;
     min-width:0!important;
     max-width:none!important;
-    margin-left:244px!important;
+    margin-left:224px!important;
     margin-right:0!important;
   }
   body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
     width:auto!important;
-    margin-left:74px!important;
+    margin-left:76px!important;
   }
 }
 @media(max-width:768px){
@@ -489,12 +489,65 @@ body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:h
   body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
     width:100%!important;
     min-width:0!important;
+    max-width:100%!important;
     margin-left:0!important;
     margin-right:0!important;
   }
 }
 
+/* Shared header controls use one consistent size across every module. */
+body.dashboard-page.dashboard-workshop .dashboard-topbar{
+  height:48px!important;
+  min-height:48px!important;
+  gap:8px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .theme-toggle{
+  box-sizing:border-box!important;
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  min-height:38px!important;
+  flex:0 0 38px!important;
+  border-radius:10px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{
+  height:44px!important;
+  min-height:44px!important;
+  border-radius:11px!important;
+}
+@media(max-width:768px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:5px!important}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .theme-toggle{
+    width:34px!important;
+    min-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+    flex-basis:34px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{
+    height:40px!important;
+    min-height:40px!important;
+  }
+}
 
+/* Keep the navigation toggle aligned to the same sidebar geometry. */
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:204px!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:58px!important}
+@media(max-width:768px){
+  body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:14px!important}
+}
 /* Physical phones: never retain the desktop collapsed-sidebar offset.
    The sidebar is hidden on phone layouts, so the workspace must use the full viewport. */
 html.phone-layout body.dashboard-page.dashboard-workshop .main,
