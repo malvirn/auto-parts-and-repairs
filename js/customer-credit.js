@@ -201,7 +201,7 @@ function renderUnpaidJobs(note) {
     note.customer_id ? row.customer_id === note.customer_id :
       String(row.customer_name || "").trim().toLocaleLowerCase() === name
   ));
-  if (!rows.length) return '<section class="credit-unpaid-jobs"><h4>Unpaid job cards</h4><p>This customer has no unpaid job cards.</p></section>';
+  if (!rows.length) return '<section class="credit-unpaid-jobs"><h4>Unpaid job cards</h4><p>No unpaid job cards for this customer.</p></section>';
   const byId = new Map(unpaidJobs.map(job => [job.id, job]));
   return `<section class="credit-unpaid-jobs"><h4>Unpaid job cards <span>${rows.length}</span></h4>
     <div class="credit-job-table-wrap"><table class="credit-job-table">
@@ -280,7 +280,7 @@ function render() {
           ? ` <button type="button" class="btn customer-credit-reverse" data-movement-id="${escapeHtml(movement.id)}">Reverse</button>`
           : "";
         return `<div class="credit-history-row"><span>${label} · ${dateLabel(movement.created_at)}</span><strong>${money(movement.amount)}</strong><small>${escapeHtml(movement.reason || "")}${reversed}</small>${reverseAction}</div>`;
-      }).join("")}</details>` : '<small class="customer-credit-history">No payments have been applied or refunded against this credit note yet.</small>';
+      }).join("")}</details>` : "";
       const applyFields = note.available_amount > 0.005
         ? `<div class="customer-credit-actions" data-credit-id="${escapeHtml(note.id)}" data-action="apply">
             <select class="credit-target" aria-label="Apply credit to" ${quoteTargets.length ? "" : "disabled"}><option value="">${quoteTargets.length ? "Apply to customer balance…" : "No same-customer balance"}</option>${targetOptions}</select>
