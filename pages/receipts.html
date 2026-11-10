@@ -688,7 +688,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="customer-credit-max">Maximum amount ($)<input id="customer-credit-max" type="number" min="0" step="0.01" placeholder="Any"></label>
       <button class="btn" id="customer-credit-clear" type="button">Clear filters</button>
     </div>
-    <div class="rc-doc-wrap"><div id="customer-credit-list" aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
+    <div class="rc-doc-wrap"><div id="customer-credit-list" data-no-progressive aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
   </section>
   <section class="panel" id="v-list" data-no-progressive>
     <div class="rc-tabs">
@@ -736,7 +736,7 @@ select.st option{background:#10181a;color:#eef3ef}
   </section>
 
   <section class="panel" id="v-doc" hidden>
-    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button><button class="btn" id="d-link-credit" hidden type="button"><i data-lucide="link"></i> Link to job card</button><button class="btn btn--primary" id="d-refund-credit" hidden type="button"><i data-lucide="wallet"></i> Refund customer</button></div>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button><button class="btn" id="d-link-credit" hidden type="button"><i data-lucide="link"></i> Link to job card</button></div>
     <div class="rc-bar" style="margin:16px 0">
       <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp</button>
       <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
@@ -1149,7 +1149,7 @@ function signalDocumentChange(table,label){
  }catch(error){console.error(`Couldn't delete ${label}:`,error);toast(`Couldn't delete ${label}: ${error.message||String(error)}`)}
 }
 function canVoidReceipt(){return isSuperAdmin()||document.body.dataset.role==="accounting"}
-function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0;$("d-refund-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
+function updateDocumentActions(){if(!cur)return;const creditNote=cur.kind==="credit_note";$("d-delete").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||(cur.kind==="receipt"&&Boolean(cur.voidedAt));$("d-edit").hidden=creditNote||Boolean(cur.invoicePaymentReceipt)||Boolean(cur.creditRefundReceipt)||!isSuperAdmin()||cur.kind==="receipt"&&Boolean(cur.voidedAt);$("d-void").hidden=creditNote||cur.kind!=="receipt"||Boolean(cur.voidedAt)||!canVoidReceipt();$("d-paid").hidden=cur.kind!=="invoice";$("d-link-credit").hidden=!creditNote||Number(cur.availableAmount)<=0}
 
 let creditActionMode=null;
 function closeCreditAction(){ $("credit-action-modal").classList.add("hidden");creditActionMode=null }
@@ -2137,7 +2137,7 @@ $("receipt-edit-save").onclick=async()=>{
  }catch(error){console.error("Couldn't correct receipt amount:",error);message.textContent=`Couldn't correct receipt: ${error.message||String(error)}. Apply supabase/migrations/edit-receipts-invoices.sql if this feature is not installed.`;message.dataset.tone="error"}
  finally{button.disabled=false}
 };
-$("d-paid").onclick=openInvoicePayment;$("d-link-credit").onclick=()=>openCreditAction("link");$("d-refund-credit").onclick=()=>openCreditAction("refund");$("credit-action-cancel").onclick=closeCreditAction;$("credit-action-save").onclick=saveCreditAction;$("credit-action-modal").addEventListener("click",event=>{if(event.target===$("credit-action-modal"))closeCreditAction()});
+$("d-paid").onclick=openInvoicePayment;$("d-link-credit").onclick=()=>openCreditAction("link");$("credit-action-cancel").onclick=closeCreditAction;$("credit-action-save").onclick=saveCreditAction;$("credit-action-modal").addEventListener("click",event=>{if(event.target===$("credit-action-modal"))closeCreditAction()});
 $("invoice-payment-cancel").onclick=closeInvoicePayment;
 $("invoice-payment-modal").addEventListener("click",event=>{if(event.target===$("invoice-payment-modal"))closeInvoicePayment()});
 $("invoice-payment-save").onclick=async()=>{
