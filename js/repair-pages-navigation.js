@@ -214,6 +214,21 @@ async function normalizeDashboardSidebar(sidebar) {
     if (!response.ok) throw new Error(`Could not load the dashboard navigation (${response.status})`);
     const html = await response.text();
     const indexDocument = new DOMParser().parseFromString(html, "text/html");
+
+    // Every module loads the exact chrome rules from the Index master page.
+    let sharedChromeCss = document.querySelector('link[data-shared-dashboard-chrome]');
+    if (!sharedChromeCss) {
+      sharedChromeCss = document.createElement("link");
+      sharedChromeCss.rel = "stylesheet";
+      sharedChromeCss.href = new URL("../css/dashboard-chrome.css", import.meta.url).href;
+      sharedChromeCss.dataset.sharedDashboardChrome = "true";
+      const cssLoaded = new Promise(resolve => {
+        sharedChromeCss.addEventListener("load", resolve, { once: true });
+        sharedChromeCss.addEventListener("error", resolve, { once: true });
+      });
+      document.head.append(sharedChromeCss);
+      await cssLoaded;
+    }
     const source = indexDocument.querySelector("body.dashboard-page .sidebar");
     const sourceHeader = indexDocument.querySelector("body.dashboard-workshop > .dashboard-topbar");
     const sourceToggle = indexDocument.querySelector("#dashboard-sidebar-toggle");
@@ -295,13 +310,19 @@ async function normalizeDashboardSidebar(sidebar) {
     // Replace module-specific chrome with the exact Index page elements.
     const header = sourceHeader.cloneNode(true);
     const existingHeader = document.querySelector("body.dashboard-workshop > .dashboard-topbar");
+    // Preserve the live notification button before replacing the module header.
+    const existingBell = document.getElementById("global-notif-bell");
     if (existingHeader) existingHeader.replaceWith(header);
     else document.body.insertBefore(header, document.body.firstChild);
+    const headerActions = header.querySelector(".dashboard-topbar-actions");
+    if (existingBell && headerActions) headerActions.prepend(existingBell);
+    addToolbarUtilities(headerActions, true);
     const refreshButton = header.querySelector("#dashboard-refresh, .dashboard-refresh");
     if (refreshButton && !refreshButton.dataset.sharedRefreshBound) {
       refreshButton.dataset.sharedRefreshBound = "true";
       refreshButton.addEventListener("click", () => window.location.reload());
     }
+    placeSharedNotificationBell();
 
     const toggle = sourceToggle.cloneNode(true);
     document.getElementById("dashboard-sidebar-toggle")?.replaceWith(toggle);
@@ -348,7 +369,7 @@ function placeSharedNotificationBell() {
   const actions = document.querySelector("body.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions");
   const bell = document.getElementById("global-notif-bell");
   if (!actions || !bell) return;
-  if (bell.parentElement !== actions) actions.append(bell);
+  if (bell.parentElement !== actions || actions.firstElementChild !== bell) actions.prepend(bell);
   bell.style.position = "relative";
   bell.style.top = "auto";
   bell.style.right = "auto";
