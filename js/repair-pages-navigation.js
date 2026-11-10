@@ -317,6 +317,51 @@ async function normalizeDashboardSidebar(sidebar) {
   }
 }
 
+function startSharedDashboardHeaderClock() {
+  if (window.__centricHeaderClockStarted) return;
+  window.__centricHeaderClockStarted = true;
+  const update = () => {
+    const date = document.getElementById("dashboard-date");
+    const clock = document.getElementById("hdr-clock");
+    if (date) date.textContent = new Intl.DateTimeFormat("en-GB", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric",
+      timeZone: "Africa/Harare"
+    }).format(new Date());
+    if (clock) clock.textContent = new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+      timeZone: "Africa/Harare"
+    }).format(new Date());
+    const live = document.getElementById("hdr-live");
+    if (live) {
+      live.dataset.state = navigator.onLine ? "online" : "offline";
+      const label = live.querySelector("span");
+      if (label) label.textContent = navigator.onLine ? "Live" : "Offline";
+    }
+  };
+  update();
+  window.setInterval(update, 1000);
+  window.addEventListener("online", update);
+  window.addEventListener("offline", update);
+}
+
+function placeSharedNotificationBell() {
+  const actions = document.querySelector("body.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions");
+  const bell = document.getElementById("global-notif-bell");
+  if (!actions || !bell) return;
+  if (bell.parentElement !== actions) actions.append(bell);
+  bell.style.position = "relative";
+  bell.style.top = "auto";
+  bell.style.right = "auto";
+  bell.style.zIndex = "auto";
+}
+
+function watchSharedNotificationBell() {
+  if (window.__centricNotificationObserver) return;
+  window.__centricNotificationObserver = new MutationObserver(() => placeSharedNotificationBell());
+  window.__centricNotificationObserver.observe(document.body, { childList: true, subtree: true });
+  placeSharedNotificationBell();
+}
+
 function ensureDashboardHeaderActions(header) {
   const menuWrap = header?.querySelector(":scope > .hdr-menu-wrap");
   if (!menuWrap) return;
@@ -725,6 +770,8 @@ async function initializeAfterAccess() {
 }
 
 initializePageChrome();
+startSharedDashboardHeaderClock();
+watchSharedNotificationBell();
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializeAfterAccess, { once: true });
