@@ -134,37 +134,50 @@ function addDashboardToolbar(main) {
     toolbar = document.createElement("header");
     toolbar.className = "dashboard-topbar";
     toolbar.setAttribute("role", "toolbar");
-    toolbar.setAttribute("aria-label", "Dashboard tools");
-    const search = main.querySelector(".app-header #hs, .app-header .hs");
-    if (search) {
-      toolbar.append(search);
-    } else {
-      toolbar.innerHTML = `
-        <div class="hs" id="hs">
-          <div class="hs-bar" role="search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-            <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel">
-            <span class="hs-kbd" aria-hidden="true">/</span>
-          </div>
-        </div>`;
+    toolbar.setAttribute("aria-label", "Dashboard header");
+
+    const pageHeader = main.querySelector(":scope > .app-header, :scope > .main__header");
+    const dateSource = pageHeader?.querySelector(".hdr-time, .dashboard-header-date, .site-masthead__status");
+    const date = dateSource?.querySelector("#dashboard-date") || pageHeader?.querySelector("#dashboard-date");
+    const clock = dateSource?.querySelector("#hdr-clock") || pageHeader?.querySelector("#hdr-clock");
+    const live = dateSource?.querySelector("#hdr-live") || pageHeader?.querySelector("#hdr-live");
+
+    const dateWrap = document.createElement("div");
+    dateWrap.className = "dashboard-header-date";
+    dateWrap.innerHTML = '<i data-lucide="calendar-days" aria-hidden="true"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3" aria-hidden="true"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span>';
+    if (date) dateWrap.querySelector("#dashboard-date").textContent = date.textContent || "Loading date…";
+    if (clock) dateWrap.querySelector("#hdr-clock").textContent = clock.textContent || "--:--";
+    if (live) {
+      dateWrap.querySelector("#hdr-live").dataset.state = live.dataset.state || "online";
+      dateWrap.querySelector("#hdr-live span").textContent = live.querySelector("span")?.textContent || "Live";
     }
+    toolbar.append(dateWrap);
+    const actions = document.createElement("div");
+    actions.className = "dashboard-topbar-actions";
+    toolbar.append(actions);
     document.body.insertBefore(toolbar, document.body.firstChild);
+
+    // Keep the page's existing live date/time updater alive after moving its display.
+    if (date && date !== dateWrap.querySelector("#dashboard-date")) date.remove();
+    if (clock && clock !== dateWrap.querySelector("#hdr-clock")) clock.remove();
+    if (live && live !== dateWrap.querySelector("#hdr-live")) live.remove();
+  } else if (!toolbar.querySelector(".dashboard-header-date")) {
+    const dateWrap = document.createElement("div");
+    dateWrap.className = "dashboard-header-date";
+    dateWrap.innerHTML = '<i data-lucide="calendar-days" aria-hidden="true"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3" aria-hidden="true"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span>';
+    toolbar.prepend(dateWrap);
   }
 
-  const search = toolbar.querySelector(".hs");
-  if (search && !search.querySelector("#hs-panel")) {
-    search.insertAdjacentHTML("beforeend", '<div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div>');
-  }
-  toolbar.querySelector("#hs-input")?.setAttribute("aria-controls", "hs-panel");
   let actions = toolbar.querySelector(".dashboard-topbar-actions");
   if (!actions) {
     actions = document.createElement("div");
     actions.className = "dashboard-topbar-actions";
     toolbar.append(actions);
   }
-  addToolbarUtilities(actions, false);
-  document.querySelectorAll("body.dashboard-workshop .theme-toggle, body.dashboard-workshop #global-notif-bell")
-    .forEach(button => actions.append(button));
+  addToolbarUtilities(actions, true);
+  toolbar.querySelectorAll(".theme-toggle, #global-notif-bell").forEach(control => {
+    if (control !== actions && !actions.contains(control)) actions.append(control);
+  });
   main.querySelectorAll(":scope > .app-header, :scope > .main__header").forEach(header => header.remove());
   main.querySelectorAll(":scope > .site-foot").forEach(footer => footer.remove());
 
@@ -186,9 +199,10 @@ function addDashboardToolbar(main) {
     toggle.setAttribute("aria-label", "Collapse navigation");
     toggle.setAttribute("aria-controls", "sidebar");
     toggle.setAttribute("aria-expanded", "true");
-    toggle.innerHTML = '<i data-lucide="chevrons-left"></i>';
+    toggle.innerHTML = '<i data-lucide="panel-left-close"></i>';
     sidebar.after(toggle);
   }
+  window.lucide?.createIcons();
 }
 
 async function normalizeDashboardSidebar(sidebar) {
