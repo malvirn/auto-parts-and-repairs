@@ -339,10 +339,39 @@ function render() {
   window.lucide?.createIcons();
 }
 
-list.addEventListener("click", async event => {
+function closeCreditModal(record) {
+  if (!record) return;
+  record.open = false;
+  record.classList.remove("credit-note-modal");
+  const placeholder = record._creditModalPlaceholder;
+  if (placeholder?.parentNode) placeholder.replaceWith(record);
+  delete record._creditModalPlaceholder;
+  if (!document.querySelector(".credit-note-modal[open]")) document.body.classList.remove("credit-modal-open");
+}
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeCreditModal(document.querySelector(".credit-note-modal[open]"));
+});
+
+document.addEventListener("click", async event => {
   const closeButton = event.target.closest("[data-credit-modal-close]");
-  if (closeButton) { const record = closeButton.closest(".customer-credit-record"); if (record) record.open = false; return; }
-  if (event.target.matches(".customer-credit-record[open]")) { event.target.open = false; return; }
+  if (closeButton) { closeCreditModal(closeButton.closest(".customer-credit-record")); return; }
+  const modalBackdrop = event.target.closest(".credit-note-modal[open]");
+  if (modalBackdrop && event.target === modalBackdrop) { closeCreditModal(modalBackdrop); return; }
+  const summary = event.target.closest(".customer-credit-record__summary, .overpayment-credit-record__summary");
+  if (summary) {
+    const record = summary.closest(".customer-credit-record");
+    if (record && !record.open) {
+      event.preventDefault();
+      record.open = true;
+      record.classList.add("credit-note-modal");
+      record._creditModalPlaceholder = document.createComment("credit-note-position");
+      record.parentNode.insertBefore(record._creditModalPlaceholder, record);
+      document.body.append(record);
+      document.body.classList.add("credit-modal-open");
+    }
+    return;
+  }
   const printButton = event.target.closest("[data-overpayment-print]");
   if (printButton) {
     const note = overpaymentCreditNotes.find(item => item.id === printButton.dataset.overpaymentPrint);
