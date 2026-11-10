@@ -811,6 +811,84 @@ body.dashboard-page.dashboard-workshop .dash-content .btn--danger{background:#dc
  body.dashboard-page.dashboard-workshop .sidebar-search .hs-panel{position:fixed;top:68px;left:12px;right:12px;width:auto}
 }
 
+
+/* FINAL HOME POLISH: strong contrast in dark mode and button colour roles */
+body.dashboard-page.dashboard-workshop .dashboard-topbar{
+ background:rgba(12,18,27,.98)!important;
+ border-bottom:1px solid #3b4656!important;
+ box-shadow:0 4px 18px rgba(0,0,0,.34)!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-date,
+body.dashboard-page.dashboard-workshop .dashboard-header-date span,
+body.dashboard-page.dashboard-workshop .dashboard-header-date i,
+body.dashboard-page.dashboard-workshop #hdr-clock,
+body.dashboard-page.dashboard-workshop #dashboard-date{color:#f1f5fb!important}
+body.dashboard-page.dashboard-workshop .dashboard-header-date .hdr-live{color:#37d889!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions .theme-toggle,
+body.dashboard-page.dashboard-workshop .dashboard-topbar .theme-toggle{display:none!important}
+body.dashboard-page.dashboard-workshop .dashboard-refresh{background:#263449!important;border-color:#56677e!important;color:#fff!important}
+body.dashboard-page.dashboard-workshop .dashboard-refresh svg{color:#fff!important;stroke:#fff!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-bar{background:#202a38!important;border:1px solid #526176!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-bar>svg{color:#b9c7d8!important}
+body.dashboard-page.dashboard-workshop .sidebar-search #hs-input{color:#f5f7fb!important}
+body.dashboard-page.dashboard-workshop .sidebar-search #hs-input::placeholder{color:#bac5d3!important;opacity:1}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-kbd{color:#d7e0eb!important;border-color:#536176!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-panel{background:#1b2532!important;border-color:#46556a!important;color:#f2f5fa!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-chips{background:#1b2532!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-chip{color:#dce5ef!important;border-color:#536176!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-item,
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-item b{color:#f2f5fa!important}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-item small,
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-empty{color:#b9c5d4!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp{color:#d5deea!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-link{color:#e8edf5!important}
+body.dashboard-page.dashboard-workshop .sidebar .sidebar-section-label{color:#b9c7d8!important}
+body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{color:#fff!important}
+body.dashboard-page.dashboard-workshop .hero-title,
+body.dashboard-page.dashboard-workshop .dash-content .section-heading h2,
+body.dashboard-page.dashboard-workshop .dash-content h2,
+body.dashboard-page.dashboard-workshop .dash-content h3{color:#f4f7fb!important}
+body.dashboard-page.dashboard-workshop .dash-content .section-note,
+body.dashboard-page.dashboard-workshop .dash-content .ov-head,
+body.dashboard-page.dashboard-workshop .dash-content .ov-empty{color:#c2ccda!important}
+body.dashboard-page.dashboard-workshop .dash-content .btn,
+body.dashboard-page.dashboard-workshop .dash-content a.btn{
+ min-height:46px!important;padding:10px 18px!important;border:1px solid transparent!important;
+ border-radius:12px!important;font-weight:750!important;letter-spacing:.01em;
+ box-shadow:0 5px 13px rgba(0,0,0,.22)!important;text-shadow:none!important;
+}
+body.dashboard-page.dashboard-workshop .dash-content a.btn[href*="analytics"],
+body.dashboard-page.dashboard-workshop .dash-content a.btn:has(svg[data-lucide="bar-chart-3"]){
+ background:linear-gradient(135deg,#2478f2,#0757ce)!important;border-color:#3988ff!important;color:#fff!important
+}
+body.dashboard-page.dashboard-workshop .dash-content a.btn[href*="repairs"],
+body.dashboard-page.dashboard-workshop .dash-content a.btn:has(svg[data-lucide="clipboard-list"]){
+ background:linear-gradient(135deg,#ff9b35,#e56a0b)!important;border-color:#ffb15f!important;color:#241306!important
+}
+body.dashboard-page.dashboard-workshop .sidebar a[href*="logout"],
+body.dashboard-page.dashboard-workshop .sidebar button[id*="logout"],
+body.dashboard-page.dashboard-workshop .sidebar a[href*="signout"],
+body.dashboard-page.dashboard-workshop .sidebar button[id*="signout"]{
+ background:linear-gradient(135deg,#ef6268,#c62836)!important;border:1px solid #ff8b91!important;color:#fff!important
+}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dashboard-topbar{background:rgba(255,255,255,.99)!important;border-bottom:1px solid #dce3ec!important;box-shadow:0 3px 16px rgba(24,42,75,.08)!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dashboard-header-date,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dashboard-header-date span,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dashboard-header-date i,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop #hdr-clock,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop #dashboard-date{color:#233654!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search .hs-bar{background:#f7f9fc!important;border-color:#d5dde8!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search #hs-input{color:#17233d!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search #hs-input::placeholder{color:#718096!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search .hs-panel{background:#fff!important;color:#17233d!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search .hs-chips{background:#fff!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search .hs-item,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar-search .hs-item b{color:#17233d!important}
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dash-content .section-heading h2,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dash-content h2,
+:root[data-theme="light"] body.dashboard-page.dashboard-workshop .dash-content h3{color:#17233d!important}
+
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
@@ -1363,5 +1441,36 @@ body.dashboard-page.dashboard-workshop .dash-content .btn--danger{background:#dc
   document.addEventListener("apr:access-ready", arrangeHeader);
 })();
 </script>
+
+  <script>
+  (() => {
+    const sidebar = document.getElementById("sidebar");
+    const removeAccessCard = () => {
+      if (!sidebar) return;
+      [...sidebar.children].forEach(node => {
+        if (node.classList.contains("sidebar__brand")) return;
+        const content = (node.innerText || node.textContent || "").toUpperCase();
+        if (content.includes("ACCESS LEVEL") || (content.includes("SUPER ADMIN") && content.includes("ONLINE"))) node.remove();
+      });
+      sidebar.querySelectorAll(".theme-toggle").forEach(button => {
+        if (button.closest(".dashboard-topbar")) return;
+        button.remove();
+      });
+    };
+    removeAccessCard();
+    if (sidebar) new MutationObserver(removeAccessCard).observe(sidebar,{childList:true,subtree:true});
+    const applyButtonRoles = root => {
+      root.querySelectorAll?.("a,button").forEach(el => {
+        const label=(el.innerText||el.getAttribute("aria-label")||"").trim().toLowerCase();
+        if (label.includes("sign out") || label.includes("log out")) el.classList.add("home-action-danger");
+        else if (label.includes("open job cards") || label.includes("job cards")) el.classList.add("home-action-orange");
+        else if (label.includes("full reports")) el.classList.add("home-action-blue");
+      });
+    };
+    applyButtonRoles(document);
+    new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1){applyButtonRoles(node);}}))).observe(document.body,{childList:true,subtree:true});
+  })();
+  </script>
+
 </body>
 </html>
