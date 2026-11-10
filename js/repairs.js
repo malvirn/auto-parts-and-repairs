@@ -1167,19 +1167,15 @@ editSaveBtn?.addEventListener("click", async () => {
       return;
     }
     const total = calculateJobTotal(labour_cost, parts_cost, cardIncidentalsTotal, currentEditJob?.vat_rate);
-    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId).is("voided_at", null);
-    if (paymentError) {
-      alert("Couldn't verify the job balance: " + paymentError.message);
-      return;
-    }
     let appliedCredit;
+    let paid;
     try {
       appliedCredit = await repairJobAppliedCredit(currentEditJobId);
-    } catch (creditError) {
-      alert("Couldn't verify applied customer credit: " + creditError.message);
+      paid = await repairJobCashPaid(currentEditJobId);
+    } catch (paymentError) {
+      alert("Couldn't verify the job's linked payments and customer credit: " + paymentError.message);
       return;
     }
-    const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
     let accountCredit = 0;
     try {
       if (currentEditJob?.customer_id) accountCredit = await availableCustomerCredit(currentEditJob.customer_id, currentEditJobId);
@@ -1250,19 +1246,15 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
       return;
     }
     const total = currentJobTotal();
-    const { data: payments, error: paymentError } = await supabase.from("repair_job_payments").select("amount").eq("repair_job_id", currentEditJobId).is("voided_at", null);
-    if (paymentError) {
-      alert("Couldn't verify the job balance: " + paymentError.message);
-      return;
-    }
     let appliedCredit;
+    let paid;
     try {
       appliedCredit = await repairJobAppliedCredit(currentEditJobId);
-    } catch (creditError) {
-      alert("Couldn't verify applied customer credit: " + creditError.message);
+      paid = await repairJobCashPaid(currentEditJobId);
+    } catch (paymentError) {
+      alert("Couldn't verify the job's linked payments and customer credit: " + paymentError.message);
       return;
     }
-    const paid = (payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
     let accountCredit = 0;
     try {
       if (currentEditJob?.customer_id) accountCredit = await availableCustomerCredit(currentEditJob.customer_id, currentEditJobId);
@@ -1361,17 +1353,46 @@ async function loadJobPayments(jobId) {
     return;
   }
   const payments = data || [];
-  const paid = payments.filter(payment => !payment.voided_at).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
   let applied;
+  let paid;
   try {
     applied = await repairJobAppliedCredit(jobId);
-  } catch (applicationError) {
+    paid = await repairJobCashPaid(jobId);
+  } catch (paymentError) {
     currentJobPaid = null;
     currentJobAppliedCredit = null;
     currentJobAccountCredit = null;
-    summary.textContent = `Payments loaded, but applied customer credit couldn't be checked: ${applicationError.message}`;
-    console.error("Error loading applied customer credit:", applicationError);
+    summary.textContent = `Payments loaded, but linked payments or applied customer credit couldn't be checked: ${paymentError.message}`;
+    console.error("Error loading linked job payments:", paymentError);
     return;
+  }
+  const { data: linkedInvoices, error: linkedInvoiceError } = await supabase.from("invoices")
+    .select("id, invoice_number")
+    .eq("repair_job_id", jobId);
+  if (linkedInvoiceError) {
+    summary.textContent = `Payments loaded, but linked invoice history couldn't be checked: ${linkedInvoiceError.message}`;
+    return;
+  }
+  const invoiceIds = (linkedInvoices || []).map(invoice => invoice.id);
+  let invoicePaymentRows = [];
+  if (invoiceIds.length) {
+    const { data: invoicePayments, error: invoicePaymentsError } = await supabase.from("invoice_payments")
+      .select("id, invoice_id, amount, payment_method, payment_date, voided_at")
+      .in("invoice_id", invoiceIds)
+      .order("payment_date");
+    if (invoicePaymentsError) {
+      summary.textContent = `Payments loaded, but invoice payment history couldn't be checked: ${invoicePaymentsError.message}`;
+      return;
+    }
+    const invoiceNumbers = new Map((linkedInvoices || []).map(invoice => [String(invoice.id), invoice.invoice_number]));
+    invoicePaymentRows = (invoicePayments || []).map(payment => ({
+      amount: payment.amount,
+      payment_method: payment.payment_method || "Invoice payment",
+      paid_at: payment.payment_date,
+      voided_at: payment.voided_at,
+      void_reason: payment.voided_at ? "Voided invoice payment" : "",
+      source_label: `Invoice #${invoiceNumbers.get(String(payment.invoice_id)) || ""}`,
+    }));
   }
   currentJobPaid = paid;
   currentJobAppliedCredit = applied;
@@ -1390,10 +1411,43 @@ async function loadJobPayments(jobId) {
   currentJobAccountCredit = credit;
   const due = Math.max(0, total - paid - applied - credit);
   summary.textContent = `Total ${money(total)} · Paid ${money(paid)}${applied > 0.01 ? ` · Credit note applied ${money(applied)}` : ""}${credit > 0.01 ? ` · Account credit applied ${money(Math.min(credit, Math.max(0, total - paid - applied)))}` : ""} · Balance ${money(due)}`;
-  history.innerHTML = payments.length
-    ? payments.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#ff6969;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${new Date(payment.paid_at).toLocaleString()}`}</span><strong>${money(payment.amount)}</strong></div>`).join("")
+  const historyRows = [
+    ...payments.map(payment => ({ ...payment, source_label: "Job card" })),
+    ...invoicePaymentRows,
+  ].sort((a, b) => new Date(a.paid_at || 0) - new Date(b.paid_at || 0));
+  history.innerHTML = historyRows.length
+    ? historyRows.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#c45b5b;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${escapeHtml(payment.source_label || "Job card")} · ${payment.paid_at ? new Date(payment.paid_at).toLocaleString() : "Date unavailable"}`}</span><strong>${money(payment.amount)}</strong></div>`).join("")
     : `<div class="empty-state">No payments recorded yet.</div>`;
   if (paymentAmountInput) paymentAmountInput.removeAttribute("max");
+}
+
+async function repairJobCashPaid(jobId) {
+  const [jobPaymentsResult, invoicesResult] = await Promise.all([
+    supabase.from("repair_job_payments").select("amount")
+      .eq("repair_job_id", jobId).is("voided_at", null),
+    supabase.from("invoices").select("id").eq("repair_job_id", jobId),
+  ]);
+  if (jobPaymentsResult.error) throw new Error(jobPaymentsResult.error.message);
+  if (invoicesResult.error) throw new Error(invoicesResult.error.message);
+  const directPaid = (jobPaymentsResult.data || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const invoiceIds = (invoicesResult.data || []).map(invoice => invoice.id);
+  if (!invoiceIds.length) return Math.round((directPaid + Number.EPSILON) * 100) / 100;
+
+  const { data: invoicePayments, error: invoicePaymentsError } = await supabase.from("invoice_payments")
+    .select("id, amount").in("invoice_id", invoiceIds).is("voided_at", null);
+  if (invoicePaymentsError) throw new Error(invoicePaymentsError.message);
+  const invoicePaymentRows = invoicePayments || [];
+  const invoicePaymentIds = invoicePaymentRows.map(payment => payment.id);
+  let overpaid = 0;
+  if (invoicePaymentIds.length) {
+    const { data: credits, error: creditsError } = await supabase.from("customer_overpayment_credits")
+      .select("invoice_payment_id, amount").in("invoice_payment_id", invoicePaymentIds);
+    if (creditsError) throw new Error(creditsError.message);
+    overpaid = (credits || []).reduce((sum, credit) => sum + Number(credit.amount || 0), 0);
+  }
+  const invoiceCashApplied = Math.max(0,
+    invoicePaymentRows.reduce((sum, payment) => sum + Number(payment.amount || 0), 0) - overpaid);
+  return Math.round((directPaid + invoiceCashApplied + Number.EPSILON) * 100) / 100;
 }
 
 async function availableCustomerCredit(customerId, excludingJobId) {
@@ -1454,18 +1508,19 @@ if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
       const cumulativePaid = totalPaid + amount;
       let receiptError = null;
       try {
+        await syncJobInvoiceAndReceipt(jobId);
         await ensureReceiptExists(jobId, cumulativePaid);
       } catch (error) {
         receiptError = error;
-        console.error("Payment saved but cumulative receipt could not be updated:", error);
-        alert(`Payment was saved, but the cumulative receipt could not be updated: ${error.message || error}`);
+        console.error("Payment saved but linked document synchronization failed:", error);
       }
       paymentAmountInput.value = "";
       currentJobPaid = cumulativePaid;
       await loadJobPayments(jobId);
-      if (!receiptError) {
-        window.location.href = `receipts.html?job=${encodeURIComponent(jobId)}&from=repairs`;
+      if (receiptError) {
+        alert(`Payment was saved. Receipts will open now, but a linked document needs attention: ${receiptError.message || receiptError}`);
       }
+      window.location.assign(`receipts.html?job=${encodeURIComponent(jobId)}&from=repairs`);
     } catch (error) {
       console.error("Couldn't record job payment:", error);
       alert("Couldn't complete the payment: " + (error.message || String(error)));
