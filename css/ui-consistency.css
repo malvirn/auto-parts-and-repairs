@@ -263,7 +263,7 @@ body.system-page :is(button,.btn,a.btn,[role="button"],input[type="button"],inpu
   box-shadow:0 3px 0 #202b38,0 6px 14px rgba(0,0,0,.24) !important;
   transition:filter .15s ease,transform .15s ease,box-shadow .15s ease,border-color .15s ease !important;
 }
-body.dashboard-page :is(button,.btn,a.btn,[role="button"],input[type="button],input[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]),
+body.dashboard-page :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]),
 body.system-page :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]) {
   filter:brightness(1.16);
   border-color:#a8b8ca !important;
