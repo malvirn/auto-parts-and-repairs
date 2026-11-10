@@ -811,6 +811,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
       <button class="btn btn--primary" id="s-inv"><i data-lucide="receipt"></i> Create invoice</button>
       <button class="btn btn--primary" id="close-job-card" type="button"><i data-lucide="circle-check"></i> Close job card</button>
+      <button class="btn btn--primary" id="mark-job-collected" type="button" hidden><i data-lucide="car-front"></i> Mark as Collected</button>
     </div>
     <div class="jc-wrap">
     <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="card" aria-pressed="false">Job card</button></div>
@@ -1022,7 +1023,8 @@ const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const DEFAULT_ST=["Draft","Received","Diagnosing","Processing","Processed","Ready for Pickup","Unclaimed","Collected"]; // must match the repair_status enum exactly
-const CLOSED_STATUS="Collected";
+const CLOSED_STATUS="Ready for Pickup";
+const COLLECTED_STATUS="Collected";
 let pendingChecklists=[],activeChecklist=null;
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
 const inspectionState=new Map();
@@ -1147,7 +1149,7 @@ const jn=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
 const stClass=s=>/complet|deliver|closed|collect|paid/i.test(s||"")?"paid":"";
 const money=v=>"$"+Number(v||0).toFixed(2);
 const localDate=v=>v?new Date(v).toLocaleDateString():"";
-const isTerminalStatus=status=>String(status||"").toLowerCase()===CLOSED_STATUS.toLowerCase();
+const isTerminalStatus=status=>String(status||"").toLowerCase()===COLLECTED_STATUS.toLowerCase();
 const isClosed=j=>Boolean(j.closed_at)||/^closed$/i.test(j.status||"")||isTerminalStatus(j.status);
 const needsDailyUpdate=()=>false;
 function renderBuildInspection(){
@@ -1341,6 +1343,7 @@ async function open(j){
  $("d-work-missing").value=j.work_missing||"";
  $("d-update-note").value="";
  $("close-job-card").hidden=isClosed(j);
+ $("mark-job-collected").hidden=!(Boolean(j.closed_at)&&!isTerminalStatus(j.status)&&!j.collected_at);
  $("job-parts-list").innerHTML=curParts.map(part=>`<div class="rc-row"><div><b>${esc(part.parts?.description||part.part_name)}</b><small>Qty ${esc(part.quantity)}${part.awaiting_accounting_price?" · IMPORTANT: awaiting Accounting price":""}</small></div><b>${part.awaiting_accounting_price?"PRICE REQUIRED":money(Number(part.price_at_time)*Number(part.quantity))}</b></div>`).join("")||'<p class="section-note">No parts have been recorded.</p>';
  show("doc");
 }
@@ -1603,7 +1606,7 @@ async function saveDailyUpdate(status,extraFields={}){
  if(error){toast("Couldn't save job update: "+error.message);return false}
  Object.assign(cur,updates);$("d-update-note").value="";$("daily-update-warning").textContent="";
  renderJobDoc(cur);
- if(status===CLOSED_STATUS){$("close-job-modal").classList.add("hidden");$("close-job-card").hidden=true;$("d-status").value=CLOSED_STATUS;$("d-status").disabled=true}
+ if(status===CLOSED_STATUS){$("close-job-modal").classList.add("hidden");$("close-job-card").hidden=true;$("mark-job-collected").hidden=false;$("d-status").value=CLOSED_STATUS;$("d-status").disabled=true}
  toast(status===CLOSED_STATUS?"Job card closed":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved");render();
  return true;
 }
@@ -1644,8 +1647,25 @@ $("close-job-form").onsubmit=async event=>{
  if(!Number.isSafeInteger(mileage)||mileage<0){$("close-job-message").textContent="Enter a valid next checkup mileage.";return}
  // Pricing is intentionally not a workshop-close requirement. The Ledger owns pricing.
  const closedAt=new Date().toISOString();
- if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt}))return;
+ if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt,ready_at:closedAt}))return;
 };
+
+$("mark-job-collected").onclick=async()=>{
+ if(!cur||!cur.closed_at||isTerminalStatus(cur.status)||cur.collected_at)return;
+ const button=$("mark-job-collected"),job=cur;
+ button.disabled=true;
+ try{
+  const collectedAt=new Date().toISOString();
+  const{error}=await supabase.from("repair_jobs").update({status:COLLECTED_STATUS,collected_at:collectedAt}).eq("id",job.id).is("collected_at",null);
+  if(error)throw error;
+  toast("Vehicle marked as collected.");
+  await load();
+  const refreshed=jobs.find(item=>item.id===job.id);
+  if(refreshed)await open(refreshed);
+ }catch(error){toast("Couldn't mark the vehicle as collected: "+(error.message||error))}
+ finally{button.disabled=false}
+};
+
 function jobWhatsAppMessage(type){
  const name=cur.customers?.full_name||"";
  const vehicle=[veh(cur.vehicles),cur.vehicles?.license_plate].filter(Boolean).join(" ");
