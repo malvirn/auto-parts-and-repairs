@@ -125,7 +125,13 @@
       queued = false;
       for (const record of records) {
         const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
-        if (target) process(target);
+        if (target) {
+          if (target.matches?.(LIST_SELECTORS) || target.matches?.("tbody")) {
+            target.dataset.progressiveTotal = "-1";
+            target.dataset.progressiveVisible = String(INITIAL);
+          }
+          process(target);
+        }
         record.addedNodes.forEach(node => { if (node.nodeType === 1) process(node); });
       }
       process();
