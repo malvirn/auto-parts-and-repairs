@@ -279,6 +279,7 @@ function render() {
       const history = redemptions.filter(r => r.voucher_id === v.voucher_id);
       const last = history.find(r => !r.reversed_at);
       const canCancel = ["active","expired"].includes(v.status);
+      const canResolve = v.status === "expired" && Number(v.available_amount) > 0.005;
       return '<article class="credit-voucher-card" data-voucher-id="' + esc(v.voucher_id) + '">' +
         '<div class="credit-voucher-card__top"><div><small>' + esc(v.credit_note_number || "Customer credit") +
         '</small><strong>' + esc(v.customer_name || "Customer") + '</strong></div><span class="credit-voucher-status status-' +
@@ -292,6 +293,7 @@ function render() {
         '<div class="credit-voucher-actions"><button class="btn" type="button" data-voucher-print="' + esc(v.voucher_id) + '">Print voucher</button>' +
         '<button class="btn" type="button" data-voucher-whatsapp="' + esc(v.voucher_id) + '">WhatsApp</button>' +
         '<button class="btn" type="button" data-voucher-expiry="' + esc(v.voucher_id) + '">Change expiry</button>' +
+        (canResolve ? '<button class="btn" type="button" data-voucher-resolve="' + esc(v.voucher_id) + '">Resolve expired credit</button>' : '') +
         (canCancel ? '<button class="btn" type="button" data-voucher-cancel="' + esc(v.voucher_id) + '">Cancel</button>' : '') +
         (last ? '<button class="btn" type="button" data-voucher-reverse="' + esc(last.id) + '" data-voucher-id="' + esc(v.voucher_id) + '">Reverse last redemption</button>' : '') +
         '</div>' +
@@ -340,6 +342,37 @@ async function printVoucher(v) {
     '<section class="terms"><strong>Terms &amp; conditions</strong><p>' + esc(terms) + '</p><p>Present this voucher code or QR at Centric Auto Mobile when paying for an eligible job card, invoice or sales order. Partial redemption is permitted while value remains.</p></section>' +
     '<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main><script>window.addEventListener("load",()=>{window.focus();window.print()},{once:true});<\/script></body></html>');
   popup.document.close();
+}
+
+async function resolveExpiredCredit(v) {
+  const decision = prompt("Choose what to do with this expired credit. Type REFUND or INCOME:", "REFUND")?.trim().toLowerCase();
+  if (!decision) return;
+  const action = decision === "refund" ? "refund" : decision === "income" || decision === "move to income" ? "move_to_income" : "";
+  if (!action) throw new Error("Choose REFUND or INCOME.");
+  const query = supabase.from("accounts").select("id,code,name,type").eq("is_active", true);
+  const { data: accounts, error } = action === "refund"
+    ? await query.eq("type", "asset").like("code", "10%").order("code")
+    : await query.eq("type", "income").order("code");
+  if (error) throw error;
+  if (!accounts?.length) throw new Error(action === "refund" ? "No active cash or bank accounts were found." : "No active income accounts were found.");
+  const choices = accounts.map(a => a.code + " · " + a.name).join("\n");
+  const accountCode = prompt("Enter the account code to use:\n" + choices);
+  if (!accountCode) return;
+  const account = accounts.find(a => a.code.toLowerCase() === accountCode.trim().toLowerCase());
+  if (!account) throw new Error("That account code is not in the available list.");
+  const amountText = prompt("Amount to " + (action === "refund" ? "refund" : "move to income") + " (available " + money(v.available_amount) + "):", Number(v.available_amount).toFixed(2));
+  if (amountText === null) return;
+  const amount = Number(amountText);
+  if (!Number.isFinite(amount) || amount <= 0 || amount > Number(v.available_amount) + 0.005) throw new Error("Enter a valid amount within the remaining expired credit.");
+  const reason = prompt("Reason for this expired-credit decision:")?.trim();
+  if (!reason) return;
+  const { data, error: resolveError } = await supabase.rpc("resolve_expired_credit_voucher", {
+    p_voucher_id: v.voucher_id, p_decision: action, p_amount: amount, p_account_id: account.id, p_reason: reason,
+  });
+  if (resolveError) throw resolveError;
+  await load();
+  setRedeemMessage("Expired credit " + (action === "refund" ? "refunded" : "moved to income") + ": " + money(data.amount) +
+    ". Remaining expired credit: " + money(data.remaining_balance) + ".");
 }
 
 async function manage(voucherId, action, extra = {}) {
@@ -406,7 +439,7 @@ statusFilter?.addEventListener("change", render);
 list.addEventListener("click", async event => {
   const button = event.target.closest("button");
   if (!button) return;
-  const voucherId = button.dataset.voucherPrint || button.dataset.voucherWhatsapp || button.dataset.voucherExpiry || button.dataset.voucherCancel || button.dataset.voucherId;
+  const voucherId = button.dataset.voucherPrint || button.dataset.voucherWhatsapp || button.dataset.voucherExpiry || button.dataset.voucherCancel || button.dataset.voucherResolve || button.dataset.voucherId;
   const v = vouchers.find(row => row.voucher_id === voucherId);
   if (!v) return;
   button.disabled = true;
@@ -423,7 +456,8 @@ list.addEventListener("click", async event => {
       if (!value) return;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(value))) throw new Error("Enter a valid date in YYYY-MM-DD format.");
       await manage(v.voucher_id, "set_expiry", { expiry: value });
-    } else if (button.dataset.voucherCancel) await manage(v.voucher_id, "cancel");
+    } else if (button.dataset.voucherResolve) await resolveExpiredCredit(v);
+    else if (button.dataset.voucherCancel) await manage(v.voucher_id, "cancel");
     else if (button.dataset.voucherReverse) await manage(v.voucher_id, "reverse", { redemptionId: button.dataset.voucherReverse });
   } catch (error) { alert(error.message || String(error)); }
   finally { button.disabled = false; }
