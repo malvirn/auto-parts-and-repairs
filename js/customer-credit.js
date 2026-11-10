@@ -397,6 +397,14 @@ function openCreditModal(record) {
   overlay.querySelector(".credit-modal-close")?.focus({ preventScroll: true });
 }
 
+document.addEventListener("pointerup", event => {
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  const summary = target?.closest(".customer-credit-record > summary");
+  if (!summary) return;
+  event.preventDefault();
+  openCreditModal(summary.parentElement);
+}, { capture: true, passive: false });
+
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeCreditModal();
 });
@@ -416,7 +424,9 @@ document.addEventListener("click", async event => {
   const creditSummary = target.closest(".customer-credit-record > summary");
   if (creditSummary) {
     event.preventDefault();
-    openCreditModal(creditSummary.parentElement);
+    // Pointer taps are handled on pointerup so mobile browsers cannot leave
+    // the native details disclosure open instead of showing the modal.
+    if (event.detail === 0) openCreditModal(creditSummary.parentElement);
     return;
   }
   const printButton = target.closest("[data-credit-print]");
