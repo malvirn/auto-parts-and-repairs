@@ -57,6 +57,12 @@
   function update(container, keepCount = false) {
     if (!container.isConnected) return;
     const records = recordsFor(container);
+    if (container.hasAttribute("data-no-progressive")) {
+      records.forEach(record => { record.hidden = false; });
+      const wrap = anchorFor(container).nextElementSibling;
+      if (wrap?.classList.contains("progressive-more-wrap")) wrap.remove();
+      return;
+    }
     if (records.length <= INITIAL) {
       records.forEach(record => { record.hidden = false; });
       container.dataset.progressiveTotal = String(records.length);
