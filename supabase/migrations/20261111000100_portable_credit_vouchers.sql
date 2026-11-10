@@ -421,7 +421,7 @@ begin
   elsif p_action='set_expiry' then
     if p_new_expiry is null then raise exception 'Choose a new expiry date'; end if;
     update public.customer_credit_vouchers set expires_at=p_new_expiry,
-      status=case when p_new_expiry<current_date and public.credit_voucher_available_balance(v.id)>0.005 then 'expired' else 'active' end,
+      status=case when public.credit_voucher_available_balance(v.id)<=0.005 then 'redeemed' when p_new_expiry<current_date then 'expired' else 'active' end,
       updated_at=now() where id=v.id;
     if v.credit_note_type='quotation_deposit' then
       update public.quotation_deposit_receipts set expires_at=p_new_expiry,voucher_status='active' where id=v.credit_note_id;
