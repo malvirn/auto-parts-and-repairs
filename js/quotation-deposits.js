@@ -63,7 +63,8 @@ function openDepositDialog(button) {
         p_idempotency_key: idempotencyKey,
       });
       if (error) throw error;
-      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded. Opening its receipt…`;
+      const appliedAmount = Number(data.applied_amount || 0);
+      message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded.${appliedAmount > 0.005 ? ` ${appliedAmount.toFixed(2)} was automatically applied to the linked job card.` : ""} Opening its receipt…`;
       message.dataset.tone = "success";
       delete form.dataset.idempotencyKey;
       window.location.href = `receipts.html?credit_note_id=${encodeURIComponent(data.id)}&from=quotations`;
