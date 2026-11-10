@@ -184,7 +184,7 @@ async function loadCustomerAccounts() {
   render();
 }
 
-tbody.addEventListener("click", event => {
+tbody.addEventListener("click", async event => {
   const button = event.target.closest("button[data-customer-id]");
   if (!button) return;
   const customer = groupEntries().find(account => account.id === button.dataset.customerId);
