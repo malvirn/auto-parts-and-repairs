@@ -286,7 +286,7 @@ function render() {
         <div class="customer-credit-document">
           <header class="credit-modal-header">
             <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
-            <button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button>
+            <div class="credit-modal-close-column"><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div>
           </header>
           <section class="credit-available-card">
             <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
