@@ -1443,6 +1443,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  open({
   kind:"receipt",
   id:payment.id,
+  repairJobId:invoice.repair_job_id,
   invoicePaymentReceipt:true,
   number:`PAY-${String(invoice.invoice_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
   date:payment.payment_date,
@@ -1548,7 +1549,7 @@ async function voidReceipt(){
   };
  });
  if(reason===null)return;
- const button=$("d-void"),receiptId=cur.id,receiptNumber=cur.number;
+ const button=$("d-void"),receiptId=cur.id,receiptNumber=cur.number,linkedJobId=cur.repairJobId||null;
  button.disabled=true;
  try{
   const{error}=cur.creditRefundReceipt
@@ -1557,6 +1558,10 @@ async function voidReceipt(){
       ? await supabase.rpc("void_invoice_payment_receipt",{p_invoice_payment_id:receiptId,p_reason:reason.trim()})
       : await supabase.rpc("void_business_receipt",{p_receipt_id:receiptId,p_reason:reason.trim()});
    if(error)throw new Error(error.message);
+  if(linkedJobId){
+   const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:linkedJobId});
+   if(syncError)console.error("Receipt voided but linked job invoice synchronization failed:",syncError);
+  }
   signalDocumentChange("receipts",receiptNumber);
   await load();
   const updated=rows.receipts.find(receipt=>receipt.id===receiptId);
@@ -2498,11 +2503,16 @@ $("receipt-edit-save").onclick=async()=>{
  if(!Number.isFinite(amount)||amount<=0){message.textContent="Enter a receipt total greater than zero.";message.dataset.tone="error";return}
  button.disabled=true;message.textContent="Updating the receipt and linked payment totals…";message.dataset.tone="info";
  try{
-  const receiptId=cur.id;
+  const receiptId=cur.id,linkedJobId=cur.repairJobId||null;
   const{error}=await supabase.rpc("edit_business_receipt",{p_receipt_id:receiptId,p_amount:amount});
   if(error)throw new Error(error.message);
+  let linkedSyncWarning="";
+  if(linkedJobId){
+   const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:linkedJobId});
+   if(syncError){linkedSyncWarning=" The linked invoice could not be refreshed: "+syncError.message;console.error("Receipt amount updated but linked invoice synchronization failed:",syncError)}
+  }
   signalDocumentChange("receipts",cur.number);
-  closeReceiptEditor();await load();const updated=rows.receipts.find(receipt=>receipt.id===receiptId);if(updated)open(updated);toast("Receipt and linked payment totals updated.");
+  closeReceiptEditor();await load();const updated=rows.receipts.find(receipt=>receipt.id===receiptId);if(updated)open(updated);toast("Receipt and linked payment totals updated."+linkedSyncWarning);
  }catch(error){console.error("Couldn't correct receipt amount:",error);message.textContent=`Couldn't correct receipt: ${error.message||String(error)}. Apply supabase/migrations/edit-receipts-invoices.sql if this feature is not installed.`;message.dataset.tone="error"}
  finally{button.disabled=false}
 };
