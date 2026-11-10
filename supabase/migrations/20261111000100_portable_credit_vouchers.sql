@@ -309,7 +309,7 @@ as $$
 declare
   uid uuid:=auth.uid(); v public.customer_credit_vouchers%rowtype;
   balance_value numeric(12,2); amount_value numeric(12,2);
-  target_total numeric(12,2); target_paid numeric(12,2):=0; target_applied numeric(12,2):=0;
+  target_total numeric(12,2); target_paid numeric(12,2):=0; target_applied numeric(12,2):=0; target_balance numeric(12,2):=0;
   deposit_account_id uuid; receivable_account_id uuid; entry_id uuid; redemption_id uuid;
   existing_row public.credit_voucher_redemptions%rowtype; target_label text; new_status text;
 begin
@@ -360,10 +360,13 @@ begin
   end if;
   -- All voucher redemptions are mirrored into customer_credit_movements so existing balance views stay in sync.
   -- The SELECT above adds only invoice-overpayment voucher rows to existing applications.
-  target_paid:=coalesce(target_paid,0);
-  target_total:=coalesce(target_total,0);
-  if amount_value>greatest(target_total-target_paid-target_applied,0)+0.005 then
-    raise exception 'Voucher amount exceeds the target balance of %',greatest(target_total-target_paid-target_applied,0);
+  select greatest(coalesce(statement.balance_due,0),0)::numeric(12,2) into target_balance
+  from public.customer_account_statement statement
+  where statement.source_id=p_target_id
+    and statement.source_type=case p_target_type when 'repair_job' then 'Repair job' when 'sales_order' then 'Sales order' else 'Invoice' end;
+  if not found or target_balance<=0.005 then raise exception 'The selected target has no outstanding balance'; end if;
+  if amount_value>target_balance+0.005 then
+    raise exception 'Voucher amount exceeds the target balance of %',target_balance;
   end if;
 
   select id into deposit_account_id from public.accounts where code='2300' and is_active and type='liability';
