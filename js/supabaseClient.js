@@ -7,15 +7,11 @@ import { noteWrite } from "./toast.js";
 export const SUPABASE_URL = "https://pztwmmkmkyotszylbhsr.supabase.co";
 export const SUPABASE_ANON_KEY = "sb_publishable_pi3_GxiETMzWNI-6U7Myhg_SqeHqK00"; // paste your FULL copied key here
 
-// storage: sessionStorage (not the default localStorage) means the
-// session is tied to this specific tab/browser session — closing the
-// browser clears it, and the next visit requires logging in again. Normal
-// navigation between pages within the same open session still works
-// fine, since sessionStorage survives page loads, just not closing the
-// tab/browser.
+// Keep the authenticated session across page navigation, browser restarts,
+// and reopening the installed app. Supabase refreshes tokens automatically.
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: window.sessionStorage,
+    storage: window.localStorage,
     persistSession: true,
     autoRefreshToken: true,
   },
