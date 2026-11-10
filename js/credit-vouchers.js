@@ -79,6 +79,7 @@ const dateLabel = value => value ? new Date(value + (String(value).length === 10
 }) : "—";
 let vouchers = [];
 let redemptions = [];
+let resolutions = [];
 let terms = "Redeemable against eligible Centric Auto Mobile job cards, invoices and sales orders. Not redeemable for cash. Subject to available balance and expiry date.";
 let qrPromise;
 
@@ -245,15 +246,18 @@ async function loadQrLibrary() {
 
 async function load() {
   list.innerHTML = '<div class="customer-credit-empty">Loading vouchers…</div>';
-  const [voucherResult, redemptionResult, settingsResult] = await Promise.all([
+  const [voucherResult, redemptionResult, resolutionResult, settingsResult] = await Promise.all([
     supabase.rpc("list_customer_credit_vouchers"),
     supabase.from("credit_voucher_redemptions").select("id,voucher_id,amount,target_type,target_id,redeemed_at,reversed_at").order("redeemed_at", { ascending: false }),
+    supabase.from("credit_voucher_expiry_resolutions").select("id,voucher_id,decision,amount,reason,performed_at").order("performed_at", { ascending: false }),
     supabase.from("credit_voucher_settings").select("terms,default_expiry_days").eq("id", true).maybeSingle(),
   ]);
   if (voucherResult.error) throw voucherResult.error;
   if (redemptionResult.error) throw redemptionResult.error;
+  if (resolutionResult.error) throw resolutionResult.error;
   vouchers = voucherResult.data || [];
   redemptions = redemptionResult.data || [];
+  resolutions = resolutionResult.data || [];
   terms = settingsResult.data?.terms || terms;
   render();
 }
@@ -297,10 +301,11 @@ function render() {
         (canCancel ? '<button class="btn" type="button" data-voucher-cancel="' + esc(v.voucher_id) + '">Cancel</button>' : '') +
         (last ? '<button class="btn" type="button" data-voucher-reverse="' + esc(last.id) + '" data-voucher-id="' + esc(v.voucher_id) + '">Reverse last redemption</button>' : '') +
         '</div>' +
-        (history.length ? '<details class="credit-voucher-history"><summary>Redemption history · ' + history.length + '</summary>' +
+        (history.length || resolutionHistory.length ? '<details class="credit-voucher-history"><summary>Voucher activity · ' + (history.length + resolutionHistory.length) + '</summary>' +
           history.map(r => '<div><span>' + dateLabel(r.redeemed_at) + ' · ' + esc(r.target_type.replace("_"," ")) +
-            '</span><strong>' + money(r.amount) + '</strong><small>' + (r.reversed_at ? 'Reversed · ' + dateLabel(r.reversed_at) : 'Posted') +
-            '</small></div>').join("") + '</details>' : '') + '</article>';
+            '</span><strong>' + money(r.amount) + '</strong><small>' + (r.reversed_at ? 'Reversed · ' + dateLabel(r.reversed_at) : 'Redeemed') +
+            '</small></div>').join("") + resolutionHistory.map(r => '<div><span>' + dateLabel(r.performed_at) + ' · ' + esc(r.decision.replaceAll("_"," ")) +
+            '</span><strong>' + money(r.amount) + '</strong><small>' + esc(r.reason) + '</small></div>').join("") + '</details>' : '') + '</article>';
     }).join("") + '</div>';
 }
 
