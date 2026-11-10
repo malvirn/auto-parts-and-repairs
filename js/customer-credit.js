@@ -66,7 +66,7 @@ async function load() {
 
   const [overpaymentResult, overpaymentRefundsResult] = await Promise.all([
     supabase.from("customer_overpayment_credit_notes")
-      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method))")
+      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method)),customer_overpayment_credit_job_links(repair_job_id,applied_amount,repair_jobs(job_number,checklist_number,cro_number))")
       .order("issued_at", { ascending: false }).limit(500),
     supabase.from("customer_overpayment_credit_refunds")
       .select("credit_note_id,amount,voided_at"),
@@ -331,9 +331,10 @@ function render() {
       const message = `Centric Auto Mobile credit note CN-${String(note.note_number).padStart(5,"0")}. Customer: ${note.customer_name || "Customer"}. Invoice: ${invoiceNumber}. Amount: ${money(note.amount)}. Carried forward: ${money(available)}.`;
       const wa = phone ? "https://wa.me/" + phone + "?text=" + encodeURIComponent(message) : "";
       const mail = invoice.customer_email ? "mailto:" + encodeURIComponent(invoice.customer_email) + "?subject=" + encodeURIComponent("Centric Auto Mobile " + number) + "&body=" + encodeURIComponent(message) : "";
-      const linked = invoice.repair_job_id || "";
+      const jobLink = Array.isArray(note.customer_overpayment_credit_job_links) ? (note.customer_overpayment_credit_job_links[0] || {}) : (note.customer_overpayment_credit_job_links || {});
+      const linked = jobLink.repair_job_id || "";
       const link = linked ? '<a class="btn" href="repairs.html?highlight=' + encodeURIComponent(linked) + '">Open linked job card</a>' :
-        '<section class="overpayment-job-link"><h4>Link carried-forward amount to the next job card</h4><p>Enter the customer name, phone and checklist number from the next job card. All three must match.</p><div class="overpayment-job-link__fields" data-overpayment-link="' + escapeHtml(note.id) + '" data-invoice-id="' + escapeHtml(note.invoice_id) + '"><input data-match="name" placeholder="Customer full name" required><input data-match="phone" type="tel" placeholder="Customer phone number" required><input data-match="checklist" placeholder="Next job card checklist number" required><button class="btn btn--primary" type="button" data-link-overpayment-job>Verify and link next job card</button></div></section>';
+        '<section class="overpayment-job-link"><h4>Link carried-forward amount to the next job card</h4><p>Enter the customer name, phone and checklist number from the next job card. All three must match.</p><div class="overpayment-job-link__fields" data-overpayment-link="' + escapeHtml(note.id) + '" data-credit-note-id="' + escapeHtml(note.id) + '"><input data-match="name" placeholder="Customer full name" required><input data-match="phone" type="tel" placeholder="Customer phone number" required><input data-match="checklist" placeholder="Next job card checklist number" required><button class="btn btn--primary" type="button" data-link-overpayment-job>Verify and link next job card</button></div></section>';
       return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customer_name || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div><div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + '</div>' + link + '</div></details>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
@@ -370,9 +371,12 @@ list.addEventListener("click", async event => {
       return norm(customer?.full_name) === norm(name) && String(customer?.phone || "").replace(/\\D/g, "") === phone && norm(job.checklist_number) === norm(checklist);
     });
     if (!match) throw new Error("No next job card matches the customer name, phone number and checklist number.");
-    const { data: updated, error: updateError } = await supabase.from("invoices").update({repair_job_id:match.id}).eq("id",form.dataset.invoiceId).is("repair_job_id",null).select("id").maybeSingle();
-    if (updateError) throw updateError;
-    if (!updated) throw new Error("This credit note is already linked to a job card. Refresh and check its details.");
+    const { data: linkId, error: linkError } = await supabase.rpc("link_overpayment_credit_to_job", {
+      p_credit_note_id: form.dataset.creditNoteId,
+      p_repair_job_id: match.id,
+    });
+    if (linkError) throw linkError;
+    if (!linkId) throw new Error("The credit note could not be linked. Refresh and try again.");
     showMessage("Customer name, phone and checklist number verified. Credit linked to the next job card.", "success");
     await load();
   } catch (error) { showMessage(error.message || "Could not link this credit note.", "error"); linkButton.disabled = false; }
