@@ -190,7 +190,7 @@ tbody.addEventListener("click", async event => {
   const customerId = button?.dataset.customerId || row?.dataset.customerRow;
   const customer = groupEntries().find(account => account.id === customerId);
   if (!customer) return;
-  const action = button.dataset.action;
+  const action = button?.dataset.action;
   if (action === "issue-overpayment-credit") {
     const creditId = button.dataset.overpaymentCreditId;
     const credit = overpaymentCredits.find(row => row.id === creditId);
@@ -216,7 +216,7 @@ tbody.addEventListener("click", async event => {
     render();
     return;
   }
-  if (!action || row) {
+  if (!button) {
     expandedCustomerId = expandedCustomerId === customer.id ? null : customer.id;
     selectedPaymentEntry = null;
     render();
@@ -240,6 +240,42 @@ tbody.addEventListener("click", async event => {
   }
 });
 
+
+tbody.addEventListener("submit", async event => {
+  const form = event.target.closest("[data-inline-payment]");
+  if (!form || !selectedPaymentEntry) return;
+  event.preventDefault();
+  const amount = Number(form.elements.amount.value);
+  const paymentDate = form.elements.date.value;
+  const paymentMethod = form.elements.method.value;
+  const formMessage = form.querySelector("[data-inline-payment-message]");
+  if (!Number.isFinite(amount) || amount <= 0 || amount > Number(selectedPaymentEntry.balance_due) + 0.005) {
+    formMessage.textContent = `Enter an amount greater than zero and no more than ${money(selectedPaymentEntry.balance_due)}.`;
+    return;
+  }
+  if (!paymentDate) { formMessage.textContent = "Choose the date the payment was received."; return; }
+  const submit = form.querySelector("button[type='submit']");
+  submit.disabled = true;
+  formMessage.textContent = "Recording payment…";
+  try {
+    const { data: journalEntryId, error } = await supabase.rpc("record_quick_sale_payment", {
+      p_sales_order_id: selectedPaymentEntry.source_id,
+      p_amount: amount,
+      p_payment_method: paymentMethod,
+      p_payment_date: paymentDate,
+    });
+    if (error) throw new Error(error.message);
+    if (!journalEntryId) throw new Error("The payment was recorded, but the ledger did not return a receipt reference. Verify the payment before retrying.");
+    const receiptUrl = new URL("receipts.html", window.location.href);
+    receiptUrl.searchParams.set("quickSalePayment", journalEntryId);
+    receiptUrl.searchParams.set("paymentMethod", paymentMethod);
+    receiptUrl.searchParams.set("from", "ledger");
+    window.location.href = receiptUrl.href;
+  } catch (error) {
+    formMessage.textContent = `Couldn't record payment: ${error.message || String(error)}.`;
+    submit.disabled = false;
+  }
+});
 
 searchInput.addEventListener("input", render);
 filterSelect.addEventListener("change", render);
