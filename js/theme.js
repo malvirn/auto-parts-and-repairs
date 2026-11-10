@@ -9,7 +9,7 @@
     root.setAttribute("data-theme", theme);
     // Paint the app's background colour straight away so a page never
     // flashes white while it loads or while sign-in is being checked.
-    root.style.backgroundColor = theme === "dark" ? "#171c24" : "#e9edf2";
+    root.style.backgroundColor = theme === "dark" ? "#212121" : "#f7f9f8";
     root.style.colorScheme = theme;
     var themeColor = document.querySelector('meta[name="theme-color"]');
     if (themeColor) themeColor.content = theme === "dark" ? "#171c24" : "#e9edf2";
