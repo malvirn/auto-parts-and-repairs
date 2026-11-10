@@ -690,7 +690,7 @@ select.st option{background:#10181a;color:#eef3ef}
     </div>
     <div class="rc-doc-wrap"><div id="customer-credit-list" aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
   </section>
-  <section class="panel" id="v-list">
+  <section class="panel" id="v-list" data-no-progressive>
     <div class="rc-tabs">
       <button class="seg" data-tab="receipts" aria-pressed="true">Receipts</button>
       <button class="seg" data-tab="invoices" aria-pressed="false">Invoices</button>
@@ -709,8 +709,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="receipt-filter-max">Maximum amount ($)<input id="receipt-filter-max" type="number" min="0" step="0.01" placeholder="Any"></label>
       <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
     </div>
-    <div id="list"><div class="ov-empty">Loading…</div></div>
-    <div id="receipt-load-more-wrap" class="rc-load-more" hidden><button id="receipt-load-more" class="btn" type="button">More receipts</button></div>
+    <div id="list" data-no-progressive><div class="ov-empty">Loading…</div></div>
   </section>
 
   <section class="panel" id="v-build" hidden>
@@ -867,7 +866,7 @@ const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const CO={email:"malvirngomo8@gmail.com"};
-let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[],creditNotes:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1",visibleRows=3;
+let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[],creditNotes:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1";
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
 // The invoice builder preview also creates an element with id="doc", and it sits earlier in the page,
@@ -1127,10 +1126,8 @@ function render(){
  document.querySelectorAll(".seg").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.tab===tab)));
  const inv=rows.invoices,out=inv.reduce((sum,o)=>sum+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((sum,o)=>sum+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt&&!o.creditRefundReceipt).reduce((sum,o)=>sum+totalPaid(o),0);
  $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([label,value])=>`<div class="stat-card"><div class="stat-card__label">${label}</div><div class="stat-card__value">${usd(value)}</div></div>`).join("");
- const visible=L.slice(0,visibleRows);
+ const visible=L;
  $("list").innerHTML=(visible.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer?.name||"Walk-in")} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}${o.customer?.phone?" · "+esc(o.customer.phone):""}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!o.invoicePaymentReceipt&&!o.creditRefundReceipt&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to||min!==null||max!==null||statusFilter||methodFilter)?"No records match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
- $("receipt-load-more-wrap").hidden=L.length<=visibleRows;
- $("receipt-load-more").textContent=`More ${tab==="invoices"?"invoices":"receipts"} (${Math.min(visibleRows,L.length)} of ${L.length})`;
  $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[Number(el.dataset.i)])});
  window.lucide?.createIcons();
 }
@@ -2183,7 +2180,7 @@ else if(receiptOrigin==="quotations")receiptBack.innerHTML='<i data-lucide="arro
 else if(receiptOrigin==="ledger")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Ledger';
 else if(receiptOrigin==="accounting")receiptBack.innerHTML='<i data-lucide="arrow-left"></i> Back to Accounting';
 window.lucide?.createIcons();
-document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;visibleRows=3;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+document.querySelectorAll(".seg").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".seg").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
 receiptBack.onclick=()=>{
  const from=receiptOrigin;
  if(from==="shop")location.href="shop.html";
@@ -2193,13 +2190,12 @@ receiptBack.onclick=()=>{
  else if(from==="accounting")location.href="accounting.html";
  else show("list");
 };
-$("hs-input").oninput=()=>{visibleRows=3;render()};
+$("hs-input").oninput=render;
 ["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method"].forEach(id=>{
- $(id).addEventListener("input",()=>{visibleRows=3;render()});
- $(id).addEventListener("change",()=>{visibleRows=3;render()});
+ $(id).addEventListener("input",render);
+ $(id).addEventListener("change",render);
 });
-$("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method","hs-input"].forEach(id=>$(id).value="");visibleRows=3;render()};
-$("receipt-load-more").onclick=()=>{visibleRows+=3;render()};
+$("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method","hs-input"].forEach(id=>$(id).value="");render()};
 load().catch(error=>{console.error("Receipts page failed to load:",error);$("list").innerHTML=`<div class="ov-empty">Couldn't load receipts: ${esc(error?.message||String(error))}</div>`});
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
