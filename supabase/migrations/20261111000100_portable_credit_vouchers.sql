@@ -354,10 +354,7 @@ begin
       where target_type='sales_order' and target_id=p_target_id and movement_type='application' and reversed_at is null;
     target_label:='Sales order '||p_target_id;
   end if;
-  select target_applied + coalesce(sum(vr.amount),0) into target_applied
-    from public.credit_voucher_redemptions vr
-    where vr.target_type=p_target_type and vr.target_id=p_target_id and vr.reversed_at is null
-      and vr.credit_note_type='invoice_overpayment';
+  -- All voucher redemptions are mirrored into customer_credit_movements so existing balance views stay in sync.
   -- The SELECT above adds only invoice-overpayment voucher rows to existing applications.
   target_paid:=coalesce(target_paid,0);
   target_total:=coalesce(target_total,0);
@@ -381,12 +378,15 @@ begin
   values(redemption_id,v.id,v.voucher_code,v.credit_note_type,v.credit_note_id,amount_value,
     p_target_type,p_target_id,uid,entry_id,p_idempotency_key);
   if v.credit_note_type='quotation_deposit' then
-    select credit_note_number::text into note_number from public.quotation_deposit_receipts where id=v.credit_note_id;
     insert into public.customer_credit_movements(deposit_receipt_id,movement_type,amount,target_type,target_id,
       reason,journal_entry_id,idempotency_key,created_by)
     values(v.credit_note_id,'application',amount_value,p_target_type,p_target_id,
       'Portable voucher redemption',entry_id,p_idempotency_key,uid);
   else
+    insert into public.customer_credit_movements(deposit_receipt_id,movement_type,amount,target_type,target_id,
+      reason,journal_entry_id,idempotency_key,created_by)
+    values(null,'application',amount_value,p_target_type,p_target_id,
+      'Portable invoice-overpayment voucher redemption',entry_id,p_idempotency_key,uid);
     update public.customer_overpayment_credits c set available_amount=greatest(0,c.available_amount-amount_value)
     from public.customer_overpayment_credit_notes n
     where n.id=v.credit_note_id and c.id=n.overpayment_credit_id;
@@ -444,11 +444,10 @@ begin
           (entry_id,receivable_account_id,r.amount,0,'Restore receivable balance');
     update public.credit_voucher_redemptions set reversed_at=now(),reversed_by=uid,
       reversal_reason=btrim(p_reason),reversal_journal_entry_id=entry_id where id=r.id;
-    if r.credit_note_type='quotation_deposit' then
-      update public.customer_credit_movements set reversed_at=now(),reversed_by=uid,
-        reversal_reason=btrim(p_reason),reversal_journal_entry_id=entry_id
-      where journal_entry_id=r.journal_entry_id and deposit_receipt_id=r.credit_note_id;
-    else
+    update public.customer_credit_movements set reversed_at=now(),reversed_by=uid,
+      reversal_reason=btrim(p_reason),reversal_journal_entry_id=entry_id
+    where journal_entry_id=r.journal_entry_id;
+    if r.credit_note_type='invoice_overpayment' then
       update public.customer_overpayment_credits c set available_amount=c.available_amount+r.amount
       from public.customer_overpayment_credit_notes n
       where n.id=r.credit_note_id and c.id=n.overpayment_credit_id;
