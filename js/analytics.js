@@ -200,15 +200,21 @@ async function loadAnalytics() {
   // used for names and counts that every staff member should still see.
   // The full technicians table stays admin-only, fetched separately below,
   // used only for payroll processing which legitimately needs salary data.
+  const techniciansRequest = document.body.dataset.role === "super_admin"
+    ? supabase.rpc("get_technicians_admin")
+    : Promise.resolve({ data: [], error: null });
+  const payrollRunsRequest = document.body.dataset.role === "super_admin"
+    ? supabase.from("payroll_runs").select("id, year, month, pay_date, total_amount, processed_at").order("year", { ascending: false }).order("month", { ascending: false }).limit(6)
+    : Promise.resolve({ data: [], error: null });
   const [jobsRes, jobPartsRes, customersRes, techDirRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes] = await Promise.all([
     supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id`),
     supabase.from("job_parts").select("part_name, quantity, price_at_time"),
     supabase.from("customers").select("id").is("deleted_at", null),
     supabase.from("technician_directory").select("id, full_name, department, is_active"),
-    supabase.from("technicians").select("id, full_name, department, is_active, salary, deductions"),
+    techniciansRequest,
     supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),
     supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at"),
-    supabase.from("payroll_runs").select("id, year, month, pay_date, total_amount, processed_at").order("year", { ascending: false }).order("month", { ascending: false }).limit(6),
+    payrollRunsRequest,
   ]);
 
   if (jobsRes.error || jobPartsRes.error) {
