@@ -622,89 +622,64 @@ select.st option{background:#10181a;color:#eef3ef}
 </style>
   <link rel="stylesheet" href="../css/ui-consistency.css">
 
-<style id="job-card-dashboard-match">
-/* Job Cards uses the exact home dashboard chrome, without changing job workflows. */
-body.dashboard-page.dashboard-workshop .dashboard-topbar{
- position:fixed!important;z-index:1200!important;top:0!important;right:0!important;left:244px!important;
- display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;
- height:68px!important;min-height:68px!important;padding:0 22px!important;
- background:rgba(255,255,255,.98)!important;border-bottom:1px solid #e4eaf2!important;
- box-shadow:0 3px 16px rgba(24,42,75,.06)!important;backdrop-filter:blur(14px);
-}
-body.dashboard-page.dashboard-workshop .dashboard-header-date{
- display:flex!important;align-items:center!important;gap:8px!important;flex:none!important;
- color:#233654!important;font-size:12px!important;font-weight:650!important;white-space:nowrap!important;
-}
-body.dashboard-page.dashboard-workshop .dashboard-header-date>svg{width:17px!important;height:17px!important;color:#183568!important}
-body.dashboard-page.dashboard-workshop .dashboard-header-date .header-separator{color:#b8c2d0!important}
-body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock{color:#172b40!important;font-weight:750!important;font-variant-numeric:tabular-nums}
-body.dashboard-page.dashboard-workshop .dashboard-header-date .hdr-live{display:inline-flex!important;align-items:center!important;gap:5px!important;color:#159653!important}
-body.dashboard-page.dashboard-workshop .dashboard-header-date .hdr-live>i{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.12)}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{display:flex!important;align-items:center!important;gap:9px!important;margin-left:auto!important}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status{
- display:inline-flex!important;align-items:center!important;justify-content:center!important;
- width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;
- border:1px solid #dce4ee!important;border-radius:11px!important;background:#fff!important;
- color:#183568!important;box-shadow:0 2px 7px rgba(24,42,75,.07)!important;
-}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions svg{width:19px!important;height:19px!important;stroke:currentColor!important}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-refresh:hover{border-color:#12a150!important;background:#effaf3!important}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="good"]{color:#159653!important}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="fair"]{color:#d97706!important}
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="poor"],
-body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="offline"]{color:#dc3545!important}
-body.dashboard-page.dashboard-workshop .main{margin-top:0!important;padding-top:88px!important}
-body.dashboard-page.dashboard-workshop .sidebar{background:#fff!important;color:#172b40!important;border-right:1px solid #e4eaf2!important;box-shadow:5px 0 22px rgba(24,42,75,.045)!important}
-body.dashboard-page.dashboard-workshop .sidebar .nav-link{color:#42536b!important}
-body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{background:#eaf7ef!important;color:#12783d!important}
-body.dashboard-page.dashboard-workshop .sidebar .nav-grp{color:#52627a!important}
-body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,
-body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:#f2f6fa!important;color:#183568!important}
-body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{background:#fff!important;border:1px solid #dce4ee!important;color:#183568!important}
-body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle svg{width:18px!important;height:18px!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar{background:rgba(17,25,37,.97)!important;border-bottom-color:#344154!important;box-shadow:0 3px 18px rgba(0,0,0,.28)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-header-date,
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock{color:#eef3fa!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-header-date>svg{color:#b7c7dc!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status{background:#202c3d!important;border-color:#45566e!important;color:#f3f6fb!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar{background:#111923!important;color:#f1f5f9!important;border-right-color:#344154!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar .nav-link{color:#d4deeb!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{background:rgba(18,161,80,.2)!important;color:#69dda0!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar .nav-grp{color:#b8c6d8!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:rgba(255,255,255,.06)!important;color:#fff!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{background:#202c3d!important;border-color:#45566e!important;color:#f3f6fb!important}
+
+
+
+<style id="job-card-home-shell">
+/* Match the index dashboard shell and exact desktop/mobile positioning. */
+body.dashboard-workshop{padding:0!important}
+body.dashboard-workshop .main{width:auto!important;min-width:0!important;margin:0 0 0 224px!important;padding:88px clamp(16px,3vw,46px) 48px!important;min-height:100svh!important;transition:margin-left .24s!important}
+body.dashboard-workshop .app-header,body.dashboard-workshop .site-foot,body.dashboard-workshop .ftbar{display:none!important}
+body.dashboard-workshop .dashboard-topbar{position:fixed!important;z-index:1200!important;top:12px!important;right:20px!important;left:244px!important;display:flex!important;align-items:center!important;gap:10px!important;height:52px!important;min-height:52px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;transition:left .24s!important}
+body.dashboard-workshop .dashboard-header-date{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;color:#26364b!important;font-size:11px!important;font-weight:650!important;white-space:nowrap!important}
+body.dashboard-workshop .dashboard-header-date>svg{width:15px!important;height:15px!important}
+body.dashboard-workshop .dashboard-header-date #hdr-clock{font-variant-numeric:tabular-nums!important;font-weight:750!important}
+body.dashboard-workshop .dashboard-topbar-actions{display:flex!important;align-items:center!important;gap:8px!important;margin-left:auto!important}
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
+body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{position:relative!important;inset:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;border:1px solid #dce4ee!important;border-radius:10px!important;background:#fff!important;color:#19365b!important;box-shadow:0 2px 8px rgba(20,40,70,.08)!important}
+body.dashboard-workshop .dashboard-topbar-actions svg{width:18px!important;height:18px!important;stroke:currentColor!important}
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="good"]{color:#159653!important}
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="fair"]{color:#d97706!important}
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="poor"],
+body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="offline"]{color:#dc3545!important}
+body.dashboard-workshop .sidebar{position:fixed!important;z-index:1300!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;display:flex!important;flex-direction:column!important;width:224px!important;height:100vh!important;height:100dvh!important;margin:0!important;padding:20px 12px 16px!important;overflow-x:hidden!important;overflow-y:auto!important;visibility:visible!important;transform:none!important;border:0!important;border-right:1px solid rgba(174,224,202,.14)!important;background:linear-gradient(180deg,#071416,#0a1d1d)!important;box-shadow:18px 0 50px rgba(0,0,0,.24)!important;transition:width .24s,transform .24s!important}
+body.dashboard-workshop .sidebar__brand{display:flex!important;align-items:center!important;justify-content:center!important;min-height:76px!important;margin:0 0 12px!important;padding:0 0 12px!important;border-bottom:1px solid rgba(255,255,255,.1)!important}
+body.dashboard-workshop .brand-logo{width:124px!important;height:auto!important}
+body.dashboard-workshop .sidebar .nav-group{display:block!important;margin:5px 0!important}
+body.dashboard-workshop .sidebar .nav-grp{display:flex!important;width:100%!important;min-height:40px!important;align-items:center!important;gap:10px!important;padding:8px 10px!important;border:1px solid transparent!important;border-radius:9px!important;background:none!important;color:#9fb0a6!important;font:700 11px Inter,"Segoe UI",system-ui,sans-serif!important;letter-spacing:.08em!important;text-align:left!important;text-transform:uppercase!important}
+body.dashboard-workshop .sidebar .nav-grp:hover,body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{border-color:rgba(255,255,255,.07)!important;background:rgba(255,255,255,.045)!important;color:#fff!important}
+body.dashboard-workshop .sidebar .nav-grp>svg{width:18px!important;height:18px!important;flex:none!important;color:#1fc467!important}
+body.dashboard-workshop .sidebar .nav-grp>span:first-of-type{flex:1!important}
+body.dashboard-workshop .sidebar .nav-grpwrap{display:none!important;padding:3px 0 5px 8px!important}
+body.dashboard-workshop .sidebar .nav-group.open .nav-grpwrap{display:grid!important;gap:2px!important}
+body.dashboard-workshop .sidebar .nav-link{display:flex!important;min-height:39px!important;align-items:center!important;gap:12px!important;margin:1px 0!important;padding:9px 10px!important;border-radius:9px!important;color:#d8e7df!important;font-size:12px!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap!important}
+body.dashboard-workshop .sidebar .nav-link:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
+body.dashboard-workshop .sidebar .nav-link.active{background:linear-gradient(90deg,#0fa653,#08763c)!important;color:#fff!important}
+body.dashboard-workshop .sidebar .nav-link svg{width:18px!important;height:18px!important;flex:none!important;color:#1fc467!important}
+body.dashboard-workshop .sidebar .sidebar-search .hs-bar{min-height:38px!important;border-radius:10px!important}
+body.dashboard-workshop .sidebar .sidebar-quick-access,body.dashboard-workshop .sidebar .sidebar-workspace-note,body.dashboard-workshop .sidebar .sidebar-promo,body.dashboard-workshop .sidebar .sidebar-theme-row,body.dashboard-workshop .sidebar .sidebar-footer{flex-shrink:0!important}
+body.dashboard-workshop .sidebar .sidebar-theme-row{display:flex!important;align-items:center!important;justify-content:space-between!important}
+body.dashboard-workshop .dashboard-sidebar-toggle{position:fixed!important;z-index:1400!important;top:20px!important;left:204px!important;width:36px!important;height:36px!important;border:1px solid rgba(174,224,202,.22)!important;border-radius:50%!important;background:#122326!important;color:#dcebe2!important}
+body.dashboard-workshop.sidebar-collapsed .main{margin-left:0!important}
+body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:20px!important}
+body.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:8px!important}
+:root[data-theme="light"] body.dashboard-workshop .sidebar{background:#f7f9fc!important;border-right:1px solid #e1e7ef!important;box-shadow:10px 0 30px rgba(24,42,75,.07)!important}
+:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp{color:#52627a!important}
+:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp:hover,:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:#edf2f7!important;color:#172b40!important}
+:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link{color:#34445a!important}
+:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link.active{background:#dff7e7!important;color:#08763c!important}
+:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{background:#fff!important;color:#19365b!important;border-color:#dce4ee!important}
+:root[data-theme="dark"] body.dashboard-workshop .dashboard-header-date{color:#e8eef6!important}
+:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{background:#202a38!important;color:#f3f6fb!important;border-color:#46556a!important}
 @media(max-width:760px){
- body.dashboard-page.dashboard-workshop .dashboard-topbar{left:0!important;height:60px!important;min-height:60px!important;padding:0 12px 0 58px!important;gap:8px!important}
- body.dashboard-page.dashboard-workshop .dashboard-header-date{gap:5px!important;font-size:10px!important}
- body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:6px!important}
- body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
- body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status{width:34px!important;height:34px!important;min-width:34px!important}
- body.dashboard-page.dashboard-workshop .main{padding-top:72px!important}
+ body.dashboard-workshop .main{margin-left:0!important;padding:72px 14px 32px!important}
+ body.dashboard-workshop .dashboard-topbar{top:10px!important;left:58px!important;right:10px!important;height:42px!important;min-height:42px!important;gap:5px!important}
+ body.dashboard-workshop .dashboard-header-date{gap:4px!important;font-size:9px!important}
+ body.dashboard-workshop .dashboard-topbar-actions{gap:4px!important}
+ body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:32px!important;height:32px!important;min-width:32px!important}
+ body.dashboard-workshop .dashboard-header-date .header-separator{display:none!important}
 }
-</style>
-<style id="job-card-status-colours">
-/* Restrained status colours: muted surfaces, clear labels, no rainbow styling. */
-body.dashboard-page.dashboard-workshop .badge--received{background:#eaf0f6!important;color:#43546b!important;border:1px solid #d7e0ea!important}
-body.dashboard-page.dashboard-workshop .badge--diagnosing{background:#f0eaff!important;color:#6941a5!important;border:1px solid #dfd0ff!important}
-body.dashboard-page.dashboard-workshop .badge--in-repair{background:#fff1df!important;color:#a95a12!important;border:1px solid #f8d8b1!important}
-body.dashboard-page.dashboard-workshop .badge--awaiting{background:#edf2f7!important;color:#53657b!important;border:1px solid #dbe3ec!important}
-body.dashboard-page.dashboard-workshop .badge--ready,
-body.dashboard-page.dashboard-workshop .badge--completed,
-body.dashboard-page.dashboard-workshop .badge--collected{background:#e5f6ec!important;color:#167344!important;border:1px solid #c6ead4!important}
-body.dashboard-page.dashboard-workshop .badge--unclaimed{background:#fff0ed!important;color:#b33a32!important;border:1px solid #f6d0ca!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--received{background:rgba(148,163,184,.15)!important;color:#d5dfeb!important;border-color:rgba(148,163,184,.28)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--diagnosing{background:rgba(167,139,250,.16)!important;color:#c9b5ff!important;border-color:rgba(167,139,250,.3)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--in-repair{background:rgba(245,158,11,.15)!important;color:#ffc477!important;border-color:rgba(245,158,11,.28)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--awaiting{background:rgba(148,163,184,.12)!important;color:#c6d2df!important;border-color:rgba(148,163,184,.24)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--ready,
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--completed,
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--collected{background:rgba(34,197,94,.15)!important;color:#80e4a9!important;border-color:rgba(34,197,94,.28)!important}
-:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .badge--unclaimed{background:rgba(239,68,68,.15)!important;color:#ffaaa3!important;border-color:rgba(239,68,68,.28)!important}
-body.dashboard-page.dashboard-workshop .badge{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:5px 9px!important;border-radius:999px!important;font-size:11px!important;font-weight:700!important;line-height:1.2!important;white-space:nowrap!important}
-body.dashboard-page.dashboard-workshop .badge svg{width:13px!important;height:13px!important;flex:none!important}
 </style>
 
 </head>
@@ -1039,9 +1014,7 @@ body.dashboard-page.dashboard-workshop .badge svg{width:13px!important;height:13
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
 <script>
-(()=>{const $=id=>document.getElementById(id);const c=$("hdr-clock"),l=$("hdr-live"),d=$("dashboard-date");
-const t=()=>{const n=new Date();c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};t();setInterval(t,1000);
-const o=()=>{l.dataset.state=navigator.onLine?"online":"offline";l.querySelector("span").textContent=navigator.onLine?"Live":"Offline"};addEventListener("online",o);addEventListener("offline",o);o()})();
+(()=>{const t=()=>{const n=new Date(),c=document.getElementById("hdr-clock"),d=document.getElementById("dashboard-date");if(c)c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});if(d)d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};const o=()=>{const l=document.getElementById("hdr-live");if(l){l.dataset.state=navigator.onLine?"online":"offline";const label=l.querySelector("span");if(label)label.textContent=navigator.onLine?"Live":"Offline"}};t();o();setInterval(t,1000);addEventListener("online",o);addEventListener("offline",o)})();
 </script>
 <script>
 /* Three-dot menu: show every module in categories (built from the role-filtered sidebar). */
@@ -1297,7 +1270,7 @@ async function load(){
  const h=new URLSearchParams(location.search).get("highlight");render();
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
- const q=($("hs-input").value||"").toLowerCase(),sts=statuses();
+ const q=( $("hs-input")?.value || "" ).toLowerCase(),sts=statuses();
  const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.full_name,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
  const active=jobs.filter(j=>!stClass(j.status)).length;
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
@@ -2262,7 +2235,7 @@ $("s-inv").onclick=async()=>{
 };
 
 $("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
-$("hs-input").oninput=render;
+$("hs-input")?.addEventListener("input",render);
 load().then(()=>{
  const params=new URLSearchParams(location.search);
  if(params.get("quote")||(params.get("new")==="1"&&(params.get("customer")||params.get("plate"))))openBuilder();
