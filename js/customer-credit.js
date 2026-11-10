@@ -26,6 +26,8 @@ let unpaidJobs = [];
 let canRefund = false;
 let loadSequence = 0;
 let hasLoadedCreditNotes = false;
+let requestedCreditNoteHandled = false;
+let modalOpenedAt = 0;
 
 function showMessage(message, tone = "info") {
   let status = document.getElementById("customer-credit-status");
@@ -116,13 +118,14 @@ async function load() {
   render();
 
   const requestedId = new URLSearchParams(location.search).get("credit_note_id");
-  if (requestedId) {
+  if (requestedId && !requestedCreditNoteHandled) {
+    requestedCreditNoteHandled = true;
+    const cleanParams = new URLSearchParams(location.search);
+    cleanParams.delete("credit_note_id");
+    history.replaceState(null, "", `${location.pathname}${cleanParams.toString() ? "?" + cleanParams.toString() : ""}${location.hash}`);
     const card = list.querySelector(`[data-credit-note-id="${CSS.escape(requestedId)}"]`);
-    if (card) {
-      openCreditModal(card);
-    } else {
-      showMessage("The requested quotation credit note could not be found. You can still view all previous receipts below.", "error");
-    }
+    if (card) openCreditModal(card);
+    else showMessage("The requested quotation credit note could not be found. You can still view all previous receipts below.", "error");
   }
 }
 
@@ -336,7 +339,7 @@ function render() {
       const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
       const status = available <= .005 ? "Used / refunded" : available < Number(note.amount || 0) - .005 ? "Partially used" : "Available";
       const tone = available <= .005 ? "applied" : available < Number(note.amount || 0) - .005 ? "partial" : "available";
-      const phone = String(note.customer_phone || "").replace(/\\D/g,"");
+      const phone = String(note.customer_phone || "").replace(/\D/g,"");
       const message = `Centric Auto Mobile credit note CN-${String(note.note_number).padStart(5,"0")}. Customer: ${note.customer_name || "Customer"}. Invoice: ${invoiceNumber}. Amount: ${money(note.amount)}. Carried forward: ${money(available)}.`;
       const wa = phone ? "https://wa.me/" + phone + "?text=" + encodeURIComponent(message) : "";
       const mail = invoice.customer_email ? "mailto:" + encodeURIComponent(invoice.customer_email) + "?subject=" + encodeURIComponent("Centric Auto Mobile " + number) + "&body=" + encodeURIComponent(message) : "";
@@ -389,6 +392,7 @@ function openCreditModal(record) {
   sheet.appendChild(styleScope);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
+  modalOpenedAt = Date.now();
 
   activeCreditModal = overlay;
   document.body.classList.add("credit-modal-open");
@@ -396,14 +400,6 @@ function openCreditModal(record) {
   window.lucide?.createIcons({ root: overlay });
   overlay.querySelector(".credit-modal-close")?.focus({ preventScroll: true });
 }
-
-document.addEventListener("pointerup", event => {
-  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-  const summary = target?.closest(".customer-credit-record > summary");
-  if (!summary) return;
-  event.preventDefault();
-  openCreditModal(summary.parentElement);
-}, { capture: true, passive: false });
 
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeCreditModal();
@@ -418,15 +414,13 @@ document.addEventListener("click", async event => {
     return;
   }
   if (target.classList?.contains("credit-modal-overlay")) {
-    closeCreditModal();
+    if (Date.now() - modalOpenedAt > 400) closeCreditModal();
     return;
   }
   const creditSummary = target.closest(".customer-credit-record > summary");
   if (creditSummary) {
     event.preventDefault();
-    // Pointer taps are handled on pointerup so mobile browsers cannot leave
-    // the native details disclosure open instead of showing the modal.
-    if (event.detail === 0) openCreditModal(creditSummary.parentElement);
+    openCreditModal(creditSummary.parentElement);
     return;
   }
   const printButton = target.closest("[data-credit-print]");
