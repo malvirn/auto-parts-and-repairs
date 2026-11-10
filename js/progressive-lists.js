@@ -79,13 +79,13 @@
     const wrap = button.closest(".progressive-more-wrap");
     wrap.hidden = false;
     if (visible >= records.length) {
-      button.textContent = "Show less";
+      if (button.textContent !== "Show less") button.textContent = "Show less";
       button.onclick = () => {
         container.dataset.progressiveVisible = String(INITIAL);
         update(container, true);
       };
     } else {
-      button.textContent = "More";
+      if (button.textContent !== "More") button.textContent = "More";
       button.onclick = () => {
         container.dataset.progressiveVisible = String(Math.min(records.length, Number(container.dataset.progressiveVisible || INITIAL) + STEP));
         update(container, true);
@@ -134,7 +134,6 @@
         }
         record.addedNodes.forEach(node => { if (node.nodeType === 1) process(node); });
       }
-      process();
     });
   });
   observer.observe(document.body, { childList: true, subtree: true });
