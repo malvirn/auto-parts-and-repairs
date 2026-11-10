@@ -502,15 +502,12 @@ function initializeNavigation() {
     // while the toggle button still jumped over the header icons.
     // Tablets (769 to 1100px) start with the menu collapsed, like the dashboard, so the
     // page gets the full width. Laptops start expanded. Each size remembers its own choice.
-    const isTablet = () => window.matchMedia("(min-width: 769px) and (max-width: 1100px)").matches;
-    const collapseKey = () => isTablet() ? "apr-sidebar-collapsed-tablet" : "apr-sidebar-collapsed";
+    const collapseKey = "apr-sidebar-collapsed";
     const applySavedCollapse = () => {
-      let saved = null;
-      try { saved = localStorage.getItem(collapseKey()); } catch (error) {
-        console.warn("Could not read saved sidebar state:", error);
-      }
-      const collapsed = saved === null ? isTablet() : saved === "true";
-      document.body.classList.toggle("sidebar-collapsed", collapsed && !isMobile());
+      // Keep navigation closed by default on every screen. It opens only when
+      // the user taps the menu control, then closes as soon as a destination is chosen.
+      document.body.classList.toggle("sidebar-collapsed", !isMobile());
+      document.body.classList.remove("sidebar-open");
     };
     applySavedCollapse();
     const syncSidebar = () => {
@@ -529,7 +526,7 @@ function initializeNavigation() {
         if (isMobile()) document.body.classList.toggle("sidebar-open");
         else {
           document.body.classList.toggle("sidebar-collapsed");
-          try { localStorage.setItem(collapseKey(), String(document.body.classList.contains("sidebar-collapsed"))); } catch (error) {
+          try { localStorage.setItem(collapseKey, String(document.body.classList.contains("sidebar-collapsed"))); } catch (error) {
             console.warn("Could not save sidebar state:", error);
           }
         }
@@ -555,8 +552,15 @@ function initializeNavigation() {
           }
           return;
         }
-        if (event.target.closest(".sidebar a.nav-link") && isMobile()) {
-          document.body.classList.remove("sidebar-open");
+        if (event.target.closest(".sidebar a.nav-link")) {
+          if (isMobile()) {
+            document.body.classList.remove("sidebar-open");
+          } else {
+            document.body.classList.add("sidebar-collapsed");
+            try { localStorage.setItem(collapseKey, "true"); } catch (error) {
+              console.warn("Could not save collapsed navigation state:", error);
+            }
+          }
           syncSidebar();
         }
       });
