@@ -386,9 +386,13 @@ creditInlineStyle.textContent = `
 .customer-credit-panel-scope .customer-credit-record__summary::-webkit-details-marker,
 .customer-credit-panel-scope .overpayment-credit-record__summary::-webkit-details-marker{display:none!important}
 .customer-credit-panel-scope .customer-credit-record__summary::after,
-.customer-credit-panel-scope .overpayment-credit-record__summary::after{content:"+";grid-column:2;grid-row:1;color:#c5ced9;font-size:22px;font-weight:500;align-self:center}
+.customer-credit-panel-scope .overpayment-credit-record__summary::after{content:"+";position:absolute;right:12px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:24px;height:24px;color:#c5ced9;font-size:22px;font-weight:500;pointer-events:none}
 .customer-credit-panel-scope details[open]>.customer-credit-record__summary::after,
 .customer-credit-panel-scope details[open]>.overpayment-credit-record__summary::after{content:"−"}
+.customer-credit-panel-scope .overpayment-credit-record__summary{padding-right:42px!important}
+.customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child{grid-column:1!important;grid-row:1!important;display:grid!important;gap:4px!important;min-width:0!important}
+.customer-credit-panel-scope .overpayment-credit-record__summary>span:nth-child(2){grid-column:1!important;grid-row:2!important;justify-self:start!important}
+.customer-credit-panel-scope .overpayment-credit-record__summary>strong{grid-column:2!important;grid-row:1/3!important;min-width:0!important;padding-right:12px!important;text-align:right!important}
 .customer-credit-panel-scope .credit-note-id{display:inline-flex!important;grid-column:1!important;grid-row:1!important;width:max-content!important;max-width:100%!important;padding:6px 10px!important;border:1px solid #566477!important;border-radius:7px!important;background:#303c4b!important;color:#f1f4f8!important;font-size:13px!important;font-weight:800!important;overflow-wrap:anywhere!important}
 .customer-credit-panel-scope .credit-note-customer{grid-column:1!important;grid-row:2!important;display:grid!important;gap:3px!important;min-width:0!important}
 .customer-credit-panel-scope .credit-note-customer strong,
