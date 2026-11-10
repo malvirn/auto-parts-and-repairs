@@ -286,7 +286,7 @@ function render() {
         <div class="customer-credit-document">
           <header class="credit-modal-header">
             <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
-            <div class="credit-modal-close-column"><div class="credit-modal-close-column"><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div></div>
+            <div class="credit-modal-close-column"><button type="button" class="credit-modal-close" data-credit-modal-close aria-label="Close credit note">×</button></div>
           </header>
           <section class="credit-available-card">
             <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
@@ -395,29 +395,31 @@ document.addEventListener("keydown", event => {
 });
 
 document.addEventListener("click", async event => {
-  const closeButton = event.target.closest("[data-credit-modal-close]");
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  if (!target) return;
+  const closeButton = target.closest("[data-credit-modal-close]");
   if (closeButton) {
     closeCreditModal();
     return;
   }
-  if (event.target.classList?.contains("credit-modal-overlay")) {
+  if (target.classList?.contains("credit-modal-overlay")) {
     closeCreditModal();
     return;
   }
-  const creditSummary = event.target.closest(".customer-credit-record > summary");
+  const creditSummary = target.closest(".customer-credit-record > summary");
   if (creditSummary) {
     event.preventDefault();
     openCreditModal(creditSummary.parentElement);
     return;
   }
-  const printButton = event.target.closest("[data-credit-print]");
+  const printButton = target.closest("[data-credit-print]");
   if (printButton) {
     const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
     if (note) printCreditNote(note);
     return;
   }
-  const applyButton = event.target.closest(".customer-credit-apply");
-  const reverseButton = event.target.closest(".customer-credit-reverse");
+  const applyButton = target.closest(".customer-credit-apply");
+  const reverseButton = target.closest(".customer-credit-reverse");
   if (!applyButton && !reverseButton) return;
 
   if (reverseButton) {
@@ -465,7 +467,7 @@ document.addEventListener("click", async event => {
     showMessage(error.message || "The customer-credit transaction could not be completed.", "error");
     applyButton.disabled = false;
   }
-});
+}, true);
 
 ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => {
   const field = document.getElementById(id);
