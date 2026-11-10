@@ -858,8 +858,9 @@ select.st option{background:#10181a;color:#eef3ef}
     <div id="list" data-no-progressive><div class="ov-empty">Loading…</div></div>
   </section>
 
+  <div class="rc-tabs credit-voucher-tabs" role="group" aria-label="Customer credit views"><button class="btn" id="credit-notes-tab" type="button" aria-pressed="true">Credit Notes</button><button class="btn" id="credit-voucher-tab" type="button" aria-pressed="false">Vouchers</button></div>
   <section class="panel" id="customer-credit-panel">
-    <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits &amp; invoice overpayments</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn" id="credit-voucher-tab" type="button" aria-pressed="false">Vouchers</button><button class="btn" id="customer-credit-refresh" type="button" title="Refresh customer credit"><i data-lucide="refresh-cw"></i></button></div>
+    <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits &amp; invoice overpayments</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn" id="customer-credit-refresh" type="button" title="Refresh customer credit"><i data-lucide="refresh-cw"></i></button></div>
     <p class="invoice-billing-note">Includes quotation deposits and invoice overpayments. Overpayments appear here with their credit note number, original invoice and amount carried forward. Customer credit remains a liability, not new income. Quotation deposit applications, refunds and reversals are audited in the ledger.</p>
     <div class="receipt-list-filters credit-note-filters" role="search" aria-label="Filter credit notes">
       <label for="customer-credit-search">Search customer, credit note, invoice, phone or reference<input id="customer-credit-search" type="search" placeholder="Search credit notes…" autocomplete="off"></label>
