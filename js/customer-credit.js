@@ -110,9 +110,7 @@ async function load() {
   if (requestedId) {
     const card = list.querySelector(`[data-credit-note-id="${CSS.escape(requestedId)}"]`);
     if (card) {
-      card.open = true;
-      card.scrollIntoView({ behavior: "smooth", block: "start" });
-      card.querySelector(".customer-credit-print")?.focus({ preventScroll: true });
+      openCreditModal(card);
     } else {
       showMessage("The requested quotation credit note could not be found. You can still view all previous receipts below.", "error");
     }
@@ -209,8 +207,7 @@ function renderUnpaidJobs(note) {
 }
 
 function render() {
-  const openModalRecord = document.querySelector(".credit-note-modal[open]");
-  if (openModalRecord) closeCreditModal(openModalRecord);
+  closeCreditModal();
   const query = document.getElementById("customer-credit-search")?.value.trim().toLocaleLowerCase() || "";
   const from = document.getElementById("customer-credit-from")?.value || "";
   const to = document.getElementById("customer-credit-to")?.value || "";
@@ -347,57 +344,58 @@ function render() {
   window.lucide?.createIcons();
 }
 
+let activeCreditModal = null;
+
 function closeCreditModal(record) {
-  if (!record) return;
-  record.open = false;
-  record.classList.remove("credit-note-modal");
-  const overlay = record._creditModalOverlay;
-  const placeholder = record._creditModalPlaceholder;
-  if (placeholder?.parentNode) placeholder.replaceWith(record);
-  if (overlay?.isConnected) overlay.remove();
-  delete record._creditModalPlaceholder;
-  delete record._creditModalOverlay;
+  const overlay = activeCreditModal || document.querySelector(".credit-modal-overlay");
+  if (!overlay) return;
+  overlay.remove();
+  activeCreditModal = null;
   document.body.classList.remove("credit-modal-open");
-  document.body.style.overflow = record._creditPreviousBodyOverflow || "";
-  delete record._creditPreviousBodyOverflow;
+  document.body.style.overflow = overlay.dataset.previousBodyOverflow || "";
 }
 
 function openCreditModal(record) {
-  if (!record || record._creditModalOverlay) return;
+  if (!record || activeCreditModal) return;
+  const documentContent = record.querySelector(":scope > .customer-credit-document");
+  if (!documentContent) return;
+
   const overlay = document.createElement("div");
   overlay.className = "credit-modal-overlay";
   overlay.setAttribute("role", "presentation");
-  const sheet = document.createElement("div");
+  overlay.dataset.previousBodyOverflow = document.body.style.overflow;
+
+  const sheet = document.createElement("section");
   sheet.className = "credit-modal-sheet";
   sheet.setAttribute("role", "dialog");
   sheet.setAttribute("aria-modal", "true");
   sheet.setAttribute("aria-label", "Customer credit note");
-  record._creditModalPlaceholder = document.createComment("Credit note location");
-  record.parentNode?.insertBefore(record._creditModalPlaceholder, record);
-  record._creditPreviousBodyOverflow = document.body.style.overflow;
-  record._creditModalOverlay = overlay;
-  record.open = true;
-  record.classList.add("credit-note-modal");
-  sheet.appendChild(record);
+
+  const modalContent = documentContent.cloneNode(true);
+  modalContent.classList.add("credit-modal-content");
+  sheet.appendChild(modalContent);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
+
+  activeCreditModal = overlay;
   document.body.classList.add("credit-modal-open");
   document.body.style.overflow = "hidden";
+  window.lucide?.createIcons({ root: overlay });
   overlay.querySelector(".credit-modal-close")?.focus({ preventScroll: true });
 }
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeCreditModal(document.querySelector(".credit-note-modal[open]"));
+  if (event.key === "Escape") closeCreditModal();
 });
 
 document.addEventListener("click", async event => {
   const closeButton = event.target.closest("[data-credit-modal-close]");
   if (closeButton) {
-    closeCreditModal(closeButton.closest(".credit-note-modal"));
+    closeCreditModal();
     return;
   }
   if (event.target.classList?.contains("credit-modal-overlay")) {
-    closeCreditModal(event.target.querySelector(".credit-note-modal"));
+    closeCreditModal();
     return;
   }
   const creditSummary = event.target.closest(".customer-credit-record:not(.overpayment-credit-record) > summary");
