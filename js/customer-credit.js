@@ -23,6 +23,8 @@ let targets = [];
 let jobsById = new Map();
 let unpaidJobs = [];
 let canRefund = false;
+let loadSequence = 0;
+let hasLoadedCreditNotes = false;
 
 function showMessage(message, tone = "info") {
   let status = document.getElementById("customer-credit-status");
@@ -38,7 +40,8 @@ function showMessage(message, tone = "info") {
 }
 
 async function load() {
-  list.innerHTML = '<div class="customer-credit-empty">Loading quotation credit notes…</div>';
+  const requestId = ++loadSequence;
+  if (!hasLoadedCreditNotes) list.innerHTML = '<div class="customer-credit-empty">Loading credit notes…</div>';
   const [receiptsResult, balancesResult, movementsResult, targetsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
       .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, quotations(quotation_number, created_at, repair_job_id), customers(email)")
@@ -53,9 +56,11 @@ async function load() {
     supabase.auth.getUser(),
   ]);
 
+  if (requestId !== loadSequence) return;
   const failure = receiptsResult.error || balancesResult.error || movementsResult.error || targetsResult.error;
   if (failure) {
-    list.innerHTML = `<div class="customer-credit-empty">Customer credit is unavailable: ${escapeHtml(failure.message)}</div>`;
+    if (!hasLoadedCreditNotes) list.innerHTML = `<div class="customer-credit-empty">Customer credit is unavailable: ${escapeHtml(failure.message)}</div>`;
+    console.error("Customer credit refresh failed; keeping the last displayed credit notes:", failure);
     return;
   }
 
@@ -70,11 +75,12 @@ async function load() {
   if (overpaymentRefundsResult.error) console.error("Could not load customer credit refund history:", overpaymentRefundsResult.error);
   if (overpaymentResult.error) {
     console.error("Could not load invoice overpayment credit notes:", overpaymentResult.error);
-    overpaymentCreditNotes = [];
+    if (!hasLoadedCreditNotes) overpaymentCreditNotes = [];
   } else {
     overpaymentCreditNotes = overpaymentResult.data || [];
   }
 
+  if (requestId !== loadSequence) return;
   const userId = authResult.data.user?.id;
   const profileResult = userId
     ? await supabase.from("profiles").select("role, access_level").eq("id", userId).maybeSingle()
@@ -104,6 +110,8 @@ async function load() {
       .in("id", unpaidJobIds);
     if (!error) unpaidJobs = jobs || [];
   }
+  if (requestId !== loadSequence) return;
+  hasLoadedCreditNotes = true;
   render();
 
   const requestedId = new URLSearchParams(location.search).get("credit_note_id");
@@ -357,7 +365,8 @@ function closeCreditModal(record) {
 }
 
 function openCreditModal(record) {
-  if (!record || activeCreditModal) return;
+  if (!record) return;
+  if (activeCreditModal) closeCreditModal();
   const documentContent = record.querySelector(":scope > .customer-credit-document, :scope > .overpayment-credit-record__body");
   if (!documentContent) return;
 
