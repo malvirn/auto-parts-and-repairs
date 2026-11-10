@@ -280,7 +280,7 @@ create or replace function public.resolve_expired_credit_voucher(
   p_voucher_id uuid,p_decision text,p_amount numeric,p_account_id uuid,p_reason text
 ) returns jsonb language plpgsql security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare
   uid uuid:=auth.uid(); v public.customer_credit_vouchers%rowtype;
   account_row public.accounts%rowtype; balance_value numeric(12,2); liability_account_id uuid;
@@ -362,7 +362,7 @@ begin
   balance_value:=public.credit_voucher_available_balance(v.id);
   return jsonb_build_object('resolution_id',resolution_id,'amount',amount_value,'remaining_balance',balance_value,'journal_entry_id',entry_id);
 end;
-$;
+$$;
 
 create or replace function public.lookup_credit_voucher(p_code text)
 returns jsonb language plpgsql security definer
