@@ -448,3 +448,21 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actio
   color:#e6edf7!important;
   stroke:#e6edf7!important;
 }
+
+
+/* Job Cards is the fixed pink Quick Access shortcut on every module page. */
+body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]{
+  background:#ec4899!important;
+  color:#fff!important;
+  border:1px solid #db2777!important;
+  box-shadow:0 2px 8px rgba(236,72,153,.22)!important;
+}
+body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]>svg,
+body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"] .quick-arrow{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:hover{
+  background:#db2777!important;
+  color:#fff!important;
+}
