@@ -1336,7 +1336,9 @@ async function saveCreditAction(){
    const jobId=$("credit-job-select").value;if(!jobId)throw new Error("Choose a matching job card checklist.");
    const{error}=await supabase.rpc("link_overpayment_credit_to_job",{p_credit_note_id:cur.id,p_repair_job_id:jobId});
    if(error)throw error;
-   toast("Credit applied to the job card. The outstanding balance and Ledger have been updated.");
+   const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:jobId});
+   if(syncError)console.error("Credit was applied, but the linked job invoice could not be synchronized:",syncError);
+   toast("Credit applied to the job card. The outstanding balance and linked invoice have been updated.");
   }else{
    const amount=Number($("credit-refund-amount").value),date=$("credit-refund-date").value,method=$("credit-refund-method").value,accountId=$("credit-refund-account").value;
    if(!Number.isFinite(amount)||amount<=0||amount>Number(cur.availableAmount)+0.005)throw new Error("Enter a refund amount within the available credit.");
