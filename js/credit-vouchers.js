@@ -127,6 +127,7 @@ async function previewVoucher() {
   try {
     const { data, error } = await supabase.rpc("lookup_credit_voucher", { p_code: code });
     if (error) throw error;
+    if (data?.error) throw new Error(data.error);
     checkedVoucher = data;
     const masked = (data.customer_first_name || "Customer") + (data.phone_last4 ? " · phone ending " + data.phone_last4 : "");
     redeemPreview.innerHTML = '<strong>' + esc(masked) + '</strong><span>' + money(data.available_amount) +
