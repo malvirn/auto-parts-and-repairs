@@ -32,27 +32,26 @@
     );
   }
 
+  function anchorFor(container) {
+    return container.matches("tbody") ? container.closest("table") : container;
+  }
+
   function getButton(container) {
-    let button = container.parentElement?.querySelector(':scope > .progressive-more-wrap[data-for="' + CSS.escape(container.id || container.dataset.progressiveKey || "") + '"] button');
-    if (!button) {
-      const wrap = document.createElement("div");
+    const anchor = anchorFor(container);
+    const key = container.id || anchor.id || container.dataset.progressiveKey || "record-list";
+    let wrap = anchor.parentElement?.querySelector(':scope > .progressive-more-wrap[data-for="' + CSS.escape(key) + '"]');
+    if (!wrap) {
+      wrap = document.createElement("div");
       wrap.className = "progressive-more-wrap";
-      wrap.dataset.for = container.id || container.dataset.progressiveKey || "";
+      wrap.dataset.for = key;
       wrap.setAttribute("data-progressive-control", "");
-      button = document.createElement("button");
+      const button = document.createElement("button");
       button.type = "button";
       button.className = "progressive-more-btn";
-      button.textContent = "More";
       wrap.append(button);
-      container.insertAdjacentElement("afterend", wrap);
-      button.addEventListener("click", () => {
-        const total = Number(container.dataset.progressiveTotal || 0);
-        const visible = Number(container.dataset.progressiveVisible || INITIAL);
-        container.dataset.progressiveVisible = String(Math.min(total, visible + STEP));
-        update(container, true);
-      });
+      anchor.insertAdjacentElement("afterend", wrap);
     }
-    return button;
+    return wrap.querySelector("button");
   }
 
   function update(container, keepCount = false) {
@@ -62,7 +61,8 @@
       records.forEach(record => { record.hidden = false; });
       container.dataset.progressiveTotal = String(records.length);
       container.dataset.progressiveVisible = String(records.length);
-      const wrap = container.nextElementSibling;
+      const anchor = anchorFor(container);
+      const wrap = anchor.nextElementSibling;
       if (wrap?.classList.contains("progressive-more-wrap")) wrap.remove();
       return;
     }
