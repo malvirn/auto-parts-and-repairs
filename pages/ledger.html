@@ -360,7 +360,7 @@
         <div class="customer-account-summary">
           <div class="customer-account-stat"><span>Jobs owing</span><strong id="jb-count">0</strong></div>
           <div class="customer-account-stat"><span>Total to collect</span><strong id="jb-owed">$0.00</strong></div>
-          <div class="customer-account-stat"><span>Collected on closed jobs</span><strong id="jb-paid">$0.00</strong></div>
+          <div class="customer-account-stat"><span>Payments and deposits applied</span><strong id="jb-paid">$0.00</strong></div>
         </div>
         <div class="customer-account-controls">
           <input id="jb-search" type="search" placeholder="Search job, customer or plate" aria-label="Search closed jobs">
@@ -392,7 +392,8 @@
           <p id="jb-payment-job" class="section-note"></p>
           <div class="payment-summary">
             <div><span>Job total</span><strong id="jb-pay-total">$0.00</strong></div>
-            <div><span>Paid so far</span><strong id="jb-pay-paid">$0.00</strong></div>
+            <div><span>Payments and deposits applied</span><strong id="jb-pay-paid">$0.00</strong></div>
+            <div><span>Deposit / credit applied</span><strong id="jb-pay-credit">$0.00</strong></div>
             <div><span>Balance due</span><strong id="jb-pay-balance">$0.00</strong></div>
           </div>
           <div class="payment-grid">
@@ -639,7 +640,7 @@
     let visibleJobCount = 5;
     const focusJob = new URLSearchParams(location.search).get("job");
 
-    function build(job, parts, paid, invoicePaid = 0) {
+    function build(job, parts, paid, invoicePaid = 0, creditApplied = 0) {
       const lines = parts.map(p => ({ name: p.parts?.description || p.part_name, qty: Number(p.quantity || 0), price: Number(p.price_at_time || 0) }))
                          .map(l => ({ ...l, total: l.qty * l.price }));
       const partsTotal = lines.reduce((s, l) => s + l.total, 0);
@@ -649,8 +650,10 @@
       const jobTotal = Number(job.total_cost);
       const taxableSubtotal = Number.isFinite(jobTotal) ? Math.max(0, jobTotal - vat) : partsTotal + labour;
       const total = Number.isFinite(jobTotal) ? jobTotal : Math.round((taxableSubtotal + vat) * 100) / 100;
-      paid = Math.max(paid, Number(invoicePaid || 0));
-      return { job, lines, partsTotal, labour, taxableSubtotal, vat, vatRate, total, paid, balance: Math.max(0, total - paid) };
+      const cashPaid = Math.max(paid, Number(invoicePaid || 0));
+      creditApplied = Number(creditApplied || 0);
+      paid = cashPaid + creditApplied;
+      return { job, lines, partsTotal, labour, taxableSubtotal, vat, vatRate, total, cashPaid, creditApplied, paid, balance: Math.max(0, total - paid) };
     }
 
     async function load() {
@@ -660,22 +663,25 @@
         .not("closed_at", "is", null).order("closed_at", { ascending: false }).limit(200);
       if (error) { $("jb-message").textContent = "Couldn't load closed jobs: " + error.message; $("jb-list").innerHTML = ""; return; }
       const ids = (jobs || []).map(j => j.id);
-      let parts = [], pays = [], invoices = [];
+      let parts = [], pays = [], invoices = [], credits = [];
       if (ids.length) {
-        const [p, y, i] = await Promise.all([
+        const [p, y, i, c] = await Promise.all([
           supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time,parts(description)").in("job_id", ids),
           supabase.from("repair_job_payments").select("repair_job_id,amount").in("repair_job_id", ids).is("voided_at", null),
-          supabase.from("invoices").select("repair_job_id,amount_paid").in("repair_job_id", ids)
+          supabase.from("invoices").select("repair_job_id,amount_paid").in("repair_job_id", ids),
+          supabase.from("customer_credit_movements").select("target_id,amount").in("target_id", ids).eq("target_type", "repair_job").eq("movement_type", "application").is("reversed_at", null)
         ]);
         if (p.error) $("jb-message").textContent = "Couldn't load parts: " + p.error.message;
         if (y.error) { $("jb-message").textContent = "Couldn't load job payments: " + y.error.message; $("jb-list").innerHTML = ""; return; }
         if (i.error) { $("jb-message").textContent = "Couldn't load linked invoice payments: " + i.error.message; $("jb-list").innerHTML = ""; return; }
-        parts = p.data || []; pays = y.data || []; invoices = i.data || [];
+        if (c.error) { $("jb-message").textContent = "Couldn't load applied customer deposits: " + c.error.message; $("jb-list").innerHTML = ""; return; }
+        parts = p.data || []; pays = y.data || []; invoices = i.data || []; credits = c.data || [];
       }
       rows = (jobs || []).map(j => build(j,
         parts.filter(p => String(p.job_id) === String(j.id)),
         pays.filter(y => String(y.repair_job_id) === String(j.id)).reduce((s, y) => s + Number(y.amount || 0), 0),
-        invoices.filter(i => String(i.repair_job_id) === String(j.id)).reduce((paid, i) => Math.max(paid, Number(i.amount_paid || 0)), 0)));
+        invoices.filter(i => String(i.repair_job_id) === String(j.id)).reduce((paid, i) => Math.max(paid, Number(i.amount_paid || 0)), 0),
+        credits.filter(c => String(c.target_id) === String(j.id)).reduce((sum, c) => sum + Number(c.amount || 0), 0)));
       render();
     }
 
@@ -712,7 +718,9 @@
               <tr><td colspan="2">Subtotal</td><td>${money(r.taxableSubtotal)}</td></tr>
               <tr><td colspan="2">${r.vatRate ? `VAT (${r.vatRate}%)` : "VAT not applied"}</td><td>${money(r.vat)}</td></tr>
               <tr class="tot"><td colspan="2">${r.vatRate ? "Total including VAT" : "Job total"}</td><td>${money(r.total)}</td></tr>
-              <tr><td colspan="2">Paid so far</td><td>${money(r.paid)}</td></tr>
+              <tr><td colspan="2">Payments received</td><td>${money(r.cashPaid)}</td></tr>
+              <tr><td colspan="2">Deposit / credit applied</td><td>${money(r.creditApplied)}</td></tr>
+              <tr><td colspan="2">Total covered</td><td>${money(r.paid)}</td></tr>
               <tr class="tot"><td colspan="2">Balance due</td><td>${money(r.balance)}</td></tr>
             </table>
             <div class="jb-actions">
@@ -794,6 +802,7 @@
         `${jn(row.job)} · ${row.job.customers?.full_name || "Customer"} · ${row.job.vehicles?.license_plate || "Vehicle"}`;
       $("jb-pay-total").textContent = money(row.total);
       $("jb-pay-paid").textContent = money(row.paid);
+      $("jb-pay-credit").textContent = money(row.creditApplied);
       $("jb-pay-balance").textContent = money(row.balance);
       $("jb-pay-received").value = row.balance > 0 ? row.balance.toFixed(2) : "";
       $("jb-pay-date").value = new Date().toISOString().slice(0, 10);
