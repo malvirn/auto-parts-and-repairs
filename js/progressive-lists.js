@@ -57,7 +57,7 @@
   function update(container, keepCount = false) {
     if (!container.isConnected) return;
     const records = recordsFor(container);
-    if (container.hasAttribute("data-no-progressive")) {
+    if (container.closest("[data-no-progressive]")) {
       records.forEach(record => { record.hidden = false; });
       const wrap = anchorFor(container).nextElementSibling;
       if (wrap?.classList.contains("progressive-more-wrap")) wrap.remove();
