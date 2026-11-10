@@ -733,7 +733,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <select id="f-veh"><option value="">+ New vehicle</option></select>
       <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
       <div class="two"><input id="f-year" type="number" placeholder="Year" /><input id="f-plate" placeholder="Registration plate" style="text-transform:uppercase" /></div>
-      <div class="two"><input id="f-body-type" placeholder="Body type (e.g. Sedan)" /><input id="f-chassis" placeholder="Chassis number" /></div>
+      <div class="two"><select id="f-body-type" aria-label="Vehicle body type"><option value="">Select body type</option><option>Sedan</option><option>Hatchback</option><option>SUV</option><option>Pickup</option><option>Van</option><option>Minibus</option><option>Bus</option><option>Coupe</option><option>Wagon</option><option>Truck</option><option>Convertible</option><option>Other</option></select><input id="f-chassis" placeholder="Chassis number" /></div>
       <div class="two"><input id="f-engine" placeholder="Engine number" /></div>
       <div class="two" hidden><label for="f-fuel-in">Fuel level at drop-off<select id="f-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label><label for="f-odometer-in">Odometer at drop-off<input id="f-odometer-in" type="number" min="0" step="1" placeholder="Odometer reading"></label></div>
       <h3>3 · Work</h3>
