@@ -1947,24 +1947,25 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
   }
 }
 
+/* ChatGPT-inspired dark surfaces and WhatsApp-inspired light surfaces. */
 :root[data-theme="dark"] {
-  --apr-bg: #171c24;
-  --apr-surface: #222a35;
-  --apr-surface-2: #1c242e;
-  --apr-border: #394554;
-  --apr-text: #edf1f7;
-  --apr-muted: #adb8c7;
-  --apr-accent: #79a6f6;
+  --apr-bg: #212121;
+  --apr-surface: #2f2f2f;
+  --apr-surface-2: #171717;
+  --apr-border: #424242;
+  --apr-text: #ececec;
+  --apr-muted: #a1a1aa;
+  --apr-accent: #8e8ea0;
 }
 
 :root[data-theme="light"] {
-  --apr-bg: #e9edf2;
-  --apr-surface: #f5f7fa;
-  --apr-surface-2: #eef2f6;
-  --apr-border: #d2d9e2;
-  --apr-text: #18212b;
-  --apr-muted: #536273;
-  --apr-accent: #315fa8;
+  --apr-bg: #f7f9f8;
+  --apr-surface: #ffffff;
+  --apr-surface-2: #f0f5f2;
+  --apr-border: #dce5df;
+  --apr-text: #111b21;
+  --apr-muted: #667781;
+  --apr-accent: #008069;
 }
 
 :root[data-theme] body.dashboard-page,
@@ -2143,3 +2144,97 @@ body.dashboard-page .sidebar-account__footer .sidebar-account__signout{width:100
 /* Keep the connection indicator visible and readable in the module header. */
 body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status{width:auto;min-width:76px;height:36px;padding:0 8px;gap:5px}
 body.dashboard-workshop .dashboard-connection-label{display:inline;font-size:10px;font-weight:750;letter-spacing:.01em}
+
+
+/* Consistent, high-contrast app chrome in both themes. */
+:root[data-theme] body.dashboard-page .sidebar {
+  background: var(--apr-surface) !important;
+  border-color: var(--apr-border) !important;
+  color: var(--apr-text) !important;
+}
+:root[data-theme] body.dashboard-page .sidebar .nav-grp,
+:root[data-theme] body.dashboard-page .sidebar .nav-link {
+  color: var(--apr-text) !important;
+}
+:root[data-theme] body.dashboard-page .sidebar .nav-link svg,
+:root[data-theme] body.dashboard-page .sidebar .nav-grp svg {
+  color: var(--apr-accent) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link.active,
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link[aria-current="page"] {
+  background: #d9fdd3 !important;
+  color: #075e54 !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link.active svg,
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link[aria-current="page"] svg {
+  color: #008069 !important;
+}
+:root[data-theme="dark"] body.dashboard-page .sidebar .nav-link.active,
+:root[data-theme="dark"] body.dashboard-page .sidebar .nav-link[aria-current="page"] {
+  background: #3a3a3a !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 0 0 #a1a1aa;
+}
+:root[data-theme] body.dashboard-page :is(.app-header, .site-masthead, .main__header.dashboard-hero),
+:root[data-theme] body.dashboard-workshop .dashboard-topbar {
+  background: var(--apr-surface) !important;
+  border-color: var(--apr-border) !important;
+  color: var(--apr-text) !important;
+}
+:root[data-theme] body.dashboard-page .hdr-header-actions > :is(button, a),
+:root[data-theme] body.dashboard-workshop .dashboard-topbar-actions > :is(button, a, span) {
+  border: 1px solid var(--apr-border) !important;
+  background: var(--apr-surface-2) !important;
+  color: var(--apr-text) !important;
+  box-shadow: none !important;
+}
+:root[data-theme] body.dashboard-page .hdr-header-actions > :is(button, a) svg,
+:root[data-theme] body.dashboard-workshop .dashboard-topbar-actions > :is(button, a) svg {
+  color: currentColor !important;
+  opacity: 1 !important;
+}
+:root[data-theme] body.dashboard-page .hdr-header-actions > :is(button, a):hover,
+:root[data-theme] body.dashboard-workshop .dashboard-topbar-actions > :is(button, a):hover {
+  border-color: var(--apr-accent) !important;
+  filter: brightness(.96);
+}
+:root[data-theme] body.dashboard-workshop .dashboard-topbar .hs-bar,
+:root[data-theme] body.dashboard-workshop .dashboard-topbar .hs-panel,
+:root[data-theme] body.dashboard-workshop #global-notif-panel {
+  border-color: var(--apr-border) !important;
+  background: var(--apr-surface-2) !important;
+  color: var(--apr-text) !important;
+}
+:root[data-theme] body.dashboard-workshop .dashboard-topbar #hs-input {
+  color: var(--apr-text) !important;
+}
+:root[data-theme] body.dashboard-workshop .dashboard-topbar #hs-input::placeholder {
+  color: var(--apr-muted) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar-account__role {
+  border-color: #b7e4cf;
+  background: #e7f5ee;
+  color: #075e54;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar-account__online {
+  color: #008069;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar-account__footer {
+  border-top-color: var(--apr-border);
+}
+:root[data-theme="light"] body.dashboard-page .dashboard-sidebar-toggle {
+  border-color: var(--apr-border) !important;
+  background: #ffffff !important;
+  color: #075e54 !important;
+}
+:root[data-theme="dark"] body.dashboard-page .dashboard-sidebar-toggle {
+  border-color: var(--apr-border) !important;
+  background: #303030 !important;
+  color: #ececec !important;
+}
+:root[data-theme="light"] body.dashboard-page .main :is(.page-intro, .section-note, .field label, .help-text, .form-hint, .empty-state) {
+  color: #52616b;
+}
+:root[data-theme="light"] body.dashboard-page .main :is(th, td, label, p, span, small, strong, h1, h2, h3, h4) {
+  text-shadow: none !important;
+}
