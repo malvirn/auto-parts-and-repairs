@@ -466,3 +466,30 @@ body.dashboard-workshop .sidebar .sidebar-quick-access>a[href*="repairs.html"]:h
   background:#db2777!important;
   color:#fff!important;
 }
+
+
+/* Keep every module's content flush with the available workspace width.
+   The main column must begin exactly where the expanded/collapsed sidebar ends. */
+@media(min-width:769px){
+  body.dashboard-page.dashboard-workshop .main{
+    display:block!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin-left:244px!important;
+    margin-right:0!important;
+  }
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
+    width:auto!important;
+    margin-left:74px!important;
+  }
+}
+@media(max-width:768px){
+  body.dashboard-page.dashboard-workshop .main,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
+    width:100%!important;
+    min-width:0!important;
+    margin-left:0!important;
+    margin-right:0!important;
+  }
+}
