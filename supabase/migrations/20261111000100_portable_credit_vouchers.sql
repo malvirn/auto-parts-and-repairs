@@ -314,6 +314,9 @@ begin
   if v.status not in ('expired','active') or v.expires_at>=current_date then
     raise exception 'Only expired vouchers can be resolved';
   end if;
+  update public.customer_credit_vouchers set status='expired',updated_at=now() where id=v.id and status='active';
+  if v.credit_note_type='quotation_deposit' then update public.quotation_deposit_receipts set voucher_status='expired' where id=v.credit_note_id;
+  else update public.customer_overpayment_credit_notes set voucher_status='expired' where id=v.credit_note_id; end if;
   select * into account_row from public.accounts where id=p_account_id and is_active;
   if not found then raise exception 'Choose an active account'; end if;
   if p_decision='refund' and not (account_row.type='asset' and account_row.code like '10%') then
