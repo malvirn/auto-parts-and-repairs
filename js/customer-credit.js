@@ -295,23 +295,20 @@ function render() {
           <span class="credit-note-status status-${status.tone}">${status.label}</span>
         </summary>
         <div class="customer-credit-document">
-          <header class="credit-modal-header">
-            <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE · CUSTOMER CREDIT NOTE</small><h3>QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
-            
+          <header class="credit-modal-header credit-note-brand-header">
+            <img class="credit-note-brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile logo">
+            <div class="credit-modal-title"><small>CENTRIC AUTO MOBILE</small><h3>Customer Credit Note QCN-${String(note.credit_note_number).padStart(6, "0")}</h3></div>
           </header>
           <section class="credit-available-card">
             <div><small>Available credit</small><strong>${money(note.available_amount)}</strong></div>
             <span class="credit-unused-badge">${status.applied > 0.005 || status.refunded > 0.005 ? escapeHtml(status.label) : "Unused"}</span>
           </section>
-          <section class="credit-details-card" aria-label="Credit note details">
-            <h4>Credit note details</h4>
-            <div class="credit-detail-row"><span>Customer name</span><strong>${escapeHtml(noteName)}<small>${escapeHtml(note.customer_phone || "No phone number recorded")}</small></strong></div>
-            <div class="credit-detail-row"><span>Deposit source</span><strong>Quotation #${escapeHtml(quoteNumber)}</strong></div>
-            <div class="credit-detail-row"><span>Payment received</span><strong>${escapeHtml(note.payment_method || "Payment method not recorded")} on ${dateLabel(note.payment_date)}</strong></div>
-            <div class="credit-detail-row"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
-            <div class="credit-detail-row"><span>Credit applied to customer work</span><strong>${money(status.applied)}</strong></div>
-            <div class="credit-detail-row"><span>Amount refunded</span><strong>${money(status.refunded)}</strong></div>
-            <div class="credit-detail-row"><span>Linked job card</span><strong>${job ? escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`) : "No job card created yet"}</strong></div>
+          <section class="credit-details-card credit-note-narrative" aria-label="Credit note explanation">
+            <h4>About this credit</h4>
+            <p>This credit note confirms that <strong>${escapeHtml(noteName)}</strong> (${escapeHtml(note.customer_phone || "no phone number recorded")}) paid a deposit of <strong>${money(note.amount)}</strong> in cash for Quotation #${escapeHtml(quoteNumber)} on ${dateLabel(note.payment_date)}.</p>
+            <p>So far, <strong>${money(status.applied)}</strong> of this deposit has been used towards the customer's work, and <strong>${money(status.refunded)}</strong> has been refunded. This leaves <strong>${money(note.available_amount)}</strong> available to use.</p>
+            <p>${job ? `This credit is linked to job card ${escapeHtml(job.cro_number || `JC-${String(job.job_number).padStart(5, "0")}`)}.` : "A job card has not yet been created for this deposit."}</p>
+            <p>This quotation deposit can be used within seven days of the date it was issued.</p>
           </section>
           <p class="credit-note-validity">${expired ? "The seven-day quotation deposit period has ended. Any unused credit is still available." : "This quotation deposit can be used for seven days after it was issued."}</p>
           <section class="credit-apply-section">
@@ -572,6 +569,19 @@ creditInlineStyle.textContent += `
 :root[data-theme="light"] .credit-note-dialog .credit-note-status{border-color:#c4ced8!important;background:#e9eef3!important;color:#263445!important}
 :root[data-theme="light"] .credit-note-dialog .credit-job-table-wrap{overflow-x:auto!important}
 @media(max-width:600px){.customer-credit-panel-scope .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;row-gap:4px!important}.customer-credit-panel-scope .credit-detail-row>strong{text-align:left!important}}
+`;
+creditInlineStyle.textContent += `
+.customer-credit-panel-scope .credit-note-brand-header{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:16px!important;padding:0 0 16px!important;border-bottom:1px solid #465365!important}
+.customer-credit-panel-scope .credit-note-brand-logo{display:block!important;width:76px!important;height:76px!important;max-width:24%!important;object-fit:contain!important;flex:none!important}
+.customer-credit-panel-scope .credit-note-brand-header .credit-modal-title{min-width:0!important}
+.customer-credit-panel-scope .credit-note-brand-header .credit-modal-title h3{font-size:clamp(17px,3.5vw,23px)!important;line-height:1.3!important}
+.customer-credit-panel-scope .credit-note-narrative p{margin:0!important;color:#e2e8f0!important;font-size:14px!important;line-height:1.8!important;overflow-wrap:anywhere!important}
+.customer-credit-panel-scope .credit-note-narrative p+p{margin-top:12px!important}
+.customer-credit-panel-scope .credit-note-narrative p strong{color:#fff!important;font-weight:750!important}
+:root[data-theme="light"] .credit-note-dialog .credit-note-brand-header{border-color:#d8e0e8!important}
+:root[data-theme="light"] .credit-note-dialog .credit-note-narrative p{color:#344256!important}
+:root[data-theme="light"] .credit-note-dialog .credit-note-narrative p strong{color:#17212d!important}
+@media(max-width:600px){.customer-credit-panel-scope .credit-note-brand-logo{width:58px!important;height:58px!important}.customer-credit-panel-scope .credit-note-brand-header{gap:11px!important}}
 `;
 document.head.appendChild(creditInlineStyle);
 import supabase from "./supabaseClient.js";
