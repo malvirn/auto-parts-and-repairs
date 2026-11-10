@@ -140,7 +140,11 @@ begin
     then 'quotation_deposit' else 'invoice_overpayment' end;
   select default_expiry_days into days_value from public.credit_voucher_settings where id = true;
   days_value := coalesce(days_value,90);
-  expiry_value := coalesce(new.expires_at, (coalesce(new.created_at, new.issued_at, now())::date + days_value));
+  if tg_table_name = 'quotation_deposit_receipts' then
+    expiry_value := coalesce(new.expires_at, coalesce(new.created_at,now())::date + days_value);
+  else
+    expiry_value := coalesce(new.expires_at, coalesce(new.issued_at,now())::date + days_value);
+  end if;
   if new.voucher_code is not null then
     code_value := upper(regexp_replace(new.voucher_code,'[^A-Za-z0-9]','','g'));
     if length(code_value) <> 10 then raise exception 'Voucher code must contain 10 valid characters'; end if;
@@ -350,10 +354,10 @@ begin
       where target_type='sales_order' and target_id=p_target_id and movement_type='application' and reversed_at is null;
     target_label:='Sales order '||p_target_id;
   end if;
-  select coalesce(sum(amount),0)+target_applied into target_applied
-    from public.credit_voucher_redemptions
-    where target_type=p_target_type and target_id=p_target_id and reversed_at is null
-      and credit_note_type='invoice_overpayment';
+  select target_applied + coalesce(sum(vr.amount),0) into target_applied
+    from public.credit_voucher_redemptions vr
+    where vr.target_type=p_target_type and vr.target_id=p_target_id and vr.reversed_at is null
+      and vr.credit_note_type='invoice_overpayment';
   -- The SELECT above adds only invoice-overpayment voucher rows to existing applications.
   target_paid:=coalesce(target_paid,0);
   target_total:=coalesce(target_total,0);
@@ -412,6 +416,8 @@ begin
   if p_action='cancel' then
     if v.status='redeemed' then raise exception 'A fully redeemed voucher cannot be cancelled'; end if;
     update public.customer_credit_vouchers set status='cancelled',updated_at=now() where id=v.id;
+    if v.credit_note_type='quotation_deposit' then update public.quotation_deposit_receipts set voucher_status='cancelled' where id=v.credit_note_id;
+    else update public.customer_overpayment_credit_notes set voucher_status='cancelled' where id=v.credit_note_id; end if;
   elsif p_action='set_expiry' then
     if p_new_expiry is null then raise exception 'Choose a new expiry date'; end if;
     update public.customer_credit_vouchers set expires_at=p_new_expiry,
@@ -441,7 +447,7 @@ begin
     if r.credit_note_type='quotation_deposit' then
       update public.customer_credit_movements set reversed_at=now(),reversed_by=uid,
         reversal_reason=btrim(p_reason),reversal_journal_entry_id=entry_id
-      where id=r.id and deposit_receipt_id=r.credit_note_id;
+      where journal_entry_id=r.journal_entry_id and deposit_receipt_id=r.credit_note_id;
     else
       update public.customer_overpayment_credits c set available_amount=c.available_amount+r.amount
       from public.customer_overpayment_credit_notes n
@@ -464,7 +470,7 @@ set search_path = public, pg_temp
 as $$
 begin
   if auth.uid() is null or public.current_access_level()<1 then raise exception 'Authorised staff access is required' using errcode='42501'; end if;
-  if p_default_expiry_days not between 1 and 3650 then raise exception 'Expiry must be between 1 and 3650 days'; end if;
+  if p_default_expiry_days is null or p_default_expiry_days not between 1 and 3650 then raise exception 'Expiry must be between 1 and 3650 days'; end if;
   update public.credit_voucher_settings set default_expiry_days=p_default_expiry_days,
     terms=coalesce(nullif(btrim(p_terms),''),terms),updated_at=now(),updated_by=auth.uid() where id=true;
   insert into public.credit_voucher_audit(action,details,performed_by)
@@ -480,3 +486,6 @@ grant execute on function public.lookup_credit_voucher(text) to authenticated;
 grant execute on function public.redeem_credit_voucher(text,numeric,text,uuid,uuid) to authenticated;
 grant execute on function public.manage_credit_voucher(uuid,text,text,date,uuid) to authenticated;
 grant execute on function public.update_credit_voucher_settings(integer,text) to authenticated;
+revoke all on function public.generate_credit_voucher_code() from public, anon, authenticated;
+revoke all on function public.issue_credit_voucher_for_note() from public, anon, authenticated;
+revoke all on function public.credit_voucher_available_balance(uuid) from public, anon, authenticated;
