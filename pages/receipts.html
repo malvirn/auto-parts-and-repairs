@@ -1975,7 +1975,6 @@ ${extra}
   #customer-credit-panel .customer-credit-actions{grid-template-columns:1fr!important}
   #customer-credit-panel .customer-credit-actions>*{grid-column:1!important}
 }
-}
 
 </style>`}
 function buildExportHtml(thermal=false){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="${esc(location.href)}"><title>${esc(cur?.number||"Receipt")}</title>${exportStyles(thermal)}
