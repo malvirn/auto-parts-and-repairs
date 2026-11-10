@@ -1303,6 +1303,15 @@ $("jm-apply").onclick=async()=>{
  }catch(error){toast("Couldn't apply the deposit: "+(error.message||error))}
  finally{button.disabled=false}
 };
+window.addEventListener("pageshow",()=>{if(cur)refreshJobMoney(cur)});
+window.addEventListener("focus",()=>{if(cur)refreshJobMoney(cur)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&cur)refreshJobMoney(cur)});
+const jobCreditChannel=supabase.channel("job-card-credit-live")
+ .on("postgres_changes",{event:"INSERT",schema:"public",table:"customer_credit_movements"},event=>{
+  const movement=event.new;
+  if(cur&&movement?.target_type==="repair_job"&&String(movement.target_id)===String(cur.id))refreshJobMoney(cur);
+ })
+ .subscribe();
 async function fillCloseMoney(job){
  const el=$("close-job-money");if(!el)return;
  try{
