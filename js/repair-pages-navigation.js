@@ -199,7 +199,7 @@ function addDashboardToolbar(main) {
     toggle.setAttribute("aria-label", "Collapse navigation");
     toggle.setAttribute("aria-controls", "sidebar");
     toggle.setAttribute("aria-expanded", "true");
-    toggle.innerHTML = '<i data-lucide="panel-left-close"></i>';
+    toggle.innerHTML = '<svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg>';
     sidebar.after(toggle);
   }
   window.lucide?.createIcons();
