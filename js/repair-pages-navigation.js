@@ -215,7 +215,12 @@ async function normalizeDashboardSidebar(sidebar) {
     const html = await response.text();
     const indexDocument = new DOMParser().parseFromString(html, "text/html");
     const source = indexDocument.querySelector("body.dashboard-page .sidebar");
-    if (!source) throw new Error("The dashboard navigation template is missing its sidebar");
+    const sourceHeader = indexDocument.querySelector("body.dashboard-workshop > .dashboard-topbar");
+    const sourceToggle = indexDocument.querySelector("#dashboard-sidebar-toggle");
+    const sourceBackdrop = indexDocument.querySelector(".dashboard-sidebar-backdrop");
+    if (!source || !sourceHeader || !sourceToggle || !sourceBackdrop) {
+      throw new Error("The Index shared layout template is incomplete");
+    }
 
     const rawRole = String(document.body.dataset.role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
     const normalizedRole = rawRole === "superadmin" ? "super_admin" : rawRole;
@@ -286,7 +291,19 @@ async function normalizeDashboardSidebar(sidebar) {
       group.querySelector(".nav-grp")?.setAttribute("aria-expanded", String(shouldOpen));
     });
     sidebar.replaceWith(canonical);
-    // Keep the home page sidebar untouched: no extra account/access-level card.
+
+    // Replace module-specific chrome with the exact Index page elements.
+    const header = sourceHeader.cloneNode(true);
+    const existingHeader = document.querySelector("body.dashboard-workshop > .dashboard-topbar");
+    if (existingHeader) existingHeader.replaceWith(header);
+    else document.body.insertBefore(header, document.body.firstChild);
+
+    const toggle = sourceToggle.cloneNode(true);
+    document.getElementById("dashboard-sidebar-toggle")?.replaceWith(toggle);
+    const backdrop = sourceBackdrop.cloneNode(true);
+    document.querySelector(".dashboard-sidebar-backdrop")?.replaceWith(backdrop);
+    if (!document.querySelector(".dashboard-sidebar-backdrop")) canonical.before(backdrop);
+
     canonical.removeAttribute("inert");
     window.lucide?.createIcons();
   } catch (error) {
@@ -502,7 +519,6 @@ function initializeNavigation() {
 
   const sidebar = document.querySelector("body.dashboard-page .sidebar");
   if (!sidebar) return;
-  ensureSidebarAccount(sidebar);
   document.querySelectorAll(".tabbar, .bottom-nav, .ftbar, .sidebar-toggle, .sidebar-backdrop, .dots-btn, .apr-header-menu, .menu-scrim").forEach(element => element.remove());
   document.querySelector(".apr-bottom-nav")?.remove();
   document.body.classList.remove("sidebar-open", "menu-open");
