@@ -4,11 +4,11 @@ function digitsOnly(value) {
   let digits = String(value || "").replace(/\D/g, "");
   if (digits.startsWith("263")) digits = digits.slice(3);
   if (digits.startsWith("0")) digits = digits.slice(1);
-  return digits.slice(0, 9);
+  return digits;
 }
 
 function formatPhone(value) {
-  const digits = digitsOnly(value);
+  const digits = digitsOnly(value).slice(0, 9);
   if (!digits) return PREFIX + " ";
   if (digits.length <= 2) return PREFIX + " " + digits;
   if (digits.length <= 5) return PREFIX + " " + digits.slice(0, 2) + " " + digits.slice(2);
@@ -64,6 +64,11 @@ function normalizePhoneInputs(container) {
   for (const input of inputs) {
     initializePhoneInput(input);
     input.value = formatPhone(input.value);
+    if (!input.required && digitsOnly(input.value).length === 0) {
+      input.value = "";
+      input.setCustomValidity("");
+      continue;
+    }
     if (input.required && !isValid(input.value)) {
       input.setCustomValidity("Enter a valid Zimbabwean phone number with 9 digits after +263.");
       input.reportValidity();
