@@ -208,6 +208,9 @@ function addDashboardToolbar(main) {
 async function normalizeDashboardSidebar(sidebar) {
   if (!sidebar || sidebar.dataset.dashboardCanonical === "true" || sidebar.dataset.dashboardCanonicalizing === "true" || isDashboardHome()) return;
   sidebar.dataset.dashboardCanonicalizing = "true";
+  // Do not expose the page-specific sidebar while the Index master copy loads.
+  // This prevents the old sidebar flashing before it is replaced.
+  sidebar.style.visibility = "hidden";
   const indexUrl = new URL("../index.html", import.meta.url);
   try {
     const response = await fetch(indexUrl, { credentials: "same-origin" });
@@ -260,6 +263,7 @@ async function normalizeDashboardSidebar(sidebar) {
     const canonical = source.cloneNode(true);
     canonical.id = "sidebar";
     canonical.dataset.dashboardCanonical = "true";
+    canonical.style.visibility = "visible";
     // The Index reference sidebar starts with search, not a second Centric logo.
     canonical.querySelector(".sidebar__brand")?.remove();
     canonical.querySelector("#dashboard-sidebar-toggle")?.remove();
@@ -355,6 +359,7 @@ async function normalizeDashboardSidebar(sidebar) {
     window.lucide?.createIcons();
   } catch (error) {
     delete sidebar.dataset.dashboardCanonicalizing;
+    sidebar.style.visibility = "";
     console.error("Could not apply the shared dashboard sidebar:", error);
   }
 }
