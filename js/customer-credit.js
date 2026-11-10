@@ -4,6 +4,7 @@ const panel = document.getElementById("customer-credit-panel");
 const list = document.getElementById("customer-credit-list");
 const refreshButton = document.getElementById("customer-credit-refresh");
 if (!panel || !list) throw new Error("Customer credit panel is missing from the Receipts page.");
+panel.classList.add("customer-credit-panel-scope");
 
 const money = value => `$${Number(value || 0).toFixed(2)}`;
 const escapeHtml = value => {
@@ -216,7 +217,6 @@ function renderUnpaidJobs(note) {
 }
 
 function render() {
-  closeCreditModal();
   const query = document.getElementById("customer-credit-search")?.value.trim().toLocaleLowerCase() || "";
   const from = document.getElementById("customer-credit-from")?.value || "";
   const to = document.getElementById("customer-credit-to")?.value || "";
@@ -359,7 +359,6 @@ function closeCreditModal(record) {
   const overlay = activeCreditModal || document.querySelector(".credit-modal-overlay");
   if (!overlay) return;
   overlay.remove();
-  if (panel && panel.id === "customer-credit-panel-background") panel.id = "customer-credit-panel";
   activeCreditModal = null;
   document.body.classList.remove("credit-modal-open");
   document.body.style.overflow = overlay.dataset.previousBodyOverflow || "";
@@ -385,10 +384,8 @@ function openCreditModal(record) {
   const modalContent = documentContent.cloneNode(true);
   modalContent.classList.add("credit-modal-content");
   const styleScope = document.createElement("div");
-  styleScope.id = "customer-credit-panel";
-  styleScope.className = "credit-modal-portal-scope";
+  styleScope.className = "customer-credit-panel-scope credit-modal-portal-scope";
   styleScope.appendChild(modalContent);
-  if (panel?.id === "customer-credit-panel") panel.id = "customer-credit-panel-background";
   sheet.appendChild(styleScope);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
