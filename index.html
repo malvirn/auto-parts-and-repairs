@@ -681,6 +681,18 @@
       :root[data-theme="light"] body.dashboard-workshop .dash-content table{font-size:12px}
     }
 
+
+    @media(max-width:768px){
+      :root[data-theme="light"] body.dashboard-workshop .dash-content .panel:has(table){overflow:visible}
+      :root[data-theme="light"] body.dashboard-workshop .cs-wrap{overflow:visible}
+      :root[data-theme="light"] body.dashboard-workshop .cs-wrap table{min-width:0;width:100%;table-layout:fixed}
+      :root[data-theme="light"] body.dashboard-workshop .dash-content table{width:100%;table-layout:fixed}
+      :root[data-theme="light"] body.dashboard-workshop .dash-content th,
+      :root[data-theme="light"] body.dashboard-workshop .dash-content td{padding:8px 6px;white-space:normal;overflow-wrap:anywhere}
+      :root[data-theme="light"] body.dashboard-workshop .cs-wrap th,
+      :root[data-theme="light"] body.dashboard-workshop .cs-wrap td{font-size:11px;padding:7px 4px}
+    }
+
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
