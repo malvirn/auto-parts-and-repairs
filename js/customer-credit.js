@@ -243,7 +243,6 @@ function render() {
     list.innerHTML = `<div class="customer-credit-empty">${hasFilters ? "No credit notes match these filters." : "No customer credit notes have been issued yet."}</div>`;
     return;
   }
-  const accountOptions = accounts.map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} · ${escapeHtml(account.name)}</option>`).join("");
   const totalOriginal = creditNotes.reduce((sum, note) => sum + Number(note.amount || 0), 0);
   const totalAvailable = creditNotes.reduce((sum, note) => sum + Number(note.available_amount || 0), 0);
   const totalRefunded = creditNotes.reduce((sum, note) => sum + noteStatus(note, movements.filter(m => m.deposit_receipt_id === note.id)).refunded, 0);
@@ -404,8 +403,16 @@ document.getElementById("customer-credit-clear")?.addEventListener("click", () =
   ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
   render();
 });
-refreshButton?.addEventListener("click", load);
-load();
+async function safeLoad() {
+  try {
+    await load();
+  } catch (error) {
+    console.error("Customer credit notes failed to load:", error);
+    list.innerHTML = `<div class="customer-credit-empty">Couldn't load credit notes: ${escapeHtml(error?.message || String(error))}. Tap refresh to try again.</div>`;
+  }
+}
+refreshButton?.addEventListener("click", safeLoad);
+safeLoad();
 
 const creditLiveChannel = supabase.channel("customer-credit-job-status")
   .on("postgres_changes", { event: "*", schema: "public", table: "repair_jobs" }, () => load())
