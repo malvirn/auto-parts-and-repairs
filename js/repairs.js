@@ -1817,14 +1817,27 @@ form?.addEventListener("submit", async (e) => {
       console.error("Could not save transferred quotation totals:", totalsError);
     }
 
-    // Quotation deposits remain customer credit until a staff member explicitly applies them.
-    // Do not auto-apply here: the job-card receivable posting must be verified first.
+    let depositNote = "";
+    if (quoteId && !quoteLinkWarning) {
+      try {
+        const { data: depositResult, error: depositError } = await supabase.rpc("apply_quotation_deposits_to_repair_job", {
+          p_quotation_id: quoteId,
+          p_repair_job_id: job.id,
+        });
+        if (depositError) throw depositError;
+        const appliedDeposit = Number(depositResult?.applied_amount || 0);
+        if (appliedDeposit > 0.005) depositNote = ` Quotation deposit of ${money(appliedDeposit)} applied to the job card.`;
+      } catch (depositError) {
+        console.error("Quotation deposit was not applied to the new job card:", depositError);
+        quoteLinkWarning += ` The job was created, but its quotation deposit was not applied: ${depositError.message || String(depositError)}.`;
+      }
+    }
 
     resetIntakeForm();
     const label = job.cro_number || (job.job_number != null ? `#${String(job.job_number).padStart(4, "0")}` : "");
     showFormMessage(skipped.length
-      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}`
-      : `Job card ${label} created.${quoteLinkWarning}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
+      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}${depositNote}`
+      : `Job card ${label} created.${quoteLinkWarning}${depositNote}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
     await Promise.all([loadJobs(), loadPartsIntoSelect(), loadCustomers()]);
     await refreshBusyMechanics();
     refreshTechnicianOptions(newTechnician, null);
