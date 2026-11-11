@@ -546,6 +546,7 @@ quoteForm.addEventListener("submit", async event => {
   const walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
   const matchedCustomer = findMatchingCustomer(walk_in_name, walk_in_phone, walk_in_email || "");
   let customer_id = job?.customer_id || matchedCustomer?.id || null;
+  let createdCustomerCode = null;
   const is_company = document.getElementById("quote-is-company")?.checked || false;
   const company_name = document.getElementById("quote-company-name")?.value.trim() || "";
   if (!job && !matchedCustomer) {
@@ -553,6 +554,7 @@ quoteForm.addEventListener("submit", async event => {
     const { data: createdCustomer, error: customerError } = await supabase.from("customers").insert({ full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email, is_company, company_name: is_company ? company_name : null }).select("id,customer_code").single();
     if (customerError) throw new Error("Could not register this quotation customer: " + customerError.message);
     customer_id = createdCustomer.id;
+    createdCustomerCode = createdCustomer.customer_code || null;
   }
   const vehicle_id = job?.vehicle_id || (matchedCustomer?.id === customerSelect.value ? vehicleSelect.value || null : null);
   const fault_reported = document.getElementById("quote-fault").value.trim() || job?.fault_reported || null;
@@ -608,6 +610,19 @@ quoteForm.addEventListener("submit", async event => {
       alert("Failed to save quotation items: " + itemsError.message + ". The incomplete quotation was removed; you can safely try again.");
     }
     return;
+  }
+  if (createdCustomerCode) {
+    let copied = false;
+    try { await navigator.clipboard.writeText(createdCustomerCode); copied = true; } catch {}
+    const customerLabel = is_company ? company_name : walk_in_name;
+    const phoneDigits = walk_in_phone.replace(/\\D/g, "");
+    if (phoneDigits && confirm(`Customer ID ${createdCustomerCode}${copied ? " copied to clipboard." : ""} Share it with the customer on WhatsApp?`)) {
+      window.open("https://wa.me/" + phoneDigits + "?text=" + encodeURIComponent("Hello " + customerLabel + ", your Centric Auto Mobile Customer ID is " + createdCustomerCode + ". Please keep it for future visits."), "_blank", "noopener");
+    } else if (!copied) {
+      alert("Customer registered. Customer ID: " + createdCustomerCode + ". Copy it and share it with the customer.");
+    } else {
+      alert("Customer registered. Customer ID: " + createdCustomerCode + " (copied to clipboard).");
+    }
   }
   quoteForm.reset(); draftItems = []; renderDraft(); renderJobSummary(null); populateVehicleDetails({}); toggleWalkinFields(); await loadDocuments(); await openQuoteEditor(quote.id);
   } catch (error) {
