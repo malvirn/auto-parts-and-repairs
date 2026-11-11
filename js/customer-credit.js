@@ -223,7 +223,8 @@ async function printCreditNote(note) {
     .totals td{font-size:13px}.totals tr:last-child td{border-top:2px solid #94a3b8;font-size:15px;font-weight:800}
     .activity td:last-child{text-align:left;font-weight:400}.activity th{background:#f1f5f9;font-size:10px;text-transform:uppercase;color:#64748b}
     footer{margin-top:28px;padding-top:12px;border-top:1px solid #dbe2ea;text-align:center;color:#64748b;font-size:10px}
-    @page{size:A4;margin:0}
+    @page{size:A4;margin:0;}
+    @media print{html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     @media print{html,body{width:210mm;min-height:297mm}.sheet{width:210mm;min-height:297mm;margin:0;padding:16mm;page-break-after:avoid}}
   </style></head><body><main class="sheet">
     <header class="brand"><img src="${logoUrl}" alt="Centric Auto Mobile"><div><strong>CENTRIC AUTO MOBILE</strong><small>Auto Parts &amp; Repairs · Norton, Zimbabwe</small></div></header>
