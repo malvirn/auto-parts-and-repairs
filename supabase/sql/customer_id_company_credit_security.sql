@@ -354,7 +354,8 @@ begin
   if resolved_customer_id is null then
     select count(*), (array_agg(id))[1] into match_count, resolved_customer_id
     from public.customers
-    where lower(btrim(full_name)) = lower(btrim(note_row.customer_name))
+    where (lower(btrim(full_name)) = lower(btrim(note_row.customer_name))
+        or lower(btrim(coalesce(company_name,''))) = lower(btrim(note_row.customer_name)))
       and (nullif(regexp_replace(coalesce(phone,''),'[^0-9]','','g'),'') is null
         or regexp_replace(phone,'[^0-9]','','g') = regexp_replace(coalesce(note_row.customer_phone,''),'[^0-9]','','g'));
     if match_count <> 1 then
@@ -430,7 +431,8 @@ begin
     if voucher_row.credit_note_type = 'quotation_deposit' then
       select count(*), (array_agg(c.id))[1] into match_count, customer_id_value
       from public.quotation_deposit_receipts n
-      join public.customers c on lower(btrim(c.full_name)) = lower(btrim(n.customer_name))
+      join public.customers c on (lower(btrim(c.full_name)) = lower(btrim(n.customer_name))
+          or lower(btrim(coalesce(c.company_name,''))) = lower(btrim(n.customer_name)))
         and (nullif(regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'),'') is null
           or regexp_replace(c.phone,'[^0-9]','','g') = regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'))
       where n.id = voucher_row.credit_note_id;
