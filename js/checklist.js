@@ -168,7 +168,7 @@ function renderChecklistList(rows){
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
   const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
   const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Ready to link to a job card";
-  const activeActions=item.voided_at?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
+  const activeActions=(item.voided_at||item.status==="completed"||item.confirmed_at)?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
   return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a>${activeActions}</div></div>`;
  }).join(""):'<p class="message">No saved vehicle checklists yet. Create one to begin.</p>';
 }
@@ -180,7 +180,7 @@ async function loadList(){
  renderChecklistList(data||[]);
 }
 async function loadJob(jobId){
- const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,vehicle_id,fuel_level_in,odometer_in,customers(full_name),vehicles(license_plate,make,model,year)").eq("id",jobId).single();
+ const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,vehicle_id,fuel_level_in,odometer_in,customers(full_name,customer_code),vehicles(license_plate,make,model,year)").eq("id",jobId).single();
  if(error)throw new Error(`Couldn't load the job card: ${error.message}`);
  return data;
 }
@@ -224,7 +224,7 @@ async function showRecord(item){
  $("open-job").classList.toggle("hidden",!item.confirmed_at||Boolean(item.voided_at));
  $("open-job").textContent=item.job_id?"Open linked job card":"Create job card with checklist details";
  $("open-job").href=item.job_id
-  ?`repairs.html?job=${encodeURIComponent(item.job_id)}`
+  ?`repairs.html?edit=${encodeURIComponent(item.job_id)}`
   :`repairs.html?checklist=${encodeURIComponent(item.id)}`;
  $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id)||Boolean(item.voided_at);
  $("link-job").disabled=true;
