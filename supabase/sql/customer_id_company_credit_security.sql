@@ -119,7 +119,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.generate_customer_code() from public, anon, authenticated;
 revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
 
@@ -493,7 +493,7 @@ create or replace function public.apply_quotation_deposits_to_repair_job_verifie
 language plpgsql
 security definer
 set search_path = pg_catalog, public
-as $
+as $$
 declare
   quote_row public.quotations%rowtype;
   job_row public.repair_jobs%rowtype;
@@ -562,7 +562,7 @@ returns table(
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 begin
   if auth.uid() is null or public.current_access_level() < 1 then
     raise exception 'Authorised staff access is required' using errcode = '42501';
