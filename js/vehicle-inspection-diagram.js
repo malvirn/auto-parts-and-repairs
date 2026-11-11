@@ -119,8 +119,8 @@ export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
   if(e.target===overlay||e.target.closest("[data-close]")){close();return}
   if(e.target.closest("[data-none]")){draft.dmg=[];render();return}
   const damage=e.target.closest("[data-damage]");if(damage){draft.dmg=[damage.dataset.damage];render();return}
-  if(e.target.closest("[data-remove-photo]")){draft.photo="";render();return}
-  if(e.target.closest("[data-reset]")){if(!window.confirm("Clear the condition, notes and photo for this area?"))return;draft.dmg=[];draft.note="";draft.photo="";render();return}
+  if(e.target.closest("[data-remove-photo]")){draft.photo="";draft.photo_path=null;render();return}
+  if(e.target.closest("[data-reset]")){if(!window.confirm("Clear the condition, notes and photo for this area?"))return;draft.dmg=[];draft.note="";draft.photo="";draft.photo_path=null;render();return}
   if(e.target.closest("[data-save]")){onSave?.({...entry,...draft,dmg:draft.dmg});close()}
  });
  overlay.addEventListener("input",e=>{if(e.target.matches("[data-note]"))draft.note=e.target.value});
