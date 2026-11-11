@@ -96,7 +96,7 @@ begin
  if v_row.status='completed' or v_row.confirmed_at is not null then raise exception 'This inspection is already completed'; end if;
  if v_row.job_id is null then raise exception 'Link this inspection to a job card before completing it'; end if;
  if nullif(btrim(v_row.customer_name),'') is null or nullif(btrim(v_row.vehicle_registration),'') is null
- or nullif(btrim(v_row.checked_by),'') is null or v_row.fuel_level_in not in ('Empty','1/4','1/2','3/4','Full')
+ or nullif(btrim(v_row.checked_by),'') is null or v_row.fuel_level_in is null or v_row.fuel_level_in not in ('Empty','1/4','1/2','3/4','Full')
  or v_row.odometer_in is null or v_row.odometer_in<0 then
  raise exception 'Enter the customer, registration, inspector, fuel level and mileage before completing'; end if;
  if not exists(select 1 from public.repair_jobs j where j.id=v_row.job_id and j.customer_id=v_row.customer_id and j.vehicle_id=v_row.vehicle_id) then
