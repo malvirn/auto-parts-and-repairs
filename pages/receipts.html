@@ -2706,14 +2706,9 @@ async function loadReceiptsSafely(){
   new Promise((_,reject)=>{timers.push(setTimeout(()=>reject(new Error(message)),ms))})
  ]);
  try{
-  // Open a requested Quick Sale receipt first, then load the ledger independently.
-  if(params.get("quickSalePayment")){
-   await withTimeout(
-    openQuickSalePaymentReceipt(params.get("quickSalePayment"),params.get("paymentMethod")),
-    10000,
-    "The Quick Sale receipt could not be retrieved in time. Check your connection and payment access."
-   );
-  }
+  // Load the ledger once. load() opens the requested Quick Sale receipt
+  // after its data queries finish, so opening it here would duplicate the
+  // same payment/order lookups and compete with the main page load.
   await withTimeout(load(),30000,"The receipts request took too long. Check your connection and try again.");
  }catch(error){
   if(attempt!==receiptLoadAttempt)return;
