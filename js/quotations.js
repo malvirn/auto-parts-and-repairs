@@ -119,8 +119,12 @@ function highlightMissingQuotationFields() {
 
 function findMatchingCustomer(name, phone, email) {
   const normalizedName = name.trim().toLocaleLowerCase();
+  const normalizedNameDigits = normalizedName.replace(/\D/g, "");
   if (!normalizedName) return null;
-  let matches = customers.filter(customer => [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === normalizedName));
+  let matches = customers.filter(customer =>
+    [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === normalizedName) ||
+    (normalizedNameDigits.length >= 7 && (customer.phone || "").replace(/\D/g, "") === normalizedNameDigits)
+  );
   const normalizedPhone = phone.replace(/\D/g, "");
   const normalizedEmail = email.trim().toLocaleLowerCase();
   if (normalizedPhone) matches = matches.filter(customer => (customer.phone || "").replace(/\D/g, "") === normalizedPhone);
@@ -141,7 +145,11 @@ function fillWalkinDetails(customer) {
 
 document.getElementById("quote-walkin-name").addEventListener("change", event => {
   const typedName = event.currentTarget.value.trim().toLocaleLowerCase();
-  const matches = customers.filter(customer => [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === typedName));
+  const typedDigits = typedName.replace(/\D/g, "");
+  const matches = customers.filter(customer =>
+    [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === typedName) ||
+    (typedDigits.length >= 7 && (customer.phone || "").replace(/\D/g, "") === typedDigits)
+  );
   if (matches.length !== 1) return;
   const customer = matches[0];
   const phone = document.getElementById("quote-walkin-phone");
