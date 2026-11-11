@@ -843,7 +843,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
       <label class="job-vat-option" for="f-is-company"><input id="f-is-company" type="checkbox"> This is a company</label>
       <input id="f-company-name" placeholder="Company name (required)" hidden>
-      <div class="customer-cid-actions"><small id="f-customer-cid" class="section-note" aria-live="polite"></small><button type="button" class="btn" id="f-customer-cid-copy" hidden>Copy ID</button><button type="button" class="btn" id="f-customer-cid-whatsapp" hidden>WhatsApp</button></div>
+      <div class="customer-cid-actions" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small id="f-customer-cid" class="section-note" aria-live="polite"></small><button type="button" class="btn" id="f-customer-cid-copy" hidden>Copy ID</button><button type="button" class="btn" id="f-customer-cid-whatsapp" hidden>WhatsApp</button></div>
       <h3>2 · Vehicle</h3>
       <select id="f-veh"><option value="">+ New vehicle</option></select>
       <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
@@ -2450,7 +2450,7 @@ $("s-inv").onclick=async()=>{
  }catch(error){console.error("Couldn't check balance before invoicing job:",error);toast(error.message||String(error))}
 };
 
-$("f-customer-cid-copy").onclick=async()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim();if(!code)return;try{await navigator.clipboard.writeText(code);toast(code+" copied")}catch{toast("Copy was blocked. Select the Customer ID and copy it manually.")}};
+$("f-customer-cid-copy").onclick=async()=>{const code=$("f-customer-cid").textContent.replace("Customer ID:","").trim();if(!code)return;try{await navigator.clipboard.writeText(code);toast(code+" copied")}catch{toast("Copy was blocked. Select the Customer ID and copy it manually.")}};
 $("f-customer-cid-whatsapp").onclick=()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim(),phone=String($("f-phone").value||"").replace(/[^0-9]/g,"");if(!code)return;const message="Hello "+($("f-company-name").value.trim()||$("f-name").value.trim()||"Customer")+", your Centric Auto Mobile Customer ID is "+code+". Please keep it for future visits.";window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener")};
 $("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
 $("hs-input")?.addEventListener("input",render);
@@ -2462,6 +2462,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=customer-cid-7"></script>
+<script type="module" src="../js/credit-vouchers.js?v=customer-cid-8"></script>
 </body>
 </html>
