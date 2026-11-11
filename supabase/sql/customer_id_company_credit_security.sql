@@ -95,6 +95,8 @@ begin
   if not new.is_company then
     new.company_name := null;
   end if;
+  -- Keep the legacy discriminator in sync for older screens and reports.
+  new.customer_type := case when new.is_company then 'company' else 'individual' end;
 
   if tg_op = 'INSERT' then
     if nullif(btrim(new.customer_code), '') is null then
@@ -372,6 +374,11 @@ begin
     end if;
   end if;
   select * into customer_row from public.customers where id = resolved_customer_id;
+  if note_row.customer_id is null then
+    update public.quotation_deposit_receipts
+    set customer_id = resolved_customer_id
+    where id = p_deposit_receipt_id and customer_id is null;
+  end if;
   verified := public.verify_customer_credit_confirmation(customer_row.id, p_confirmation_value, p_authorised_by);
   if coalesce((verified->>'allowed')::boolean, false) is not true then
     return verified;
