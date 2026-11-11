@@ -548,8 +548,12 @@ grant execute on function public.apply_quotation_deposits_to_repair_job_verified
 -- Prevent direct calls that would bypass identity confirmation.
 revoke all on function public.apply_customer_credit(uuid,numeric,text,uuid,text,uuid) from public, anon, authenticated;
 revoke all on function public.redeem_credit_voucher(text,numeric,text,uuid,uuid) from public, anon, authenticated;
+revoke all on function public.apply_customer_credit_verified(uuid,numeric,text,uuid,text,uuid,text,text) from public, anon, authenticated;
+revoke all on function public.redeem_credit_voucher_verified(text,numeric,text,uuid,uuid,text,text) from public, anon, authenticated;
+revoke all on function public.apply_quotation_deposits_to_repair_job_verified(uuid,uuid,text,text) from public, anon, authenticated;
 grant execute on function public.apply_customer_credit_verified(uuid,numeric,text,uuid,text,uuid,text,text) to authenticated;
 grant execute on function public.redeem_credit_voucher_verified(text,numeric,text,uuid,uuid,text,text) to authenticated;
+grant execute on function public.apply_quotation_deposits_to_repair_job_verified(uuid,uuid,text,text) to authenticated;
 
 -- Voucher list with customer identity fields for the wallet, print and WhatsApp.
 create or replace function public.list_customer_credit_vouchers_with_identity()
@@ -595,6 +599,7 @@ grant execute on function public.list_customer_credit_vouchers_with_identity() t
 
 -- Expose CID and company identity in the existing customer credit wallet view.
 create or replace view public.customer_credit_balances
+with (security_invoker = true)
 as
 select
   receipt.id as deposit_receipt_id,
