@@ -1026,6 +1026,16 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/customer-credit.js?v=customer-cid-4"></script>
 <script type="module" src="../js/credit-vouchers.js?v=customer-cid-6-syntaxfix"></script>
 <script>
+/* Fallback if a module import stalls before the receipt loader starts. */
+window.__centricReceiptBooted = false;
+window.addEventListener("DOMContentLoaded",()=>{
+ setTimeout(()=>{
+  const list=document.getElementById("list");
+  if(!window.__centricReceiptBooted && list && /Loading receipts/i.test(list.textContent||"")){
+   list.innerHTML='<div class="ov-empty">The receipts page could not start. Check your connection, then reload this page.<br><button type="button" class="btn" style="margin-top:12px" onclick="location.reload()">Reload receipts</button></div>';
+  }
+ },15000);
+});
 window.addEventListener("unhandledrejection",event=>{
  console.error("Unhandled receipt-page promise rejection:",event.reason);
 });
@@ -1066,8 +1076,11 @@ let supabase;
 try{supabase=(await import("../js/supabaseClient.js")).default}
 catch(error){console.error("Couldn't load ../js/supabaseClient.js:",error);document.getElementById("list").innerHTML=`<div class="ov-empty">Couldn't load ../js/supabaseClient.js: ${String(error?.message||error)}</div>`;throw error}
 let confirmTypedDelete=async()=>false,isSuperAdmin=()=>false;
-try{const bulk=await import("../js/bulk-delete.js");if(typeof bulk.confirmTypedDelete==="function")confirmTypedDelete=bulk.confirmTypedDelete;if(typeof bulk.isSuperAdmin==="function")isSuperAdmin=bulk.isSuperAdmin}
-catch(error){console.warn("../js/bulk-delete.js unavailable; delete buttons disabled:",error)}
+import("../js/bulk-delete.js").then(bulk=>{
+ if(typeof bulk.confirmTypedDelete==="function")confirmTypedDelete=bulk.confirmTypedDelete;
+ if(typeof bulk.isSuperAdmin==="function")isSuperAdmin=bulk.isSuperAdmin;
+ render();
+}).catch(error=>console.warn("../js/bulk-delete.js unavailable; delete buttons disabled:",error));
 const $=id=>document.getElementById(id);
 const usd=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
@@ -2697,6 +2710,7 @@ $("hs-input").oninput=render;
 $("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method","hs-input"].forEach(id=>$(id).value="");render()};
 let receiptLoadAttempt=0;
 async function loadReceiptsSafely(){
+  window.__centricReceiptBooted = true;
  const attempt=++receiptLoadAttempt;
  const params=new URLSearchParams(location.search);
  $("list").innerHTML='<div class="ov-empty">Loading receipts…</div>';
@@ -2709,7 +2723,7 @@ async function loadReceiptsSafely(){
   // Load the ledger once. load() opens the requested Quick Sale receipt
   // after its data queries finish, so opening it here would duplicate the
   // same payment/order lookups and compete with the main page load.
-  await withTimeout(load(),30000,"The receipts request took too long. Check your connection and try again.");
+  await withTimeout(load(),18000,"The receipt and invoice data request timed out. Use Try again, or reload the page.");
  }catch(error){
   if(attempt!==receiptLoadAttempt)return;
   console.error("Receipts page failed to load:",error);
