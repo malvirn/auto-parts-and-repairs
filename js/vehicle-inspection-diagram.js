@@ -55,6 +55,11 @@ function ensureStyles(){
  .vi-part-photo[data-photo-part="roof"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part="windscreen"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part^="wheel"]{object-position:50% 50%}
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="fender"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="mirror"]{object-fit:cover}
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="headlight"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="fog-light"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="taillight"]{object-fit:contain}
  .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
  .vi-part-card[data-condition="Scratch"]{--part-color:#f59e0b;border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 13%,var(--check-card-2,#1c242e))}
  .vi-part-card[data-condition="Crack"]{--part-color:#a855f7;border-color:#a855f7;background:color-mix(in srgb,#a855f7 13%,var(--check-card-2,#1c242e))}
@@ -107,16 +112,31 @@ function partIcon(part){
  };
  return `<span class="vi-part-icon" aria-hidden="true"><svg viewBox="0 0 64 64" role="img">${shapes[type]}</svg></span>`;
 }
+const PART_PHOTOS={
+ headlight:"https://pic.pngsucai.com/00/93/96/080cda56f8bec9bd.webp",
+ fog:"https://pic.pngsucai.com/00/99/10/f35c85ca8634f18c.webp",
+ taillight:"https://pic.mksucai.com/00/10/68/8a2d4161be68b475.webp",
+ body:"https://toppng.com/public/uploads/preview/body-parts-car-body-parts-11563171618havvx3lz2a.png"
+};
+function photoMarkup(part,kind,src,alt,position="50% 50%"){
+ return `<img class="vi-part-photo" data-photo-part="${kind}" style="object-position:${position}" src="${src}" alt="${esc(alt)}" loading="lazy">`;
+}
 function partVisual(part){
- if(part.key==="bonnet")return `<img class="vi-part-photo" data-photo-part="bonnet" src="https://images.pexels.com/photos/12920563/pexels-photo-12920563.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car bonnet" loading="lazy">`;
- if(part.key==="roof")return `<img class="vi-part-photo" data-photo-part="roof" src="https://images.pexels.com/photos/10989743/pexels-photo-10989743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car roof, top view" loading="lazy">`;
- if(part.key==="windscreen")return `<img class="vi-part-photo" data-photo-part="windscreen" src="https://www.pngkey.com/png/detail/842-8427367_windshield-png-car-glass-png.png" alt="Isolated car windscreen with transparent background" loading="lazy">`;
- if(part.key.startsWith("wheel-")||part.key==="spare-wheel")return `<img class="vi-part-photo" data-photo-part="wheel" src="https://pngimg.com/uploads/car_wheel/car_wheel_PNG1069.png" alt="Silver alloy wheel and tyre with transparent background" loading="lazy">`;
+ const key=part.key;
+ if(key==="bonnet")return `<img class="vi-part-photo" data-photo-part="bonnet" src="https://images.pexels.com/photos/12920563/pexels-photo-12920563.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car bonnet" loading="lazy">`;
+ if(key==="roof")return `<img class="vi-part-photo" data-photo-part="roof" src="https://images.pexels.com/photos/10989743/pexels-photo-10989743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car roof, top view" loading="lazy">`;
+ if(key==="windscreen")return `<img class="vi-part-photo" data-photo-part="windscreen" src="https://www.pngkey.com/png/detail/842-8427367_windshield-png-car-glass-png.png" alt="Isolated car windscreen with transparent background" loading="lazy">`;
+ if(key.startsWith("wheel-")||key==="spare-wheel")return `<img class="vi-part-photo" data-photo-part="wheel" src="https://pngimg.com/uploads/car_wheel/car_wheel_PNG1069.png" alt="Silver alloy wheel and tyre with transparent background" loading="lazy">`;
+ if(key.includes("headlight"))return photoMarkup(part,"headlight",PART_PHOTOS.headlight,"Isolated automotive headlight");
+ if(key.includes("fog-light"))return photoMarkup(part,"fog-light",PART_PHOTOS.fog,"Isolated automotive fog light");
+ if(key.includes("taillight"))return photoMarkup(part,"taillight",PART_PHOTOS.taillight,"Isolated red automotive tail light");
+ if(key.includes("wing")||key.includes("quarter"))return photoMarkup(part,"fender",PART_PHOTOS.body,"Automotive fender cutout","24% 45%");
+ if(key.includes("mirror"))return photoMarkup(part,"mirror",PART_PHOTOS.body,"Automotive side mirror cutout","78% 78%");
  return partIcon(part);
 }
 function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
- const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel";
+ const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel"||part.key.includes("headlight")||part.key.includes("fog-light")||part.key.includes("taillight")||part.key.includes("wing")||part.key.includes("quarter")||part.key.includes("mirror");
  return `<button type="button" class="vi-part-card${photoPart?" vi-photo-card":""}" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
  ${partVisual(part)}${photoPart?"":`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
 }
