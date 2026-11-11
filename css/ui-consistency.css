@@ -449,7 +449,7 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
 :root[data-theme="light"] body.dashboard-page .app-header :is(button,a) svg,
 :root[data-theme="light"] body.dashboard-page .site-masthead :is(button,a) svg{color:#172b40!important;stroke:#172b40!important;opacity:1!important;filter:none!important}
 
-/* Match credit-note modal documents to the green-and-white receipt/invoice paper. */
+/* Match expanded credit-note documents to the green-and-white receipt/invoice paper. */
 #customer-credit-panel .customer-credit-document,
 #customer-credit-panel .overpayment-credit-record__body{
   background:#fff!important;color:#17211b!important;
