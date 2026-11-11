@@ -119,15 +119,29 @@ begin
     raise exception 'Customer ID could not be generated';
   end if;
 
+  return new;
+end;
+$$;
+
+create or replace function public.register_customer_code()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
   if tg_op = 'INSERT' or new.customer_code is distinct from old.customer_code then
     insert into public.customer_code_registry(customer_code, customer_id, assigned_by)
-    values(new.customer_code, new.id, auth.uid());
+    values(new.customer_code, new.id, auth.uid())
+    on conflict (customer_code) do nothing;
   end if;
   return new;
 end;
 $$;
+
 revoke all on function public.generate_customer_code_value() from public, anon, authenticated;
 revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
+revoke all on function public.register_customer_code() from public, anon, authenticated;
 
 -- Refuse to proceed if legacy non-empty values are duplicated.
 do $$
@@ -159,6 +173,11 @@ create trigger customers_identity_fields
 before insert or update of customer_code, is_company, company_name
 on public.customers
 for each row execute function public.enforce_customer_identity_fields();
+
+drop trigger if exists customers_register_customer_code on public.customers;
+create trigger customers_register_customer_code
+after insert or update of customer_code on public.customers
+for each row execute function public.register_customer_code();
 
 -- Trigger generates IDs for all existing rows still missing a code.
 update public.customers
