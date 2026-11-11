@@ -623,6 +623,55 @@ creditInlineStyle.textContent += `
   background:#e2eaf2!important;color:#17212d!important;border-color:#cbd5df!important;
 }
 `;
+
+/* Explicit light-theme palette: prevent dark document panels leaking into light mode. */
+:root[data-theme="light"] #customer-credit-panel.customer-credit-panel-scope{color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-record:not(.overpayment-credit-record){
+ background:#f7fafc!important;border:1px solid #cbd5df!important;border-left:5px solid #16a05a!important;
+ box-shadow:0 5px 16px rgba(15,23,42,.07)!important;
+}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-record:not(.overpayment-credit-record)>.customer-credit-record__summary{
+ background:#eaf3ff!important;color:#18212b!important;
+}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer strong{color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer small{color:#596779!important}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-document,
+:root[data-theme="light"] #customer-credit-panel .overpayment-credit-record__body{background:#fff!important;color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .credit-note-brand-header{background:#fff!important;border-color:#d7dde5!important;color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .credit-note-brand-header .credit-modal-title h3,
+:root[data-theme="light"] #customer-credit-panel .credit-modal-title h3{color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .credit-note-brand-header .credit-modal-title small{color:#12884a!important}
+:root[data-theme="light"] #customer-credit-panel .credit-available-card,
+:root[data-theme="light"] #customer-credit-panel .credit-details-card,
+:root[data-theme="light"] #customer-credit-panel .credit-apply-section,
+:root[data-theme="light"] #customer-credit-panel .overpayment-job-link{
+ background:#f5f7fa!important;border-color:#d7dde5!important;color:#18212b!important;
+}
+:root[data-theme="light"] #customer-credit-panel .credit-available-card small,
+:root[data-theme="light"] #customer-credit-panel .credit-detail-row>span,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-facts small,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-totals small,
+:root[data-theme="light"] #customer-credit-panel .credit-note-validity,
+:root[data-theme="light"] #customer-credit-panel .overpayment-job-link p{color:#596779!important}
+:root[data-theme="light"] #customer-credit-panel .credit-available-card strong,
+:root[data-theme="light"] #customer-credit-panel .credit-details-card h4,
+:root[data-theme="light"] #customer-credit-panel .credit-apply-section h4,
+:root[data-theme="light"] #customer-credit-panel .credit-detail-row>strong,
+:root[data-theme="light"] #customer-credit-panel .credit-detail-row>strong small,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-facts strong,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-totals strong,
+:root[data-theme="light"] #customer-credit-panel .credit-note-narrative p,
+:root[data-theme="light"] #customer-credit-panel .credit-note-narrative p strong{color:#18212b!important}
+:root[data-theme="light"] #customer-credit-panel .credit-detail-row,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-facts>div,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-totals>div,
+:root[data-theme="light"] #customer-credit-panel .credit-note-brand-header{border-color:#d7dde5!important}
+:root[data-theme="light"] #customer-credit-panel .credit-doc-facts>div,
+:root[data-theme="light"] #customer-credit-panel .credit-doc-totals>div,
+:root[data-theme="light"] #customer-credit-panel .credit-note-narrative{background:#fff!important;border-color:#d7dde5!important}
+:root[data-theme="light"] #customer-credit-panel .credit-unused-badge{background:#e8edf3!important;color:#344256!important;border-color:#cbd5df!important}
+:root[data-theme="light"] #customer-credit-panel .customer-credit-empty{background:#f5f7fa!important;color:#344256!important;border-color:#d7dde5!important}
+
 document.head.appendChild(creditInlineStyle);
 
 const creditAccordionStyle = document.createElement("style");
