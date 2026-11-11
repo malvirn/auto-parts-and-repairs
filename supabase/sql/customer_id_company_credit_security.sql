@@ -155,6 +155,21 @@ update public.customers
 set customer_code = null
 where nullif(btrim(customer_code), '') is null;
 
+do $company_check$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid='public.customers'::regclass
+      and conname='customers_company_name_required'
+  ) then
+    alter table public.customers
+      add constraint customers_company_name_required
+      check (not is_company or nullif(btrim(company_name),'') is not null) not valid;
+  end if;
+end;
+$company_check$;
+alter table public.customers validate constraint customers_company_name_required;
+
 alter table public.customers alter column customer_code set not null;
 do $block$
 begin
@@ -364,7 +379,7 @@ begin
     customer_row.id, customer_row.customer_code, credit_ref, p_target_type, p_target_id,
     round(p_amount,2), verified->>'confirmed_as', nullif(btrim(p_authorised_by), ''), auth.uid(),
     (result->>'id')::uuid
-  );
+  ) on conflict(source_redemption_id) do nothing;
   return result || jsonb_build_object('customer_code', customer_row.customer_code, 'credit_reference', credit_ref);
 end;
 $$;
