@@ -120,7 +120,7 @@ function highlightMissingQuotationFields() {
 function findMatchingCustomer(name, phone, email) {
   const normalizedName = name.trim().toLocaleLowerCase();
   if (!normalizedName) return null;
-  let matches = customers.filter(customer => String(customer.full_name || "").trim().toLocaleLowerCase() === normalizedName);
+  let matches = customers.filter(customer => [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === normalizedName));
   const normalizedPhone = phone.replace(/\D/g, "");
   const normalizedEmail = email.trim().toLocaleLowerCase();
   if (normalizedPhone) matches = matches.filter(customer => (customer.phone || "").replace(/\D/g, "") === normalizedPhone);
@@ -133,6 +133,10 @@ function fillWalkinDetails(customer) {
   document.getElementById("quote-walkin-name").value = customer.full_name || "";
   document.getElementById("quote-walkin-phone").value = customer.phone || "";
   document.getElementById("quote-walkin-email").value = customer.email || "";
+  document.getElementById("quote-is-company").checked = Boolean(customer.is_company);
+  document.getElementById("quote-company-name").value = customer.company_name || "";
+  document.getElementById("quote-company-name-wrap").hidden = !customer.is_company;
+  document.getElementById("quote-company-name").required = Boolean(customer.is_company);
 }
 
 document.getElementById("quote-walkin-name").addEventListener("change", event => {
@@ -150,18 +154,21 @@ document.getElementById("quote-walkin-name").addEventListener("change", event =>
 // a walk-in entered directly on the form — this resolves whichever applies.
 function resolveCustomer(record) {
   return {
-    full_name: record.customers?.full_name || record.walk_in_name || "Customer",
+    full_name: record.customers?.company_name || record.customers?.full_name || record.walk_in_name || "Customer",
     phone: record.customers?.phone || record.walk_in_phone || "—",
     email: record.customers?.email || record.walk_in_email || "—",
+    customer_code: record.customers?.customer_code || "",
+    company_name: record.customers?.company_name || "",
+    is_company: Boolean(record.customers?.is_company),
   };
 }
 
 async function loadBaseData() {
   exchangeRate = await getRate();
   const [jobsResult, partsResult, customersResult, tiersResult] = await Promise.all([
-    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
+    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type, customer_code, is_company, company_name), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
-    supabase.from("customers").select("id, full_name, phone, email, customer_type, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
+    supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
     supabase.from("vehicle_rate_tiers").select("*").order("sort_order"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
@@ -528,7 +535,15 @@ quoteForm.addEventListener("submit", async event => {
   const walk_in_phone = document.getElementById("quote-walkin-phone").value.trim();
   const walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
   const matchedCustomer = findMatchingCustomer(walk_in_name, walk_in_phone, walk_in_email || "");
-  const customer_id = job?.customer_id || matchedCustomer?.id || null;
+  let customer_id = job?.customer_id || matchedCustomer?.id || null;
+  const is_company = document.getElementById("quote-is-company")?.checked || false;
+  const company_name = document.getElementById("quote-company-name")?.value.trim() || "";
+  if (!job && !matchedCustomer) {
+    if (is_company && !company_name) { alert("Enter the company name before saving the quotation."); document.getElementById("quote-company-name")?.focus(); return; }
+    const { data: createdCustomer, error: customerError } = await supabase.from("customers").insert({ full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email, is_company, company_name: is_company ? company_name : null }).select("id,customer_code").single();
+    if (customerError) throw new Error("Could not register this quotation customer: " + customerError.message);
+    customer_id = createdCustomer.id;
+  }
   const vehicle_id = job?.vehicle_id || (matchedCustomer?.id === customerSelect.value ? vehicleSelect.value || null : null);
   const fault_reported = document.getElementById("quote-fault").value.trim() || job?.fault_reported || null;
   if (walk_in_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(walk_in_email)) {
@@ -605,17 +620,17 @@ function renderQuotationRows() {
   const to = document.getElementById("quote-filter-to").value;
   const status = document.getElementById("quote-filter-status").value;
   const filtered = quotationRows.filter(quote => {
-    const customer = quote.customers?.full_name || quote.walk_in_name || "";
+    const customer = quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "";
     const createdBy = quote.prepared_by || "";
     const createdDate = String(quote.created_at || "").slice(0, 10);
-    const queryMatch = !search || [quote.quotation_number, customer, createdBy, quote.status].some(value => String(value || "").toLocaleLowerCase().includes(search));
+    const queryMatch = !search || [quote.quotation_number, customer, quote.customers?.customer_code, quote.customers?.company_name, createdBy, quote.status].some(value => String(value || "").toLocaleLowerCase().includes(search));
     return queryMatch && (!number || String(quote.quotation_number).includes(number))
       && (!from || createdDate >= from) && (!to || createdDate <= to)
       && (!status || quote.status === status);
   });
   quoteTable.innerHTML = filtered.length ? filtered.map(quote => {
     const depositExpired = quote.created_at && Date.now() > Date.parse(quote.created_at) + 7 * 86400000;
-    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.full_name || quote.walk_in_name || "—")}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Expired" : "Deposit"}</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
+    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "—") + `<small>${escapeHtml(quote.customers?.customer_code || "")}</small>`}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Expired" : "Deposit"}</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
   }).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;
   document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
   document.querySelectorAll(".open-quote-job").forEach(button => button.addEventListener("click", () => {
@@ -639,7 +654,7 @@ document.getElementById("quote-filter-clear").addEventListener("click", () => {
 
 async function loadDocuments() {
   const [quotes, orders] = await Promise.all([
-    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, prepared_by, customer_id, vehicle_id, fault_reported, customers(full_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
+    supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, prepared_by, customer_id, vehicle_id, fault_reported, customers(full_name,customer_code,is_company,company_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
     supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
   ]);
   quotationRows = quotes.data || [];
@@ -650,17 +665,17 @@ async function loadDocuments() {
 }
 
 async function fetchQuote(id) {
-  const richSelect = "*, quotation_items(*), customers(full_name, phone, email), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type, odometer_out), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, driver_name, driver_phone, vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type))";
+  const richSelect = "*, quotation_items(*), customers(full_name, phone, email, customer_code, is_company, company_name), vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type, odometer_out), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, driver_name, driver_phone, vehicles(make, model, year, license_plate, chassis_number, engine_number, body_type))";
   let { data, error } = await supabase.from("quotations").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full quotation lookup failed, retrying with fewer fields:", error.message);
-    ({ data, error } = await supabase.from("quotations").select("*, quotation_items(*), customers(full_name), repair_jobs(job_number)").eq("id", id).single());
+    ({ data, error } = await supabase.from("quotations").select("*, quotation_items(*), customers(full_name,customer_code,is_company,company_name), repair_jobs(job_number)").eq("id", id).single());
   }
   if (error) console.error("Failed to load quotation details:", error);
   return { data, error };
 }
 async function fetchOrder(id) {
-  const richSelect = "*, sales_order_items(*), customers(full_name, phone, email), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
+  const richSelect = "*, sales_order_items(*), customers(full_name, phone, email, customer_code, is_company, company_name), repair_jobs(job_number, cro_number, fault_reported, diagnosis, odometer_in, fuel_level_in, vehicles(make, model, year, license_plate, chassis_number, engine_number))";
   let { data, error } = await supabase.from("sales_orders").select(richSelect).eq("id", id).single();
   if (error) {
     console.warn("Full sales order lookup failed, retrying with fewer fields:", error.message);
@@ -1385,4 +1400,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (quoteTable) quoteTable.innerHTML = `<tr><td colspan="8" class="empty-state">Couldn't load quotations — check the console for details</td></tr>`;
     if (orderTable) orderTable.innerHTML = `<tr><td colspan="7" class="empty-state">Couldn't load sales orders — check the console for details</td></tr>`;
   }
+});
+
+
+document.getElementById("quote-is-company")?.addEventListener("change", event => {
+ const enabled=event.currentTarget.checked,wrap=document.getElementById("quote-company-name-wrap"),input=document.getElementById("quote-company-name");
+ if(wrap)wrap.hidden=!enabled;if(input){input.required=enabled;if(!enabled)input.value="";}
 });
