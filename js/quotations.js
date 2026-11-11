@@ -1225,13 +1225,37 @@ async function createOrderFromQuote() {
     alert("Failed to confirm sales order: " + error.message);
     return;
   }
-  const items = editingQuote.quotation_items.map(item => ({
-    sales_order_id: order.id, part_id: item.part_id, item_type: itemType(item), part_name: item.part_name,
-    quantity: item.quantity, cost_price_usd: Number(item.cost_price_usd) || 0,
-    markup_pct: Number(item.markup_pct) || 0,
-    unit_price_usd: item.unit_price_usd, total_usd: item.total_usd,
-    unit_price_zig: item.unit_price_zig, total_zig: item.total_zig,
-  }));
+  const rate = Number(editingQuote.usd_to_zig_rate);
+  const items = (editingQuote.quotation_items || []).map(item => {
+    const quantity = Number(item.quantity);
+    const unitUsd = Number(item.unit_price_usd);
+    const totalUsd = Number.isFinite(Number(item.total_usd)) ? Number(item.total_usd) : quantity * unitUsd;
+    const unitZig = Number.isFinite(Number(item.unit_price_zig)) ? Number(item.unit_price_zig) : unitUsd * rate;
+    const totalZig = Number.isFinite(Number(item.total_zig)) ? Number(item.total_zig) : totalUsd * rate;
+    return {
+      sales_order_id: order.id,
+      part_id: item.part_id || null,
+      item_type: itemType(item) || "part",
+      part_name: String(item.part_name || item.description || "Quotation item").trim(),
+      quantity,
+      cost_price_usd: Number(item.cost_price_usd) || 0,
+      markup_pct: Number(item.markup_pct) || 0,
+      unit_price_usd: unitUsd,
+      total_usd: totalUsd,
+      unit_price_zig: unitZig,
+      total_zig: totalZig,
+    };
+  });
+  if (!items.length || !Number.isFinite(rate) || rate <= 0 ||
+      items.some(item => !item.part_name || !Number.isFinite(item.quantity) || item.quantity <= 0 ||
+        !Number.isFinite(item.unit_price_usd) || item.unit_price_usd < 0 ||
+        !Number.isFinite(item.total_usd) || !Number.isFinite(item.unit_price_zig) ||
+        !Number.isFinite(item.total_zig))) {
+    const { error: cleanupError } = await supabase.from("sales_orders").delete().eq("id", order.id);
+    alert("This quotation has incomplete or invalid line rows, so the sales order was not confirmed. Check the quotation items and try again." +
+      (cleanupError ? " The empty draft order could not be removed: " + cleanupError.message : ""));
+    return;
+  }
   const { error: itemsError } = await supabase.from("sales_order_items").insert(items);
   if (itemsError) {
     const { error: cleanupError } = await supabase.from("sales_orders").delete().eq("id", order.id);
