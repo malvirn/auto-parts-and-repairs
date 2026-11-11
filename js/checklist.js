@@ -468,17 +468,17 @@ async function saveAndConfirm(){
  }
 }
 
-function printChecklist(){
+function printChecklist(blank=false){
  const printWindow=window.open("","_blank");
  if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
  printWindow.addEventListener("load",()=>{printWindow.focus();printWindow.print()},{once:true});
  const parts=CONDITION_GROUPS.map(([group,items])=>`
   <section><h2>${esc(group)}</h2><table><tbody>${items.map(([key,name])=>{
    const marked=report.parts?.[key],damage=Array.isArray(marked?.dmg)?marked.dmg:[];
-   const condition=damage.length?damage.join(", "):"No Damage";
+   const condition=blank?"________________":damage.length?damage.join(", "):"No Damage";
    return `<tr><th>${esc(name)}</th><td>${esc(condition)}${marked?.note?`<br><small>${esc(marked.note)}</small>`:""}${marked?.photo?`<br><img src="${esc(marked.photo)}" style="max-width:110px;max-height:80px;object-fit:cover;border-radius:5px" alt="Damage photo">`:""}</td></tr>`;
   }).join("")}</tbody></table></section>`).join("");
- const checklistNumber=record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
+ const checklistNumber=blank?"Blank inspection sheet":record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
  const linkedJob=selectedJob?(selectedJob.cro_number||`JC-${String(selectedJob.job_number??"").padStart(5,"0")}`):"—";
  const confirmed=record?.voided_at?`Voided ${new Date(record.voided_at).toLocaleString()} · ${record.void_reason||"No reason recorded"}`:record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
  const note=String(report.notes||"").trim();
@@ -504,17 +504,17 @@ function printChecklist(){
  </style></head><body>
  <header><img src="${esc(logo)}" alt=""><div><h1>Vehicle Checklist</h1><p>Centric Auto Mobile</p></div><div class="number">${checklistNumber}</div></header>
  <div class="summary">
-  <div><b>Customer</b>${esc($("customer-name-input").value.trim()||"—")}</div>\n  <div><b>Customer ID</b>${esc(customerCode)}</div>
-  <div><b>Vehicle registration</b>${esc($("vehicle-registration-input").value.trim().toUpperCase()||"—")}</div>
-  <div><b>Checklist completed by</b>${esc($("checked-by-input").value.trim()||"—")}</div>
-  <div><b>Job card</b>${esc(linkedJob)}</div>
-  <div><b>Odometer at drop-off</b>${esc($("odometer").value||"—")} km</div>
-  <div><b>Fuel at drop-off</b>${esc($("fuel").value||"—")}</div>
-  <div><b>Checklist status</b>${esc(confirmed)}</div>
+  <div><b>Customer</b>${blank?"________________":esc($("customer-name-input").value.trim()||"—")}</div>\n  <div><b>Customer ID</b>${blank?"________________":esc(customerCode)}</div>
+  <div><b>Vehicle registration</b>${blank?"________________":esc($("vehicle-registration-input").value.trim().toUpperCase()||"—")}</div>
+  <div><b>Checklist completed by</b>${blank?"________________":esc($("checked-by-input").value.trim()||"—")}</div>
+  <div><b>Job card</b>${blank?"________________":esc(linkedJob)}</div>
+  <div><b>Odometer at drop-off</b>${blank?"________________":esc($("odometer").value||"—")+" km"}</div>
+  <div><b>Fuel at drop-off</b>${blank?"________________":esc($("fuel").value||"—")}</div>
+  <div><b>Checklist status</b>${blank?"________________":esc(confirmed)}</div>
   <div><b>Printed</b>${esc(new Date().toLocaleString())}</div>
  </div>
  ${parts}
- ${note?`<div class="note"><b>Notes</b><br>${esc(note).replace(/\n/g,"<br>")}</div>`:""}
+ ${!blank&&note?`<div class="note"><b>Notes</b><br>${esc(note).replace(/\n/g,"<br>")}</div>`:""}
  <div class="liability">Please remove all valuables from the vehicle. Centric Auto Mobile is not responsible for valuables left in the vehicle.</div>
  <footer>Customer / driver signature: ________________________________ &nbsp;&nbsp; Date: __________________</footer>
  </body></html>`);
@@ -538,7 +538,7 @@ $("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-
 $("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
 $("delete-checklist").onclick=()=>deleteChecklist(record?.id);
 $("void-checklist").onclick=()=>voidChecklist(record?.id);
-$("print-checklist").onclick=printChecklist;
+$("print-checklist").onclick=()=>printChecklist(false);\n$("print-blank-checklist").onclick=()=>printChecklist(true);
 $("reopen-inspection").onclick=async()=>{const reason=prompt("Why are you reopening this completed inspection?")?.trim();if(!reason)return;const button=$("reopen-inspection");button.disabled=true;const{error}=await supabase.rpc("reopen_vehicle_inspection",{p_inspection_id:record?.id,p_reason:reason});if(error){setDetailMessage("Couldn't reopen inspection: "+error.message,true);button.disabled=false;return;}location.reload();};
 $("checklist-list").addEventListener("click",event=>{
  const voidButton=event.target.closest("[data-void-checklist]");
