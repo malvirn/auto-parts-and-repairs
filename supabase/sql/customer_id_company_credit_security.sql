@@ -158,8 +158,14 @@ alter table public.customers alter column customer_code set not null;
 create unique index if not exists customers_customer_code_uidx
   on public.customers(customer_code);
 
--- Keep the existing RLS policies. The trigger enforces manager-only CID changes
--- even for operational staff who already have customer UPDATE permission.
+-- Keep the existing RLS policies and add a manager-only UPDATE path for accounting
+-- managers who are not included in the operational staff policy.
+drop policy if exists customers_manager_update on public.customers;
+create policy customers_manager_update on public.customers
+  for update to authenticated
+  using (public.current_access_level() >= 2)
+  with check (public.current_access_level() >= 2);
+-- The trigger enforces manager-only CID changes even for operational staff.
 
 create table if not exists public.customer_credit_confirmation_attempts (
   customer_id uuid primary key references public.customers(id),
@@ -407,6 +413,48 @@ revoke all on function public.apply_customer_credit(uuid,numeric,text,uuid,text,
 revoke all on function public.redeem_credit_voucher(text,numeric,text,uuid,uuid) from public, anon, authenticated;
 grant execute on function public.apply_customer_credit_verified(uuid,numeric,text,uuid,text,uuid,text,text) to authenticated;
 grant execute on function public.redeem_credit_voucher_verified(text,numeric,text,uuid,uuid,text,text) to authenticated;
+
+-- Voucher list with customer identity fields for the wallet, print and WhatsApp.
+create or replace function public.list_customer_credit_vouchers_with_identity()
+returns table(
+  voucher_id uuid, voucher_code text, credit_note_type text, credit_note_id uuid,
+  status text, expires_at date, holder_note text, customer_name text, customer_phone text,
+  original_amount numeric, available_amount numeric, credit_note_number text,
+  customer_code text, is_company boolean, company_name text
+)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $
+begin
+  if auth.uid() is null or public.current_access_level() < 1 then
+    raise exception 'Authorised staff access is required' using errcode = '42501';
+  end if;
+  return query
+  select v.id, v.voucher_code, v.credit_note_type, v.credit_note_id,
+    case when v.status='active' and v.expires_at<current_date and public.credit_voucher_available_balance(v.id)>0.005 then 'expired'
+         when v.status='active' and public.credit_voucher_available_balance(v.id)<=0.005 then 'redeemed'
+         else v.status end,
+    v.expires_at, v.holder_note,
+    coalesce(d.customer_name,o.customer_name),
+    coalesce(d.customer_phone,o.customer_phone),
+    coalesce(d.amount,o.amount),
+    public.credit_voucher_available_balance(v.id),
+    case when v.credit_note_type='quotation_deposit' then 'QCN-'||lpad(d.credit_note_number::text,6,'0')
+         else 'CN-'||lpad(o.note_number::text,5,'0') end,
+    c.customer_code, c.is_company, c.company_name
+  from public.customer_credit_vouchers v
+  left join public.quotation_deposit_receipts d
+    on v.credit_note_type='quotation_deposit' and d.id=v.credit_note_id
+  left join public.customer_overpayment_credit_notes o
+    on v.credit_note_type='invoice_overpayment' and o.id=v.credit_note_id
+  left join public.customers c
+    on c.id=case when v.credit_note_type='quotation_deposit' then d.customer_id else o.customer_id end
+  order by v.issued_at desc;
+end;
+$;
+revoke all on function public.list_customer_credit_vouchers_with_identity() from public, anon;
+grant execute on function public.list_customer_credit_vouchers_with_identity() to authenticated;
 
 -- Expose CID and company identity in the existing customer credit wallet view.
 create or replace view public.customer_credit_balances
