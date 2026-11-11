@@ -1157,12 +1157,6 @@ async function load(){
   if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
   const invoiceCreditTotals=new Map();
  (invoiceCreditResult.data||[]).forEach(m=>{const key=String(m.target_id);invoiceCreditTotals.set(key,(invoiceCreditTotals.get(key)||0)+Number(m.amount||0));});
- const [creditLinksResult,creditRefundsResult]=await Promise.all([
-  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)").limit(1000),
-  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone,customers(customer_code,is_company,company_name,full_name))").order("created_at",{ascending:false}).limit(1000)
- ]);
- if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
- if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
  const creditLinksByNote=new Map();
  (creditLinksResult.data||[]).forEach(link=>{
   const key=String(link.credit_note_id),previous=creditLinksByNote.get(key);
