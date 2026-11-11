@@ -456,7 +456,7 @@ returns table(
   voucher_id uuid, voucher_code text, credit_note_type text, credit_note_id uuid,
   status text, expires_at date, holder_note text, customer_name text, customer_phone text,
   original_amount numeric, available_amount numeric, credit_note_number text,
-  customer_code text, is_company boolean, company_name text
+  customer_code text, is_company boolean, company_name text, customer_id uuid
 )
 language plpgsql
 security definer
@@ -478,7 +478,7 @@ begin
     public.credit_voucher_available_balance(v.id),
     case when v.credit_note_type='quotation_deposit' then 'QCN-'||lpad(d.credit_note_number::text,6,'0')
          else 'CN-'||lpad(o.note_number::text,5,'0') end,
-    c.customer_code, c.is_company, c.company_name
+    c.customer_code, c.is_company, c.company_name, c.id
   from public.customer_credit_vouchers v
   left join public.quotation_deposit_receipts d
     on v.credit_note_type='quotation_deposit' and d.id=v.credit_note_id
