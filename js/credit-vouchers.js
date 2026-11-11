@@ -74,6 +74,7 @@ redeemMessage = redeemMessage || host.querySelector("#voucher-redeem-message");
 redeemVideo = redeemVideo || host.querySelector("#voucher-redeem-video");
 let checkedVoucher = null;
 let redeemTargets = [];
+let preferredRedeemTarget = null;
 let scannerStream = null;
 let scannerActive = false;
 let redemptionRequest = { signature: null, key: null };
@@ -113,6 +114,14 @@ async function loadRedeemTargets() {
   redeemTarget.innerHTML = '<option value="">Choose an outstanding balance…</option>' +
     redeemTargets.map(row => '<option value="' + esc(row.target_type + "|" + row.source_id) + '">' + esc(row.label) + '</option>').join("");
   redeemTarget.disabled = !redeemTargets.length || !checkedVoucher || checkedVoucher.status !== "active";
+  if (preferredRedeemTarget) {
+    const match = redeemTargets.find(row => row.target_type === preferredRedeemTarget.targetType && String(row.source_id) === String(preferredRedeemTarget.targetId));
+    if (match) {
+      redeemTarget.value = match.target_type + "|" + match.source_id;
+      updateRedeemAmount();
+    }
+    preferredRedeemTarget = null;
+  }
 }
 
 function updateRedeemAmount() {
@@ -467,6 +476,21 @@ redeemAmount?.addEventListener("input", () => {
   redeemApply.disabled = !checkedVoucher || !Number.isFinite(amount) || amount <= 0 || amount > max + 0.005;
 });
 redeemCode?.addEventListener("input", () => { checkedVoucher = null; redeemApply.disabled = true; });
+window.addEventListener("apr:open-voucher-redemption", async event => {
+  const detail = event.detail || {};
+  preferredRedeemTarget = detail.targetId ? { targetType: detail.targetType || "repair_job", targetId: String(detail.targetId) } : null;
+  host.hidden = false;
+  redeemCode.value = "";
+  checkedVoucher = null;
+  redeemPreview.textContent = "";
+  redeemTarget.innerHTML = '<option value="">Check a voucher first</option>';
+  redeemTarget.disabled = true;
+  redeemAmount.value = "";
+  redeemAmount.disabled = true;
+  redeemApply.disabled = true;
+  setRedeemMessage(preferredRedeemTarget ? "Check the voucher code. This job card will be selected automatically." : "Enter a voucher code to continue.");
+  try { await load(); } catch (error) { setRedeemMessage(error.message || String(error), "error"); }
+});
 document.addEventListener("visibilitychange", () => { if (document.hidden) stopScanner(); });
 search?.addEventListener("input", render);
 statusFilter?.addEventListener("change", render);
