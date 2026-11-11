@@ -43,7 +43,14 @@ function ensureStyles(){
  .vi-part-card[disabled]{cursor:default}
  .vi-part-icon{display:grid;place-items:center;width:100px;height:66px;flex:none;border-radius:7px;background:#0b1220;color:var(--part-color,#20ad5a)}
  .vi-part-icon svg{width:54px;height:48px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
- .vi-part-photo{display:block;width:100px;height:66px;flex:none;object-fit:cover;border-radius:7px;background:#0b1220}
+ .vi-part-card.vi-photo-card{display:block;aspect-ratio:4/3;padding:0;overflow:hidden;border-radius:11px;background:#0b1220;line-height:0}
+ .vi-part-card.vi-photo-card .vi-part-photo{display:block;width:100%;height:100%;min-height:100%;object-fit:cover;border:0;border-radius:inherit;background:#0b1220}
+ .vi-part-card.vi-photo-card[data-condition="No Damage"]{border-color:#20ad5a}
+ .vi-part-card.vi-photo-card[data-condition="Scratch"]{border-color:#f59e0b}
+ .vi-part-card.vi-photo-card[data-condition="Crack"]{border-color:#a855f7}
+ .vi-part-card.vi-photo-card[data-condition="Missing"]{border-color:#3b82f6}
+ .vi-part-card.vi-photo-card[data-condition="Broken"]{border-color:#94a3b8}
+ .vi-part-card.vi-photo-card[data-condition="Dent"]{border-color:#ef4444}
  .vi-part-photo[data-photo-part="bonnet"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part="roof"]{object-position:50% 50%}
  .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
@@ -105,8 +112,9 @@ function partVisual(part){
 }
 function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
- return `<button type="button" class="vi-part-card" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
- ${partVisual(part)}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
+ const photoPart=part.key==="bonnet"||part.key==="roof";
+ return `<button type="button" class="vi-part-card${photoPart?" vi-photo-card":""}" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
+ ${partVisual(part)}${photoPart?"":`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
