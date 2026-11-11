@@ -86,6 +86,17 @@
   :root[data-theme="light"] body.dashboard-page .main .liability-note{background:#fff2e9;color:#66341e}
 
 
+  .body-parts-reference{display:block;width:100%;height:auto;max-width:100%;margin:0 auto 16px;border:1px solid #394554;border-radius:12px;background:#0b1220}
+  .body-part-group{margin:14px 0 0;padding:12px;border:1px solid var(--check-border);border-radius:12px;background:var(--check-card-2)}
+  .body-part-group h3{margin:0 0 10px;font-size:.95rem}
+  .body-part-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+  .body-part-option{display:grid;grid-template-columns:20px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:2px 8px;padding:9px;border:1px solid var(--check-border);border-radius:9px;background:var(--check-card)}
+  .body-part-option input{grid-row:1/3;width:18px;min-height:18px;margin:0;accent-color:#e5534b}
+  .body-part-name{font-size:.82rem;font-weight:750}
+  .body-part-option small{color:var(--check-muted);font-size:.72rem}
+  .body-part-option.is-damaged{border-color:#e5534b;background:color-mix(in srgb,#e5534b 12%,var(--check-card))}
+  .body-part-details{grid-column:2;justify-self:start;margin-top:4px;padding:4px 8px;border:1px solid var(--check-border);border-radius:6px;background:var(--check-card-2);color:var(--check-text);font-size:.72rem;font-weight:700}
+  .print-actions{display:flex;gap:8px;flex-wrap:wrap}
   .inspection-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
   .inspection-strip>div{min-width:0;padding:10px 12px;border:1px solid var(--check-border);border-radius:10px;background:var(--check-card-2)}
   .inspection-strip small{display:block;color:var(--check-muted);font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.06em}
@@ -196,7 +207,7 @@
         </div>
         <div id="checklist-number-display" class="checklist-number" hidden></div>
         <div class="inspection-strip"><div><small>Registration</small><strong id="inspection-plate-top">Not recorded</strong></div><div><small>Job card</small><strong id="inspection-job-top">Not linked</strong></div><div><small>Customer ID</small><strong id="inspection-cid-top">Not linked</strong></div><div><small>Inspection no.</small><strong id="inspection-number-top">New inspection</strong></div></div>
-        <div class="inspection-layout"><div class="inspection-diagram-panel"><h2>Vehicle condition</h2><div id="inspection-grid" class="grid"></div></div><aside class="inspection-side-panel"><section class="inspection-summary"><h3>Inspection summary <span id="inspection-mark-count">0 marks</span></h3><div id="inspection-summary-list" class="inspection-summary-list"><p class="message">No damage recorded.</p></div><p id="inspection-save-state" class="message" role="status" aria-live="polite">All unmarked areas are No Damage.</p></section></aside></div>
+        <div class="inspection-layout"><div class="inspection-diagram-panel"><h2>Vehicle body-parts reference</h2><img class="body-parts-reference" src="../img/vehicle-body-parts-inspection.jpg" alt="Silver sedan body parts separated into inspection components"><h2>Tick damaged parts only</h2><p class="message">All parts start as No Damage. Tick only the parts with visible damage; use Details if you want to add the damage type, notes or a photo.</p><div id="inspection-grid" class="grid"></div></div><aside class="inspection-side-panel"><section class="inspection-summary"><h3>Inspection summary <span id="inspection-mark-count">0 marks</span></h3><div id="inspection-summary-list" class="inspection-summary-list"><p class="message">No damage recorded.</p></div><p id="inspection-save-state" class="message" role="status" aria-live="polite">All unmarked areas are No Damage.</p></section></aside></div>
         <label class="notes-field">Inspection notes<textarea id="checklist-notes" maxlength="2000" rows="3" placeholder="Add any other observations or customer-provided details"></textarea></label>
         <div class="liability-note">Please remove all valuables from the vehicle. Centric Auto Mobile is not responsible for valuables left in the vehicle.</div>
         <p id="job-meta" class="message" hidden></p>
@@ -214,7 +225,7 @@
           <button id="save-checklist" class="btn btn--primary" type="button">Complete inspection</button>
           <button id="void-checklist" class="btn btn--danger" type="button" hidden>Void checklist</button>
           <button id="delete-checklist" class="btn" type="button" hidden>Delete checklist</button>
-          <button id="print-checklist" class="btn" type="button">Print checklist</button>
+          <div class="print-actions"><button id="print-checklist" class="btn" type="button">Print completed checklist</button><button id="print-blank-checklist" class="btn" type="button">Print blank sheet</button></div>
           <a id="open-job" class="btn btn--primary hidden">Open linked job card</a>
         </div>
       </section>
@@ -226,7 +237,7 @@
 <script type="module" src="../js/app.js"></script>
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
-<script type="module" src="../js/checklist.js?v=inspection-upgrade-11"></script>
+<script type="module" src="../js/checklist.js?v=body-parts-checklist-1"></script>
 <script defer src="../js/progressive-lists.js"></script>
 </body>
 </html>
