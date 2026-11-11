@@ -801,12 +801,16 @@ document.addEventListener("click", async event => {
     showMessage("Enter an amount greater than zero.", "error");
     return;
   }
-  const idempotencyKey = action.dataset.idempotencyKey || crypto.randomUUID();
-  action.dataset.idempotencyKey = idempotencyKey;
   applyButton.disabled = true;
   try {
     const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
     if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
+    const requestSignature = [action.dataset.creditId, targetType, targetId, amount.toFixed(2)].join("|");
+    if (action.dataset.idempotencySignature !== requestSignature) {
+      action.dataset.idempotencySignature = requestSignature;
+      action.dataset.idempotencyKey = crypto.randomUUID();
+    }
+    const idempotencyKey = action.dataset.idempotencyKey;
     const customerId = creditNotes.find(note => note.id === action.dataset.creditId)?.customer_id;
     const customer = creditNotes.find(note => note.id === action.dataset.creditId)?.customers || {};
     const confirmationValue = prompt(customer.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
