@@ -250,6 +250,53 @@ async function loadMatchingJobs(item){
  $("job-select").replaceChildren(new Option(matches.length?"Select a job card":"No matching job cards",""),...matches.map(job=>new Option(job.cro_number||`JC-${String(job.job_number??"").padStart(5,"0")}`,job.id)));
  $("link-existing-fields").hidden=!matches.length;
 }
+async function saveDraft(){
+ const button=$("save-draft");
+ if(record?.voided_at)return setDetailMessage("This checklist is voided and cannot be changed.",true);
+ if(record?.confirmed_at)return setDetailMessage("This inspection is already completed.",true);
+ button.disabled=true;setDetailMessage("");
+ try{
+  const customerName=$("customer-name-input").value.trim();
+  const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
+  const odometerText=$("odometer").value.trim();
+  const odometer=odometerText?Number(odometerText):null;
+  if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))throw new Error("Enter a valid whole-number odometer reading.");
+  const persistedReport={...report,notes:$("checklist-notes").value||"",parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||"",photo_path:value.photo_path||null}]))};
+  const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:record?.customer_id||selectedJob?.customer_id||null,vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
+  let checklistId=record?.id;
+  if(checklistId){
+   const {error}=await supabase.from("job_condition_reports").update(payload).eq("id",checklistId);
+   if(error)throw new Error("Couldn't save this draft: "+error.message);
+  }else{
+   const {data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number,inspection_no").single();
+   if(error)throw new Error("Couldn't save this draft: "+error.message);
+   checklistId=data.id;record={...data,...payload};
+  }
+  record={...record,...payload,id:checklistId};
+  for(const [area,entry] of Object.entries(report.parts||{})){
+   const conditions=Array.isArray(entry?.dmg)?entry.dmg:[];
+   let photo_path=entry.photo_path||null;
+   if(entry.photo?.startsWith("data:image/")){
+    const blob=await (await fetch(entry.photo)).blob();photo_path=checklistId+"/"+area+".jpg";
+    const {error}=await supabase.storage.from("vehicle-inspections").upload(photo_path,blob,{contentType:"image/jpeg",upsert:true});
+    if(error)throw new Error("Couldn't upload "+area+" photo: "+error.message);
+   }
+   if(conditions.length){
+    const {error}=await supabase.from("job_condition_report_marks").upsert({inspection_id:checklistId,area_code:area,condition:conditions[0],note:entry.note||null,photo_path},{onConflict:"inspection_id,area_code"});
+    if(error)throw new Error("Couldn't save "+area+": "+error.message);
+    if(photo_path)entry.photo_path=photo_path;
+   }else{
+    const {error}=await supabase.from("job_condition_report_marks").delete().eq("inspection_id",checklistId).eq("area_code",area);
+    if(error)throw new Error("Couldn't clear "+area+": "+error.message);
+   }
+  }
+  try{localStorage.setItem("centric-inspection-draft-"+checklistId,JSON.stringify({report,updated_at:new Date().toISOString()}));localStorage.removeItem("centric-inspection-draft-new");}catch{}
+  $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
+  $("checklist-number-display").hidden=false;syncInspectionStrip();renderInspectionSummary();
+  setDetailMessage("Draft saved. Link a job card when you're ready to complete the inspection.");
+  button.disabled=false;
+ }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
+}
 async function saveAndConfirm(){
  const button=$("save-checklist");
  if(record?.voided_at)return setDetailMessage("This checklist is voided and cannot be changed.",true);
@@ -394,6 +441,7 @@ $("inspection-grid").addEventListener("change",event=>{
 });
 $("checklist-notes").addEventListener("input",event=>{report.notes=event.target.value});
 $("confirm-check").onchange=event=>{$("save-checklist").disabled=!event.target.checked};
+$("save-draft").onclick=saveDraft;
 $("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-check").checked)return setDetailMessage("Confirm that the customer name and registration above are correct for this vehicle at drop-off.",true);saveAndConfirm()};
 $("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
 $("delete-checklist").onclick=()=>deleteChecklist(record?.id);
