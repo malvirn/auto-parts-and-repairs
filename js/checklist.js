@@ -223,19 +223,19 @@ async function showRecord(item){
  $("confirmed-notice").classList.toggle("hidden",!item.confirmed_at);
  $("voided-notice").textContent=item.voided_at?`Checklist voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:"";
  $("voided-notice").classList.toggle("hidden",!item.voided_at);
- $("open-job").classList.toggle("hidden",!item.confirmed_at||Boolean(item.voided_at));
+ $("open-job").classList.toggle("hidden",Boolean(item.voided_at));
  $("open-job").textContent=item.job_id?"Open linked job card":"Create job card with checklist details";
  $("open-job").href=item.job_id
   ?`repairs.html?edit=${encodeURIComponent(item.job_id)}`
   :`repairs.html?checklist=${encodeURIComponent(item.id)}`;
- $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id)||Boolean(item.voided_at);
+ $("link-existing-fields").hidden=Boolean(item.job_id)||Boolean(item.voided_at);
  $("link-job").disabled=true;
  setEditable(!item.voided_at);
  $("reopen-inspection").hidden=true;
  if(item.status==="completed"||item.confirmed_at){const {data:u}=await supabase.auth.getUser();if(u?.user?.id){const {data:p}=await supabase.from("profiles").select("role").eq("id",u.user.id).maybeSingle();$("reopen-inspection").hidden=!["super_admin","superadmin"].includes(String(p?.role||"").toLowerCase());}}
  renderInspectionSummary();syncInspectionStrip();
  setDetailMessage("");
- if(item.confirmed_at&&!item.job_id&&!item.voided_at)await loadMatchingJobs(item);
+ if(!item.job_id&&!item.voided_at)await loadMatchingJobs(item);
 }
 async function loadMatchingJobs(item){
  const{data,error}=await supabase.from("repair_jobs")
