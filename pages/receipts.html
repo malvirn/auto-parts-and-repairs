@@ -1852,7 +1852,7 @@ html,body{margin:0;padding:0;background:#fff;color:#17211b;font:13px/1.55 Arial,
 #doc .tot .g{border-top:2px solid #ff7a12;font-size:16px;font-weight:800;margin-top:6px;padding-top:10px;color:#145c31}
 #doc .stamp{display:inline-block;border:2px solid #12a150;color:#12783d;padding:2px 12px;border-radius:999px;font-weight:800;margin-top:8px}
 #doc .foot{margin-top:24px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px;text-align:center}
-@page{size:${thermal?"80mm auto":"A4"};margin:${thermal?"3mm":"10mm"}}
+@page{size:${thermal?"80mm auto":"A4"};margin:0}
 @media print{html,body{print-color-adjust:exact;-webkit-print-color-adjust:exact}#doc{break-inside:avoid}}
 </style>`}
 function exportStyles(thermal=false,capture=false){
