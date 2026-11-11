@@ -133,6 +133,7 @@ function setEditable(value){
  $("fuel").disabled=!editable;
  $("odometer").disabled=!editable;
  $("save-checklist").hidden=!editable;
+ $("save-draft").hidden=!editable;
  $("delete-checklist").hidden=!record||Boolean(record.voided_at);
  $("void-checklist").hidden=!record||Boolean(record.voided_at);
  $("confirm-check").checked=false;
