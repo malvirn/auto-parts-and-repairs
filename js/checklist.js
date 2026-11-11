@@ -227,15 +227,17 @@ async function saveAndConfirm(){
  if(!odometerText||!Number.isSafeInteger(odometer)||odometer<0)return setDetailMessage("Enter a valid whole-number odometer reading.",true);
  button.disabled=true;setDetailMessage("");
  try{
+  const persistedReport={...report,parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||""}]))};
   const payload={
    job_id:selectedJob?.id||record?.job_id||null,
    customer_id:record?.customer_id||selectedJob?.customer_id||null,
    vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,
    customer_name:customerName,vehicle_registration:vehicleRegistration,
-   checked_by:checkedBy,
-   report,fuel_level_in:$("fuel").value||null,odometer_in:odometer,
+   checked_by:checkedBy,report:persistedReport,
+   fuel_level_in:$("fuel").value||null,odometer_in:odometer,
    updated_at:new Date().toISOString()
   };
+  if(!payload.job_id)return setDetailMessage("Link this inspection to its job card before completing it.",true);
   let checklistId=record?.id;
   if(checklistId){
    const{error}=await supabase.from("job_condition_reports").update({
@@ -254,12 +256,19 @@ async function saveAndConfirm(){
    checklistId=data.id;
    record={id:checklistId,checklist_number:data.checklist_number,...payload};
   }
-  const markRows=Object.entries(report.parts||{}).flatMap(([area,entry])=>{
+  const markRows=[];
+  for(const [area,entry] of Object.entries(report.parts||{})){
    const conditions=Array.isArray(entry?.dmg)?entry.dmg:[];
-   if(!conditions.length)return [];
-   const condition=conditions[0];
-   return [{inspection_id:checklistId,area_code:area,condition,note:entry.note||null,photo_path:null}];
-  });
+   if(!conditions.length)continue;
+   let photo_path=null;
+   if(entry.photo?.startsWith("data:image/")){
+    const response=await fetch(entry.photo),blob=await response.blob();
+    photo_path=checklistId+"/"+area+".jpg";
+    const {error:uploadError}=await supabase.storage.from("vehicle-inspections").upload(photo_path,blob,{contentType:"image/jpeg",upsert:true});
+    if(uploadError)throw new Error("Couldn't upload "+area+" photo: "+uploadError.message);
+   }
+   markRows.push({inspection_id:checklistId,area_code:area,condition:conditions[0],note:entry.note||null,photo_path});
+  }
   const{error:clearMarksError}=await supabase.from("job_condition_report_marks").delete().eq("inspection_id",checklistId);
   if(clearMarksError)throw new Error(`Couldn't refresh inspection marks: ${clearMarksError.message}`);
   if(markRows.length){
@@ -269,9 +278,9 @@ async function saveAndConfirm(){
   const{data:confirmedAt,error:confirmError}=await supabase.rpc("complete_vehicle_inspection",{p_inspection_id:checklistId});
   if(confirmError)throw new Error(`Inspection was saved but could not be completed: ${confirmError.message}`);
   record={...record,...payload,status:"completed",confirmed_at:confirmedAt||new Date().toISOString()};
-  $("checklist-number-display").textContent=`Checklist #${record.checklist_number}`;
+  $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
   $("checklist-number-display").hidden=false;
-  $("print-checklist-number").textContent=`#${record.checklist_number}`;
+  $("print-checklist-number").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
   location.href=`checklist.html?id=${encodeURIComponent(checklistId)}`;
  }catch(error){
   console.error("Checklist save failed:",error);
