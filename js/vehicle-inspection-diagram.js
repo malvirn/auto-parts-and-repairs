@@ -104,6 +104,21 @@ function ensureStyles(){
  .vi-part-actions{display:flex;gap:8px;margin-top:14px}.vi-part-actions button{flex:1;min-height:44px;border:0;border-radius:9px;background:#18a65b;color:white;font:inherit;font-weight:800}.vi-part-actions .vi-cancel{background:#344252}
  @media(min-width:760px){.vi-part-dialog{place-items:center}}
  @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-icon{width:100px;height:66px;flex:none}}
+ /* Light mode: keep every inspection label readable on the light page. */
+ :root[data-theme="light"] .vi-wrap{--check-text:#17211b;--check-muted:#59636e;--check-border:#d5dbe1;--check-card-2:#fff;color:#17211b}
+ :root[data-theme="light"] .vi-legend,:root[data-theme="light"] .vi-hotspot-hint{color:#59636e}
+ :root[data-theme="light"] .vi-part-card:not(.vi-photo-card){background:#fff;color:#17211b;border-color:#cbd3dc}
+ :root[data-theme="light"] .vi-part-card:not(.vi-photo-card) .vi-part-name{color:#17211b}
+ :root[data-theme="light"] .vi-part-card:not(.vi-photo-card) .vi-part-condition{color:#fff}
+ :root[data-theme="light"] .vi-count{background:#fff;border-color:#d5dbe1;color:#263238}
+ :root[data-theme="light"] .vi-part-panel{background:#fff;color:#17211b;border-color:#d5dbe1;box-shadow:0 20px 60px #0003}
+ :root[data-theme="light"] .vi-part-panel h3{color:#17211b}
+ :root[data-theme="light"] .vi-check-option{background:#f5f7f9;border-color:#d5dbe1;color:#17211b}
+ :root[data-theme="light"] .vi-check-option:has(input:checked){background:color-mix(in srgb,var(--choice-color) 14%,#fff);border-color:var(--choice-color);color:#17211b}
+ :root[data-theme="light"] .vi-part-actions button{color:#17211b;border-color:#cbd3dc;background:#f5f7f9}
+ :root[data-theme="light"] .vi-part-actions [data-save]{background:#168b50;border-color:#168b50;color:#fff}
+ :root[data-theme="light"] .vi-part-actions [data-close]{background:#fff;color:#344054}
+
  `;
  document.head.append(style);
 }
