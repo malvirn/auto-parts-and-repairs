@@ -1727,6 +1727,9 @@ form?.addEventListener("submit", async (e) => {
 
     // ---- 1. Customer / company ----
     let customer_id = customerValue;
+    let customerCodeForNotice = selectedCustomer()?.customer_code || null;
+    let customerNameForNotice = selectedCustomer()?.company_name || selectedCustomer()?.full_name || $("f-name").value.trim();
+    let customerPhoneForNotice = selectedCustomer()?.phone || $("f-phone").value.trim();
     if (newCustomer) {
       const { data: existingCustomers, error: lookupError } = await supabase.from("customers")
         .select("id,customer_code,is_company,company_name")
@@ -1736,6 +1739,9 @@ form?.addEventListener("submit", async (e) => {
       if (lookupError) throw new Error("Couldn't check for an existing customer: " + lookupError.message);
       if (existingCustomers?.length) {
         customer_id = existingCustomers[0].id;
+        customerCodeForNotice = existingCustomers[0].customer_code || null;
+        customerNameForNotice = newCustomerIsCompany ? newCompanyName : newCustomerName;
+        customerPhoneForNotice = newCustomerPhone;
         if (newCustomerIsCompany !== Boolean(existingCustomers[0].is_company) || (newCustomerIsCompany && newCompanyName !== existingCustomers[0].company_name)) {
           const { error: companyError } = await supabase.from("customers")
             .update({ is_company: newCustomerIsCompany, company_name: newCustomerIsCompany ? newCompanyName : null })
@@ -1752,6 +1758,9 @@ form?.addEventListener("submit", async (e) => {
         }]).select("id,customer_code").single();
         if (error) throw new Error("Couldn't register the customer: " + error.message);
         customer_id = customer.id;
+        customerCodeForNotice = customer.customer_code || null;
+        customerNameForNotice = newCustomerIsCompany ? newCompanyName : newCustomerName;
+        customerPhoneForNotice = newCustomerPhone;
       }
     }
 
@@ -1921,11 +1930,21 @@ form?.addEventListener("submit", async (e) => {
       }
     }
 
+    let customerIdNotice = "";
+    if (customerCodeForNotice) {
+      let copied = false;
+      try { await navigator.clipboard.writeText(customerCodeForNotice); copied = true; } catch {}
+      customerIdNotice = ` Customer ID: ${customerCodeForNotice}${copied ? " (copied to clipboard)." : " (copy this ID for the customer)."}`;
+      const phoneDigits = String(customerPhoneForNotice || "").replace(/\\D/g, "");
+      if (phoneDigits && confirm(`Customer ID ${customerCodeForNotice} is ready. Share it with the customer on WhatsApp?`)) {
+        window.open("https://wa.me/" + phoneDigits + "?text=" + encodeURIComponent("Hello " + customerNameForNotice + ", your Centric Auto Mobile Customer ID is " + customerCodeForNotice + ". Please keep it for future visits."), "_blank", "noopener");
+      }
+    }
     resetIntakeForm();
     const label = job.cro_number || (job.job_number != null ? `#${String(job.job_number).padStart(4, "0")}` : "");
     showFormMessage(skipped.length
-      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}${depositNote}`
-      : `Job card ${label} created.${quoteLinkWarning}${depositNote}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
+      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}${depositNote}${customerIdNotice}`
+      : `Job card ${label} created.${quoteLinkWarning}${depositNote}${customerIdNotice}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
     await Promise.all([loadJobs(), loadPartsIntoSelect(), loadCustomers()]);
     await refreshBusyMechanics();
     refreshTechnicianOptions(newTechnician, null);
