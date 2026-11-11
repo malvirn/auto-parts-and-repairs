@@ -1634,6 +1634,13 @@ async function open(j){
  else curParts=parts||[];
  if(incidentalsResult.error){console.error("Couldn't load additional job costs:",incidentalsResult.error);toast(`Couldn't load additional job costs: ${incidentalsResult.error.message}`);curIncidentals=[]}
  else curIncidentals=incidentalsResult.data||[];
+ if(isClosed(j)){
+  try{
+   const applied=await applyCustomerOverpaymentCredits(j);
+   if(applied)toast("Carried-forward customer credit applied to this job automatically.");
+  }catch(error){console.error("Automatic customer credit application failed:",error);toast("Couldn't apply carried-forward customer credit: "+(error.message||String(error)))}
+  if(request!==openJobRequest)return;
+ }
  const savedReport=await loadReport(j.id);
  if(request!==openJobRequest)return;
  if(savedReport)inspectionState.set(String(j.id),savedReport);
@@ -1923,6 +1930,31 @@ $("edit-job-form").onsubmit=async event=>{
  }catch(error){console.error("Couldn't save edited job card:",error);message.textContent=error.message||String(error)}
  finally{button.disabled=false}
 };
+async function applyCustomerOverpaymentCredits(job){
+ if(!job?.customer_id||!job.closed_at)return 0;
+ const{data:invoiceRows,error:invoiceError}=await supabase.from("invoices").select("id").eq("repair_job_id",job.id).limit(1);
+ if(invoiceError)throw new Error("Couldn't check the job invoice: "+invoiceError.message);
+ if(!invoiceRows?.length)return 0;
+ const{data:credits,error:creditError}=await supabase.from("customer_overpayment_credits").select("id").eq("customer_id",job.customer_id).gt("available_amount",0.005);
+ if(creditError)throw new Error("Couldn't check the customer's carried-forward credit: "+creditError.message);
+ let appliedCount=0;
+ if(credits?.length){
+  const{data:notes,error:noteError}=await supabase.from("customer_overpayment_credit_notes").select("id,overpayment_credit_id").eq("customer_id",job.customer_id).eq("voucher_status","active").in("overpayment_credit_id",credits.map(item=>item.id));
+  if(noteError)throw new Error("Couldn't load the customer's active credit notes: "+noteError.message);
+  for(const note of notes||[]){
+   const{error}=await supabase.rpc("link_overpayment_credit_to_job",{p_credit_note_id:note.id,p_repair_job_id:job.id});
+   if(error)throw new Error("Couldn't apply carried-forward credit: "+error.message);
+   appliedCount++;
+  }
+ }
+ const{data:existingLinks,error:linkError}=await supabase.from("customer_overpayment_credit_job_links").select("id").eq("repair_job_id",job.id).gt("applied_amount",0.005).limit(1);
+ if(linkError)throw new Error("Couldn't verify applied customer credit: "+linkError.message);
+ if(appliedCount||existingLinks?.length){
+  const{error}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:job.id});
+  if(error)throw new Error("Credit was applied, but the invoice could not be refreshed: "+error.message);
+ }
+ return appliedCount;
+}
 async function saveDailyUpdate(status,extraFields={}){
  if(!cur)return false;
  const jobId=cur.id;
@@ -1938,14 +1970,22 @@ async function saveDailyUpdate(status,extraFields={}){
  if(cur?.id===jobId)cur=updated;
  $("d-update-note").value="";$("daily-update-warning").textContent="";
  renderJobDoc(updated);
+ let creditMessage="";
  if(status===CLOSED_STATUS){
   $("close-job-modal").classList.add("hidden");
   $("close-job-card").hidden=true;
   $("mark-job-collected").hidden=false;
   $("d-status").value=saved.status;
   $("d-status").disabled=true;
+  try{
+   const applied=await applyCustomerOverpaymentCredits(updated);
+   if(applied)creditMessage=" Carried-forward customer credit was applied automatically.";
+  }catch(error){
+   console.error("Automatic customer credit application failed:",error);
+   creditMessage=" Job closed, but carried-forward credit could not be applied: "+(error.message||String(error));
+  }
  }
- toast(status===CLOSED_STATUS?"Job card closed and saved":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved");
+ toast((status===CLOSED_STATUS?"Job card closed and saved":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved")+creditMessage);
  render();
  return true;
 }
