@@ -1026,22 +1026,39 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/customer-credit.js?v=customer-cid-4"></script>
 <script type="module" src="../js/credit-vouchers.js?v=customer-cid-6-syntaxfix"></script>
 <script>
-/* Fallback if a module import stalls before the receipt loader starts. */
+/* Surface script failures instead of leaving the receipt list on its initial Loading state. */
 window.__centricReceiptBooted = false;
+window.__centricReceiptStartupFailure = "";
+window.__centricShowReceiptStartupError = message => {
+ if(window.__centricReceiptBooted)return;
+ const list=document.getElementById("list");
+ if(!list)return;
+ window.__centricReceiptStartupFailure=String(message||"A required receipt-page script failed to start").slice(0,400);
+ const box=document.createElement("div");
+ box.className="ov-empty";
+ box.textContent="Receipts page startup failed: "+window.__centricReceiptStartupFailure+" Reload the page after checking your connection.";
+ list.replaceChildren(box);
+ const button=document.createElement("button");
+ button.type="button";button.className="btn";button.style.marginTop="12px";button.textContent="Reload receipts";
+ button.addEventListener("click",()=>location.reload());
+ box.appendChild(document.createElement("br"));box.appendChild(button);
+};
 window.addEventListener("DOMContentLoaded",()=>{
  setTimeout(()=>{
   const list=document.getElementById("list");
-  if(!window.__centricReceiptBooted && list && /Loading receipts/i.test(list.textContent||"")){
-   list.innerHTML='<div class="ov-empty">The receipts page could not start. Check your connection, then reload this page.<br><button type="button" class="btn" style="margin-top:12px" onclick="location.reload()">Reload receipts</button></div>';
+  if(!window.__centricReceiptBooted && list && /Loading/i.test(list.textContent||"")){
+   window.__centricShowReceiptStartupError(window.__centricReceiptStartupFailure||"The receipts JavaScript module did not start. No receipt-data request was sent.");
   }
- },15000);
+ },12000);
 });
 window.addEventListener("unhandledrejection",event=>{
  console.error("Unhandled receipt-page promise rejection:",event.reason);
+ if(!window.__centricReceiptBooted)window.__centricShowReceiptStartupError(event.reason?.message||String(event.reason||"Unhandled promise rejection"));
 });
 window.addEventListener("error",event=>{
- console.error("Receipt-page error:",event.error||event.message);
-});
+ console.error("Receipt-page error:",event.error||event.message||event.target?.src||event.target?.href);
+ if(!window.__centricReceiptBooted)window.__centricShowReceiptStartupError(event.message||event.target?.src||event.target?.href||"A required receipt-page script failed");
+},true);
 </script>
 <script>
 /* Invoice builder on phones: Details | Invoice switch (side by side on wider screens). */
