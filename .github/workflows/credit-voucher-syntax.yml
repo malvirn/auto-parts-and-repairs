@@ -8,6 +8,7 @@ on:
       - 'js/customers.js'
       - 'js/quotations.js'
       - 'js/repairs.js'
+      - 'js/prefetch.js'
       - 'pages/repairs.html'
       - 'pages/receipts.html'
       - '.github/workflows/credit-voucher-syntax.yml'
@@ -32,6 +33,7 @@ jobs:
           node --check js/customers.js
           node --check js/quotations.js
           node --check js/repairs.js
+          node --check js/prefetch.js
       - name: Check inline page scripts
         run: |
           python - <<'PY'
