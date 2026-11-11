@@ -141,7 +141,7 @@ function fillWalkinDetails(customer) {
 
 document.getElementById("quote-walkin-name").addEventListener("change", event => {
   const typedName = event.currentTarget.value.trim().toLocaleLowerCase();
-  const matches = customers.filter(customer => String(customer.full_name || "").trim().toLocaleLowerCase() === typedName);
+  const matches = customers.filter(customer => [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === typedName));
   if (matches.length !== 1) return;
   const customer = matches[0];
   const phone = document.getElementById("quote-walkin-phone");
@@ -192,11 +192,13 @@ async function loadBaseData() {
     return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
   }).join("");
   partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${money(part.selling_price)} · ${part.quantity_in_stock} in shop</option>`).join("");
-  customerSelect.innerHTML = `<option value="">Select a customer or enter a walk-in below…</option>` + customers.map(customer => `<option value="${customer.id}">${escapeHtml(customer.full_name)}${customer.phone ? ` — ${escapeHtml(customer.phone)}` : ""}</option>`).join("");
+  customerSelect.innerHTML = `<option value="">Select a customer or enter a walk-in below…</option>` + customers.map(customer => `<option value="${customer.id}">${escapeHtml([customer.customer_code,customer.company_name||customer.full_name,customer.phone].filter(Boolean).join(" · "))}</option>`).join("");
   const suggestions = document.getElementById("quote-customer-suggestions");
   if (suggestions) {
     suggestions.innerHTML = customers.map(customer =>
-      `<option value="${escapeHtml(customer.full_name)}" label="${escapeHtml([customer.phone, customer.email].filter(Boolean).join(" · "))}"></option>`
+      [customer.full_name,customer.company_name,customer.customer_code].filter(Boolean).map(value =>
+        `<option value="${escapeHtml(value)}" label="${escapeHtml([customer.customer_code,customer.company_name,customer.phone,customer.email].filter(Boolean).join(" · "))}"></option>`
+      ).join("")
     ).join("");
   }
   renderQuoteVehicles();
