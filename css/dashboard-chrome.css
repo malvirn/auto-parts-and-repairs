@@ -653,3 +653,35 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{
   }
   body.dashboard-page.dashboard-workshop .dashboard-connection-bars{transform:scale(.85)}
 }
+
+
+/* Network bars must use the connection-state palette, never the theme accent blue. */
+body.dashboard-page .dashboard-topbar .dashboard-connection-status{
+  color:#22c55e!important;
+  background:var(--toolbar-button-bg,#202a38)!important;
+}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status .dashboard-connection-bars i{
+  background:#22c55e!important;
+  opacity:.28!important;
+}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="good"],
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="good"] .dashboard-connection-bars i{
+  color:#22c55e!important;background-color:#22c55e!important;
+}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="good"] .dashboard-connection-bars i{opacity:1!important}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="fair"],
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="fair"] .dashboard-connection-bars i{
+  color:#f59e0b!important;background-color:#f59e0b!important;
+}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="fair"] .dashboard-connection-bars i{opacity:.28!important}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="fair"] .dashboard-connection-bars i:nth-child(-n+2){opacity:1!important}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="poor"],
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"],
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i,
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i{
+  color:#ef4444!important;background-color:#ef4444!important;
+}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i,
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i{opacity:.28!important}
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i:first-child,
+body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i:first-child{opacity:1!important}
