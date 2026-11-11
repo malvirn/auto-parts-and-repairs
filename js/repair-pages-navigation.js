@@ -213,7 +213,9 @@ function readCachedShellDocument() {
     const cached = JSON.parse(localStorage.getItem(SHELL_CACHE_KEY) || "null");
     if (!cached || !cached.sidebar || !cached.header || !cached.toggle || !cached.backdrop) return null;
     const html = `<!doctype html><html><body class="dashboard-page dashboard-workshop">${cached.header}${cached.sidebar}${cached.toggle}${cached.backdrop}</body></html>`;
-    return new DOMParser().parseFromString(html, "text/html");
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    parsed.__aprShellStale = !cached.savedAt || Date.now() - Number(cached.savedAt) > 6 * 60 * 60 * 1000;
+    return parsed;
   } catch (_) { return null; }
 }
 
@@ -225,6 +227,7 @@ function cacheCanonicalShell(indexDocument) {
     const backdrop = indexDocument.querySelector(".dashboard-sidebar-backdrop");
     if (sidebar && header && toggle && backdrop) {
       localStorage.setItem(SHELL_CACHE_KEY, JSON.stringify({
+        savedAt: Date.now(),
         sidebar: sidebar.outerHTML, header: header.outerHTML,
         toggle: toggle.outerHTML, backdrop: backdrop.outerHTML
       }));
@@ -248,7 +251,7 @@ async function normalizeDashboardSidebar(sidebar) {
     }
     // The shared stylesheet is linked in each module page head, so cached
     // shell rendering does not wait for a late stylesheet request.
-    if (usedCache) {
+    if (usedCache && indexDocument.__aprShellStale) {
       fetch(indexUrl, { credentials: "same-origin" })
         .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.text(); })
         .then(html => cacheCanonicalShell(new DOMParser().parseFromString(html, "text/html")))
