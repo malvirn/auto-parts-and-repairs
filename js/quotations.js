@@ -196,7 +196,7 @@ async function loadBaseData() {
   const suggestions = document.getElementById("quote-customer-suggestions");
   if (suggestions) {
     suggestions.innerHTML = customers.map(customer =>
-      [customer.full_name,customer.company_name,customer.customer_code].filter(Boolean).map(value =>
+      [customer.full_name,customer.company_name,customer.customer_code,customer.phone].filter(Boolean).map(value =>
         `<option value="${escapeHtml(value)}" label="${escapeHtml([customer.customer_code,customer.company_name,customer.phone,customer.email].filter(Boolean).join(" · "))}"></option>`
       ).join("")
     ).join("");
@@ -657,7 +657,7 @@ document.getElementById("quote-filter-clear").addEventListener("click", () => {
 async function loadDocuments() {
   const [quotes, orders] = await Promise.all([
     supabase.from("quotations").select("id, quotation_number, status, total_usd, total_zig, created_at, prepared_by, customer_id, vehicle_id, fault_reported, customers(full_name,customer_code,is_company,company_name), walk_in_name, repair_job_id, repair_jobs(job_number, cro_number)").order("created_at", { ascending: false }),
-    supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name), walk_in_name").order("created_at", { ascending: false }),
+    supabase.from("sales_orders").select("id, order_number, status, total_usd, total_zig, created_at, customers(full_name,customer_code,is_company,company_name), walk_in_name").order("created_at", { ascending: false }),
   ]);
   quotationRows = quotes.data || [];
   renderQuotationRows();
