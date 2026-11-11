@@ -30,6 +30,30 @@ begin
     raise exception 'Authenticated users must be able to execute verified quotation-deposit application';
   end if;
 
+  if not has_function_privilege(
+    'authenticated',
+    'public.apply_prepaid_quotation_deposit_to_repair_job(uuid,uuid)',
+    'EXECUTE'
+  ) then
+    raise exception 'Authenticated staff must be able to apply a deposit already paid against its linked quotation';
+  end if;
+
+  if has_function_privilege(
+    'anon',
+    'public.apply_prepaid_quotation_deposit_to_repair_job(uuid,uuid)',
+    'EXECUTE'
+  ) then
+    raise exception 'Anonymous users must not be able to apply prepaid quotation deposits';
+  end if;
+
+  record_definition := pg_get_functiondef(
+    'public.apply_prepaid_quotation_deposit_to_repair_job(uuid,uuid)'::regprocedure
+  );
+  if position('quote_row.repair_job_id is distinct from p_repair_job_id' in record_definition) = 0
+     or position('public.apply_quotation_deposits_to_repair_job' in record_definition) = 0 then
+    raise exception 'Automatic prepaid deposit application must be restricted to the quotation linked to the job card';
+  end if;
+
   if has_function_privilege(
     'authenticated',
     'public.apply_customer_credit(uuid,numeric,text,uuid,text,uuid)',
