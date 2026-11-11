@@ -111,6 +111,7 @@ begin
     end if;
   end if;
 
+  new.customer_code := btrim(new.customer_code);
   if new.customer_code is null or btrim(new.customer_code) = '' then
     raise exception 'Customer ID could not be generated';
   end if;
@@ -138,7 +139,7 @@ $$;
 
 -- Preserve every existing code in the permanent registry.
 insert into public.customer_code_registry(customer_code, customer_id, assigned_by)
-select btrim(customer_code), id, null
+select customer_code, id, null
 from public.customers
 where nullif(btrim(customer_code), '') is not null
 on conflict (customer_code) do nothing;
@@ -327,7 +328,7 @@ begin
   end if;
   resolved_customer_id := note_row.customer_id;
   if resolved_customer_id is null then
-    select count(*), min(id) into match_count, resolved_customer_id
+    select count(*), (array_agg(id))[1] into match_count, resolved_customer_id
     from public.customers
     where lower(btrim(full_name)) = lower(btrim(note_row.customer_name))
       and (nullif(regexp_replace(coalesce(phone,''),'[^0-9]','','g'),'') is null
@@ -403,14 +404,14 @@ begin
 
   if customer_id_value is null then
     if voucher_row.credit_note_type = 'quotation_deposit' then
-      select count(*), min(c.id) into match_count, customer_id_value
+      select count(*), (array_agg(c.id))[1] into match_count, customer_id_value
       from public.quotation_deposit_receipts n
       join public.customers c on lower(btrim(c.full_name)) = lower(btrim(n.customer_name))
         and (nullif(regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'),'') is null
           or regexp_replace(c.phone,'[^0-9]','','g') = regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'))
       where n.id = voucher_row.credit_note_id;
     else
-      select count(*), min(c.id) into match_count, customer_id_value
+      select count(*), (array_agg(c.id))[1] into match_count, customer_id_value
       from public.customer_overpayment_credit_notes n
       join public.customers c on lower(btrim(c.full_name)) = lower(btrim(n.customer_name))
         and (nullif(regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'),'') is null
