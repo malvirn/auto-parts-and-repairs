@@ -910,6 +910,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       </div>
       <p class="section-note" id="jm-note" role="status"></p>
       <button class="btn" id="jm-apply" type="button" hidden>Apply quotation deposit</button>
+      <button class="btn btn--primary" id="jm-voucher" type="button" hidden>Apply voucher</button>
     </section>
     <p id="daily-update-warning" class="section-note" role="status"></p>
     <div class="rc-bar" style="margin:16px 0">
@@ -1415,8 +1416,8 @@ async function loadJobMoney(job){
  return{total,paid,credit,balance:Math.max(0,cents(total-paid-credit)),quotationId:quotes?.[0]?.id||null};
 }
 async function refreshJobMoney(job){
- const box=$("job-money"),note=$("jm-note"),apply=$("jm-apply");
- box.hidden=false;note.classList.remove("err");note.textContent="Loading payments…";apply.hidden=true;
+ const box=$("job-money"),note=$("jm-note"),apply=$("jm-apply"),voucher=$("jm-voucher");
+ box.hidden=false;note.classList.remove("err");note.textContent="Loading payments…";apply.hidden=true;voucher.hidden=true;
  try{
   const m=await loadJobMoney(job);
   if(!cur||cur.id!==job.id)return;
@@ -1424,8 +1425,13 @@ async function refreshJobMoney(job){
   const bal=$("jm-balance");bal.textContent=money(m.balance);bal.className=m.balance>0.005?"due":"ok";
   note.textContent=m.balance>0.005?"Balance still due on this job card.":"Fully covered.";
   apply.hidden=!(m.quotationId&&m.balance>0.005);apply.dataset.quote=m.quotationId||"";
+  voucher.hidden=!(m.balance>0.005);voucher.disabled=m.balance<=0.005;voucher.dataset.jobId=job.id;
  }catch(error){if(cur&&cur.id===job.id){note.classList.add("err");note.textContent="Couldn't load payments: "+(error.message||error)}}
 }
+$("jm-voucher").onclick=()=>{
+ if(!cur)return;
+ window.dispatchEvent(new CustomEvent("apr:open-voucher-redemption",{detail:{targetType:"repair_job",targetId:String(cur.id)}}));
+};
 $("jm-apply").onclick=async()=>{
  if(!cur)return;const button=$("jm-apply"),job=cur;button.disabled=true;
  try{
@@ -2330,6 +2336,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-11"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-13"></script>
 </body>
 </html>
