@@ -964,6 +964,10 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
   <label for="job-voucher-code">Voucher code</label><div class="job-voucher-code-row"><input id="job-voucher-code" type="text" maxlength="11" autocomplete="off" placeholder="XXXXX-XXXXX"><button class="btn" id="job-voucher-check" type="button">Check</button></div>
   <div id="job-voucher-preview" class="job-voucher-preview" aria-live="polite">Enter the voucher code and check it before applying.</div>
   <label for="job-voucher-amount">Amount to apply (USD)</label><input id="job-voucher-amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" disabled>
+  <label id="job-voucher-confirm-label" for="job-voucher-confirmation-input">Customer phone last 4 digits or full name</label>
+  <input id="job-voucher-confirmation-input" type="text" autocomplete="off" placeholder="Confirm customer identity">
+  <label id="job-voucher-author-label" for="job-voucher-authorised-by" hidden>Authorised by</label>
+  <input id="job-voucher-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden>
   <div class="job-voucher-confirmation" id="job-voucher-confirmation" hidden></div><p id="job-voucher-message" class="section-note" role="status"></p>
   <div class="rc-bar job-voucher-actions"><button class="btn" id="job-voucher-cancel" type="button">Cancel</button><button class="btn btn--primary" id="job-voucher-apply" type="button" disabled>Confirm and apply</button></div>
  </div>
@@ -1448,26 +1452,28 @@ async function refreshJobMoney(job){
   apply.hidden=!(m.quotationId&&m.balance>0.005);apply.dataset.quote=m.quotationId||"";
  }catch(error){if(cur&&cur.id===job.id){note.classList.add("err");note.textContent="Couldn't load payments: "+(error.message||error)}}
 }
-const jobVoucherModal=$("job-voucher-modal"),jobVoucherCode=$("job-voucher-code"),jobVoucherCheck=$("job-voucher-check"),jobVoucherAmount=$("job-voucher-amount"),jobVoucherApply=$("job-voucher-apply"),jobVoucherPreview=$("job-voucher-preview"),jobVoucherMessage=$("job-voucher-message");
+const jobVoucherModal=$("job-voucher-modal"),jobVoucherCode=$("job-voucher-code"),jobVoucherCheck=$("job-voucher-check"),jobVoucherAmount=$("job-voucher-amount"),jobVoucherApply=$("job-voucher-apply"),jobVoucherPreview=$("job-voucher-preview"),jobVoucherMessage=$("job-voucher-message"),jobVoucherConfirmation=$("job-voucher-confirmation-input"),jobVoucherAuthorisedBy=$("job-voucher-authorised-by");
 let jobVoucherData=null,jobVoucherBalance=0,jobVoucherRequestKey=null;
 const voucherMoney=value=>"$"+(Number(value)||0).toFixed(2);
 const voucherMessage=(message,error=false)=>{jobVoucherMessage.textContent=message||"";jobVoucherMessage.classList.toggle("err",!!error)};
 const closeJobVoucher=()=>{jobVoucherModal.classList.add("hidden");jobVoucherData=null;jobVoucherRequestKey=null};
 const voucherAmountChanged=()=>{
  const amount=Math.round((Number(jobVoucherAmount.value)||0)*100)/100,maximum=Math.min(Number(jobVoucherData?.available_amount)||0,jobVoucherBalance);
- const valid=!!jobVoucherData&&Number.isFinite(amount)&&amount>0&&amount<=maximum+0.005;
+ const valid=!!jobVoucherData&&Number.isFinite(amount)&&amount>0&&amount<=maximum+0.005&&Boolean(jobVoucherConfirmation.value.trim())&&(!jobVoucherData.customer?.is_company||Boolean(jobVoucherAuthorisedBy.value.trim()));
  jobVoucherApply.disabled=!valid;$("job-voucher-confirmation").hidden=!valid;
  $("job-voucher-confirmation").textContent=valid?`Apply ${voucherMoney(amount)} from this credit note. Voucher remaining: ${voucherMoney(Number(jobVoucherData.available_amount)-amount)}. Job balance remaining: ${voucherMoney(Math.max(0,jobVoucherBalance-amount))}.`:"";
 };
 $("jm-voucher").onclick=async()=>{
  if(!cur)return;
+ window.dispatchEvent(new CustomEvent("apr:open-voucher-redemption",{detail:{targetType:"repair_job",targetId:String(cur.id)}}));
+ return;
  jobVoucherModal.classList.remove("hidden");
  $("job-voucher-job-ref").textContent="Job card "+(cur.cro_number||"JC-"+String(cur.job_number||"").padStart(5,"0"))+" · "+(cur.customers?.full_name||"Customer");
  $("job-voucher-due").textContent="Loading…";$("job-voucher-available").textContent="—";
  jobVoucherCode.value="";jobVoucherCode.disabled=false;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;
  jobVoucherCheck.disabled=false;jobVoucherApply.disabled=true;jobVoucherApply.textContent="Confirm and apply";
  jobVoucherPreview.textContent="Enter the voucher code and check it before applying.";
- $("job-voucher-confirmation").hidden=true;voucherMessage("");
+ $("job-voucher-confirmation").hidden=true;jobVoucherConfirmation.value="";jobVoucherAuthorisedBy.value="";voucherMessage("");
  jobVoucherData=null;jobVoucherRequestKey=null;
  try{const balance=await loadJobMoney(cur);jobVoucherBalance=balance.balance;$("job-voucher-due").textContent=voucherMoney(balance.balance);
   if(balance.balance<=0.005){voucherMessage("This job card has no outstanding balance.",true);jobVoucherCheck.disabled=true}
@@ -1480,18 +1486,26 @@ jobVoucherCheck.onclick=async()=>{
   const[{data,error},balance]=await Promise.all([supabase.rpc("lookup_credit_voucher",{p_code:code}),loadJobMoney(cur)]);
   if(error)throw error;if(data?.error)throw new Error(data.error);
   if(data.status!=="active"||Number(data.available_amount)<=0.005)throw new Error("This voucher is "+data.status+" and cannot be redeemed.");
-  jobVoucherData={...data,code};jobVoucherBalance=balance.balance;
+  const sourceTable=data.credit_note_type==="quotation_deposit"?"quotation_deposit_receipts":"customer_overpayment_credit_notes";
+  const{data:sourceNote,error:sourceError}=await supabase.from(sourceTable).select("customer_id").eq("id",data.credit_note_id).maybeSingle();
+  if(sourceError)throw sourceError;if(!sourceNote?.customer_id)throw new Error("This voucher is not linked to a registered customer.");
+  const{data:customer,error:customerError}=await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id",sourceNote.customer_id).single();
+  if(customerError)throw customerError;
+  jobVoucherData={...data,code,customer};jobVoucherBalance=balance.balance;
+  $("job-voucher-confirm-label").textContent=customer.is_company?"Confirm company name exactly":"Customer phone last 4 digits or full name";
+  $("job-voucher-author-label").hidden=!customer.is_company;jobVoucherAuthorisedBy.hidden=!customer.is_company;jobVoucherAuthorisedBy.required=Boolean(customer.is_company);
+  jobVoucherConfirmation.value="";jobVoucherAuthorisedBy.value="";jobVoucherConfirmation.placeholder=customer.is_company?"Type the company name":"Last 4 phone digits or full name";
   if(jobVoucherBalance<=0.005)throw new Error("This job card has no outstanding balance.");
   const maximum=Math.min(Number(data.available_amount),jobVoucherBalance);
   $("job-voucher-available").textContent=voucherMoney(data.available_amount);
-  jobVoucherPreview.innerHTML="<strong>"+esc(data.customer_first_name||"Customer")+"</strong><span>Voucher verified · expires "+dt(data.expires_at)+"</span>";
+  jobVoucherPreview.innerHTML="<strong>"+esc(customer.company_name||customer.full_name||data.customer_first_name||"Customer")+"</strong><span>Customer ID: "+esc(customer.customer_code||"—")+" · Voucher verified · expires "+dt(data.expires_at)+"</span>";
   jobVoucherAmount.disabled=false;jobVoucherAmount.max=maximum.toFixed(2);jobVoucherAmount.value=maximum.toFixed(2);
   voucherMessage("Voucher verified. Confirm the amount before applying.");voucherAmountChanged();
  }catch(error){jobVoucherData=null;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;jobVoucherPreview.textContent="";$("job-voucher-available").textContent="—";voucherMessage(error.message||String(error),true)}
  finally{jobVoucherCheck.disabled=false}
 };
 jobVoucherCode.addEventListener("input",()=>{jobVoucherData=null;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;jobVoucherApply.disabled=true;jobVoucherPreview.textContent="Check the voucher code to continue";$("job-voucher-available").textContent="—";$("job-voucher-confirmation").hidden=true});
-jobVoucherAmount.addEventListener("input",voucherAmountChanged);
+jobVoucherAmount.addEventListener("input",voucherAmountChanged);jobVoucherConfirmation.addEventListener("input",voucherAmountChanged);jobVoucherAuthorisedBy.addEventListener("input",voucherAmountChanged);
 $("job-voucher-close").onclick=$("job-voucher-cancel").onclick=closeJobVoucher;
 jobVoucherModal.addEventListener("click",event=>{if(event.target===jobVoucherModal)closeJobVoucher()});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!jobVoucherModal.classList.contains("hidden"))closeJobVoucher()});
@@ -1504,8 +1518,8 @@ jobVoucherApply.onclick=async()=>{
  if(printWindow)printWindow.document.write("<p style='font:16px Arial;padding:24px'>Preparing your Centric Auto Mobile receipt…</p>");
  try{
   jobVoucherRequestKey=jobVoucherRequestKey||crypto.randomUUID();
-  const{data,error}=await supabase.rpc("redeem_credit_voucher",{p_code:jobVoucherData.code,p_amount:amount,p_target_type:"repair_job",p_target_id:job.id,p_idempotency_key:jobVoucherRequestKey});
-  if(error)throw error;
+  const{data,error}=await supabase.rpc("redeem_credit_voucher_verified",{p_code:jobVoucherData.code,p_amount:amount,p_target_type:"repair_job",p_target_id:job.id,p_idempotency_key:jobVoucherRequestKey,p_confirmation_value:jobVoucherConfirmation.value.trim(),p_authorised_by:jobVoucherAuthorisedBy.value.trim()||null});
+  if(error)throw error;if(data?.error)throw new Error(data.error);
   const refreshed=await loadJobMoney(job);await refreshJobMoney(job);
   const receiptNumber="R-"+String(data.receipt_number||"").padStart(5,"0"),date=new Date().toLocaleString("en-ZW",{timeZone:"Africa/Harare"});
   const customer=job.customers?.full_name||job.driver_name||"Customer",vehicle=[job.vehicles?.make,job.vehicles?.model,job.vehicles?.license_plate].filter(Boolean).join(" · ");
@@ -1524,8 +1538,13 @@ jobVoucherApply.onclick=async()=>{
 $("jm-apply").onclick=async()=>{
  if(!cur)return;const button=$("jm-apply"),job=cur;button.disabled=true;
  try{
-  const{data,error}=await supabase.rpc("apply_quotation_deposits_to_repair_job",{p_quotation_id:button.dataset.quote,p_repair_job_id:job.id});
-  if(error)throw error;
+  const customer=job.customers||{};
+  const confirmationValue=prompt(customer.is_company?"Type the company name exactly to authorise this credit:":"Confirm the customer's phone last 4 digits or full name:")?.trim();
+  if(!confirmationValue){button.disabled=false;return}
+  const authorisedBy=customer.is_company?prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim():null;
+  if(customer.is_company&&!authorisedBy){button.disabled=false;return}
+  const{data,error}=await supabase.rpc("apply_quotation_deposits_to_repair_job_verified",{p_quotation_id:button.dataset.quote,p_repair_job_id:job.id,p_confirmation_value:confirmationValue,p_authorised_by:authorisedBy});
+  if(error)throw error;if(data?.error)throw new Error(data.error);
   const applied=Number(data?.applied_amount||0);
   if(applied>0.005){
    const{error:syncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:job.id});
