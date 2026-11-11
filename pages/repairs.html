@@ -1639,6 +1639,16 @@ async function open(j){
  const savedReport=await loadReport(j.id);
  if(savedReport)inspectionState.set(String(j.id),savedReport);
  renderJobDoc(j);
+ const inspectionPanel=$("job-inspection-panel"),inspectionMeta=$("job-inspection-meta"),inspectionLink=$("job-inspection-link");
+ if(inspectionPanel&&inspectionMeta&&inspectionLink){
+  const {data:inspection,error:inspectionError}=await supabase.from("job_condition_reports").select("id,checklist_number,inspection_no,status,confirmed_at").eq("job_id",j.id).is("voided_at",null).maybeSingle();
+  inspectionPanel.hidden=!inspection;
+  if(inspectionError){console.error("Couldn't load the linked vehicle inspection:",inspectionError);inspectionMeta.textContent="Inspection details unavailable";inspectionLink.hidden=true;}
+  else if(inspection){
+   inspectionMeta.textContent=(inspection.inspection_no||"CL-"+String(inspection.checklist_number).padStart(6,"0"))+" · "+(inspection.status==="completed"||inspection.confirmed_at?"Completed":"Draft");
+   inspectionLink.href="checklist.html?id="+encodeURIComponent(inspection.id);inspectionLink.hidden=false;
+  }
+ }
  $("s-edit").hidden=false;
  const s=[...new Set([...statuses(),...DEFAULT_ST])].filter(x=>!/^closed$/i.test(x)&&!isTerminalStatus(x));
  if(isClosed(j))s.push(j.status);
