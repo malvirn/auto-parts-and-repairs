@@ -208,9 +208,10 @@ function addDashboardToolbar(main) {
 async function normalizeDashboardSidebar(sidebar) {
   if (!sidebar || sidebar.dataset.dashboardCanonical === "true" || sidebar.dataset.dashboardCanonicalizing === "true" || isDashboardHome()) return;
   sidebar.dataset.dashboardCanonicalizing = "true";
-  // Do not expose the page-specific sidebar while the Index master copy loads.
-  // This prevents the old sidebar flashing before it is replaced.
-  sidebar.style.visibility = "hidden";
+  // Keep the module's placeholder sidebar hidden even when the mobile drawer opens.
+  // The CSS uses !important visibility rules, so the inline loading state must too.
+  sidebar.style.setProperty("visibility", "hidden", "important");
+  sidebar.setAttribute("aria-hidden", "true");
   const indexUrl = new URL("../index.html", import.meta.url);
   try {
     const response = await fetch(indexUrl, { credentials: "same-origin" });
@@ -263,7 +264,8 @@ async function normalizeDashboardSidebar(sidebar) {
     const canonical = source.cloneNode(true);
     canonical.id = "sidebar";
     canonical.dataset.dashboardCanonical = "true";
-    canonical.style.visibility = "visible";
+    canonical.style.setProperty("visibility", "visible", "important");
+    canonical.removeAttribute("aria-hidden");
     // The Index reference sidebar starts with search, not a second Centric logo.
     canonical.querySelector(".sidebar__brand")?.remove();
     canonical.querySelector("#dashboard-sidebar-toggle")?.remove();
@@ -359,7 +361,8 @@ async function normalizeDashboardSidebar(sidebar) {
     window.lucide?.createIcons();
   } catch (error) {
     delete sidebar.dataset.dashboardCanonicalizing;
-    sidebar.style.visibility = "";
+    sidebar.style.removeProperty("visibility");
+    sidebar.removeAttribute("aria-hidden");
     console.error("Could not apply the shared dashboard sidebar:", error);
   }
 }
