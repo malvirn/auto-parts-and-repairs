@@ -143,10 +143,11 @@ export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
   if(e.target===overlay||e.target.closest("[data-close]")){close();return}
   if(e.target.closest("[data-none]")){draft.dmg=[];render();return}
   const damage=e.target.closest("[data-damage]");
-  if(damage){const type=damage.dataset.damage;draft.dmg=draft.dmg.includes(type)?draft.dmg.filter(x=>x!==type):[...draft.dmg,type];render();return}
+  if(damage){const type=damage.dataset.damage;draft.dmg=draft.dmg.includes(type)?[]:[type];render();return}
   if(e.target.closest("[data-remove-photo]")){draft.photo="";render();return}
   if(e.target.closest("[data-save]")){onSave?.({...entry,...draft,dmg:draft.dmg});close()}
  });
+ overlay.addEventListener("input",e=>{if(e.target.matches("[data-note]"))draft.note=e.target.value});
  overlay.addEventListener("change",async e=>{
   const file=e.target.closest("[data-photo]")?.files?.[0];if(!file)return;
   if(file.size>12*1024*1024){alert("Choose a photo smaller than 12 MB.");return}
