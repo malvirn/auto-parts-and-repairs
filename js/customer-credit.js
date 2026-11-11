@@ -1100,3 +1100,66 @@ creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal 
  background:#e2eaf2!important;color:#17212d!important;border-color:#9aabba!important;
 }`;
 document.head.append(creditNoteLayoutStyle);
+
+
+/* Full-screen credit note detail view: no floating/narrow popup. */
+.credit-note-dialog-overlay.modal-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483600!important;
+  display:flex!important;align-items:stretch!important;justify-content:stretch!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  max-width:100vw!important;max-height:100dvh!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  background:rgba(15,23,42,.12)!important;backdrop-filter:none!important;
+}
+.credit-note-dialog.modal{
+  display:flex!important;flex-direction:column!important;flex:1 1 100%!important;
+  width:100vw!important;min-width:0!important;max-width:100vw!important;
+  height:100vh!important;height:100dvh!important;min-height:100dvh!important;
+  max-height:100dvh!important;margin:0!important;padding:0!important;
+  overflow:hidden!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;background:#fff!important;color:#17212d!important;
+}
+.credit-note-dialog .credit-note-dialog-head{
+  position:sticky!important;top:0!important;z-index:2!important;flex:0 0 auto!important;
+  min-height:56px!important;padding:10px clamp(14px,3vw,32px)!important;
+  border-bottom:1px solid #d8e0e8!important;background:#f8fafc!important;color:#17212d!important;
+}
+.credit-note-dialog .credit-dialog-content{
+  flex:1 1 auto!important;width:100%!important;min-width:0!important;
+  min-height:0!important;max-height:none!important;overflow-y:auto!important;
+  overflow-x:hidden!important;overscroll-behavior:contain!important;
+  background:#fff!important;color:#17212d!important;
+}
+.credit-note-dialog .customer-credit-document,
+.credit-note-dialog .overpayment-credit-record__body{
+  width:100%!important;max-width:1180px!important;min-width:0!important;
+  margin:0 auto!important;padding:clamp(16px,3vw,34px)!important;
+  border:0!important;border-radius:0!important;background:#fff!important;color:#17212d!important;
+}
+.credit-note-dialog .credit-doc-facts,
+.credit-note-dialog .credit-doc-totals{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+.credit-note-dialog .credit-doc-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:10px!important;
+}
+.credit-note-dialog .credit-doc-actions>*{flex:1 1 150px!important;min-width:0!important}
+.credit-note-dialog .credit-detail-row{grid-template-columns:minmax(150px,.8fr) minmax(0,1.2fr)!important}
+:root[data-theme="dark"] .credit-note-dialog.modal,
+:root[data-theme="dark"] .credit-note-dialog .credit-dialog-content,
+:root[data-theme="dark"] .credit-note-dialog .customer-credit-document,
+:root[data-theme="dark"] .credit-note-dialog .overpayment-credit-record__body{
+  background:#151c25!important;color:#e9eef4!important;
+}
+:root[data-theme="dark"] .credit-note-dialog .credit-note-dialog-head{
+  background:#202a36!important;color:#f1f4f8!important;border-color:#3d4958!important;
+}
+@media(max-width:700px){
+  .credit-note-dialog .customer-credit-document,
+  .credit-note-dialog .overpayment-credit-record__body{padding:14px!important}
+  .credit-note-dialog .credit-doc-facts,
+  .credit-note-dialog .credit-doc-totals{grid-template-columns:minmax(0,1fr)!important}
+  .credit-note-dialog .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;gap:4px!important}
+  .credit-note-dialog .credit-detail-row>strong{text-align:left!important}
+  .credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+}
