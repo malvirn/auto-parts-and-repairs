@@ -437,7 +437,7 @@ function printBlankInspectionSheet(){
  const printWindow=window.open("","_blank");
  if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
  const parts=CONDITION_GROUPS.flatMap(([group,items])=>items.map(([key,name])=>({key,name,group})));
- const diagram=vehicleDiagramSnapshot(parts,{parts:{}});
+ const diagram=vehicleDiagramSnapshot(parts,{parts:{}}).replaceAll('loading="lazy"','loading="eager"');
  const logo=new URL("../assets/logo.png",location.href).href;
  printWindow.addEventListener("load",async()=>{
   try{await Promise.all([...printWindow.document.images].map(img=>img.decode().catch(()=>{})))}catch{}
