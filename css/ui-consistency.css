@@ -388,7 +388,6 @@ body.dashboard-page .overpayment-credit-record__body .credit-doc-actions button 
   body.dashboard-page .overpayment-credit-record__summary {align-items:flex-start}
   body.dashboard-page .overpayment-credit-record__summary > * {flex:1 1 42%}
   body.dashboard-page .overpayment-credit-record__amount {text-align:left}
-  body.dashboard-page .overpayment-credit-record__body .credit-doc-actions > * {flex:1 1 100%;justify-content:center}
 }
 
 
@@ -443,45 +442,6 @@ body.dashboard-page .dashboard-refresh:focus-visible,
 }
 
 
-/* Credit-note details open in a centred modal, not inside the list. */
-#customer-credit-panel .customer-credit-record[open],
-#customer-credit-panel .overpayment-credit-record[open]{
-  position:fixed!important;inset:0!important;z-index:2500!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100vw!important;height:100dvh!important;max-width:none!important;
-  margin:0!important;padding:22px!important;overflow:hidden!important;
-  border:0!important;border-radius:0!important;background:rgba(7,13,19,.72)!important;
-  box-shadow:none!important;backdrop-filter:blur(5px);
-}
-#customer-credit-panel .customer-credit-record[open]::before,
-#customer-credit-panel .overpayment-credit-record[open]::before{
-  content:"";position:absolute;inset:0;background:rgba(7,13,19,.72);z-index:-1;
-}
-#customer-credit-panel .customer-credit-record[open]>.customer-credit-record__summary,
-#customer-credit-panel .overpayment-credit-record[open]>.overpayment-credit-record__summary{display:none!important}
-#customer-credit-panel .customer-credit-record[open]>.customer-credit-document,
-#customer-credit-panel .overpayment-credit-record[open]>.overpayment-credit-record__body{
-  display:block!important;position:relative;width:min(920px,100%)!important;
-  max-height:calc(100dvh - 44px)!important;overflow-y:auto!important;
-  overscroll-behavior:contain;border:1px solid #c8d5e2!important;
-  border-radius:16px!important;padding:0 0 20px!important;
-  background:#f2f7fc!important;color:#172b40!important;
-  box-shadow:0 24px 80px rgba(0,0,0,.42)!important;
-}
-#customer-credit-panel .credit-doc-actions{
-  display:flex!important;flex-direction:row!important;align-items:center!important;
-  justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;
-  padding:16px 18px!important;margin:18px 0 0!important;
-  border-top:1px solid #cbdce9!important;
-}
-#customer-credit-panel .credit-doc-actions .btn{min-height:42px;padding:10px 16px!important}
-@media(max-width:600px){
-  #customer-credit-panel .customer-credit-record[open],
-  #customer-credit-panel .overpayment-credit-record[open]{padding:10px!important}
-  #customer-credit-panel .customer-credit-record[open]>.customer-credit-document,
-  #customer-credit-panel .overpayment-credit-record[open]>.overpayment-credit-record__body{max-height:calc(100dvh - 20px)!important}
-  #customer-credit-panel .credit-doc-actions{flex-direction:row!important;justify-content:space-between!important;padding:14px!important}
-}
 /* Larger checklist icons and stronger contrast for header icons in light mode. */
 .build-inspection .dmg-tile .pi{width:60px!important;height:60px!important}
 .build-inspection .dmg-tile .pi svg{width:100%!important;height:100%!important}
@@ -492,23 +452,6 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
 :root[data-theme="light"] body.dashboard-page .site-masthead :is(button,a){color:#172b40!important}
 :root[data-theme="light"] body.dashboard-page .app-header :is(button,a) svg,
 :root[data-theme="light"] body.dashboard-page .site-masthead :is(button,a) svg{color:#172b40!important;stroke:#172b40!important;opacity:1!important;filter:none!important}
-
-/* Modal controls and document footer spacing. */
-#customer-credit-panel .credit-doc-heading{position:relative;padding-right:58px!important}
-#customer-credit-panel .credit-modal-close{
-  display:grid;place-items:center;width:38px;height:38px;flex:none;
-  border:1px solid rgba(23,43,64,.22);border-radius:10px;
-  background:#fff;color:#172b40;font-size:25px;line-height:1;cursor:pointer;
-}
-#customer-credit-panel .credit-doc-heading>div{min-width:0}
-#customer-credit-panel .credit-doc-heading .credit-modal-close{
-  position:absolute;top:14px;right:16px;
-}
-#customer-credit-panel .overpayment-credit-record__body>.credit-doc-actions{
-  position:sticky;bottom:-1px;background:#f2f7fc;z-index:2;
-  box-shadow:0 -8px 18px rgba(23,43,64,.08);
-}
-#customer-credit-panel .credit-doc-actions--footer{padding-bottom:18px!important}
 
 /* Match credit-note modal documents to the green-and-white receipt/invoice paper. */
 #customer-credit-panel .customer-credit-document,
@@ -538,67 +481,5 @@ body.dashboard-page .site-masthead :is(button,a) svg{width:24px!important;height
   border:1px solid #dfe7e1!important;border-radius:10px!important;
   background:#fbfcfb!important;color:#26372d!important;line-height:1.65!important;
 }
-#customer-credit-panel .credit-doc-actions{background:#fff!important;border-top-color:#dfe7e1!important}
-#customer-credit-panel .credit-modal-close{background:#f3f7f4!important;color:#17211b!important;border-color:#dfe7e1!important}
 #customer-credit-panel .credit-note-validity{color:#66756c!important}
 
-
-/* Credit note modal is portalled to body so page panels and headers cannot cover it. */
-body.credit-modal-open{overflow:hidden!important}
-body>.credit-note-modal[open]{
-  position:fixed!important;inset:0!important;z-index:2147483647!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100vw!important;height:100vh!important;height:100dvh!important;
-  max-width:none!important;margin:0!important;padding:22px!important;
-  overflow:hidden!important;border:0!important;border-radius:0!important;
-  background:rgba(7,13,19,.78)!important;box-shadow:none!important;
-  isolation:isolate!important;backdrop-filter:blur(5px);
-}
-body>.credit-note-modal[open]>.customer-credit-record__summary,
-body>.credit-note-modal[open]>.overpayment-credit-record__summary{display:none!important}
-body>.credit-note-modal[open]>.customer-credit-document,
-body>.credit-note-modal[open]>.overpayment-credit-record__body{
-  display:block!important;position:relative!important;width:min(920px,100%)!important;
-  max-height:calc(100dvh - 44px)!important;overflow-y:auto!important;
-  overscroll-behavior:contain!important;padding:0 0 20px!important;
-  border:1px solid #c8d5e2!important;border-radius:16px!important;
-  background:#fff!important;color:#17211b!important;
-  box-shadow:0 24px 80px rgba(0,0,0,.55)!important;
-}
-body>.credit-note-modal[open] .credit-doc-heading{
-  position:relative!important;display:flex!important;align-items:flex-start!important;
-  justify-content:space-between!important;gap:16px!important;
-  margin:0 0 18px!important;padding:18px 66px 18px 22px!important;
-  border-bottom:1px solid #dfe7e1!important;background:#fff!important;color:#17211b!important;
-}
-body>.credit-note-modal[open] .credit-doc-heading>div{min-width:0}
-body>.credit-note-modal[open] .credit-modal-close{
-  position:absolute!important;top:14px!important;right:16px!important;
-  display:grid!important;place-items:center!important;width:38px!important;height:38px!important;
-  border:1px solid #dfe7e1!important;border-radius:10px!important;
-  background:#f3f7f4!important;color:#17211b!important;font-size:25px!important;cursor:pointer;
-}
-body>.credit-note-modal[open] .credit-doc-facts,
-body>.credit-note-modal[open] .credit-doc-totals{padding:14px 18px!important}
-body>.credit-note-modal[open] .credit-doc-facts>div,
-body>.credit-note-modal[open] .credit-doc-totals>div{
-  padding:12px!important;border:1px solid #dfe7e1!important;
-  border-radius:10px!important;background:#f3f7f4!important;color:#17211b!important;
-}
-body>.credit-note-modal[open] .credit-doc-actions{
-  display:flex!important;flex-direction:row!important;align-items:center!important;
-  justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;
-  margin:18px 0 0!important;padding:16px 18px!important;
-  border-top:1px solid #dfe7e1!important;background:#fff!important;
-}
-body>.credit-note-modal[open] .credit-note-narrative{
-  margin:16px 18px!important;padding:14px 16px!important;
-  border:1px solid #dfe7e1!important;border-radius:10px!important;
-  background:#fbfcfb!important;color:#26372d!important;line-height:1.65!important;
-}
-@media(max-width:600px){
-  body>.credit-note-modal[open]{padding:10px!important}
-  body>.credit-note-modal[open]>.customer-credit-document,
-  body>.credit-note-modal[open]>.overpayment-credit-record__body{max-height:calc(100dvh - 20px)!important}
-  body>.credit-note-modal[open] .credit-doc-actions{padding:14px!important}
-}
