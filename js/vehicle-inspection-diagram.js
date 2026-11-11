@@ -43,8 +43,10 @@ function ensureStyles(){
  .vi-part-card[disabled]{cursor:default}
  .vi-part-icon{display:grid;place-items:center;width:100px;height:66px;flex:none;border-radius:7px;background:#0b1220;color:var(--part-color,#20ad5a)}
  .vi-part-icon svg{width:54px;height:48px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
- .vi-part-card.vi-photo-card{display:block;aspect-ratio:4/3;padding:0;overflow:hidden;border-radius:11px;background:#0b1220;line-height:0}
- .vi-part-card.vi-photo-card .vi-part-photo{display:block;width:100%;height:100%;min-height:100%;object-fit:contain;padding:5px;border:0;border-radius:inherit;background:transparent}
+ .vi-part-card.vi-photo-card{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:4/3;padding:0;overflow:hidden;border-radius:11px;background:#0b1220;line-height:1}
+ .vi-part-card.vi-photo-card .vi-part-photo{height:calc(100% - 25px);min-height:0;flex:1;padding:4px}
+ .vi-part-caption{display:block;flex:none;min-height:25px;padding:5px 4px;background:#111c2a;color:#f5f7fb;font-size:.7rem;font-weight:800;line-height:1.1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .vi-part-card.vi-photo-card .vi-part-photo{display:block;width:100%;height:auto;min-height:0;object-fit:contain;padding:4px;border:0;border-radius:inherit;background:transparent}
  .vi-part-card.vi-photo-card[data-condition="No Damage"]{border-color:#20ad5a}
  .vi-part-card.vi-photo-card[data-condition="Scratch"]{border-color:#f59e0b}
  .vi-part-card.vi-photo-card[data-condition="Crack"]{border-color:#a855f7}
@@ -82,7 +84,12 @@ function ensureStyles(){
  .vi-count{padding:7px 10px;border:1px solid var(--check-border,#394554);border-radius:8px;font-size:.78rem;font-weight:700;color:var(--check-text,#e7edf3)}
  .vi-part-dialog{position:fixed;inset:0;z-index:99999;display:grid;place-items:end center;padding:12px;background:#000a}
  .vi-part-panel{width:min(100%,460px);max-height:90vh;overflow:auto;padding:18px;border:1px solid #44505d;border-radius:18px;background:#17212d;color:#f2f5f8;box-shadow:0 20px 60px #0008}
- .vi-part-panel h3{margin:0 0 4px;font-size:1.1rem}.vi-part-panel p{margin:0 0 14px;color:#aeb9c7;font-size:.84rem}
+ .vi-part-panel h3{margin:0 0 14px;font-size:1.1rem}
+ .vi-check-options{display:grid;gap:8px}
+ .vi-check-option{display:flex;align-items:center;gap:10px;min-height:43px;padding:8px 11px;border:1px solid #465363;border-radius:9px;background:#202d3b;color:#f2f5f8;font-size:.9rem;font-weight:700}
+ .vi-check-option input{width:19px;height:19px;margin:0;accent-color:var(--choice-color);flex:none}
+ .vi-check-option:has(input:checked){border-color:var(--choice-color);background:color-mix(in srgb,var(--choice-color) 18%,#202d3b)}
+ .vi-simple-panel{max-width:360px}
  .vi-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  .vi-options button{min-height:44px;border:1px solid #465363;border-radius:9px;background:#202d3b;color:#f2f5f8;font:inherit;font-weight:700}
  .vi-options button[aria-pressed=true]{border-color:#24b66a;background:#12663b}
@@ -165,7 +172,7 @@ function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
  const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel"||part.key.includes("headlight")||part.key.includes("fog-light")||part.key.includes("taillight")||part.key.includes("wing")||part.key.includes("quarter")||part.key.includes("mirror")||part.key.includes("bumper")||part.key==="grille"||part.key.includes("door")||part.key==="rear-glass"||part.key==="boot-lid"||part.key==="boot"||part.key.includes("side-skirt")||part.key==="boot-spoiler"||part.key.includes("plate-area");
  return `<button type="button" class="vi-part-card${photoPart?" vi-photo-card":""}" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
- ${partVisual(part)}${photoPart?"":`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
+ ${partVisual(part)}${photoPart?`<span class="vi-part-caption">${esc(part.name)}</span>`:`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
@@ -184,34 +191,24 @@ export function vehicleDiagramSnapshot(parts,report){
  ensureStyles();return `<div class="vi-wrap"><div class="vi-grid">${parts.map(part=>partCard(part,report,false)).join("")}</div></div>`;
 }
 export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
- ensureStyles();const choices=CONDITIONS.map(c=>c.name);
- const draft={dmg:[...(entry?.dmg||[])],photo:entry?.photo||"",note:entry?.note||""};
+ ensureStyles();
  const overlay=document.createElement("div");overlay.className="vi-part-dialog";
- const render=()=>{const selected=draft.dmg[0]||"";
- overlay.innerHTML=`<section class="vi-part-panel" role="dialog" aria-modal="true" aria-label="${esc(part.name)} condition">
- <h3>${esc(part.name)}</h3><p>Choose the condition of this part.</p>
- <div class="vi-options"><button type="button" data-none aria-pressed="${!selected}" ${readOnly?"disabled":""}>No Damage</button>${choices.map(type=>`<button type="button" data-damage="${type}" aria-pressed="${selected===type}" ${readOnly?"disabled":""}>${CONDITION_LABELS[type]}</button>`).join("")}</div>
- <label>Notes (optional)<textarea data-note rows="2" maxlength="500" ${readOnly?"disabled":""} placeholder="Describe the damage">${esc(draft.note)}</textarea></label>
- <label>Photo (optional)<input type="file" accept="image/*" data-photo ${readOnly?"disabled":""}></label>
- ${draft.photo?`<img class="vi-part-photo" src="${draft.photo}" alt="Photo of ${esc(part.name)}"><button type="button" class="vi-cancel" data-remove-photo ${readOnly?"disabled":""}>Remove photo</button>`:""}
- <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save condition</button></div></section>`;};
+ const choices=[{value:"",label:"No Damage",color:"#20ad5a"},...CONDITIONS.map(c=>({value:c.name,label:c.label,color:c.color}))];
+ let selected=entry?.dmg?.[0]||"";
+ const render=()=>{overlay.innerHTML=`<section class="vi-part-panel vi-simple-panel" role="dialog" aria-modal="true" aria-label="${esc(part.name)} condition">
+ <h3>${esc(part.name)}</h3>
+ <div class="vi-check-options">${choices.map(c=>`<label class="vi-check-option" style="--choice-color:${c.color}"><input type="checkbox" name="part-condition" value="${esc(c.value)}" ${selected===c.value?"checked":""} ${readOnly?"disabled":""}><span>${esc(c.label)}</span></label>`).join("")}</div>
+ <div class="vi-part-actions"><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save</button></div></section>`;};
  const close=()=>{overlay.remove();document.removeEventListener("keydown",keyHandler)};
  const keyHandler=e=>{if(e.key==="Escape")close()};
+ overlay.addEventListener("change",e=>{
+  const input=e.target.closest('input[name="part-condition"]');if(!input)return;
+  if(input.checked){selected=input.value;overlay.querySelectorAll('input[name="part-condition"]').forEach(other=>{if(other!==input)other.checked=false})}
+  else if(selected===input.value){selected=""}
+ });
  overlay.addEventListener("click",e=>{
   if(e.target===overlay||e.target.closest("[data-close]")){close();return}
-  if(e.target.closest("[data-none]")){draft.dmg=[];render();return}
-  const damage=e.target.closest("[data-damage]");if(damage){draft.dmg=[damage.dataset.damage];render();return}
-  if(e.target.closest("[data-remove-photo]")){draft.photo="";draft.photo_path=null;render();return}
-  if(e.target.closest("[data-reset]")){if(!window.confirm("Clear the condition, notes and photo for this area?"))return;draft.dmg=[];draft.note="";draft.photo="";draft.photo_path=null;render();return}
-  if(e.target.closest("[data-save]")){onSave?.({...entry,...draft,dmg:draft.dmg});close()}
- });
- overlay.addEventListener("input",e=>{if(e.target.matches("[data-note]"))draft.note=e.target.value});
- overlay.addEventListener("change",e=>{
-  const file=e.target.closest("[data-photo]")?.files?.[0];if(!file)return;
-  if(file.size>20*1024*1024){alert("Choose a photo smaller than 20 MB.");return}
-  const url=URL.createObjectURL(file),img=new Image();
-  img.onload=()=>{const scale=Math.min(1,1280/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);draft.photo=canvas.toDataURL("image/jpeg",.8);URL.revokeObjectURL(url);render()};
-  img.onerror=()=>{URL.revokeObjectURL(url);alert("Couldn't read that photo.")};img.src=url;
+  if(e.target.closest("[data-save]")){onSave?.({...entry,dmg:selected?[selected]:[],photo:entry?.photo||"",note:entry?.note||""});close()}
  });
  document.addEventListener("keydown",keyHandler);document.body.append(overlay);render();
 }
