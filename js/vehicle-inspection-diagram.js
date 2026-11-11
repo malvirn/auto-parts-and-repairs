@@ -1,44 +1,60 @@
 const CONDITIONS=[
- {name:"Scratch",color:"#f59e0b"},{name:"Dent",color:"#ef4444"},{name:"Crack",color:"#a855f7"},
- {name:"Missing",color:"#3b82f6"},{name:"Broken",color:"#64748b"}
+ {name:"Scratch",label:"Scratched",color:"#f59e0b"},
+ {name:"Crack",label:"Cracked",color:"#a855f7"},
+ {name:"Missing",label:"Missing",color:"#3b82f6"},
+ {name:"Broken",label:"Broken",color:"#64748b"},
+ {name:"Dent",label:"Dent",color:"#ef4444"}
 ];
-const ZONES={
- "front-bumper":[242,166,250,42],"bonnet":[260,42,214,112],"windscreen":[274,278,170,84],
- "roof":[278,375,165,190],"rear-glass":[278,575,165,80],"boot":[278,650,165,68],"rear-bumper":[240,755,255,45],
- "lf-wing":[28,240,135,115],"lf-door":[24,365,142,160],"lr-door":[24,525,142,130],"lr-quarter":[24,650,140,80],
- "rf-wing":[557,240,135,115],"rf-door":[554,365,142,160],"rr-door":[554,525,142,130],"rr-quarter":[556,650,140,80],
- "wheel-lf":[72,300,80,92],"wheel-lr":[72,590,80,92],"wheel-rf":[568,300,80,92],"wheel-rr":[568,590,80,92],
- "l-headlight":[244,120,52,38],"r-headlight":[438,120,52,38],"l-taillight":[248,780,58,36],"r-taillight":[430,780,58,36],
- "l-mirror":[238,280,42,45],"r-mirror":[440,280,42,45],"grille":[300,155,135,35],"boot-lid":[285,790,160,70],
- "dashboard":[300,405,130,35],"steering":[300,450,70,65],"seats":[320,520,90,85],"seatbelts":[285,515,30,85],
- "engine":[300,70,130,55],"radiator":[300,135,130,22],"brakes":[80,330,65,40],"exhaust":[300,705,130,25]
+const PART_SPRITES={
+ bonnet:[0,0,120,80],windscreen:[120,0,120,80],roof:[240,0,120,80],"rear-glass":[360,0,120,80],"boot":[480,0,120,80],"boot-lid":[480,0,120,80],
+ "front-bumper":[0,80,120,80],"rear-bumper":[120,80,120,80],
+ "l-headlight":[240,80,120,80],"r-headlight":[360,80,120,80],
+ "l-taillight":[480,80,120,80],"r-taillight":[0,160,120,80],
+ "lf-wing":[120,160,120,80],"rf-wing":[240,160,120,80],
+ "lf-door":[360,160,120,80],"lr-door":[480,160,120,80],
+ "rf-door":[0,240,120,80],"rr-door":[120,240,120,80],
+ "l-mirror":[240,240,120,80],"r-mirror":[360,240,120,80],
+ "wheel-lf":[480,240,120,80],"wheel-rf":[0,320,120,80],"wheel-lr":[120,320,120,80],"wheel-rr":[240,320,120,80],
+ "l-fog-light":[240,80,120,80],"r-fog-light":[360,80,120,80],
+ "front-plate-area":[480,0,120,80],"rear-plate-area":[480,0,120,80],
+ "boot-spoiler":[480,0,120,80],"lr-quarter":[120,160,120,80],"rr-quarter":[240,160,120,80],
+ "l-side-skirt":[0,80,120,80],"r-side-skirt":[120,80,120,80],"spare-wheel":[240,320,120,80]
 };
-const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const isTyre=key=>key.startsWith("wheel-");
-const isGlass=key=>["windscreen","rear-glass"].includes(key);
-function conditionsFor(){return ["Scratch","Crack","Missing","Broken","Dent"];}
-const CONDITION_LABELS={Scratch:"Scratched",Crack:"Cracked",Missing:"Missing",Broken:"Broken",Dent:"Dent"};
-function statusFor(entry){return entry?.dmg?.[0]||"No Damage";}
-function tintFor(value){return CONDITIONS.find(x=>x.name===value)?.color||"#16a34a";}
+const CONDITION_LABELS=Object.fromEntries(CONDITIONS.map(c=>[c.name,c.label]));
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function conditionFor(entry){return entry?.dmg?.[0]||"No Damage";}
+function colorFor(condition){return CONDITIONS.find(c=>c.name===condition)?.color||"#20ad5a";}
+function spriteStyle(key){
+ const crop=PART_SPRITES[key];if(!crop)return "";
+ const scale=Math.min(100/crop[2],66/crop[3]);
+ return `background-size:${600*scale}px ${400*scale}px;background-position:${-crop[0]*scale}px ${-crop[1]*scale}px`;
+}
 function ensureStyles(){
  if(document.getElementById("vehicle-inspection-diagram-styles"))return;
  const style=document.createElement("style");style.id="vehicle-inspection-diagram-styles";
  style.textContent=`
- .vi-wrap{width:100%;min-width:0}.vi-legend{display:flex;flex-wrap:wrap;gap:8px 13px;margin:0 0 12px;color:var(--check-muted,#9ca8b7);font-size:.76rem}
- .vi-legend span{display:inline-flex;align-items:center;gap:6px}.vi-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
- .vi-stage{position:relative;width:100%;max-width:780px;margin:0 auto;padding:6px;border:1px solid var(--check-border,#394554);border-radius:14px;background:#101820;overflow:hidden}
- .vi-stage svg{display:block;width:100%;height:auto}
- .vi-zone{cursor:pointer;outline:none}.vi-zone rect{fill:#16a34a;fill-opacity:.08;stroke:#16a34a;stroke-opacity:.45;stroke-width:2;vector-effect:non-scaling-stroke;transition:fill-opacity .15s,stroke-width .15s}
- .vi-zone.vi-marked rect{fill-opacity:.48;stroke-opacity:1;stroke-width:3}
- .vi-zone:focus rect,.vi-zone:hover rect{fill-opacity:.42;stroke:#fff;stroke-width:3}
- .vi-pin{fill:#fff;stroke:#111827;stroke-width:2;vector-effect:non-scaling-stroke}
- .vi-view-label{font:700 13px Arial,sans-serif;letter-spacing:1.1px;fill:#d8e1e9;paint-order:stroke;stroke:#111827;stroke-width:3px;stroke-linejoin:round}
- .vi-hotspot-hint{margin:9px 0 0;color:var(--check-muted,#9ca8b7);font-size:.8rem;text-align:center}
+ .vi-wrap{width:100%;min-width:0}
+ .vi-legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin:0 0 14px;color:var(--check-muted,#9ca8b7);font-size:.76rem}
+ .vi-legend span{display:inline-flex;align-items:center;gap:6px}
+ .vi-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+ .vi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+ .vi-part-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:9px;border:2px solid var(--check-border,#394554);border-radius:11px;background:var(--check-card-2,#1c242e);color:var(--check-text,#edf1f7);text-align:center;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+ .vi-part-card:focus-visible{outline:3px solid #fff;outline-offset:2px}
+ .vi-part-card[disabled]{cursor:default}
+ .vi-part-image{position:relative;display:block;width:100px;height:66px;flex:none;border-radius:7px;background-color:#0b1220;background-image:url("../img/vehicle-parts.webp");background-repeat:no-repeat;mix-blend-mode:screen;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
+ .vi-part-image:after{content:"";position:absolute;inset:0;border-radius:7px;background:var(--part-color,#20ad5a);opacity:.25;mix-blend-mode:color}
+ .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
+ .vi-part-card[data-condition="Scratch"]{--part-color:#f59e0b;border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 13%,var(--check-card-2,#1c242e))}
+ .vi-part-card[data-condition="Crack"]{--part-color:#a855f7;border-color:#a855f7;background:color-mix(in srgb,#a855f7 13%,var(--check-card-2,#1c242e))}
+ .vi-part-card[data-condition="Missing"]{--part-color:#3b82f6;border-color:#3b82f6;background:color-mix(in srgb,#3b82f6 13%,var(--check-card-2,#1c242e))}
+ .vi-part-card[data-condition="Broken"]{--part-color:#94a3b8;border-color:#94a3b8;background:color-mix(in srgb,#64748b 18%,var(--check-card-2,#1c242e))}
+ .vi-part-card[data-condition="Dent"]{--part-color:#ef4444;border-color:#ef4444;background:color-mix(in srgb,#ef4444 16%,var(--check-card-2,#1c242e))}
+ .vi-part-name{font-size:.78rem;font-weight:800;line-height:1.25}
+ .vi-part-condition{display:inline-flex;align-items:center;justify-content:center;min-height:25px;padding:4px 8px;border-radius:999px;background:var(--part-color,#20ad5a);color:#101820;font-size:.68rem;font-weight:900}
+ .vi-no-sprite{display:grid;place-items:center;width:100px;height:66px;border-radius:7px;background:#0b1220;color:#9aa8b8;font-size:.65rem;font-weight:800}
+ .vi-hotspot-hint{margin:10px 0 0;color:var(--check-muted,#9ca8b7);font-size:.8rem}
  .vi-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
  .vi-count{padding:7px 10px;border:1px solid var(--check-border,#394554);border-radius:8px;font-size:.78rem;font-weight:700;color:var(--check-text,#e7edf3)}
- .vi-extra{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
- .vi-extra button{min-height:42px;padding:8px 11px;border:1px solid var(--check-border,#394554);border-radius:9px;background:var(--check-card-2,#1c242e);color:var(--check-text,#edf1f7);font:inherit;font-size:.8rem;font-weight:700}
- .vi-extra button[data-marked=true]{border-color:#f59e0b;background:#4a3213}
  .vi-part-dialog{position:fixed;inset:0;z-index:99999;display:grid;place-items:end center;padding:12px;background:#000a}
  .vi-part-panel{width:min(100%,460px);max-height:90vh;overflow:auto;padding:18px;border:1px solid #44505d;border-radius:18px;background:#17212d;color:#f2f5f8;box-shadow:0 20px 60px #0008}
  .vi-part-panel h3{margin:0 0 4px;font-size:1.1rem}.vi-part-panel p{margin:0 0 14px;color:#aeb9c7;font-size:.84rem}
@@ -49,25 +65,21 @@ function ensureStyles(){
  .vi-options button[data-damage=Dent][aria-pressed=true]{background:#842a2a;border-color:#ef4444}
  .vi-options button[data-damage=Missing][aria-pressed=true]{background:#173f78;border-color:#3b82f6}
  .vi-options button[data-damage=Broken][aria-pressed=true]{background:#39434f;border-color:#94a3b8}
- .vi-options button[data-damage=Crack][aria-pressed=true],.vi-options button[data-damage=Chip][aria-pressed=true]{background:#562c7d;border-color:#a855f7}
+ .vi-options button[data-damage=Crack][aria-pressed=true]{background:#562c7d;border-color:#a855f7}
  .vi-part-panel label{display:grid;gap:6px;margin-top:12px;font-size:.82rem;font-weight:700}
  .vi-part-panel textarea,.vi-part-panel input[type=file]{width:100%;min-height:44px;padding:9px;border:1px solid #465363;border-radius:8px;background:#202d3b;color:#fff;font:inherit}
  .vi-part-photo{display:block;max-width:100%;max-height:190px;object-fit:contain;border-radius:8px;margin-top:8px}
  .vi-part-actions{display:flex;gap:8px;margin-top:14px}.vi-part-actions button{flex:1;min-height:44px;border:0;border-radius:9px;background:#18a65b;color:white;font:inherit;font-weight:800}.vi-part-actions .vi-cancel{background:#344252}
- @media(min-width:760px){.vi-part-dialog{place-items:center}.vi-stage{max-height:calc(100vh - 230px)}.vi-stage svg{max-height:690px}}
- @media(max-width:520px){.vi-stage{padding:2px}.vi-zone rect{stroke-width:3}.vi-legend{font-size:.7rem}.vi-part-panel{padding:15px}}
+ @media(min-width:760px){.vi-part-dialog{place-items:center}}
+ @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-image,.vi-no-sprite{width:100%;height:auto;aspect-ratio:120/80;background-size:500% 500%}}
  `;
  document.head.append(style);
 }
-function svgZone(part,report,interactive){
- const rect=ZONES[part.key];if(!rect)return "";
- const entry=report?.parts?.[part.key],marked=Boolean(entry?.dmg?.length);
- const color=marked?tintFor(entry.dmg[0]):"#16a34a";
- const [x,y,w,h]=rect;
- return `<g class="vi-zone ${marked?"vi-marked":""}" data-part="${esc(part.key)}" ${interactive?'role="button" tabindex="0"':'aria-hidden="true"'} aria-label="${esc(part.name)}: ${esc(statusFor(entry))}">
-  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" style="fill:${color};stroke:${color}"></rect>
-  ${marked?'<circle class="vi-pin" cx="'+(x+w-7)+'" cy="'+(y+7)+'" r="7"/>':""}
- </g>`;
+function partCard(part,report,interactive){
+ const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry),sprite=PART_SPRITES[part.key];
+ const visual=sprite?`<span class="vi-part-image" aria-hidden="true" style="${spriteStyle(part.key)}"></span>`:'<span class="vi-no-sprite" aria-hidden="true">PART VIEW</span>';
+ return `<button type="button" class="vi-part-card" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
+ ${visual}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
@@ -75,46 +87,28 @@ function summaryMarkup(parts,report){
 }
 export function mountVehicleInspectionDiagram(el,{parts,getReport,onSelect,interactive=true}){
  if(!el)return;ensureStyles();const report=getReport?.()||{parts:{}};
- const mapped=parts.filter(p=>ZONES[p.key]);
- const extra=parts.filter(p=>!ZONES[p.key]);
  el.innerHTML=`<div class="vi-wrap">
-  <div class="vi-legend"><span><i class="vi-dot" style="background:#16a34a"></i>No Damage</span><span><i class="vi-dot" style="background:#f59e0b"></i>Scratched</span><span><i class="vi-dot" style="background:#a855f7"></i>Cracked</span><span><i class="vi-dot" style="background:#3b82f6"></i>Missing</span><span><i class="vi-dot" style="background:#64748b"></i>Broken</span><span><i class="vi-dot" style="background:#ef4444"></i>Dent</span></div>
-  <div class="vi-stage"><svg viewBox="0 0 720 960" role="img" aria-label="Four-view vehicle inspection diagram">
-   <image href="../img/vehicle-inspection.svg" x="0" y="0" width="720" height="960" preserveAspectRatio="none"/>
-   <text class="vi-view-label" x="360" y="20" text-anchor="middle">FRONT</text>
-   <text class="vi-view-label" x="360" y="950" text-anchor="middle">REAR</text>
-   <text class="vi-view-label" x="90" y="215" text-anchor="middle">LEFT SIDE</text>
-   <text class="vi-view-label" x="630" y="215" text-anchor="middle">RIGHT SIDE</text>
-   ${mapped.map(p=>svgZone(p,report,interactive)).join("")}
-  </svg></div>
-  <p class="vi-hotspot-hint">${interactive?"Tap a vehicle area to record damage. Unmarked areas remain No Damage.":"Vehicle condition markings recorded at drop-off."}</p>
-  ${extra.length?'<div class="vi-extra"><strong style="width:100%">Other vehicle parts</strong>'+extra.map(p=>'<button type="button" data-extra-part="'+esc(p.key)+'" data-marked="'+Boolean(report.parts?.[p.key]?.dmg?.length)+'" '+(interactive?"":"disabled")+'">'+esc(p.name)+(report.parts?.[p.key]?.dmg?.length?' · '+esc(CONDITION_LABELS[report.parts[p.key].dmg[0]]||report.parts[p.key].dmg[0]):' · No Damage')+'</button>').join("")+'</div>':""}
-  <div class="vi-summary">${summaryMarkup(parts,report)}</div>
- </div>`;
- if(interactive){
-  el.onclick=event=>{const zone=event.target.closest("[data-part]");const extraButton=event.target.closest("[data-extra-part]");const key=zone?.dataset.part||extraButton?.dataset.extraPart;if(key)onSelect?.(key)};
-  el.onkeydown=event=>{if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-part]")){event.preventDefault();onSelect?.(event.target.dataset.part)}};
- }
+ <div class="vi-legend"><span><i class="vi-dot" style="background:#20ad5a"></i>No Damage</span><span><i class="vi-dot" style="background:#f59e0b"></i>Scratched</span><span><i class="vi-dot" style="background:#a855f7"></i>Cracked</span><span><i class="vi-dot" style="background:#3b82f6"></i>Missing</span><span><i class="vi-dot" style="background:#64748b"></i>Broken</span><span><i class="vi-dot" style="background:#ef4444"></i>Dent</span></div>
+ <div class="vi-grid">${parts.map(part=>partCard(part,report,interactive)).join("")}</div>
+ <p class="vi-hotspot-hint">${interactive?"Select any silver vehicle part to change its condition. All parts start as No Damage.":"Vehicle part conditions recorded at drop-off."}</p>
+ <div class="vi-summary">${summaryMarkup(parts,report)}</div></div>`;
+ if(interactive)el.onclick=event=>{const card=event.target.closest("[data-part]");if(card)onSelect?.(card.dataset.part)};
 }
 export function vehicleDiagramSnapshot(parts,report){
- ensureStyles();const mapped=parts.filter(p=>ZONES[p.key]);
- return `<div class="vi-wrap vi-print"><div class="vi-stage"><svg viewBox="0 0 720 960" role="img" aria-label="Vehicle inspection diagram">
- <image href="../img/vehicle-inspection.svg" x="0" y="0" width="720" height="960"/>
- ${mapped.map(p=>svgZone(p,report,false)).join("")}</svg></div></div>`;
+ ensureStyles();return `<div class="vi-wrap"><div class="vi-grid">${parts.map(part=>partCard(part,report,false)).join("")}</div></div>`;
 }
 export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
- ensureStyles();const key=part.key,choices=conditionsFor(key);
+ ensureStyles();const choices=CONDITIONS.map(c=>c.name);
  const draft={dmg:[...(entry?.dmg||[])],photo:entry?.photo||"",note:entry?.note||""};
  const overlay=document.createElement("div");overlay.className="vi-part-dialog";
  const render=()=>{const selected=draft.dmg[0]||"";
  overlay.innerHTML=`<section class="vi-part-panel" role="dialog" aria-modal="true" aria-label="${esc(part.name)} condition">
- <h3>${esc(part.name)}</h3><p>Select one condition. Every part starts as No Damage.</p>
- <div class="vi-options"><button type="button" data-none aria-pressed="${!selected}" ${readOnly?"disabled":""}>No Damage</button>${choices.map(type=>`<button type="button" data-damage="${type}" aria-pressed="${selected===type}" ${readOnly?"disabled":""}>${CONDITION_LABELS[type]||type}</button>`).join("")}</div>
+ <h3>${esc(part.name)}</h3><p>Choose the condition of this part.</p>
+ <div class="vi-options"><button type="button" data-none aria-pressed="${!selected}" ${readOnly?"disabled":""}>No Damage</button>${choices.map(type=>`<button type="button" data-damage="${type}" aria-pressed="${selected===type}" ${readOnly?"disabled":""}>${CONDITION_LABELS[type]}</button>`).join("")}</div>
  <label>Notes (optional)<textarea data-note rows="2" maxlength="500" ${readOnly?"disabled":""} placeholder="Describe the damage">${esc(draft.note)}</textarea></label>
  <label>Photo (optional)<input type="file" accept="image/*" data-photo ${readOnly?"disabled":""}></label>
  ${draft.photo?`<img class="vi-part-photo" src="${draft.photo}" alt="Photo of ${esc(part.name)}"><button type="button" class="vi-cancel" data-remove-photo ${readOnly?"disabled":""}>Remove photo</button>`:""}
- <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save condition</button></div></section>`;
- };
+ <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save condition</button></div></section>`;};
  const close=()=>{overlay.remove();document.removeEventListener("keydown",keyHandler)};
  const keyHandler=e=>{if(e.key==="Escape")close()};
  overlay.addEventListener("click",e=>{
