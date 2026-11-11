@@ -2232,7 +2232,7 @@ $("save").onclick=async()=>{const b=$("save");
    reservedParts.push({id:item.id,quantity:item.quantity});
   }
   let cid=$("f-cust").value;
-  if(cid==="__new_customer__"){const isCompany=$("f-is-company").checked,companyName=$("f-company-name").value.trim();if(isCompany&&!companyName)throw new Error("Enter the company name.");const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null,is_company:isCompany,company_name:isCompany?companyName:null}).select("id,customer_code").single();if(r.error)throw r.error;cid=r.data.id}
+  if(cid==="__new_customer__"){const isCompany=$("f-is-company").checked,companyName=$("f-company-name").value.trim();if(isCompany&&!companyName)throw new Error("Enter the company name.");const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null,is_company:isCompany,company_name:isCompany?companyName:null}).select("id,customer_code").single();if(r.error)throw r.error;cid=r.data.id;$("f-customer-cid").textContent="Customer ID: "+r.data.customer_code;}
   let vid=$("f-veh").value||null;
   const vehicleDetails={
    make:$("f-make").value.trim()||null,
