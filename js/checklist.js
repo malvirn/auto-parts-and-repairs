@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js";
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -63,19 +64,19 @@ function applyNoDamageDefaults(){
  CONDITION_GROUPS.forEach(([,parts])=>parts.forEach(([key])=>{if(!Array.isArray(report.parts[key]?.dmg))report.parts[key]={dmg:[]}}));
 }
 function renderDamage(){
- const options=[["","No damage"],...DAMAGE_TYPES.map(type=>[type,type])];
- const order=["front-bumper","rf-door","boot","dashboard","bonnet","rr-door","rear-bumper","steering","windscreen","l-mirror","rear-glass","seatbelts","roof","r-mirror","wheel-lf","engine","lf-wing","l-headlight","wheel-rf","radiator","rf-wing","r-headlight","wheel-lr","brakes","lf-door","l-taillight","wheel-rr","exhaust","lr-door","r-taillight","seats"];
- const all=CONDITION_GROUPS.flatMap(([,parts])=>parts);
- const byKey=new Map(all.map(part=>[part[0],part]));
- const items=[...order.map(key=>byKey.get(key)).filter(Boolean),...all.filter(part=>!order.includes(part[0]))];
- $("inspection-grid").innerHTML=`<fieldset class="condition-group damage-group"><div class="cond-grid">${items.map(([key,name,icon,flip])=>{
-  const entry=report.parts?.[key];
-  const current=Array.isArray(entry?.dmg)?(entry.dmg[0]??""):(editable?"":null);
-  const select=current===null
-   ?`<select class="cond-select" aria-label="${esc(name)} condition" disabled><option>Not recorded</option></select>`
-   :`<select class="cond-select${current?" has-dmg":""}" data-part="${key}" aria-label="${esc(name)} condition" ${editable?"":"disabled"}>${options.map(([value,label])=>`<option value="${esc(value)}" ${value===current?"selected":""}>${esc(label)}</option>`).join("")}</select>`;
-  return `<div class="damage-card cond-card${current?" has-dmg":""}">${partIcon(icon,flip)}<p class="damage-name">${esc(name)}</p>${select}</div>`;
- }).join("")}</div></fieldset>`;
+ const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
+ mountVehicleInspectionDiagram($("inspection-grid"),{
+  parts,getReport:()=>report,interactive:editable,
+  onSelect:key=>{
+   if(!editable)return;
+   const part=parts.find(item=>item.key===key);
+   if(!part)return;
+   openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
+    report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)?entry.dmg:[]};
+    renderDamage();
+   }});
+  }
+ });
 }
 function getIncompleteConditions(){
   return CONDITION_GROUPS.flatMap(([,parts])=>parts)
