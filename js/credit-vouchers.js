@@ -257,12 +257,9 @@ async function applyVoucher() {
     const remainingDue = Math.max(0, Number(refreshed?.balance_due) || 0);
     redemptionRequest = { signature: null, key: null };
     await load();
-    if (wasCreditNote) {
-      selectedCustomerCreditNote = null;
-      await loadCustomerCreditSources(targetSnapshot);
-    } else {
-      await previewVoucher();
-    }
+    selectedCustomerCreditNote = null;
+    checkedVoucher = null;
+    await loadCustomerCreditSources(targetSnapshot);
     const remainingCredit = wasCreditNote ? Math.max(0, Number(sourceSnapshot.available_amount) - amount) : Number(data.remaining_balance);
     setRedeemMessage((wasCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
       money(remainingCredit) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
@@ -681,6 +678,9 @@ async function loadCustomerCreditSources(target) {
   } else {
     selectedCustomerCreditNote = null;
     checkedVoucher = null;
+    redeemAmount.value = "";
+    redeemAmount.disabled = true;
+    redeemApply.disabled = true;
     await loadRedeemTargets();
     setRedeemMessage("Choose a credit note or voucher. Sources are listed oldest first.");
   }
