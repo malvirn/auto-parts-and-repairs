@@ -186,6 +186,8 @@ async function renderVoucherQrCodes(root=list) {
 }
 
 async function printCreditNote(note) {
+  const popup = window.open("", "_blank", "width=900,height=720");
+  if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
   const quote = note.quotations || {};
   const job = quote.repair_job_id ? jobsById.get(quote.repair_job_id) : null;
   const number = `QCN-${String(note.credit_note_number).padStart(6, "0")}`;
@@ -195,9 +197,15 @@ async function printCreditNote(note) {
   const validUntil = quote.created_at ? dateLabel(new Date(Date.parse(quote.created_at) + 7 * 86400000).toISOString()) : "—";
   const activityRows = movementsForNote.map(item => `<tr><td>${escapeHtml(item.movement_type === "refund" ? "Refund" : "Credit applied")}</td><td>${dateLabel(item.created_at)}</td><td>${money(item.amount)}</td><td>${escapeHtml(item.reason || "—")}</td></tr>`).join("");
   let qrData = "";
-  if (note.voucher_code) { await auditCreditVoucherAction(note.voucher_code, "printed"); try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Credit note QR could not be generated:", error); } }
-  const popup = window.open("", "_blank", "width=900,height=720");
-  if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
+  if (note.voucher_code) {
+    try {
+      await auditCreditVoucherAction(note.voucher_code, "printed");
+      qrData = await voucherQrDataUrl(note.voucher_code);
+    } catch (error) {
+      popup.close();
+      throw error;
+    }
+  }
   const logoUrl = window.location.origin + "/assets/logo.png";
   popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${number} · Centric Auto Mobile</title>
   <style>
@@ -682,10 +690,18 @@ document.addEventListener("click", async event => {
     const refunded = overpaymentRefunds.filter(row => row.credit_note_id === note.id && !row.voided_at)
       .reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
-    let qrData = "";
-    if (note.voucher_code) { await auditCreditVoucherAction(note.voucher_code, "printed"); try { qrData = await voucherQrDataUrl(note.voucher_code); } catch (error) { console.warn("Overpayment QR could not be generated:", error); } }
     const popup = window.open("", "_blank", "width=900,height=720");
     if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
+    let qrData = "";
+    if (note.voucher_code) {
+      try {
+        await auditCreditVoucherAction(note.voucher_code, "printed");
+        qrData = await voucherQrDataUrl(note.voucher_code);
+      } catch (error) {
+        popup.close();
+        throw error;
+      }
+    }
     popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>CN-" +
       String(note.note_number).padStart(5, "0") + " · Centric Auto Mobile</title><style>" +
       "*{box-sizing:border-box}body{margin:0;padding:28px;background:#eef1f4;color:#17212b;font:14px/1.5 Arial,sans-serif}.sheet{max-width:820px;margin:auto;background:#fff;border:1px solid #dce2e8}.hero{padding:28px;background:#27364d;color:#fff}.hero h1{margin:0}.amount{font-size:28px;font-weight:800}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:22px 28px}.facts div{padding:12px;background:#f5f7f9}.facts small{display:block;color:#687789;text-transform:uppercase;font-size:10px}.totals{padding:0 28px 24px}.line{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #e2e6eb}footer{text-align:center;padding:18px;color:#657384}@page{size:auto;margin:0}@media print{body{padding:10mm;background:#fff}.sheet{border:0}}@media(max-width:600px){body{padding:10px}.facts{grid-template-columns:1fr}}</style></head><body>" +
