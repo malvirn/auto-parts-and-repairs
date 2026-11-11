@@ -1144,14 +1144,18 @@ async function load(){
   ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
   : `<option value="">Choose a payment method first…</option>`;
  if(a.error)console.error("Couldn't load accounts for customer invoice payments:",a.error);
- const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount),customers(customer_code,is_company,company_name)").order("issued_at",{ascending:false}).limit(500);
- if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
  const invoiceIdsForCredit=(i.data||[]).map(row=>row.id).filter(Boolean);
- const invoiceCreditResult=invoiceIdsForCredit.length
-  ? await supabase.from("customer_credit_movements").select("target_id,amount").in("target_id",invoiceIdsForCredit).eq("target_type","invoice").eq("movement_type","application").is("reversed_at",null)
-  : {data:[],error:null};
- if(invoiceCreditResult.error)console.error("Could not load invoice customer-credit applications:",invoiceCreditResult.error);
- const invoiceCreditTotals=new Map();
+  const [creditNotesResult,invoiceCreditResult,creditLinksResult,creditRefundsResult]=await Promise.all([
+   supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount),customers(customer_code,is_company,company_name)").order("issued_at",{ascending:false}).limit(500),
+   invoiceIdsForCredit.length?supabase.from("customer_credit_movements").select("target_id,amount").in("target_id",invoiceIdsForCredit).eq("target_type","invoice").eq("movement_type","application").is("reversed_at",null):Promise.resolve({data:[],error:null}),
+   supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)").limit(1000),
+   supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone,customers(customer_code,is_company,company_name,full_name))").order("created_at",{ascending:false}).limit(1000)
+  ]);
+  if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
+  if(invoiceCreditResult.error)console.error("Could not load invoice customer-credit applications:",invoiceCreditResult.error);
+  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
+  if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
+  const invoiceCreditTotals=new Map();
  (invoiceCreditResult.data||[]).forEach(m=>{const key=String(m.target_id);invoiceCreditTotals.set(key,(invoiceCreditTotals.get(key)||0)+Number(m.amount||0));});
  const [creditLinksResult,creditRefundsResult]=await Promise.all([
   supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)").limit(1000),
