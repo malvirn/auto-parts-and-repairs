@@ -2698,9 +2698,18 @@ $("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-
 let receiptLoadAttempt=0;
 async function loadReceiptsSafely(){
  const attempt=++receiptLoadAttempt;
+ const params=new URLSearchParams(location.search);
  $("list").innerHTML='<div class="ov-empty">Loading receipts…</div>';
  let timer;
  try{
+  // Open Quick Sale receipts immediately. The full Receipts page loads several
+  // historical ledgers and must not block the receipt created by the Shop flow.
+  if(params.get("quickSalePayment")){
+   await Promise.race([
+    openQuickSalePaymentReceipt(params.get("quickSalePayment"),params.get("paymentMethod")),
+    new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("The Quick Sale receipt could not be retrieved in time. Check your connection and payment access.")),10000)})
+   ]);
+  }
   await Promise.race([load(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("The receipts request took too long. Check your connection and try again.")),15000)})]);
  }catch(error){
   if(attempt!==receiptLoadAttempt)return;
