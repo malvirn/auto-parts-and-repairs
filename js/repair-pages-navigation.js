@@ -882,17 +882,23 @@ async function initializeAfterAccess() {
   initializeNavigation();
 }
 
-// Conceal the module's placeholder sidebar immediately, before access checks or
-// the asynchronous Index-template fetch can give the drawer an open state.
+// Render the cached canonical shell immediately, using the last verified role
+// until the current session's access check supplies an authoritative role.
 if (!isDashboardHome()) {
-  const pendingSidebar = document.querySelector("body.dashboard-page .sidebar");
-  if (pendingSidebar && pendingSidebar.dataset.dashboardCanonical !== "true") {
-    pendingSidebar.style.setProperty("visibility", "hidden", "important");
-    pendingSidebar.setAttribute("aria-hidden", "true");
-  }
+  try {
+    const remembered = JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}");
+    if (!document.body.dataset.role && remembered.role) document.body.dataset.role = remembered.role;
+    if (!document.body.dataset.accessLevel && remembered.accessLevel != null) {
+      document.body.dataset.accessLevel = String(remembered.accessLevel);
+    }
+  } catch (_) {}
+  const initialSidebar = document.querySelector("body.dashboard-page .sidebar");
+  if (initialSidebar) normalizeDashboardSidebar(initialSidebar);
 }
 
 initializePageChrome();
+document.body.classList.add("dashboard-chrome-ready");
+window.setTimeout(() => document.body.classList.add("dashboard-chrome-ready"), 3000);
 startSharedDashboardHeaderClock();
 watchSharedNotificationBell();
 
