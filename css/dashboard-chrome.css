@@ -570,3 +570,43 @@ html.phone-layout body.dashboard-page.dashboard-workshop .app-shell{
   margin:0!important;
   padding:0!important;
 }
+
+
+/* Prevent the module's original header or an unstyled replacement toolbar
+   from appearing while shared dashboard chrome is being initialized. */
+body.dashboard-page.dashboard-workshop:not(.dashboard-chrome-ready) .main > .main__header,
+body.dashboard-page.dashboard-workshop:not(.dashboard-chrome-ready) .main > .app-header,
+body.dashboard-page.dashboard-workshop:not(.dashboard-chrome-ready) .dashboard-topbar{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-topbar{
+  box-sizing:border-box!important;
+  height:48px!important;
+  min-height:48px!important;
+  max-height:48px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-date{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-date #dashboard-date{
+  display:block!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-date .hdr-live{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  white-space:nowrap!important;
+}
+@media(max-width:480px){
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{flex:0 1 auto!important;max-width:38%!important}
+  body.dashboard-page.dashboard-workshop .dashboard-header-date #dashboard-date{max-width:66px!important}
+}
