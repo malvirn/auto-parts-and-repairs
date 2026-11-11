@@ -4,7 +4,6 @@ import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const params=new URLSearchParams(location.search);
-const DAMAGE_TYPES=["Scratch","Dent","Crack","Chip","Broken","Missing","Stretched","Worn","Flat","Bald"];
 // [key, name, icon, flip right-hand icons]
 const CONDITION_GROUPS=[
  ["Top view",[
