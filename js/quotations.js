@@ -744,6 +744,8 @@ function buildDetailText(record, kind, items) {
 
   return [
     `Dear ${customer.full_name},`,
+    customer.customer_code ? `Customer ID: ${customer.customer_code}` : null,
+    customer.company_name ? `Company: ${customer.company_name}` : null,
     ``,
     isQuote
       ? `Thank you for choosing ${biz.business_name}. Please find below our Quotation No. ${number}, dated ${longDate(record.created_at)}${vehicleText ? `, for your ${vehicleText}` : ""}.`
