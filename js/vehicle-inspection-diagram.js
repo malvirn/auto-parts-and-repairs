@@ -4,8 +4,8 @@ const ZONES={
  "lf-wing":[385,285,55,58],"rf-wing":[560,285,55,58],"lf-door":[382,365,55,80],"rf-door":[563,365,55,80],"lr-door":[382,455,55,78],"rr-door":[563,455,55,78],
  "l-mirror":[360,350,28,34],"r-mirror":[612,350,28,34],"l-headlight":[405,235,35,28],"r-headlight":[560,235,35,28],"l-taillight":[405,598,35,26],"r-taillight":[560,598,35,26],
  "wheel-lf":[365,300,34,58],"wheel-rf":[601,300,34,58],"wheel-lr":[365,535,34,58],"wheel-rr":[601,535,34,58],
- "dashboard":[455,390,90,24],"steering":[458,414,30,30],"seats":[485,440,55,48],"seatbelts":[445,438,28,55],
- "engine":[455,275,90,30],"radiator":[455,248,90,20],"brakes":[365,315,34,34],"exhaust":[485,605,30,20]
+ "dashboard":[112,385,75,26],"steering":[130,420,35,35],"seats":[812,385,75,48],"seatbelts":[825,445,58,45],
+ "engine":[455,105,90,28],"radiator":[455,135,90,20],"brakes":[112,285,70,34],"exhaust":[455,725,90,22]
 };
 const esc=value=>String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function condition(entry){
