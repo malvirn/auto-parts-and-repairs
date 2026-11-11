@@ -1,6 +1,6 @@
 # Auto Parts & Repairs — User Guide
 
-For vehicle checklists, add inspection notes as needed and explicitly select a condition—including “No damage”—for every listed area before confirming.
+For vehicle checklists, all listed exterior body parts start as No Damage. Tick only parts with damage; optional details, notes, and photos can be added to marked parts. Save a draft to finish later, or print either a blank inspection sheet or the completed checklist.
 
 This guide explains the application as it works today. Your role determines which pages you can see. If a page is missing or access is denied, ask your Super Admin to check your account; do not try to work around the access controls.
 
