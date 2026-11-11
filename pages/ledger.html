@@ -694,8 +694,13 @@ body.dashboard-page .main{min-width:0}
       const jobTotal = Number(job.total_cost);
       const taxableSubtotal = Number.isFinite(jobTotal) ? Math.max(0, jobTotal - vat) : partsTotal + labour;
       const total = Number.isFinite(jobTotal) ? jobTotal : Math.round((taxableSubtotal + vat) * 100) / 100;
-      const cashPaid = Math.max(paid, Number(invoicePaid || 0));
       creditApplied = Number(creditApplied || 0);
+      // Invoice amount_paid already includes customer-credit applications.
+      // Remove that portion before combining invoice cash with the separate
+      // credit-movement total, otherwise deposits are counted twice and hide
+      // the remaining balance from the Ledger's Owing queue.
+      const invoiceCashPaid = Math.max(0, Number(invoicePaid || 0) - creditApplied);
+      const cashPaid = Math.max(paid, invoiceCashPaid);
       paid = cashPaid + creditApplied;
       return { job, lines, partsTotal, labour, taxableSubtotal, vat, vatRate, total, cashPaid, creditApplied, paid, balance: Math.max(0, total - paid) };
     }
