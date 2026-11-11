@@ -43,6 +43,9 @@ function ensureStyles(){
  .vi-part-card[disabled]{cursor:default}
  .vi-part-icon{display:grid;place-items:center;width:100px;height:66px;flex:none;border-radius:7px;background:#0b1220;color:var(--part-color,#20ad5a)}
  .vi-part-icon svg{width:54px;height:48px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
+ .vi-part-photo{display:block;width:100px;height:66px;flex:none;object-fit:cover;border-radius:7px;background:#0b1220}
+ .vi-part-photo[data-photo-part="bonnet"]{object-position:50% 50%}
+ .vi-part-photo[data-photo-part="roof"]{object-position:50% 50%}
  .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
  .vi-part-card[data-condition="Scratch"]{--part-color:#f59e0b;border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 13%,var(--check-card-2,#1c242e))}
  .vi-part-card[data-condition="Crack"]{--part-color:#a855f7;border-color:#a855f7;background:color-mix(in srgb,#a855f7 13%,var(--check-card-2,#1c242e))}
@@ -95,10 +98,15 @@ function partIcon(part){
  };
  return `<span class="vi-part-icon" aria-hidden="true"><svg viewBox="0 0 64 64" role="img">${shapes[type]}</svg></span>`;
 }
+function partVisual(part){
+ if(part.key==="bonnet")return `<img class="vi-part-photo" data-photo-part="bonnet" src="https://images.pexels.com/photos/12920563/pexels-photo-12920563.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car bonnet" loading="lazy">`;
+ if(part.key==="roof")return `<img class="vi-part-photo" data-photo-part="roof" src="https://images.pexels.com/photos/10989743/pexels-photo-10989743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car roof, top view" loading="lazy">`;
+ return partIcon(part);
+}
 function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
  return `<button type="button" class="vi-part-card" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
- ${partIcon(part)}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
+ ${partVisual(part)}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
