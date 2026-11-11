@@ -409,13 +409,13 @@ begin
     end if;
   end if;
   select * into customer_row from public.customers where id = resolved_customer_id;
-  if note_row.customer_id is null then
-    update public.quotation_deposit_receipts set customer_id = resolved_customer_id
-    where id = p_deposit_receipt_id and customer_id is null;
-  end if;
   verified := public.verify_customer_credit_confirmation(customer_row.id, p_confirmation_value, p_authorised_by);
   if coalesce((verified->>'allowed')::boolean, false) is not true then
     return verified;
+  end if;
+  if note_row.customer_id is null then
+    update public.quotation_deposit_receipts set customer_id = resolved_customer_id
+    where id = p_deposit_receipt_id and customer_id is null;
   end if;
 
   result := public.apply_customer_credit(
@@ -516,6 +516,13 @@ begin
   verified := public.verify_customer_credit_confirmation(customer_row.id, p_confirmation_value, p_authorised_by);
   if coalesce((verified->>'allowed')::boolean, false) is not true then
     return verified;
+  end if;
+  if voucher_row.credit_note_type = 'quotation_deposit' then
+    update public.quotation_deposit_receipts set customer_id=customer_id_value
+    where id=voucher_row.credit_note_id and customer_id is null;
+  else
+    update public.customer_overpayment_credit_notes set customer_id=customer_id_value
+    where id=voucher_row.credit_note_id and customer_id is null;
   end if;
 
   result := public.redeem_credit_voucher(p_code, p_amount, p_target_type, p_target_id, p_idempotency_key);
