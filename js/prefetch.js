@@ -31,7 +31,7 @@ async function prefetchDashboard() {
   const [jobs, customers, parts, receipts, payrollRuns, settingsRows] = await Promise.all([
     getData("repair jobs", supabase.from("repair_jobs").select(`
       id, job_number, status, total_cost, created_at, completed_at, ready_at, collected_at,
-      customers ( full_name ),
+      customers ( full_name, customer_code, is_company, company_name ),
       vehicles ( make, model, year, license_plate )
     `).order("created_at", { ascending: false })),
     getData("customers", supabase.from("customers").select("id, created_at").is("deleted_at", null)),
