@@ -177,7 +177,7 @@ async function previewVoucher() {
     } else {
       const result = await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").limit(1000);
       if (result.error) throw result.error;
-      const digits = value => String(value || "").replace(/\\D/g, "");
+      const digits = value => String(value || "").replace(/\D/g, "");
       const name = String(sourceNote?.customer_name || "").trim().toLocaleLowerCase();
       const phone = digits(sourceNote?.customer_phone);
       const matches = (result.data || []).filter(candidate =>
