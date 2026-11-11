@@ -685,3 +685,197 @@ creditAccordionStyle.textContent = `
 document.head.appendChild(creditAccordionStyle);
 
 
+
+
+/* Restore credit-note loading and actions. Records stay as inline native accordions. */
+document.addEventListener("click", async event => {
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  if (!target) return;
+  const printButton = target.closest("[data-credit-print]");
+  if (printButton) {
+    const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
+    if (note) await printCreditNote(note);
+    return;
+  }
+  const overpaymentPrintButton = target.closest("[data-overpayment-print]");
+  if (overpaymentPrintButton) {
+    const note = overpaymentCreditNotes.find(item => item.id === overpaymentPrintButton.dataset.overpaymentPrint);
+    if (!note) return;
+    const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
+    const available = Number(note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
+    const refunded = overpaymentRefunds.filter(row => row.credit_note_id === note.id && !row.voided_at)
+      .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
+    const popup = window.open("", "_blank", "width=900,height=720");
+    if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
+    let qrData = "";
+    if (note.voucher_code) {
+      try {
+        await auditCreditVoucherAction(note.voucher_code, "printed");
+        qrData = await voucherQrDataUrl(note.voucher_code);
+      } catch (error) {
+        popup.close();
+        throw error;
+      }
+    }
+    popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>CN-" +
+      String(note.note_number).padStart(5, "0") + " · Centric Auto Mobile</title><style>" +
+      "*{box-sizing:border-box}body{margin:0;padding:28px;background:#eef1f4;color:#17212b;font:14px/1.5 Arial,sans-serif}.sheet{max-width:820px;margin:auto;background:#fff;border:1px solid #dce2e8}.hero{padding:28px;background:#27364d;color:#fff}.hero h1{margin:0}.amount{font-size:28px;font-weight:800}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:22px 28px}.facts div{padding:12px;background:#f5f7f9}.facts small{display:block;color:#687789;text-transform:uppercase;font-size:10px}.totals{padding:0 28px 24px}.line{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #e2e6eb}footer{text-align:center;padding:18px;color:#657384}@page{size:auto;margin:0}@media print{body{padding:10mm;background:#fff}.sheet{border:0}}@media(max-width:600px){body{padding:10px}.facts{grid-template-columns:1fr}}</style></head><body>" +
+      "<main class='sheet'><header class='hero'><h1>CN-" + String(note.note_number).padStart(5, "0") +
+      "</h1><p>Invoice overpayment credit note</p><div class='amount'>" + money(note.amount) +
+      "</div></header><section class='facts'><div><small>Customer</small><strong>" + escapeHtml(note.customer_name || "—") +
+      "</strong></div><div><small>Phone</small><strong>" + escapeHtml(note.customer_phone || "—") +
+      "</strong></div><div><small>Email</small><strong>" + escapeHtml(invoice.customer_email || "—") +
+      "</strong></div><div><small>Original invoice</small><strong>" + escapeHtml(invoice.invoice_number || "—") +
+      "</strong></div><div><small>Invoice total</small><strong>" + money(invoice.total) +
+      "</strong></div><div><small>Issued</small><strong>" + dateLabel(note.issued_at) +
+      "</strong></div><div><small>Voucher code</small><strong>" + escapeHtml(note.voucher_code || "Not issued") +
+      "</strong></div><div><small>Voucher expiry</small><strong>" + dateLabel(note.expires_at) +
+      "</strong></div></section><section class='totals'><div class='line'><span>Applied</span><strong>" + money(applied) +
+      "</strong></div><div class='line'><span>Refunded</span><strong>" + money(refunded) +
+      "</strong></div><div class='line'><span>Carried forward</span><strong>" + money(available) +
+      "</strong></div></section>"+(qrData ? "<section style=\"text-align:center;padding:12px\"><img src=\"" + qrData + "\" style=\"width:130px;height:130px\"><p style=\"font:800 18px monospace\">" + escapeHtml(note.voucher_code) + "</p></section>" : "")+"<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main></body></html>");
+    popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 350);
+    return;
+  }
+  const linkOverpaymentButton = target.closest("[data-link-overpayment-job]");
+  if (linkOverpaymentButton) {
+    const fields = linkOverpaymentButton.closest("[data-overpayment-link]");
+    const note = overpaymentCreditNotes.find(item => item.id === fields?.dataset.overpaymentLink);
+    if (!note || !fields) return;
+    const value = key => fields.querySelector('[data-match="' + key + '"]')?.value.trim() || "";
+    const name = value("name"), email = value("email"), phone = value("phone");
+    const checklist = value("checklist").replace(/^#/, "").trim();
+    const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
+    const digits = value => String(value || "").replace(/\D/g, "");
+    const normalName = value => String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase();
+    if (!name || !email || !phone || !checklist) {
+      showMessage("Enter the customer name, email, phone number and checklist number.", "error");
+      return;
+    }
+    if (normalName(name) !== normalName(note.customer_name) ||
+        email.toLocaleLowerCase() !== String(invoice.customer_email || "").trim().toLocaleLowerCase() ||
+        digits(phone) !== digits(note.customer_phone)) {
+      showMessage("Customer details do not match the original credit note. Check the name, email and phone.", "error");
+      return;
+    }
+    linkOverpaymentButton.disabled = true;
+    linkOverpaymentButton.textContent = "Verifying job card…";
+    try {
+      const { data: job, error: jobError } = await supabase.from("repair_jobs")
+        .select("id, checklist_number").eq("checklist_number", checklist).maybeSingle();
+      if (jobError) throw jobError;
+      if (!job) throw new Error("No job card was found with that checklist number.");
+      const { error } = await supabase.rpc("link_overpayment_credit_to_job", {
+        p_credit_note_id: note.id, p_repair_job_id: job.id,
+      });
+      if (error) throw error;
+      await load();
+      showMessage("Customer credit note verified and linked to the job card.", "success");
+    } catch (error) {
+      showMessage(error.message || "The credit note could not be linked.", "error");
+      linkOverpaymentButton.disabled = false;
+      linkOverpaymentButton.textContent = "Verify and link next job card";
+    }
+    return;
+  }
+  const applyButton = target.closest(".customer-credit-apply");
+  const reverseButton = target.closest(".customer-credit-reverse");
+  if (!applyButton && !reverseButton) return;
+
+  if (reverseButton) {
+    const reason = prompt("Reason for reversing this customer-credit transaction:")?.trim();
+    if (!reason) return;
+    reverseButton.disabled = true;
+    const { error } = await supabase.rpc("reverse_customer_credit_movement", {
+      p_movement_id: reverseButton.dataset.movementId,
+      p_reason: reason,
+    });
+    if (error) {
+      showMessage(error.message, "error");
+      reverseButton.disabled = false;
+      return;
+    }
+    await load();
+    showMessage("Credit transaction reversed with a compensating journal entry.", "success");
+    return;
+  }
+
+  const action = applyButton.closest("[data-action]");
+  const amount = Number(action.querySelector(".credit-amount")?.value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showMessage("Enter an amount greater than zero.", "error");
+    return;
+  }
+  applyButton.disabled = true;
+  try {
+    const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
+    if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
+    const requestSignature = [action.dataset.creditId, targetType, targetId, amount.toFixed(2)].join("|");
+    if (action.dataset.idempotencySignature !== requestSignature) {
+      action.dataset.idempotencySignature = requestSignature;
+      action.dataset.idempotencyKey = crypto.randomUUID();
+    }
+    const idempotencyKey = action.dataset.idempotencyKey;
+    const customerId = creditNotes.find(note => note.id === action.dataset.creditId)?.customer_id;
+    const customer = creditNotes.find(note => note.id === action.dataset.creditId)?.customers || {};
+    const confirmationValue = prompt(customer.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
+    if (!confirmationValue) throw new Error("Customer confirmation is required before applying credit.");
+    const authorisedBy = customer.is_company ? prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim() : null;
+    if (customer.is_company && !authorisedBy) throw new Error("Authorised by is required for company credit.");
+    const result = await supabase.rpc("apply_customer_credit_verified", {
+      p_deposit_receipt_id: action.dataset.creditId,
+      p_amount: amount,
+      p_target_type: targetType,
+      p_target_id: targetId,
+      p_reason: "Staff-applied quotation deposit",
+      p_idempotency_key: idempotencyKey,
+      p_confirmation_value: confirmationValue,
+      p_authorised_by: authorisedBy,
+    });
+    if (result.error) throw result.error;
+    if (result.data?.error) throw new Error(result.data.error);
+    await load();
+    showMessage("Credit applied to the customer balance.", "success");
+  } catch (error) {
+    showMessage(error.message || "The customer-credit transaction could not be completed.", "error");
+    applyButton.disabled = false;
+  }
+}, true);
+
+["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => {
+  const field = document.getElementById(id);
+  field?.addEventListener("input", render);
+  field?.addEventListener("change", render);
+});
+document.getElementById("customer-credit-clear")?.addEventListener("click", () => {
+  ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
+  render();
+});
+
+async function safeLoad() {
+  let timer;
+  try {
+    await Promise.race([
+      load(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Customer credit request timed out. Check your connection and tap refresh to try again.")), 15000);
+      }),
+    ]);
+  } catch (error) {
+    console.error("Customer credit notes failed to load:", error);
+    list.innerHTML = '<div class="customer-credit-empty">Could not load credit notes: ' + escapeHtml(error?.message || String(error)) + '<br><button type="button" class="btn" id="customer-credit-load-retry" style="margin-top:12px">Try again</button></div>';
+    document.getElementById("customer-credit-load-retry")?.addEventListener("click", safeLoad);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+refreshButton?.addEventListener("click", safeLoad);
+safeLoad();
+
+const creditLiveChannel = supabase.channel("customer-credit-job-status")
+  .on("postgres_changes", { event: "*", schema: "public", table: "repair_jobs" }, () => load())
+  .on("postgres_changes", { event: "*", schema: "public", table: "quotations" }, () => load())
+  .subscribe();
+window.addEventListener("focus", () => load());
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
