@@ -61,7 +61,6 @@ function setDetailMessage(text,isError=false){
 }
 function applyNoDamageDefaults(){
  report.parts=report.parts||{};
- CONDITION_GROUPS.forEach(([,parts])=>parts.forEach(([key])=>{if(!Array.isArray(report.parts[key]?.dmg))report.parts[key]={dmg:[]}}));
 }
 function renderDamage(){
  const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
@@ -78,25 +77,13 @@ function renderDamage(){
   }
  });
 }
-function getIncompleteConditions(){
-  return CONDITION_GROUPS.flatMap(([,parts])=>parts)
-   .filter(([key])=>{
-    const marked=report.parts?.[key]?.dmg;
-    return !Array.isArray(marked)||marked.length>1||marked.some(type=>!DAMAGE_TYPES.includes(type));
-   });
-}
-function validateInspection(){
-  const incomplete=getIncompleteConditions();
-  if(!incomplete.length)return true;
-  setDetailMessage(`Choose a condition for every vehicle area. ${incomplete.length} area${incomplete.length===1?" is":"s are"} still incomplete.`,true);
-  const first=$("inspection-grid").querySelector(`[data-part="${incomplete[0][0]}"]`);
-  first?.scrollIntoView({behavior:"smooth",block:"center"});
-  first?.focus();
-  return false;
-}
+function getIncompleteConditions(){ return []; }
+
+function validateInspection(){ return true; }
+
 const normalizeMatch=value=>String(value||"").trim().toLocaleUpperCase();
 function setEditable(value){
- editable=value&&!record?.voided_at;
+ editable=value&&!record?.voided_at&&!record?.confirmed_at;
  ["customer-name-input","vehicle-registration-input","checked-by-input"].forEach(id=>$(id).readOnly=!editable);
  ["customer-name-input","vehicle-registration-input","checked-by-input","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
  $("fuel").disabled=!editable;
@@ -174,8 +161,8 @@ async function showRecord(item){
  $("job-meta").hidden=!item.job_id;
  $("job-meta").textContent=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"";
  $("fuel").value=item.fuel_level_in||"";$("odometer").value=item.odometer_in??"";
- $("detail-status").textContent=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()}. ${item.void_reason||"No reason recorded"}`:item.confirmed_at?`Confirmed ${new Date(item.confirmed_at).toLocaleString()}. Edit checklist details here and confirm again to save changes.`:"Complete the checklist and confirm before creating a job card.";
- $("save-checklist").textContent=item.confirmed_at?"Save checklist changes":"Save and confirm checklist";
+ $("detail-status").textContent=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()}. ${item.void_reason||"No reason recorded"}`:item.confirmed_at?`Completed ${new Date(item.confirmed_at).toLocaleString()}. This inspection is read-only.`:"Complete the inspection when all drop-off details are ready.";
+ $("save-checklist").textContent=item.confirmed_at?"Inspection completed":"Complete inspection";
  $("confirmed-notice").textContent=item.confirmed_at?`Checklist confirmed by ${item.checked_by||"staff"}.`:"";
  $("confirmed-notice").classList.toggle("hidden",!item.confirmed_at);
  $("voided-notice").textContent=item.voided_at?`Checklist voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:"";
@@ -248,9 +235,21 @@ async function saveAndConfirm(){
    checklistId=data.id;
    record={id:checklistId,checklist_number:data.checklist_number,...payload};
   }
-  const{data:confirmedAt,error:confirmError}=await supabase.rpc("confirm_vehicle_condition_checklist",{p_checklist_id:checklistId});
-  if(confirmError)throw new Error(`Checklist was saved but could not be confirmed: ${confirmError.message}`);
-  record={...record,...payload,confirmed_at:confirmedAt||new Date().toISOString()};
+  const markRows=Object.entries(report.parts||{}).flatMap(([area,entry])=>{
+   const conditions=Array.isArray(entry?.dmg)?entry.dmg:[];
+   if(!conditions.length)return [];
+   const condition=conditions[0];
+   return [{inspection_id:checklistId,area_code:area,condition,note:entry.note||null,photo_path:null}];
+  });
+  const{error:clearMarksError}=await supabase.from("job_condition_report_marks").delete().eq("inspection_id",checklistId);
+  if(clearMarksError)throw new Error(`Couldn't refresh inspection marks: ${clearMarksError.message}`);
+  if(markRows.length){
+   const{error:marksError}=await supabase.from("job_condition_report_marks").insert(markRows);
+   if(marksError)throw new Error(`Couldn't save inspection marks: ${marksError.message}`);
+  }
+  const{data:confirmedAt,error:confirmError}=await supabase.rpc("complete_vehicle_inspection",{p_inspection_id:checklistId});
+  if(confirmError)throw new Error(`Inspection was saved but could not be completed: ${confirmError.message}`);
+  record={...record,...payload,status:"completed",confirmed_at:confirmedAt||new Date().toISOString()};
   $("checklist-number-display").textContent=`Checklist #${record.checklist_number}`;
   $("checklist-number-display").hidden=false;
   $("print-checklist-number").textContent=`#${record.checklist_number}`;
