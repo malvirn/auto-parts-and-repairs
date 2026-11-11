@@ -243,12 +243,19 @@ create table if not exists public.customer_credit_redemption_audit (
   target_type text not null,
   target_id uuid not null,
   amount numeric(12,2) not null check (amount > 0),
+  confirmation_type text not null,
   confirmed_as text not null,
   authorised_by text,
   performed_by uuid references auth.users(id),
   source_redemption_id uuid not null unique,
   performed_at timestamptz not null default now()
 );
+alter table public.customer_credit_redemption_audit
+  add column if not exists confirmation_type text;
+update public.customer_credit_redemption_audit
+set confirmation_type='legacy' where confirmation_type is null;
+alter table public.customer_credit_redemption_audit
+  alter column confirmation_type set not null;
 create index if not exists customer_credit_redemption_audit_customer_idx
   on public.customer_credit_redemption_audit(customer_id, performed_at desc);
 alter table public.customer_credit_redemption_audit enable row level security;
@@ -273,6 +280,7 @@ declare
   attempt_row public.customer_credit_confirmation_attempts%rowtype;
   clean_confirmation text := btrim(coalesce(p_confirmation_value, ''));
   valid_confirmation boolean := false;
+  confirmation_type_value text;
   next_failures integer;
 begin
   if auth.uid() is null or public.current_access_level() < 1 then
@@ -307,6 +315,14 @@ begin
       (length(regexp_replace(coalesce(customer_row.phone, ''), '[^0-9]', '', 'g')) >= 4
        and clean_confirmation = right(regexp_replace(coalesce(customer_row.phone, ''), '[^0-9]', '', 'g'), 4))
       or lower(clean_confirmation) = lower(btrim(customer_row.full_name));
+  end if;
+
+  if customer_row.is_company then
+    confirmation_type_value := 'company_name';
+  elsif clean_confirmation = right(regexp_replace(coalesce(customer_row.phone, ''), '[^0-9]', '', 'g'), 4) then
+    confirmation_type_value := 'phone_last4';
+  else
+    confirmation_type_value := 'full_name';
   end if;
 
   if not valid_confirmation then
@@ -345,7 +361,8 @@ begin
   where customer_id = p_customer_id;
 
   return jsonb_build_object('allowed', true, 'customer_id', customer_row.id,
-    'customer_code', customer_row.customer_code, 'confirmed_as', clean_confirmation);
+    'customer_code', customer_row.customer_code, 'confirmation_type', confirmation_type_value,
+    'confirmed_as', clean_confirmation);
 end;
 $$;
 revoke all on function public.verify_customer_credit_confirmation(uuid,text,text) from public, anon, authenticated;
@@ -408,10 +425,11 @@ begin
 
   insert into public.customer_credit_redemption_audit(
     customer_id, customer_code, credit_reference, target_type, target_id,
-    amount, confirmed_as, authorised_by, performed_by, source_redemption_id
+    amount, confirmation_type, confirmed_as, authorised_by, performed_by, source_redemption_id
   ) values (
     customer_row.id, customer_row.customer_code, credit_ref, p_target_type, p_target_id,
-    round(p_amount,2), verified->>'confirmed_as', nullif(btrim(p_authorised_by), ''), auth.uid(),
+    round(p_amount,2), verified->>'confirmation_type', verified->>'confirmed_as',
+    nullif(btrim(p_authorised_by), ''), auth.uid(),
     (result->>'id')::uuid
   ) on conflict(source_redemption_id) do nothing;
   return result || jsonb_build_object('customer_code', customer_row.customer_code, 'credit_reference', credit_ref);
@@ -504,12 +522,12 @@ begin
 
   insert into public.customer_credit_redemption_audit(
     customer_id, customer_code, credit_reference, target_type, target_id,
-    amount, confirmed_as, authorised_by, performed_by, source_redemption_id
+    amount, confirmation_type, confirmed_as, authorised_by, performed_by, source_redemption_id
   ) values (
     customer_row.id, customer_row.customer_code,
     coalesce(credit_ref, voucher_row.voucher_code) || ' / ' || voucher_row.voucher_code,
-    p_target_type, p_target_id, round(p_amount,2), verified->>'confirmed_as',
-    nullif(btrim(p_authorised_by), ''), auth.uid(), (result->>'id')::uuid
+    p_target_type, p_target_id, round(p_amount,2), verified->>'confirmation_type',
+    verified->>'confirmed_as', nullif(btrim(p_authorised_by), ''), auth.uid(), (result->>'id')::uuid
   ) on conflict(source_redemption_id) do nothing;
   return result || jsonb_build_object('customer_code', customer_row.customer_code,
     'credit_reference', credit_ref, 'voucher_code', voucher_row.voucher_code);
@@ -563,12 +581,13 @@ begin
   loop
     insert into public.customer_credit_redemption_audit(
       customer_id,customer_code,credit_reference,target_type,target_id,amount,
-      confirmed_as,authorised_by,performed_by,source_redemption_id
+      confirmation_type,confirmed_as,authorised_by,performed_by,source_redemption_id
     ) values (
       job_row.customer_id,verified->>'customer_code',
       'QCN-'||lpad(movement_row.credit_note_number::text,6,'0'),
       'repair_job',p_repair_job_id,movement_row.amount,
-      verified->>'confirmed_as',nullif(btrim(p_authorised_by),''),auth.uid(),movement_row.id
+      verified->>'confirmation_type',verified->>'confirmed_as',
+      nullif(btrim(p_authorised_by),''),auth.uid(),movement_row.id
     ) on conflict(source_redemption_id) do nothing;
   end loop;
 
