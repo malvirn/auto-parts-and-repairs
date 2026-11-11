@@ -72,11 +72,40 @@ function renderDamage(){
    if(!part)return;
    openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
     report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)?entry.dmg:[]};
-    renderDamage();renderInspectionSummary();
+    renderDamage();renderInspectionSummary();persistInspectionLocally();if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));
    }});
   }
  });
 }
+function persistInspectionLocally(){
+ try{localStorage.setItem("centric-inspection-draft-"+(record?.id||"new"),JSON.stringify({report,updated_at:new Date().toISOString()}));$("inspection-save-state").textContent="Saved on this device";}
+ catch{$("inspection-save-state").textContent="Couldn't save this draft on this device";}
+}
+async function saveAreaMark(area){
+ if(!record?.id||!editable)return;
+ const entry=report.parts?.[area]||{dmg:[]};
+ let photo_path=null;
+ if(entry.photo?.startsWith("data:image/")){
+  const blob=await (await fetch(entry.photo)).blob();photo_path=record.id+"/"+area+".jpg";
+  const {error}=await supabase.storage.from("vehicle-inspections").upload(photo_path,blob,{contentType:"image/jpeg",upsert:true});
+  if(error)throw error;
+ }else if(entry.photo_path)photo_path=entry.photo_path;
+ if(entry.dmg?.length){
+  const row={inspection_id:record.id,area_code:area,condition:entry.dmg[0],note:entry.note||null,photo_path};
+  const {error}=await supabase.from("job_condition_report_marks").upsert(row,{onConflict:"inspection_id,area_code"});
+  if(error)throw error;
+ }else{
+  const {error}=await supabase.from("job_condition_report_marks").delete().eq("inspection_id",record.id).eq("area_code",area);
+  if(error)throw error;
+ }
+ const safeReport={...report,parts:Object.fromEntries(Object.entries(report.parts||{}).map(([k,v])=>[k,{dmg:v.dmg||[],note:v.note||" "}]))};
+ const {error:reportError}=await supabase.from("job_condition_reports").update({report:safeReport,updated_at:new Date().toISOString()}).eq("id",record.id);
+ if(reportError)throw reportError;
+ $("inspection-save-state").textContent="Saved";
+}
+window.addEventListener("online",()=>{
+ if(record?.id&&editable){Object.keys(report.parts||{}).forEach(key=>saveAreaMark(key).catch(error=>console.warn("Inspection retry failed:",error)));}
+});
 function renderInspectionSummary(){
  const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
  const marked=parts.filter(p=>report.parts?.[p.key]?.dmg?.length);
@@ -305,7 +334,7 @@ function printChecklist(){
  const parts=CONDITION_GROUPS.map(([group,items])=>`
   <section><h2>${esc(group)}</h2><table><tbody>${items.map(([key,name])=>{
    const marked=report.parts?.[key],damage=Array.isArray(marked?.dmg)?marked.dmg:[];
-   const condition=marked?(damage.length?damage.join(", "):"No damage"):"Not recorded";
+   const condition=damage.length?damage.join(", "):"No Damage";
    return `<tr><th>${esc(name)}</th><td>${esc(condition)}</td></tr>`;
   }).join("")}</tbody></table></section>`).join("");
  const checklistNumber=record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
