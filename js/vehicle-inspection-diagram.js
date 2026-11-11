@@ -55,6 +55,14 @@ function ensureStyles(){
  .vi-part-photo[data-photo-part="roof"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part="windscreen"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part^="wheel"]{object-position:50% 50%}
+ .vi-part-card.vi-photo-card .vi-white-bg{mix-blend-mode:multiply}
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="bumper"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="grille"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="door"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="rear-glass"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="boot-lid"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="side-skirt"],
+ .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="plate"]{object-fit:contain}
  .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="fender"],
  .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="mirror"]{object-fit:cover}
  .vi-part-card.vi-photo-card .vi-part-photo[data-photo-part="headlight"],
@@ -116,27 +124,46 @@ const PART_PHOTOS={
  headlight:"https://pic.pngsucai.com/00/93/96/080cda56f8bec9bd.webp",
  fog:"https://pic.pngsucai.com/00/99/10/f35c85ca8634f18c.webp",
  taillight:"https://pic.mksucai.com/00/10/68/8a2d4161be68b475.webp",
- body:"https://toppng.com/public/uploads/preview/body-parts-car-body-parts-11563171618havvx3lz2a.png"
+ body:"https://toppng.com/public/uploads/preview/body-parts-car-body-parts-11563171618havvx3lz2a.png",
+ frontBumper:"https://avto-zapchasti.in.ua/image/cache/catalog/products/9c2b5af1-68f4-11e8-974b-50e549e32db5151-1000x1000.jpeg",
+ rearBumper:"https://images.carid.com/replacement/items/id0004aa3493c00.jpg",
+ grille:"https://ic.carid.com/replace/items/ho1200268_0.jpg",
+ door:"https://vemostar.com/cdn/shop/files/BHO-DR0052.png?v=1776625914",
+ roof:"https://www.carid.com/images/pages/roof-panels/replacement-roof-panel.jpg",
+ rearGlass:"https://images.carid.com/pages/back-glass/rear-window-glass.jpg",
+ bootLid:"https://www.carbody.com/carbody/2025/08/21/sy-kia20-03w-o.jpg",
+ sideSkirt:"https://images.carid.com/replacement/items/id0146aa0017r00.jpg",
+ spoiler:"https://w7.pngwing.com/pngs/830/448/png-transparent-carbon-fibers-motor-vehicle-spoilers-bumper-japanese-domestic-market-carbon-fiber-angle-furniture-auto-part.png",
+ plate:"https://www.k2-industries.com/cdn/shop/files/LP-MA1068118-1.jpg?v=1772745962&width=1500"
 };
-function photoMarkup(part,kind,src,alt,position="50% 50%"){
- return `<img class="vi-part-photo" data-photo-part="${kind}" style="object-position:${position}" src="${src}" alt="${esc(alt)}" loading="lazy">`;
+function photoMarkup(part,kind,src,alt,whiteBackground=false){
+ return `<img class="vi-part-photo${whiteBackground?" vi-white-bg":""}" data-photo-part="${kind}" src="${src}" alt="${esc(alt)}" loading="lazy">`;
 }
 function partVisual(part){
  const key=part.key;
  if(key==="bonnet")return `<img class="vi-part-photo" data-photo-part="bonnet" src="https://images.pexels.com/photos/12920563/pexels-photo-12920563.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car bonnet" loading="lazy">`;
- if(key==="roof")return `<img class="vi-part-photo" data-photo-part="roof" src="https://images.pexels.com/photos/10989743/pexels-photo-10989743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car roof, top view" loading="lazy">`;
+ if(key==="roof")return photoMarkup(part,"roof",PART_PHOTOS.roof,"Replacement car roof panel",true);
  if(key==="windscreen")return `<img class="vi-part-photo" data-photo-part="windscreen" src="https://www.pngkey.com/png/detail/842-8427367_windshield-png-car-glass-png.png" alt="Isolated car windscreen with transparent background" loading="lazy">`;
  if(key.startsWith("wheel-")||key==="spare-wheel")return `<img class="vi-part-photo" data-photo-part="wheel" src="https://pngimg.com/uploads/car_wheel/car_wheel_PNG1069.png" alt="Silver alloy wheel and tyre with transparent background" loading="lazy">`;
- if(key.includes("headlight"))return photoMarkup(part,"headlight",PART_PHOTOS.headlight,"Isolated automotive headlight");
- if(key.includes("fog-light"))return photoMarkup(part,"fog-light",PART_PHOTOS.fog,"Isolated automotive fog light");
- if(key.includes("taillight"))return photoMarkup(part,"taillight",PART_PHOTOS.taillight,"Isolated red automotive tail light");
- if(key.includes("wing")||key.includes("quarter"))return photoMarkup(part,"fender",PART_PHOTOS.body,"Automotive fender cutout","24% 45%");
- if(key.includes("mirror"))return photoMarkup(part,"mirror",PART_PHOTOS.body,"Automotive side mirror cutout","78% 78%");
+ if(key.includes("headlight"))return photoMarkup(part,"headlight",PART_PHOTOS.headlight,"Automotive headlight");
+ if(key.includes("fog-light"))return photoMarkup(part,"fog-light",PART_PHOTOS.fog,"Automotive fog light");
+ if(key.includes("taillight"))return photoMarkup(part,"taillight",PART_PHOTOS.taillight,"Automotive tail light");
+ if(key.includes("wing")||key.includes("quarter"))return photoMarkup(part,"fender",PART_PHOTOS.body,"Automotive fender and body panel");
+ if(key.includes("mirror"))return photoMarkup(part,"mirror",PART_PHOTOS.body,"Automotive side mirror");
+ if(key==="front-bumper")return photoMarkup(part,"bumper",PART_PHOTOS.frontBumper,"Front car bumper",true);
+ if(key==="rear-bumper")return photoMarkup(part,"bumper",PART_PHOTOS.rearBumper,"Rear car bumper",true);
+ if(key==="grille")return photoMarkup(part,"grille",PART_PHOTOS.grille,"Car front grille",true);
+ if(key.includes("door"))return photoMarkup(part,"door",PART_PHOTOS.door,"Replacement car door shell",true);
+ if(key==="rear-glass")return photoMarkup(part,"rear-glass",PART_PHOTOS.rearGlass,"Rear windscreen glass",true);
+ if(key==="boot-lid"||key==="boot")return photoMarkup(part,"boot-lid",PART_PHOTOS.bootLid,"Car boot lid",true);
+ if(key.includes("side-skirt"))return photoMarkup(part,"side-skirt",PART_PHOTOS.sideSkirt,"Car side skirt",true);
+ if(key==="boot-spoiler")return photoMarkup(part,"spoiler",PART_PHOTOS.spoiler,"Car rear spoiler");
+ if(key.includes("plate-area"))return photoMarkup(part,"plate",PART_PHOTOS.plate,"Vehicle number plate mounting bracket",true);
  return partIcon(part);
 }
 function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
- const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel"||part.key.includes("headlight")||part.key.includes("fog-light")||part.key.includes("taillight")||part.key.includes("wing")||part.key.includes("quarter")||part.key.includes("mirror");
+ const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel"||part.key.includes("headlight")||part.key.includes("fog-light")||part.key.includes("taillight")||part.key.includes("wing")||part.key.includes("quarter")||part.key.includes("mirror")||part.key.includes("bumper")||part.key==="grille"||part.key.includes("door")||part.key==="rear-glass"||part.key==="boot-lid"||part.key==="boot"||part.key.includes("side-skirt")||part.key==="boot-spoiler"||part.key.includes("plate-area");
  return `<button type="button" class="vi-part-card${photoPart?" vi-photo-card":""}" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
  ${partVisual(part)}${photoPart?"":`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
 }
