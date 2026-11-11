@@ -1680,7 +1680,10 @@ form?.addEventListener("submit", async (e) => {
   const newCustomerName = $("job-new-customer-name")?.value.trim() || "";
   const newCustomerPhone = $("job-new-customer-phone")?.value.trim() || "";
   const newCustomerEmail = $("job-new-customer-email")?.value.trim() || "";
+  const newCustomerIsCompany = $("job-new-customer-is-company")?.checked || false;
+  const newCompanyName = $("job-new-customer-company-name")?.value.trim() || "";
   if (newCustomer && (!newCustomerName || !newCustomerPhone)) return showFormMessage("Enter the new customer's name and phone number.");
+  if (newCustomer && newCustomerIsCompany && !newCompanyName) return showFormMessage("Enter the company name.");
   if (newCustomer && digits(newCustomerPhone).length < 7) return showFormMessage("Enter a valid customer phone number.");
   if (newCustomerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newCustomerEmail)) return showFormMessage("Enter a valid email address.");
   if (newVehicle && !$("job-new-plate").value.trim()) return showFormMessage("Enter the vehicle plate number.");
@@ -1738,8 +1741,9 @@ form?.addEventListener("submit", async (e) => {
           full_name: newCustomerName,
           phone: newCustomerPhone,
           email: newCustomerEmail || null,
-          customer_type: "individual",
-        }]).select("id").single();
+          is_company: newCustomerIsCompany,
+          company_name: newCustomerIsCompany ? newCompanyName : null,
+        }]).select("id,customer_code").single();
         if (error) throw new Error("Couldn't register the customer: " + error.message);
         customer_id = customer.id;
       }
@@ -1886,11 +1890,19 @@ form?.addEventListener("submit", async (e) => {
     let depositNote = "";
     if (quoteId && !quoteLinkWarning) {
       try {
-        const { data: depositResult, error: depositError } = await supabase.rpc("apply_quotation_deposits_to_repair_job", {
+        const customerForConfirmation = newCustomer ? { is_company: newCustomerIsCompany, company_name: newCompanyName } : selectedCustomer();
+        const confirmationValue = prompt(customerForConfirmation?.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
+        if (!confirmationValue) throw new Error("Customer confirmation was not provided.");
+        const authorisedBy = customerForConfirmation?.is_company ? prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim() : null;
+        if (customerForConfirmation?.is_company && !authorisedBy) throw new Error("Authorised by is required for company credit.");
+        const { data: depositResult, error: depositError } = await supabase.rpc("apply_quotation_deposits_to_repair_job_verified", {
           p_quotation_id: quoteId,
           p_repair_job_id: job.id,
+          p_confirmation_value: confirmationValue,
+          p_authorised_by: authorisedBy,
         });
         if (depositError) throw depositError;
+        if (depositResult?.error) throw new Error(depositResult.error);
         const appliedDeposit = Number(depositResult?.applied_amount || 0);
         if (appliedDeposit > 0.005) {
           depositNote = ` Quotation deposit of ${money(appliedDeposit)} applied to the job card.`;
