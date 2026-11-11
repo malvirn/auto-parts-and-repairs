@@ -685,3 +685,24 @@ body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="p
 body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i{opacity:.28!important}
 body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i:first-child,
 body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i:first-child{opacity:1!important}
+
+
+/* Compact date allocation on phones: keep Live and utility controls visible. */
+@media(max-width:600px){
+ body.dashboard-workshop .dashboard-topbar{
+   gap:5px!important;min-width:0!important;right:8px!important;left:8px!important;
+ }
+ body.dashboard-workshop .dashboard-header-date{
+   flex:0 1 116px!important;min-width:0!important;max-width:116px!important;
+   gap:4px!important;overflow:hidden!important;white-space:nowrap!important;
+ }
+ body.dashboard-workshop .dashboard-header-date #dashboard-date{
+   display:block!important;flex:0 1 66px!important;min-width:0!important;max-width:66px!important;
+   overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ }
+ body.dashboard-workshop .dashboard-header-date .header-separator{display:none!important}
+ body.dashboard-workshop .dashboard-header-date>svg{width:13px!important;height:13px!important;flex:0 0 13px!important}
+ body.dashboard-workshop .dashboard-header-date #hdr-clock{flex:0 0 auto!important;font-size:10px!important}
+ body.dashboard-workshop .dashboard-header-date .hdr-live{flex:0 0 auto!important;font-size:10px!important}
+ body.dashboard-workshop .dashboard-topbar-actions{gap:4px!important;flex:0 0 auto!important}
+}
