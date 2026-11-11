@@ -46,7 +46,7 @@ async function load() {
   if (!hasLoadedCreditNotes) list.innerHTML = '<div class="customer-credit-empty">Loading credit notes…</div>';
   const [receiptsResult, balancesResult, movementsResult, targetsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
-      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, voucher_code, voucher_status, expires_at, holder_note, quotations(quotation_number, created_at, repair_job_id), customers(email)")
+      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, voucher_code, voucher_status, expires_at, holder_note, quotations(quotation_number, created_at, repair_job_id), customers(email,customer_code,is_company,company_name)")
       .order("created_at", { ascending: false }),
     supabase.from("customer_credit_balances").select("deposit_receipt_id, available_amount"),
     supabase.from("customer_credit_movements")
@@ -68,7 +68,7 @@ async function load() {
 
   const [overpaymentResult, overpaymentRefundsResult] = await Promise.all([
     supabase.from("customer_overpayment_credit_notes")
-      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,voucher_code,voucher_status,expires_at,holder_note,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method)),customer_overpayment_credit_job_links(repair_job_id,applied_amount,repair_jobs(job_number,checklist_number,cro_number))")
+      .select("id,note_number,customer_id,invoice_id,customer_name,customer_phone,amount,issued_at,voucher_code,voucher_status,expires_at,holder_note,invoices(invoice_number,customer_email,total,subtotal,vat_rate,vat_base,repair_job_id,repair_jobs(checklist_number)),customer_overpayment_credits(available_amount,invoice_payments(payment_method)),customer_overpayment_credit_job_links(repair_job_id,applied_amount,repair_jobs(job_number,checklist_number,cro_number)),customers(customer_code,is_company,company_name)")
       .order("issued_at", { ascending: false }).limit(500),
     supabase.from("customer_overpayment_credit_refunds")
       .select("credit_note_id,amount,voided_at"),
@@ -231,7 +231,9 @@ async function printCreditNote(note) {
     <span class="status">${escapeHtml(status.label)}</span>
     <section class="amount"><small>Available credit</small><strong>${money(note.available_amount)}</strong></section>
     <h2>Credit note details</h2><table><tbody>
-      <tr><td>Customer</td><td>${escapeHtml(note.customer_name || "—")}</td></tr>
+      <tr><td>Customer</td><td>${escapeHtml(note.customers?.company_name || note.customer_name || "—")}</td></tr>
+      <tr><td>Customer ID</td><td>${escapeHtml(note.customers?.customer_code || "—")}</td></tr>
+      ${note.customers?.is_company ? `<tr><td>Company</td><td>${escapeHtml(note.customers.company_name || note.customer_name || "—")}</td></tr>` : ""}
       <tr><td>Phone</td><td>${escapeHtml(note.customer_phone || "—")}</td></tr>
       <tr><td>Source</td><td>Quotation #${escapeHtml(quote.quotation_number ?? "—")}</td></tr>
       <tr><td>Date and payment method</td><td>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</td></tr>
@@ -290,7 +292,7 @@ function render() {
     const noteNumber = kind === "deposit" ? `QCN-${note.credit_note_number}` : `CN-${note.note_number}`;
     const checklist = kind === "deposit" ? jobsById.get(note.quotations?.repair_job_id)?.checklist_number : invoice.repair_jobs?.checklist_number;
     const paymentMethod = kind === "deposit" ? note.payment_method : note.customer_overpayment_credits?.invoice_payments?.payment_method;
-    const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, paymentMethod, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
+    const haystack = [noteNumber, note.customer_name, note.customer_phone, note.customers?.customer_code, note.customers?.company_name, note.customers?.email, invoice.invoice_number, invoice.customer_email, note.reference, paymentMethod, checklist, kind === "deposit" ? note.quotations?.quotation_number : "invoice overpayment"].filter(Boolean).join(" ").toLocaleLowerCase();
     const date = dateKey(kind === "deposit" ? note.payment_date || note.created_at : note.issued_at);
     const amount = Number(kind === "deposit" ? note.available_amount ?? note.amount : note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
     const refunded = kind === "overpayment" ? overpaymentRefunds
@@ -320,7 +322,7 @@ function render() {
       const quote = note.quotations || {};
       const job = quote.repair_job_id ? jobsById.get(quote.repair_job_id) : null;
       const quoteNumber = quote.quotation_number ?? "—";
-      const noteName = note.customer_name || "Customer";
+      const noteName = note.customers?.company_name || note.customer_name || "Customer";
       const quoteTargets = targets.filter(target => note.customer_id
         ? target.customer_id === note.customer_id
         : String(target.customer_name || "").trim().toLocaleLowerCase() === noteName.trim().toLocaleLowerCase());
@@ -348,7 +350,7 @@ function render() {
       return `<details class="customer-credit-record" data-credit-note-id="${escapeHtml(note.id)}">
         <summary class="customer-credit-record__summary">
           <span class="credit-note-id">QCN-${String(note.credit_note_number).padStart(6, "0")}</span>
-          <span class="credit-note-customer"><strong>${escapeHtml(noteName)}</strong><small>Quotation #${escapeHtml(quoteNumber)} · ${dateLabel(note.payment_date)}</small></span>
+          <span class="credit-note-customer"><strong>${escapeHtml(noteName)}</strong><small>${note.customers?.customer_code ? "Customer ID: " + escapeHtml(note.customers.customer_code) + " · " : ""}Quotation #${escapeHtml(quoteNumber)} · ${dateLabel(note.payment_date)}</small></span>
           <span class="credit-note-balance"><strong>${money(note.available_amount)}</strong><small>Available</small></span>
           <span class="credit-note-status status-${status.tone}">${status.label}</span>
         </summary>
@@ -360,7 +362,7 @@ function render() {
           <section class="credit-available-card"><small>Available credit</small><strong>${money(note.available_amount)}</strong></section>
           <section class="credit-details-card" aria-label="Credit note details">
             <h4>Credit note details</h4>
-            <div class="credit-detail-row"><span>Customer</span><strong>${escapeHtml(noteName)}<small>${escapeHtml(note.customer_phone || "No phone recorded")}</small></strong></div>
+            <div class="credit-detail-row"><span>Customer</span><strong>${escapeHtml(noteName)}<small>${note.customers?.customer_code ? "Customer ID: " + escapeHtml(note.customers.customer_code) + " · " : ""}${escapeHtml(note.customer_phone || "No phone recorded")}</small></strong></div>
             <div class="credit-detail-row"><span>Source</span><strong>Quotation #${escapeHtml(quoteNumber)}</strong></div>
             <div class="credit-detail-row"><span>Date and payment method</span><strong>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</strong></div>
             <div class="credit-detail-row"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
@@ -398,14 +400,14 @@ function render() {
       const status = available <= .005 ? "Used / refunded" : available < Number(note.amount || 0) - .005 ? "Partially used" : "Available";
       const tone = available <= .005 ? "applied" : available < Number(note.amount || 0) - .005 ? "partial" : "available";
       const phone = String(note.customer_phone || "").replace(/\D/g,"");
-      const message = `Centric Auto Mobile credit note CN-${String(note.note_number).padStart(5,"0")}. Customer: ${note.customer_name || "Customer"}. Invoice: ${invoiceNumber}. Amount: ${money(note.amount)}. Carried forward: ${money(available)}.`;
+      const message = `Centric Auto Mobile credit note CN-${String(note.note_number).padStart(5,"0")}. Customer: ${note.customers?.company_name || note.customer_name || "Customer"}. Customer ID: ${note.customers?.customer_code || "Not assigned"}. Invoice: ${invoiceNumber}. Amount: ${money(note.amount)}. Carried forward: ${money(available)}.`;
       const wa = phone ? "https://wa.me/" + phone + "?text=" + encodeURIComponent(message) : "";
       const mail = invoice.customer_email ? "mailto:" + encodeURIComponent(invoice.customer_email) + "?subject=" + encodeURIComponent("Centric Auto Mobile " + number) + "&body=" + encodeURIComponent(message) : "";
       const jobLink = Array.isArray(note.customer_overpayment_credit_job_links) ? (note.customer_overpayment_credit_job_links[0] || {}) : (note.customer_overpayment_credit_job_links || {});
       const linked = jobLink.repair_job_id || "";
       const link = linked ? '<a class="btn" href="repairs.html?highlight=' + encodeURIComponent(linked) + '">Open linked job card</a>' :
         '<section class="overpayment-job-link"><h4>Link carried-forward amount to the next job card</h4><p>Enter the customer name, email, phone number and checklist number. The name, email and phone must match the original credit note.</p><div class="overpayment-job-link__fields" data-overpayment-link="' + escapeHtml(note.id) + '" data-credit-note-id="' + escapeHtml(note.id) + '"><input data-match="name" placeholder="Customer full name" required><input data-match="email" type="email" placeholder="Customer email address" required><input data-match="phone" type="tel" placeholder="Customer phone number" required><input data-match="checklist" placeholder="Next job card checklist number" required><button class="btn btn--primary" type="button" data-link-overpayment-job>Verify and link next job card</button></div></section>';
-      return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customer_name || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Portable voucher</small><strong>' + escapeHtml(note.voucher_code || "Not issued") + '</strong></div><div><small>Voucher expiry</small><strong>' + dateLabel(note.expires_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div>' + (note.voucher_code ? '<div class="credit-voucher-modal-qr"><div><small>PORTABLE VOUCHER CODE</small><strong>' + escapeHtml(note.voucher_code) + '</strong></div><div data-voucher-qr="' + escapeHtml(note.voucher_code) + '"></div></div>' : '') + '<div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + '</div>' + link + '</div></details>';
+      return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customers?.company_name || note.customer_name || "—") + '</strong></div><div><small>Customer ID</small><strong>' + escapeHtml(note.customers?.customer_code || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Portable voucher</small><strong>' + escapeHtml(note.voucher_code || "Not issued") + '</strong></div><div><small>Voucher expiry</small><strong>' + dateLabel(note.expires_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div>' + (note.voucher_code ? '<div class="credit-voucher-modal-qr"><div><small>PORTABLE VOUCHER CODE</small><strong>' + escapeHtml(note.voucher_code) + '</strong></div><div data-voucher-qr="' + escapeHtml(note.voucher_code) + '"></div></div>' : '') + '<div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + '</div>' + link + '</div></details>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
@@ -797,15 +799,24 @@ document.addEventListener("click", async event => {
   try {
     const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
     if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
-    const result = await supabase.rpc("apply_customer_credit", {
+    const customerId = creditNotes.find(note => note.id === action.dataset.creditId)?.customer_id;
+    const customer = creditNotes.find(note => note.id === action.dataset.creditId)?.customers || {};
+    const confirmationValue = prompt(customer.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
+    if (!confirmationValue) throw new Error("Customer confirmation is required before applying credit.");
+    const authorisedBy = customer.is_company ? prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim() : null;
+    if (customer.is_company && !authorisedBy) throw new Error("Authorised by is required for company credit.");
+    const result = await supabase.rpc("apply_customer_credit_verified", {
       p_deposit_receipt_id: action.dataset.creditId,
       p_amount: amount,
       p_target_type: targetType,
       p_target_id: targetId,
       p_reason: "Staff-applied quotation deposit",
       p_idempotency_key: idempotencyKey,
+      p_confirmation_value: confirmationValue,
+      p_authorised_by: authorisedBy,
     });
     if (result.error) throw result.error;
+    if (result.data?.error) throw new Error(result.data.error);
     await load();
     showMessage("Credit applied to the customer balance.", "success");
   } catch (error) {
