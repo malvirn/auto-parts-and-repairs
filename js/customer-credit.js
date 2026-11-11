@@ -624,6 +624,7 @@ creditInlineStyle.textContent += `
 }
 `;
 
+creditInlineStyle.textContent += `
 /* Explicit light-theme palette: prevent dark document panels leaking into light mode. */
 :root[data-theme="light"] #customer-credit-panel.customer-credit-panel-scope{color:#18212b!important}
 :root[data-theme="light"] #customer-credit-panel .customer-credit-record:not(.overpayment-credit-record){
@@ -671,6 +672,9 @@ creditInlineStyle.textContent += `
 :root[data-theme="light"] #customer-credit-panel .credit-note-narrative{background:#fff!important;border-color:#d7dde5!important}
 :root[data-theme="light"] #customer-credit-panel .credit-unused-badge{background:#e8edf3!important;color:#344256!important;border-color:#cbd5df!important}
 :root[data-theme="light"] #customer-credit-panel .customer-credit-empty{background:#f5f7fa!important;color:#344256!important;border-color:#d7dde5!important}
+
+
+`;
 
 document.head.appendChild(creditInlineStyle);
 
