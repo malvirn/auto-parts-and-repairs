@@ -1,3 +1,8 @@
+
+/* Hide each module's placeholder sidebar before its shared navigation is ready. */
+body.dashboard-page:not(.dashboard-home) .sidebar:not([data-dashboard-canonical="true"]) {
+  visibility: hidden !important;
+}
 body.dashboard-workshop {
   min-height: 100vh;
   min-height: 100svh;
