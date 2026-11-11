@@ -58,49 +58,52 @@ function addToolbarUtilities(container, isModuleToolbar) {
     status.setAttribute("aria-live", "polite");
     status.setAttribute("aria-label", "Connection status");
     status.title = "Connection status";
-    status.innerHTML = '<i data-lucide="wifi" aria-hidden="true"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span>';
+    status.innerHTML = '<span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span>';
     container.append(status);
 
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const updateConnection = () => {
-      const online = navigator.onLine;
-      const effectiveType = connection?.effectiveType || "";
-      let state = "good";
-      let label = "Online; connection quality unavailable";
-      if (!online) {
-        state = "offline";
-        label = "Offline";
-      } else if (effectiveType === "slow-2g" || effectiveType === "2g") {
-        state = "poor";
-        label = "Poor connection";
-      } else if (effectiveType === "3g") {
-        state = "fair";
-        label = "Fair connection";
-      } else if (effectiveType === "4g") {
-        state = "good";
-        label = "Good connection";
-      } else if (Number(connection?.rtt) > 800 || (Number(connection?.downlink) > 0 && Number(connection.downlink) < 0.5)) {
-        state = "poor";
-        label = "Poor connection";
-      } else if (Number(connection?.rtt) > 300 || (Number(connection?.downlink) > 0 && Number(connection.downlink) < 1.5)) {
-        state = "fair";
-        label = "Fair connection";
-      }
+    // Measure a real same-origin request instead of relying on the optional
+    // Network Information API, which is missing or inconsistent on many phones.
+    let checkSequence = 0;
+    let checkTimer = null;
+    const paintConnection = (state, label) => {
       status.dataset.state = state;
       status.title = label;
       status.setAttribute("aria-label", label);
-      const icon = status.querySelector("[data-lucide]");
-      if (icon) icon.setAttribute("data-lucide", online ? "wifi" : "wifi-off");
-      const text = status.querySelector(".dashboard-connection-label");
-      if (text) text.textContent = online ? "Online" : "Offline";
-      window.lucide?.createIcons();
+    };
+    const updateConnection = async () => {
+      const sequence = ++checkSequence;
+      if (!navigator.onLine) {
+        paintConnection("offline", "Offline");
+        return;
+      }
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 8000);
+      const started = performance.now();
+      try {
+        const response = await fetch(new URL("../index.html", import.meta.url), {
+          method: "HEAD", cache: "no-store", credentials: "same-origin", signal: controller.signal
+        });
+        if (!response.ok) throw new Error("Connection check failed");
+        if (sequence !== checkSequence) return;
+        const elapsed = performance.now() - started;
+        if (elapsed < 350) paintConnection("good", "Strong connection");
+        else if (elapsed < 900) paintConnection("fair", "Fair connection");
+        else paintConnection("poor", "Weak connection");
+      } catch (_) {
+        if (sequence === checkSequence) paintConnection("offline", "Connection unavailable");
+      } finally {
+        window.clearTimeout(timeout);
+      }
     };
     updateConnection();
-    window.addEventListener("online", updateConnection);
-    window.addEventListener("offline", updateConnection);
-    connection?.addEventListener?.("change", updateConnection);
-    window.addEventListener("focus", updateConnection);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) updateConnection(); });
+    if (!status.dataset.connectionMonitor) {
+      status.dataset.connectionMonitor = "true";
+      window.addEventListener("online", updateConnection);
+      window.addEventListener("offline", () => paintConnection("offline", "Offline"));
+      window.addEventListener("focus", updateConnection);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) updateConnection(); });
+      checkTimer = window.setInterval(updateConnection, 30000);
+    }
   }
 
   if (!container.querySelector(".dashboard-refresh")) {
