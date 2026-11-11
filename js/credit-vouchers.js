@@ -167,11 +167,26 @@ async function previewVoucher() {
     checkedVoucher = data;
     selectedCustomerCreditNote = null;
     const sourceTable = data.credit_note_type === "quotation_deposit" ? "quotation_deposit_receipts" : "customer_overpayment_credit_notes";
-    const { data: sourceNote, error: sourceError } = await supabase.from(sourceTable).select("customer_id").eq("id", data.credit_note_id).maybeSingle();
+    const { data: sourceNote, error: sourceError } = await supabase.from(sourceTable).select("customer_id,customer_name,customer_phone").eq("id", data.credit_note_id).maybeSingle();
     if (sourceError) throw sourceError;
-    if (!sourceNote?.customer_id) throw new Error("This voucher is not linked to a customer record. Link the customer before redeeming it.");
-    const { data: customer, error: customerError } = await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id", sourceNote.customer_id).single();
-    if (customerError) throw customerError;
+    let customer;
+    if (sourceNote?.customer_id) {
+      const result = await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id", sourceNote.customer_id).single();
+      if (result.error) throw result.error;
+      customer = result.data;
+    } else {
+      const result = await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").limit(1000);
+      if (result.error) throw result.error;
+      const digits = value => String(value || "").replace(/\\D/g, "");
+      const name = String(sourceNote?.customer_name || "").trim().toLocaleLowerCase();
+      const phone = digits(sourceNote?.customer_phone);
+      const matches = (result.data || []).filter(candidate =>
+        [candidate.full_name,candidate.company_name].some(value => String(value || "").trim().toLocaleLowerCase() === name) &&
+        (!phone || digits(candidate.phone) === phone)
+      );
+      if (matches.length !== 1) throw new Error("This voucher is not linked to one registered customer. Register or link the customer before redeeming it.");
+      customer = matches[0];
+    }
     checkedVoucher.customer_id = customer.id;
     checkedVoucher.customer = customer;
     currentCustomer = customer;
