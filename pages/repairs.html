@@ -1338,7 +1338,7 @@ const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(job
 async function load(){
  $("list").innerHTML='<div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Refreshing the latest workshop jobs…</p></div></div>';
  const [j,t,cl]=await Promise.all([
-  supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
+  supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email,is_company,company_name), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
   supabase.from("technician_directory").select("id,full_name").limit(300),
   supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at").is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(200)]);
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
