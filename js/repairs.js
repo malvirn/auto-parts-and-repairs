@@ -556,6 +556,11 @@ function refreshTechnicianOptions(select, currentJobTechnicianId) {
 // =====================================================================
 // Job card: parts & incidentals
 // =====================================================================
+async function syncLinkedInvoice(jobId) {
+  const { error } = await supabase.rpc("sync_repair_job_invoice", { p_repair_job_id: jobId });
+  if (error) throw new Error("Job card changed, but its linked invoice could not be updated: " + error.message);
+}
+
 async function loadJobParts(jobId) {
   if (!jobPartsList) return;
   const { data, error } = await supabase.from("job_parts").select("id, part_id, part_name, quantity, price_at_time, parts(description)").eq("job_id", jobId);
@@ -606,6 +611,7 @@ async function removeJobPart(jobPartId, jobId, { confirm = true, refresh = true 
   const { data: deletedParts, error: deleteError } = await supabase.from("job_parts").delete().eq("id", jobPartId).select("id");
   if (deleteError) throw deleteError;
   if (!deletedParts?.length) throw new Error("The part was not removed. Check your role permissions and try again.");
+  await syncLinkedInvoice(jobId);
   if (refresh) {
     await loadJobParts(jobId);
     await loadPartsIntoSelect();
@@ -689,6 +695,7 @@ jobPartAddBtn?.addEventListener("click", async () => {
       alert("Failed to add part: " + insertError.message + restoreMessage);
       return;
     }
+    await syncLinkedInvoice(jobId);
     jobPartQty.value = 1;
     await loadJobParts(jobId);
     await loadPartsIntoSelect();
@@ -718,7 +725,12 @@ async function loadJobIncidentals(jobId) {
       const { data: deleted, error: deleteError } = await supabase.from("job_incidentals").delete().eq("id", btn.dataset.incId).eq("job_id", jobId).select("id");
       if (deleteError) { alert("Couldn't remove this incidental: " + deleteError.message); return; }
       if (!deleted?.length) { alert("This incidental was not removed. Check your role permissions and try again."); return; }
-      await loadJobIncidentals(jobId);
+      try {
+        await syncLinkedInvoice(jobId);
+        await loadJobIncidentals(jobId);
+      } catch (syncError) {
+        alert(syncError.message);
+      }
     });
   });
   list.querySelectorAll(".incidental-select-checkbox").forEach(input => input.addEventListener("change", updateIncidentalDeleteControls));
@@ -783,6 +795,14 @@ $("incidentals-delete-selected")?.addEventListener("click", async () => {
     updateIncidentalDeleteControls();
     return;
   }
+  try {
+    await syncLinkedInvoice(jobId);
+  } catch (syncError) {
+    message.textContent = syncError.message;
+    message.dataset.tone = "error";
+    updateIncidentalDeleteControls();
+    return;
+  }
   const remaining = ids.length - data.length;
   message.textContent = remaining
     ? `${data.length} removed; ${remaining} were not found. Refreshing the job total…`
@@ -807,6 +827,7 @@ incidentalAddBtn?.addEventListener("click", async () => {
   try {
     const { error } = await supabase.from("job_incidentals").insert([{ job_id: jobId, description, amount }]);
     if (error) { alert("Failed to add incidental: " + error.message); return; }
+    await syncLinkedInvoice(jobId);
     $("incidental-desc").value = "";
     $("incidental-amount").value = "";
     await loadJobIncidentals(jobId);
