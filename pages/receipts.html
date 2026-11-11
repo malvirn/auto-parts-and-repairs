@@ -1172,7 +1172,7 @@ async function load(){
   supabase.from("customer_credit_movements").select("target_id,amount").in("target_id",jobIds).eq("target_type","repair_job").eq("movement_type","application").is("reversed_at",null)
  ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null}];
  if(paymentResult.error)console.error("Couldn't load repair-job payments for receipts:",paymentResult.error);
- const jobDetailsError=jobResult.error||jobPartsResult.error||jobExtrasResult.error;
+ const jobDetailsError=jobResult.error||jobPartsResult.error||jobExtrasResult.error||creditMovementResult.error;
  if(jobDetailsError){
   console.error("Couldn't load all repair-job details for receipts:",jobDetailsError);
   $("list").dataset.detailsErr=`Some job-card details may be missing: ${jobDetailsError.message}`;
