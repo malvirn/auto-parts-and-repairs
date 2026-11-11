@@ -483,7 +483,11 @@ begin
   amount_value:=round(p_amount,2);
   perform pg_advisory_xact_lock(hashtextextended(p_idempotency_key::text,0));
   select * into existing_row from public.credit_voucher_redemptions where idempotency_key=p_idempotency_key;
-  if found then return jsonb_build_object('id',existing_row.id,'amount',existing_row.amount,'replayed',true); end if;
+  if found then
+    balance_value:=public.credit_voucher_available_balance(existing_row.voucher_id);
+    return jsonb_build_object('id',existing_row.id,'amount',existing_row.amount,'remaining_balance',balance_value,
+      'journal_entry_id',existing_row.journal_entry_id,'replayed',true);
+  end if;
   select * into v from public.customer_credit_vouchers
     where replace(voucher_code,'-','')=upper(regexp_replace(coalesce(p_code,''),'[^A-Z0-9]','','g'))
     for update;
