@@ -757,12 +757,8 @@ begin
     raise exception 'This credit note has redemption history and cannot be linked through legacy registration';
   end if;
 
-  if p_is_company then
-    if lower(btrim(p_company_name)) <> lower(btrim(source_name)) then
-      raise exception 'Company name must match the name recorded on the original credit note';
-    end if;
-  elsif lower(btrim(p_full_name)) <> lower(btrim(source_name)) then
-    raise exception 'Customer name must match the name recorded on the original credit note';
+  if lower(btrim(p_full_name)) <> lower(btrim(source_name)) then
+    raise exception 'Customer/contact name must match the name recorded on the original credit note';
   end if;
 
   if nullif(regexp_replace(coalesce(source_phone, ''), '[^0-9]', '', 'g'), '') is not null
