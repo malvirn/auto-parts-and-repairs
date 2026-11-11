@@ -2219,29 +2219,66 @@ $("save").onclick=async()=>{const b=$("save");
 
 /* ---------- share ---------- */
 const lib=s=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=s;e.onload=ok;e.onerror=no;document.head.append(e)});
+async function captureJobCardCanvas(){
+ const source=$("doc");
+ if(!source)throw new Error("Job card is empty");
+ const stage=document.createElement("div");
+ stage.className="rc-doc-wrap";
+ stage.style.cssText="position:fixed;left:-10000px;top:0;width:794px;min-height:1px;background:#fff;z-index:-1;overflow:visible;contain:layout style;";
+ const clone=source.cloneNode(true);
+ clone.style.setProperty("display","block","important");
+ clone.style.setProperty("width","794px","important");
+ clone.style.setProperty("max-width","none","important");
+ clone.style.setProperty("min-height","1px","important");
+ clone.style.setProperty("height","auto","important");
+ stage.append(clone);
+ document.body.append(stage);
+ try{
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const cv=await window.html2canvas(clone,{scale:2,backgroundColor:"#fff",useCORS:true,windowWidth:794,width:794,scrollX:0,scrollY:0});
+  if(cv.width===0||cv.height===0)throw new Error("Job card is empty");
+  return cv;
+ }finally{stage.remove()}
+}
 async function downloadJobCardImage(){
  if(!cur)return null;
  if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
- const source=$("doc");
- if(!source)return null;
- const cv=await window.html2canvas(source,{scale:2,backgroundColor:"#fff",useCORS:true,windowWidth:Math.max(window.innerWidth,794)});
+ const cv=await captureJobCardCanvas();
  const blob=await new Promise(resolve=>cv.toBlob(resolve,"image/png",1));
  if(!blob)throw new Error("Couldn't prepare the job-card image.");
  const safeNumber=String(jn(cur)||"job-card").replace(/[<>:"/\\|?*]+/g,"-");
  return new File([blob],`${safeNumber}.png`,{type:"image/png"});
 }
-async function pdf(){if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
- const cv=await html2canvas($("doc"),{scale:2,backgroundColor:"#fff",useCORS:true}),p=new jspdf.jsPDF("p","mm","a4"),w=210,pageHeight=cv.width*297/w;
+async function pdf(){
+ if(!window.html2canvas)await lib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+ if(!window.jspdf)await lib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+ const cv=await captureJobCardCanvas();
+ if(cv.width===0||cv.height===0)throw new Error("Job card is empty");
+ const p=new jspdf.jsPDF("p","mm","a4"),w=210,pageHeight=cv.width*297/w;
  for(let top=0;top<cv.height;top+=pageHeight){const height=Math.min(pageHeight,cv.height-top),slice=document.createElement("canvas");slice.width=cv.width;slice.height=height;
   const context=slice.getContext("2d");if(!context)throw new Error("Couldn't prepare a job-card PDF page");
   context.drawImage(cv,0,top,cv.width,height,0,0,cv.width,height);
   if(top)p.addPage();p.addImage(slice.toDataURL("image/jpeg",.92),"JPEG",0,0,w,height*w/cv.width)}
- return new File([p.output("blob")],`${jn(cur)}.pdf`,{type:"application/pdf"})}
+ return new File([p.output("blob")],`${jn(cur)}.pdf`,{type:"application/pdf"})
+}
+async function printJobCard(){
+ const split=$("jc-split");
+ if(!split){window.print();return}
+ const previousPane=split.dataset.pane;
+ split.dataset.pane="card";
+ try{
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  window.print();
+ }finally{
+  split.dataset.pane=previousPane||"details";
+  document.querySelectorAll(".pane-btn").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.pane===split.dataset.pane)));
+ }
+}
 const msg=()=>jobWhatsAppMessage("status");
 const save=f=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;a.click()};
 const go=u=>{window.open(u,"_blank")||(location.href=u)};
 $("s-pdf").onclick=async()=>{try{save(await pdf())}catch{toast("PDF failed — use Print → Save as PDF")}};
-$("s-print").onclick=()=>print();
+$("s-print").onclick=()=>printJobCard();
 $("s-wa").onclick=async()=>{
  if(!waNum(cur.customers?.phone))return toast("Add a customer WhatsApp number before sharing this job card");
  const url=`https://api.whatsapp.com/send?phone=${waNum(cur.customers?.phone)}&text=${encodeURIComponent(msg())}`;
@@ -2293,6 +2330,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-10"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-11"></script>
 </body>
 </html>
