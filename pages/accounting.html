@@ -57,6 +57,13 @@
   <link rel="stylesheet" href="../css/dashboard-shell.css">
   <link rel="stylesheet" href="../css/ui-consistency.css">
   <link rel="stylesheet" href="../css/dashboard-chrome.css?v=shared-chrome-alignment-1" data-shared-dashboard-chrome="true">
+<style id="dashboard-chrome-prepaint">
+body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
+body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
+body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hidden!important}
+body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
+body.dashboard-page .main{min-width:0}
+</style>
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
