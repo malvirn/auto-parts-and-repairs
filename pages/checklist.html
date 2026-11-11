@@ -45,6 +45,8 @@
   .cond-select.has-dmg{color:#ff7b72}
   :root[data-theme="light"] .cond-select{color:#14723b}
   :root[data-theme="light"] .cond-select.has-dmg{color:#c0392b}
+  @media(max-width:900px){.main{margin-left:0;padding:18px}.inspection-layout{grid-template-columns:1fr}.inspection-side-panel{position:static}.inspection-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:520px){.main{padding:12px}.card{padding:14px}.inspection-strip>div{padding:8px}.inspection-strip strong{font-size:.8rem}.inspection-layout{gap:12px}}
   @media(min-width:769px){.pi{width:60px;height:60px}}
   .liability-note{margin-top:20px;padding:14px;border:1px solid #d87a54;border-left:4px solid #d87a54;border-radius:8px;background:#fff2e9;color:#66341e;font-weight:650}
   .print-only{display:none}
@@ -193,8 +195,8 @@
           <label>Odometer at drop-off (km)<input id="odometer" type="number" min="0" step="1" required></label>
         </div>
         <div id="checklist-number-display" class="checklist-number" hidden></div>
-        <h2>Vehicle condition</h2>
-        <div id="inspection-grid" class="grid"></div>
+        <div class="inspection-strip"><div><small>Registration</small><strong id="inspection-plate-top">Not recorded</strong></div><div><small>Job card</small><strong id="inspection-job-top">Not linked</strong></div><div><small>Customer ID</small><strong id="inspection-cid-top">Not linked</strong></div><div><small>Inspection no.</small><strong id="inspection-number-top">New inspection</strong></div></div>
+        <div class="inspection-layout"><div class="inspection-diagram-panel"><h2>Vehicle condition</h2><div id="inspection-grid" class="grid"></div></div><aside class="inspection-side-panel"><section class="inspection-summary"><h3>Inspection summary <span id="inspection-mark-count">0 marks</span></h3><div id="inspection-summary-list" class="inspection-summary-list"><p class="message">No damage recorded.</p></div><p id="inspection-save-state" class="message" role="status" aria-live="polite">All unmarked areas are No Damage.</p></section></aside></div>
         <label class="notes-field">Inspection notes<textarea id="checklist-notes" maxlength="2000" rows="3" placeholder="Add any other observations or customer-provided details"></textarea></label>
         <div class="liability-note">Please remove all valuables from the vehicle. Centric Auto Mobile is not responsible for valuables left in the vehicle.</div>
         <p id="job-meta" class="message" hidden></p>
@@ -207,6 +209,7 @@
           <button id="link-job" class="btn" type="button" disabled>Link to job card</button>
         </div>
         <div class="actions">
+          <button id="reopen-inspection" class="btn btn--danger" type="button" hidden>Reopen inspection</button>
           <button id="save-checklist" class="btn btn--primary" type="button">Save and confirm checklist</button>
           <button id="void-checklist" class="btn btn--danger" type="button" hidden>Void checklist</button>
           <button id="delete-checklist" class="btn" type="button" hidden>Delete checklist</button>
