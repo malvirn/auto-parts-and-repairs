@@ -841,6 +841,9 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <select id="f-cust" aria-label="Select an existing customer or register a new customer"><option value="__new_customer__">Register a new customer…</option></select>
       <input id="f-name" placeholder="Customer name" />
       <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
+      <label class="job-vat-option" for="f-is-company"><input id="f-is-company" type="checkbox"> This is a company</label>
+      <input id="f-company-name" placeholder="Company name (required)" hidden>
+      <small id="f-customer-cid" class="section-note" aria-live="polite"></small>
       <h3>2 · Vehicle</h3>
       <select id="f-veh"><option value="">+ New vehicle</option></select>
       <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
@@ -2005,6 +2008,7 @@ async function openBuilder(fromChecklist=null){
  buildInspection=emptyReport();
  renderBuildInspection();
  $("f-cust").value="__new_customer__";
+ $("f-is-company").checked=false;$("f-company-name").value="";$("f-company-name").hidden=true;$("f-customer-cid").textContent="";
  ["f-name","f-phone","f-email","f-make","f-model","f-year","f-plate","f-fault","f-work-done","f-work-missing","f-custom-part","f-fuel-in","f-odometer-in"].forEach(id=>$(id).value="");
  syncBuildReadings();
  ["f-name","f-phone","f-email"].forEach(id=>$(id).readOnly=false);
@@ -2015,7 +2019,7 @@ async function openBuilder(fromChecklist=null){
  renderBuildParts();show("build");
  try{
   const [customersResult,techniciansResult]=await Promise.all([
-   supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),
+   supabase.from("customers").select("id,customer_code,full_name,phone,email,is_company,company_name").is("deleted_at",null).order("full_name").limit(1000),
    supabase.from("technician_directory").select("id,full_name").limit(300),
    loadLabourTiers(),loadInventoryParts(),
   ]);
@@ -2024,7 +2028,7 @@ async function openBuilder(fromChecklist=null){
   builderCustomers=customersResult.data||[];
   $("f-cust").replaceChildren(
    new Option("Register a new customer…","__new_customer__"),
-   ...builderCustomers.map(customer=>new Option(`${customer.full_name||"Unnamed"}${customer.phone?` — ${customer.phone}`:""}`,customer.id)),
+   ...builderCustomers.map(customer=>new Option(`${customer.customer_code||""} · ${customer.company_name||customer.full_name||"Unnamed"}${customer.phone?` — ${customer.phone}`:""}`,customer.id)),
   );
   $("f-tech").replaceChildren(
    new Option("Assign technician (optional)",""),
@@ -2180,6 +2184,7 @@ $("add-custom-part").onclick=()=>{
  selectedJobParts.push({kind:"typed",name,quantity,price:0});
  $("f-custom-part").value="";$("f-custom-qty").value="1";renderBuildParts();
 };
+$("f-is-company").addEventListener("change",()=>{$("f-company-name").hidden=!$("f-is-company").checked;$("f-company-name").required=$("f-is-company").checked;if(!$("f-is-company").checked)$("f-company-name").value="";});
 $("f-cust").onchange=async e=>{
  const customer=builderCustomers.find(item=>item.id===e.target.value);
  vehicles=[];
@@ -2187,6 +2192,11 @@ $("f-cust").onchange=async e=>{
  ["f-make","f-model","f-year","f-plate","f-body-type","f-chassis","f-engine"].forEach(id=>$(id).value="");
  ["f-name","f-phone","f-email"].forEach(id=>{$(id).readOnly=Boolean(customer);});
  $("f-name").value=customer?.full_name||"";
+ $("f-is-company").checked=Boolean(customer?.is_company);
+ $("f-company-name").value=customer?.company_name||"";
+ $("f-company-name").hidden=!customer?.is_company;
+ $("f-company-name").required=Boolean(customer?.is_company);
+ $("f-customer-cid").textContent=customer?.customer_code?"Customer ID: "+customer.customer_code:"";
  $("f-phone").value=customer?.phone||"";
  $("f-email").value=customer?.email||"";
  if(!customer)return;
@@ -2222,7 +2232,7 @@ $("save").onclick=async()=>{const b=$("save");
    reservedParts.push({id:item.id,quantity:item.quantity});
   }
   let cid=$("f-cust").value;
-  if(cid==="__new_customer__"){const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null}).select().single();if(r.error)throw r.error;cid=r.data.id}
+  if(cid==="__new_customer__"){const isCompany=$("f-is-company").checked,companyName=$("f-company-name").value.trim();if(isCompany&&!companyName)throw new Error("Enter the company name.");const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null,is_company:isCompany,company_name:isCompany?companyName:null}).select("id,customer_code").single();if(r.error)throw r.error;cid=r.data.id}
   let vid=$("f-veh").value||null;
   const vehicleDetails={
    make:$("f-make").value.trim()||null,
