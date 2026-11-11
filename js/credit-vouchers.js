@@ -192,7 +192,7 @@ async function applyVoucher() {
     redemptionRequest = { signature: null, key: null };
     await load();
     await previewVoucher();
-    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: "
+    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: " +
       money(data.remaining_balance) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
