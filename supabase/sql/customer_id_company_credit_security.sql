@@ -100,7 +100,7 @@ begin
     end if;
   else
     if nullif(btrim(new.customer_code), '') is null then
-      if old.customer_code is not null then
+      if old.customer_code is not null and btrim(old.customer_code) <> '' then
         raise exception 'Customer ID cannot be cleared';
       end if;
       new.customer_code := public.generate_customer_code();
@@ -443,6 +443,69 @@ begin
     'credit_reference', credit_ref, 'voucher_code', voucher_row.voucher_code);
 end;
 $$;
+
+-- The older quotation-to-job helper applies every deposit without asking the customer.
+-- Keep its accounting logic, but expose it only through this verified wrapper.
+create or replace function public.apply_quotation_deposits_to_repair_job_verified(
+  p_quotation_id uuid,
+  p_repair_job_id uuid,
+  p_confirmation_value text,
+  p_authorised_by text default null
+) returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $
+declare
+  quote_row public.quotations%rowtype;
+  job_row public.repair_jobs%rowtype;
+  verified jsonb;
+  result jsonb;
+  movement_row record;
+begin
+  select * into quote_row from public.quotations where id=p_quotation_id;
+  if not found then return jsonb_build_object('error','Quotation not found'); end if;
+  select * into job_row from public.repair_jobs where id=p_repair_job_id;
+  if not found then return jsonb_build_object('error','Job card not found'); end if;
+  if quote_row.repair_job_id is distinct from p_repair_job_id
+     or quote_row.customer_id is null
+     or job_row.customer_id is distinct from quote_row.customer_id then
+    return jsonb_build_object('error','The quotation and job card must belong to the same registered customer');
+  end if;
+
+  verified := public.verify_customer_credit_confirmation(job_row.customer_id,p_confirmation_value,p_authorised_by);
+  if coalesce((verified->>'allowed')::boolean,false) is not true then
+    return verified;
+  end if;
+
+  result := public.apply_quotation_deposits_to_repair_job(p_quotation_id,p_repair_job_id);
+
+  for movement_row in
+    select m.id,m.amount,m.deposit_receipt_id,r.credit_note_number
+    from public.customer_credit_movements m
+    join public.quotation_deposit_receipts r on r.id=m.deposit_receipt_id
+    where m.target_type='repair_job' and m.target_id=p_repair_job_id
+      and m.movement_type='application' and m.reversed_at is null
+      and m.created_by=auth.uid() and m.created_at=transaction_timestamp()
+      and m.reason='Quotation deposit automatically applied to its job card'
+  loop
+    insert into public.customer_credit_redemption_audit(
+      customer_id,customer_code,credit_reference,target_type,target_id,amount,
+      confirmed_as,authorised_by,performed_by,source_redemption_id
+    ) values (
+      job_row.customer_id,verified->>'customer_code',
+      'QCN-'||lpad(movement_row.credit_note_number::text,6,'0'),
+      'repair_job',p_repair_job_id,movement_row.amount,
+      verified->>'confirmed_as',nullif(btrim(p_authorised_by),''),auth.uid(),movement_row.id
+    ) on conflict(source_redemption_id) do nothing;
+  end loop;
+
+  return result || jsonb_build_object('customer_code',verified->>'customer_code');
+end;
+$;
+
+revoke all on function public.apply_quotation_deposits_to_repair_job(uuid,uuid) from public, anon, authenticated;
+grant execute on function public.apply_quotation_deposits_to_repair_job_verified(uuid,uuid,text,text) to authenticated;
 
 -- Prevent direct calls that would bypass identity confirmation.
 revoke all on function public.apply_customer_credit(uuid,numeric,text,uuid,text,uuid) from public, anon, authenticated;
