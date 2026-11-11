@@ -385,12 +385,6 @@ async function normalizeDashboardSidebar(sidebar) {
     sidebar.dataset.dashboardCanonical = "true";
     sidebar.style.removeProperty("visibility");
     sidebar.removeAttribute("aria-hidden");
-    try {
-      localStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({
-        role: document.body.dataset.role || role,
-        accessLevel: document.body.dataset.accessLevel || rememberedAccess.accessLevel || null
-      }));
-    } catch (_) {}
     window.lucide?.createIcons();
   } catch (error) {
     delete sidebar.dataset.dashboardCanonicalizing;
