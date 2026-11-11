@@ -4,7 +4,7 @@
 
 -- Keep invoice balances consistent with the existing sync_repair_job_invoice trigger.
 -- That trigger writes payment + customer-credit movements into invoices.amount_paid.
-do $
+do $$
 declare
   view_sql text;
   old_amount text := '(GREATEST(COALESCE(invoice.amount_paid, 0::numeric), COALESCE(payments.paid_amount, 0::numeric)) + COALESCE(credits.applied_amount, 0::numeric))::numeric(12,2) AS amount_paid,';
@@ -22,7 +22,7 @@ begin
     raise exception 'The customer_account_statement invoice expressions changed; review before applying voucher balance fix';
   end if;
   execute 'create or replace view public.customer_account_statement as '||view_sql;
-end $;
+end $$;;
 
 create table if not exists public.credit_voucher_settings (
   id boolean primary key default true check (id),
