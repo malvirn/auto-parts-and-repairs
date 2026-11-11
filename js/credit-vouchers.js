@@ -160,10 +160,10 @@ function renderLegacyCustomerRegistration(sourceNote, voucher) {
     '<strong>Legacy credit record · ' + esc(sourceName || "Customer name not recorded") + '</strong>' +
     '<span>This older voucher has no linked Customer ID. Register the customer below to create a CID and link this credit before redemption.</span>' +
     '<label class="legacy-credit-company-toggle"><input id="legacy-credit-is-company" type="checkbox"> Register this customer as a company</label>' +
-    '<label for="legacy-credit-full-name">Customer / contact person name</label>' +
+    '<label id="legacy-credit-full-name-label" for="legacy-credit-full-name">Customer name</label>' +
     '<input id="legacy-credit-full-name" type="text" value="' + esc(sourceName) + '" autocomplete="name">' +
     '<label id="legacy-credit-company-label" for="legacy-credit-company-name" hidden>Registered company name</label>' +
-    '<input id="legacy-credit-company-name" type="text" value="' + esc(sourceName) + '" autocomplete="organization" hidden>' +
+    '<input id="legacy-credit-company-name" type="text" value="" autocomplete="organization" hidden>' +
     '<label for="legacy-credit-phone">Phone number</label>' +
     '<input id="legacy-credit-phone" type="tel" value="' + esc(sourcePhone) + '" autocomplete="tel">' +
     '<button id="legacy-credit-register-link" type="button" class="btn btn--primary">Register customer and link credit</button>' +
@@ -173,15 +173,15 @@ function renderLegacyCustomerRegistration(sourceNote, voucher) {
   const fullName = redeemPreview.querySelector("#legacy-credit-full-name");
   const companyName = redeemPreview.querySelector("#legacy-credit-company-name");
   const companyLabel = redeemPreview.querySelector("#legacy-credit-company-label");
+  const fullNameLabel = redeemPreview.querySelector("#legacy-credit-full-name-label");
   const registerButton = redeemPreview.querySelector("#legacy-credit-register-link");
   companyToggle.addEventListener("change", () => {
     const isCompany = companyToggle.checked;
     companyLabel.hidden = !isCompany;
     companyName.hidden = !isCompany;
     companyName.required = isCompany;
-    fullName.placeholder = isCompany ? "Contact person name" : "Customer name";
-    if (isCompany && fullName.value.trim().toLocaleLowerCase() === sourceName.toLocaleLowerCase()) fullName.value = "";
-    if (!isCompany && !fullName.value.trim()) fullName.value = sourceName;
+    fullNameLabel.textContent = isCompany ? "Authorised contact person name" : "Customer name";
+    fullName.placeholder = isCompany ? "Contact person recorded on original credit" : "Customer name";
   });
   registerButton.addEventListener("click", async () => {
     const isCompany = companyToggle.checked;
