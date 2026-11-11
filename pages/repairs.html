@@ -312,7 +312,10 @@
     @media (max-width:560px){
       .hdr-clock{display:none}
     }
-  </style>
+  
+/* Job-card voucher payment modal */
+#job-voucher-modal{z-index:2147483000!important;isolation:isolate}#job-voucher-modal>.job-voucher-modal{position:relative;z-index:2147483001;width:min(100%,520px);max-height:92vh;overflow:auto}.job-voucher-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.job-voucher-heading small{color:var(--orange);font-weight:800;letter-spacing:.12em}.job-voucher-heading h2{margin:4px 0 10px}.job-voucher-heading>button{border:0;background:transparent;color:var(--text);font-size:28px;line-height:1}.job-voucher-balances{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.job-voucher-balances>div{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:10px}.job-voucher-balances small{color:var(--muted);font-size:.72rem;text-transform:uppercase;font-weight:700}.job-voucher-balances strong{font-size:1.15rem;font-variant-numeric:tabular-nums}.job-voucher-modal>label{display:block;margin:13px 0 6px;color:var(--muted);font-size:.82rem;font-weight:700}.job-voucher-code-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.job-voucher-modal input{width:100%;min-width:0;min-height:44px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field,var(--panel));color:var(--text);font:inherit;font-size:16px}.job-voucher-preview,.job-voucher-confirmation{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface,var(--panel));color:var(--text)}.job-voucher-preview strong,.job-voucher-preview span{display:block}.job-voucher-preview span{margin-top:4px;color:var(--muted);font-size:.85rem}.job-voucher-confirmation{border-color:var(--green-bright);font-size:.9rem}.job-voucher-actions{justify-content:flex-end;margin-top:16px}#job-voucher-message.err{color:#ff6b6b}@media(max-width:520px){#job-voucher-modal{padding:12px}.job-voucher-modal{padding:18px}.job-voucher-balances{grid-template-columns:1fr 1fr}.job-voucher-actions{display:grid;grid-template-columns:1fr 1fr}}
+</style>
 <style id="rc-design">
 .rc-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .rc-tabs .seg{padding:10px 18px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
@@ -950,6 +953,18 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
     </div>
   </section>
 </div>
+<div class="modal-overlay hidden" id="job-voucher-modal" role="dialog" aria-modal="true" aria-labelledby="job-voucher-title">
+ <div class="modal job-voucher-modal">
+  <div class="job-voucher-heading"><div><small>CENTRIC AUTO MOBILE</small><h2 id="job-voucher-title">Apply credit voucher</h2></div><button type="button" id="job-voucher-close" aria-label="Close">×</button></div>
+  <p class="section-note" id="job-voucher-job-ref">Loading job card…</p>
+  <div class="job-voucher-balances"><div><small>Job balance due</small><strong id="job-voucher-due">—</strong></div><div><small>Voucher available</small><strong id="job-voucher-available">—</strong></div></div>
+  <label for="job-voucher-code">Voucher code</label><div class="job-voucher-code-row"><input id="job-voucher-code" type="text" maxlength="11" autocomplete="off" placeholder="XXXXX-XXXXX"><button class="btn" id="job-voucher-check" type="button">Check</button></div>
+  <div id="job-voucher-preview" class="job-voucher-preview" aria-live="polite">Enter the voucher code and check it before applying.</div>
+  <label for="job-voucher-amount">Amount to apply (USD)</label><input id="job-voucher-amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" disabled>
+  <div class="job-voucher-confirmation" id="job-voucher-confirmation" hidden></div><p id="job-voucher-message" class="section-note" role="status"></p>
+  <div class="rc-bar job-voucher-actions"><button class="btn" id="job-voucher-cancel" type="button">Cancel</button><button class="btn btn--primary" id="job-voucher-apply" type="button" disabled>Confirm and apply</button></div>
+ </div>
+</div>
 <div class="modal-overlay hidden" id="edit-job-modal" role="dialog" aria-modal="true" aria-labelledby="edit-job-title">
   <form class="modal job-edit-modal" id="edit-job-form">
     <h2 id="edit-job-title">Edit job card details</h2>
@@ -1430,9 +1445,78 @@ async function refreshJobMoney(job){
   apply.hidden=!(m.quotationId&&m.balance>0.005);apply.dataset.quote=m.quotationId||"";
  }catch(error){if(cur&&cur.id===job.id){note.classList.add("err");note.textContent="Couldn't load payments: "+(error.message||error)}}
 }
-$("jm-voucher").onclick=()=>{
+const jobVoucherModal=$("job-voucher-modal"),jobVoucherCode=$("job-voucher-code"),jobVoucherCheck=$("job-voucher-check"),jobVoucherAmount=$("job-voucher-amount"),jobVoucherApply=$("job-voucher-apply"),jobVoucherPreview=$("job-voucher-preview"),jobVoucherMessage=$("job-voucher-message");
+let jobVoucherData=null,jobVoucherBalance=0,jobVoucherRequestKey=null;
+const voucherMoney=value=>"$"+(Number(value)||0).toFixed(2);
+const voucherMessage=(message,error=false)=>{jobVoucherMessage.textContent=message||"";jobVoucherMessage.classList.toggle("err",!!error)};
+const closeJobVoucher=()=>{jobVoucherModal.classList.add("hidden");jobVoucherData=null;jobVoucherRequestKey=null};
+const voucherAmountChanged=()=>{
+ const amount=Math.round((Number(jobVoucherAmount.value)||0)*100)/100,maximum=Math.min(Number(jobVoucherData?.available_amount)||0,jobVoucherBalance);
+ const valid=!!jobVoucherData&&Number.isFinite(amount)&&amount>0&&amount<=maximum+0.005;
+ jobVoucherApply.disabled=!valid;$("job-voucher-confirmation").hidden=!valid;
+ $("job-voucher-confirmation").textContent=valid?`Apply ${voucherMoney(amount)} from this credit note. Voucher remaining: ${voucherMoney(Number(jobVoucherData.available_amount)-amount)}. Job balance remaining: ${voucherMoney(Math.max(0,jobVoucherBalance-amount))}.`:"";
+};
+$("jm-voucher").onclick=async()=>{
  if(!cur)return;
- window.dispatchEvent(new CustomEvent("apr:open-voucher-redemption",{detail:{targetType:"repair_job",targetId:String(cur.id)}}));
+ jobVoucherModal.classList.remove("hidden");
+ $("job-voucher-job-ref").textContent="Job card "+(cur.cro_number||"JC-"+String(cur.job_number||"").padStart(5,"0"))+" · "+(cur.customers?.full_name||"Customer");
+ $("job-voucher-due").textContent="Loading…";$("job-voucher-available").textContent="—";
+ jobVoucherCode.value="";jobVoucherCode.disabled=false;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;
+ jobVoucherCheck.disabled=false;jobVoucherApply.disabled=true;jobVoucherApply.textContent="Confirm and apply";
+ jobVoucherPreview.textContent="Enter the voucher code and check it before applying.";
+ $("job-voucher-confirmation").hidden=true;voucherMessage("");
+ jobVoucherData=null;jobVoucherRequestKey=null;
+ try{const balance=await loadJobMoney(cur);jobVoucherBalance=balance.balance;$("job-voucher-due").textContent=voucherMoney(balance.balance);
+  if(balance.balance<=0.005){voucherMessage("This job card has no outstanding balance.",true);jobVoucherCheck.disabled=true}
+ }catch(error){voucherMessage("Could not load the job balance: "+(error.message||error),true)}
+};
+jobVoucherCheck.onclick=async()=>{
+ const code=jobVoucherCode.value.trim().toUpperCase();if(!code){voucherMessage("Enter a voucher code first.",true);return}
+ jobVoucherCheck.disabled=true;jobVoucherApply.disabled=true;jobVoucherPreview.textContent="Checking voucher…";
+ try{
+  const[{data,error},balance]=await Promise.all([supabase.rpc("lookup_credit_voucher",{p_code:code}),loadJobMoney(cur)]);
+  if(error)throw error;if(data?.error)throw new Error(data.error);
+  if(data.status!=="active"||Number(data.available_amount)<=0.005)throw new Error("This voucher is "+data.status+" and cannot be redeemed.");
+  jobVoucherData={...data,code};jobVoucherBalance=balance.balance;
+  if(jobVoucherBalance<=0.005)throw new Error("This job card has no outstanding balance.");
+  const maximum=Math.min(Number(data.available_amount),jobVoucherBalance);
+  $("job-voucher-available").textContent=voucherMoney(data.available_amount);
+  jobVoucherPreview.innerHTML="<strong>"+esc(data.customer_first_name||"Customer")+"</strong><span>Voucher verified · expires "+dt(data.expires_at)+"</span>";
+  jobVoucherAmount.disabled=false;jobVoucherAmount.max=maximum.toFixed(2);jobVoucherAmount.value=maximum.toFixed(2);
+  voucherMessage("Voucher verified. Confirm the amount before applying.");voucherAmountChanged();
+ }catch(error){jobVoucherData=null;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;jobVoucherPreview.textContent="";$("job-voucher-available").textContent="—";voucherMessage(error.message||String(error),true)}
+ finally{jobVoucherCheck.disabled=false}
+};
+jobVoucherCode.addEventListener("input",()=>{jobVoucherData=null;jobVoucherAmount.value="";jobVoucherAmount.disabled=true;jobVoucherApply.disabled=true;jobVoucherPreview.textContent="Check the voucher code to continue";$("job-voucher-available").textContent="—";$("job-voucher-confirmation").hidden=true});
+jobVoucherAmount.addEventListener("input",voucherAmountChanged);
+$("job-voucher-close").onclick=$("job-voucher-cancel").onclick=closeJobVoucher;
+jobVoucherModal.addEventListener("click",event=>{if(event.target===jobVoucherModal)closeJobVoucher()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!jobVoucherModal.classList.contains("hidden"))closeJobVoucher()});
+jobVoucherApply.onclick=async()=>{
+ if(!cur||!jobVoucherData)return;
+ const job=cur,amount=Math.round((Number(jobVoucherAmount.value)||0)*100)/100,maximum=Math.min(Number(jobVoucherData.available_amount)||0,jobVoucherBalance);
+ if(!Number.isFinite(amount)||amount<=0||amount>maximum+0.005){voucherMessage("Enter an amount within the available voucher and job balance.",true);return}
+ jobVoucherApply.disabled=true;jobVoucherCheck.disabled=true;jobVoucherAmount.disabled=true;voucherMessage("Applying voucher and creating receipt…");
+ const printWindow=window.open("","_blank","width=900,height=720");
+ if(printWindow)printWindow.document.write("<p style='font:16px Arial;padding:24px'>Preparing your Centric Auto Mobile receipt…</p>");
+ try{
+  jobVoucherRequestKey=jobVoucherRequestKey||crypto.randomUUID();
+  const{data,error}=await supabase.rpc("redeem_credit_voucher",{p_code:jobVoucherData.code,p_amount:amount,p_target_type:"repair_job",p_target_id:job.id,p_idempotency_key:jobVoucherRequestKey});
+  if(error)throw error;
+  const refreshed=await loadJobMoney(job);await refreshJobMoney(job);
+  const receiptNumber="R-"+String(data.receipt_number||"").padStart(5,"0"),date=new Date().toLocaleString("en-ZW",{timeZone:"Africa/Harare"});
+  const customer=job.customers?.full_name||job.driver_name||"Customer",vehicle=[job.vehicles?.make,job.vehicles?.model,job.vehicles?.license_plate].filter(Boolean).join(" · ");
+  if(printWindow){
+   const logo=window.location.origin+"/assets/logo.png";printWindow.document.open();
+   printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${receiptNumber} · Centric Auto Mobile</title><style>*{box-sizing:border-box}body{margin:0;padding:30px;background:#fff;color:#17212b;font:14px/1.55 Arial,sans-serif}.receipt{max-width:720px;margin:auto;border:1px solid #dce2e8;padding:30px}.brand{display:flex;align-items:center;gap:14px;border-bottom:2px solid #152b48;padding-bottom:16px}.brand img{width:58px;height:58px;object-fit:contain}.brand strong{font-size:18px;letter-spacing:.06em}.muted{color:#64748b}.title{margin:24px 0 4px;font-size:25px}.ref{padding:14px;background:#f4f6f8;border-radius:8px;margin:18px 0}.row{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid #e5e9ee}.total{font-size:21px;font-weight:800}.foot{text-align:center;margin-top:30px;color:#64748b;font-size:12px}@media print{body{padding:0}.receipt{border:0}}</style></head><body><main class="receipt"><header class="brand"><img src="${logo}" alt="Centric Auto Mobile"><div><strong>CENTRIC AUTO MOBILE</strong><div class="muted">Auto Parts &amp; Repairs · Norton, Zimbabwe</div></div></header><h1 class="title">Payment receipt</h1><div class="muted">${receiptNumber} · ${esc(date)}</div><section class="ref"><strong>${esc(job.cro_number||"JC-"+String(job.job_number||"").padStart(5,"0"))}</strong><div>${esc(customer)}</div><div class="muted">${esc(vehicle||"Vehicle not recorded")}</div></section><div class="row"><span>Payment method</span><strong>Customer credit voucher</strong></div><div class="row"><span>Voucher code</span><strong>${esc(jobVoucherData.code)}</strong></div><div class="row"><span>Amount applied</span><strong class="total">${voucherMoney(amount)}</strong></div><div class="row"><span>Voucher balance remaining</span><strong>${voucherMoney(data.remaining_balance)}</strong></div><div class="row"><span>Job card balance remaining</span><strong>${voucherMoney(refreshed.balance)}</strong></div><p class="foot">Thank you for choosing Centric Auto Mobile.</p></main><script>window.addEventListener("load",()=>{window.focus();window.print()},{once:true});<\/script></body></html>`);
+   printWindow.document.close();
+  }
+  $("job-voucher-due").textContent=voucherMoney(refreshed.balance);$("job-voucher-available").textContent=voucherMoney(data.remaining_balance);
+  jobVoucherPreview.textContent="Voucher applied. Receipt "+receiptNumber+" has been saved.";
+  voucherMessage("Applied "+voucherMoney(data.amount)+". The job card, linked invoice, credit note and accounting records have been updated.");
+  jobVoucherApply.textContent="Applied";jobVoucherApply.disabled=true;jobVoucherCode.disabled=true;jobVoucherRequestKey=null;
+  if(!printWindow)voucherMessage("Applied "+voucherMoney(data.amount)+". Receipt "+receiptNumber+" is saved in Receipts. Allow pop-ups to print it.",true);
+ }catch(error){if(printWindow&&!printWindow.closed)printWindow.close();voucherMessage(error.message||"The voucher could not be applied.",true);jobVoucherApply.disabled=false;jobVoucherCheck.disabled=false;jobVoucherAmount.disabled=false}
 };
 $("jm-apply").onclick=async()=>{
  if(!cur)return;const button=$("jm-apply"),job=cur;button.disabled=true;
@@ -2338,6 +2422,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-14"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-15"></script>
 </body>
 </html>
