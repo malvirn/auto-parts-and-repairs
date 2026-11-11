@@ -68,7 +68,7 @@ let newlyCreatedJobId = null;
 let jobPartSubmissionInProgress = false;
 let incidentalSubmissionInProgress = false;
 let cachedRate = null;
-let customersList = [];          // [{ id, full_name, phone, email, customer_type, vehicles: [...] }]
+let customersList = [];          // [{ id, customer_code, full_name, phone, email, is_company, company_name, vehicles: [...] }]
 let pendingCollection = false;
 let countdownInterval = null;
 let rateTiers = [];
@@ -321,7 +321,7 @@ function updateWhatsappButton(job) {
 async function loadCustomers(selectId = null, selectVehicleId = null) {
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, phone, email, customer_type, vehicles(id, license_plate, make, model, year, chassis_number, engine_number, body_type)")
+    .select("id, customer_code, full_name, phone, email, is_company, company_name, vehicles(id, license_plate, make, model, year, chassis_number, engine_number, body_type)")
     .is("deleted_at", null)
     .order("full_name");
   if (error) { console.error("Error loading customers:", error); return; }
@@ -332,7 +332,7 @@ async function loadCustomers(selectId = null, selectVehicleId = null) {
 function renderCustomerOptions(selectId = null, selectVehicleId = null) {
   customerSelect.innerHTML =
     `<option value="" disabled ${selectId ? "" : "selected"}>Select a customer…</option>` +
-    customersList.map(c => `<option value="${c.id}">${escapeHtml(c.full_name)}${c.phone ? ` — ${escapeHtml(c.phone)}` : ""}</option>`).join("") +
+    customersList.map(c => `<option value="${c.id}">${escapeHtml([c.customer_code,c.company_name||c.full_name,c.phone].filter(Boolean).join(" · "))}</option>`).join("") +
     `<option value="__new_customer__">Register a new customer…</option>`;
   if (selectId && customersList.some(c => c.id === selectId)) {
     customerSelect.value = selectId;
@@ -835,7 +835,7 @@ async function fetchJobsBundle() {
   const [{ data, error }, { data: techs }] = await Promise.all([
     supabase.from("repair_jobs").select(`
       id, job_number, cro_number, customer_id, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, work_ready, labour_cost, labour_hours, labour_mode, rate_tier_id, parts_cost, incidentals_cost, vat_rate, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
-      customers ( full_name, phone, email, customer_type ),
+      customers ( full_name, phone, email, customer_code, is_company, company_name ),
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
     `).order("created_at", { ascending: false }),
     supabase.from("technician_directory").select("id, full_name"),
@@ -871,7 +871,7 @@ function renderJobsBundle(bundle) {
   tableBody.innerHTML = data.map(job => {
     const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
     const vehicleLabel = vehicleName(job.vehicles) + (job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "");
-    const isCompany = job.customers?.customer_type === "company";
+    const isCompany = Boolean(job.customers?.is_company);
     const customerLabel = escapeHtml(job.customers?.full_name ?? "—")
       + (isCompany ? ` <span class="badge badge--in-repair" style="margin-left:4px">Company</span>` : "");
     return `
@@ -1010,7 +1010,7 @@ function infoCell(label, value) {
 
 function renderCardHeader(job) {
   const meta = STATUS_META[job.status] || { cls: "", icon: "circle" };
-  const isCompany = job.customers?.customer_type === "company";
+  const isCompany = Boolean(job.customers?.is_company);
   editJobNumber.textContent = jobLabel(job);
   $("jc-tags").innerHTML =
     `<span class="badge ${meta.cls}"><i data-lucide="${meta.icon}"></i> ${escapeHtml(job.status)}</span>` +
@@ -1090,7 +1090,7 @@ async function openEditModal(job) {
   loadJobIncidentals(job.id);
 
   editCollectionFields?.classList.toggle("hidden", !alreadyCollected);
-  $("picked-up-by-field")?.classList.toggle("hidden", job.customers?.customer_type !== "company");
+  $("picked-up-by-field")?.classList.toggle("hidden", !job.customers?.is_company);
   if (editMarkCollectedBtn) {
     editMarkCollectedBtn.classList.toggle("hidden", !["Processed", "Ready for Pickup", "Unclaimed"].includes(job.status));
     editMarkCollectedBtn.innerHTML = '<i data-lucide="check-check"></i> Mark as Collected';
@@ -1590,7 +1590,7 @@ async function printJobCard() {
   const biz = await loadBusinessInfo();
   const v = job.vehicles || {};
   const c = job.customers || {};
-  const isCompany = c.customer_type === "company";
+  const isCompany = Boolean(c.is_company);
   const tier = rateTiers.find(t => t.id === editRateTier.value);
   const labour = parseFloat(editLabour.value) || 0;
   const parts = parseFloat(editParts.value) || 0;
@@ -1729,13 +1729,19 @@ form?.addEventListener("submit", async (e) => {
     let customer_id = customerValue;
     if (newCustomer) {
       const { data: existingCustomers, error: lookupError } = await supabase.from("customers")
-        .select("id")
+        .select("id,customer_code,is_company,company_name")
         .eq("phone", newCustomerPhone)
         .is("deleted_at", null)
         .limit(1);
       if (lookupError) throw new Error("Couldn't check for an existing customer: " + lookupError.message);
       if (existingCustomers?.length) {
         customer_id = existingCustomers[0].id;
+        if (newCustomerIsCompany !== Boolean(existingCustomers[0].is_company) || (newCustomerIsCompany && newCompanyName !== existingCustomers[0].company_name)) {
+          const { error: companyError } = await supabase.from("customers")
+            .update({ is_company: newCustomerIsCompany, company_name: newCustomerIsCompany ? newCompanyName : null })
+            .eq("id", customer_id);
+          if (companyError) throw new Error("Couldn't save the customer's company details: " + companyError.message);
+        }
       } else {
         const { data: customer, error } = await supabase.from("customers").insert([{
           full_name: newCustomerName,
@@ -2203,14 +2209,14 @@ function applyJobFilters() {
     let matches = true;
     if (searchTerm) {
       const haystack = [
-        job.cro_number, job.customers?.full_name, job.driver_name, job.vehicles?.license_plate,
+        job.cro_number, job.customers?.full_name, job.customers?.company_name, job.customers?.customer_code, job.driver_name, job.vehicles?.license_plate,
         job.vehicles?.engine_number, job.vehicles?.make, job.vehicles?.model,
       ].filter(Boolean).join(" ").toLowerCase();
       matches = haystack.includes(searchTerm);
     }
     if (mechanicId) matches = matches && job.technician_id === mechanicId;
     if (typeFilter) {
-      const isCompany = job.customers?.customer_type === "company";
+      const isCompany = Boolean(job.customers?.is_company);
       matches = matches && (typeFilter === "company" ? isCompany : !isCompany);
     }
     row.style.display = matches ? "" : "none";
