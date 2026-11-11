@@ -248,17 +248,24 @@ async function applyVoucher() {
     }
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
+    const wasCreditNote = Boolean(selectedCustomerCreditNote);
+    const sourceSnapshot = selectedCustomerCreditNote;
+    const targetSnapshot = currentTarget;
     const { data: refreshed, error: refreshError } = await supabase.from("customer_account_statement")
       .select("balance_due").eq("source_id", targetId).eq("source_type", target.source_type).maybeSingle();
     if (refreshError) throw refreshError;
     const remainingDue = Math.max(0, Number(refreshed?.balance_due) || 0);
     redemptionRequest = { signature: null, key: null };
     await load();
-    await previewVoucher();
-    const remainingCredit = selectedCustomerCreditNote ? Math.max(0, Number(selectedCustomerCreditNote.available_amount) - amount) : Number(data.remaining_balance);
-    setRedeemMessage((selectedCustomerCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
+    if (wasCreditNote) {
+      selectedCustomerCreditNote = null;
+      await loadCustomerCreditSources(targetSnapshot);
+    } else {
+      await previewVoucher();
+    }
+    const remainingCredit = wasCreditNote ? Math.max(0, Number(sourceSnapshot.available_amount) - amount) : Number(data.remaining_balance);
+    setRedeemMessage((wasCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
       money(remainingCredit) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
-    selectedCustomerCreditNote = null;
     if (redeemSourceSelect) redeemSourceSelect.value = "";
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
