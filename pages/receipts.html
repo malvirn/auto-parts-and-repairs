@@ -967,7 +967,7 @@ select.st option{background:#10181a;color:#eef3ef}
     <div class="field"><label for="invoice-payment-method">Payment method</label><select id="invoice-payment-method" required><option value="">Choose Cash, Card, EcoCash or Bank…</option><option value="Cash">Cash</option><option value="Card">Card / POS</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank transfer</option></select></div>
     <div class="field"><label for="invoice-payment-account">Post payment to account</label><select id="invoice-payment-account" required><option value="">Choose a payment method first…</option></select></div>
     <p class="section-note">The payment is added to the customer invoice and recorded in the ledger as money received.</p>
-    <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="invoice-payment-save">Save payment</button><button type="button" class="btn" id="invoice-payment-cancel">Cancel</button></div>
+    <div class="invoice-payment-actions"><button type="button" class="btn" id="invoice-use-credit">Use customer credit</button><button type="button" class="btn btn--primary" id="invoice-payment-save">Save payment</button><button type="button" class="btn" id="invoice-payment-cancel">Cancel</button></div>
     <p id="invoice-payment-message" class="form-message" role="status" aria-live="polite"></p>
   </div>
 </div>
@@ -2619,6 +2619,13 @@ $("receipt-edit-save").onclick=async()=>{
 };
 $("d-paid").onclick=openInvoicePayment;$("d-link-credit").onclick=()=>openCreditAction("link");$("credit-action-cancel").onclick=closeCreditAction;$("credit-action-save").onclick=saveCreditAction;$("credit-action-modal").addEventListener("click",event=>{if(event.target===$("credit-action-modal"))closeCreditAction()});
 $("invoice-payment-cancel").onclick=closeInvoicePayment;
+$("invoice-use-credit").onclick=()=>{
+ if(!cur||cur.kind!=="invoice")return;
+ const invoiceId=cur.id;
+ closeInvoicePayment();
+ $("credit-voucher-tab")?.click();
+ window.dispatchEvent(new CustomEvent("apr:open-voucher-redemption",{detail:{targetType:"invoice",targetId:String(invoiceId)}}));
+};
 $("invoice-payment-modal").addEventListener("click",event=>{if(event.target===$("invoice-payment-modal"))closeInvoicePayment()});
 $("invoice-payment-save").onclick=async()=>{
  if(!cur||cur.kind!=="invoice")return;
