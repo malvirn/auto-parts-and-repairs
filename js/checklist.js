@@ -162,8 +162,17 @@ async function loadRecord(id){
  if(error)throw new Error(`Couldn't load this checklist: ${error.message}`);
  return data;
 }
+async function loadInspectionMarks(item){
+ const {data,error}=await supabase.from("job_condition_report_marks").select("area_code,condition,note,photo_path").eq("inspection_id",item.id);
+ if(error)throw new Error("Couldn't load saved inspection marks: "+error.message);
+ for(const mark of data||[]){
+  let photo="";
+  if(mark.photo_path){const {data:signed,error:signedError}=await supabase.storage.from("vehicle-inspections").createSignedUrl(mark.photo_path,3600);if(!signedError)photo=signed?.signedUrl||"";}
+  report.parts[mark.area_code]={...(report.parts[mark.area_code]||{}),dmg:[mark.condition],note:mark.note||"",photo};
+ }
+}
 async function showRecord(item){
- record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";
+ record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
  $("customer-name-input").value=item.customer_name||item.customers?.full_name||"";
