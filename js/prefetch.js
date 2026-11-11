@@ -54,7 +54,7 @@ async function prefetchDashboard() {
 
 async function prefetchCustomers() {
   const r = await getData("customers list", supabase.from("customers")
-    .select("id, full_name, phone, customer_type, is_repeat_customer, deleted_at, vehicles(license_plate)")
+    .select("id, customer_code, full_name, phone, customer_type, is_company, company_name, is_repeat_customer, deleted_at, vehicles(license_plate)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false }));
   if (r.ok) cacheSet("customers:active-list", r.data);
@@ -65,7 +65,7 @@ async function prefetchJobs() {
   const [jobs, techs] = await Promise.all([
     getData("repair jobs", supabase.from("repair_jobs").select(`
       id, job_number, cro_number, portal_token, vehicle_id, fault_reported, diagnosis, diagnosis_eta, status, labour_cost, labour_hours, rate_tier_id, parts_cost, incidentals_cost, total_cost, technician_id, ready_at, collected_at, created_at, ai_suggested_causes, fuel_level_in, odometer_in, driver_name, driver_phone, picked_up_by,
-      customers ( full_name, phone, email, customer_type ),
+      customers ( full_name, phone, email, customer_type, customer_code, is_company, company_name ),
       vehicles ( make, model, year, license_plate, engine_number, chassis_number, body_type )
     `).order("created_at", { ascending: false })),
     getData("technicians", supabase.from("technician_directory").select("id, full_name")),
