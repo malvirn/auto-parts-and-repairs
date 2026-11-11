@@ -345,6 +345,8 @@ function printChecklist(){
  const confirmed=record?.voided_at?`Voided ${new Date(record.voided_at).toLocaleString()} · ${record.void_reason||"No reason recorded"}`:record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
  const note=String(report.notes||"").trim();
  const logo=new URL("../assets/logo.png",location.href).href;
+ const inspectionImage=new URL("../img/vehicle-inspection.webp",location.href).href;
+ const customerCode=record?.customers?.customer_code||selectedJob?.customers?.customer_code||"—";
  printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Vehicle checklist ${checklistNumber}</title>
  <style>
  *{box-sizing:border-box}body{max-width:190mm;margin:0 auto;padding:10mm;color:#18212b;font:13px/1.5 Arial,sans-serif}
@@ -353,7 +355,7 @@ function printChecklist(){
  .number{margin-left:auto;text-align:right;font-size:16px;font-weight:700}
  .summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:18px 0}
  .summary div{padding:8px 10px;border:1px solid #d2d9e2;border-radius:6px;break-inside:avoid}
- .summary b{display:block;color:#536273;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+ .summary b{display:block;color:#536273;font-size:10px;text-transform:uppercase;letter-spacing:.06em}\n .vehicle-image{display:block;width:100%;max-height:105mm;object-fit:contain;margin:12px auto;border:1px solid #d2d9e2;border-radius:6px}
  h2{margin:16px 0 6px;font-size:14px}table{width:100%;border-collapse:collapse}
  th,td{padding:5px 8px;border-bottom:1px solid #d2d9e2;text-align:left;vertical-align:top}
  th{width:45%;font-weight:600}section{break-inside:avoid}
@@ -364,7 +366,7 @@ function printChecklist(){
  </style></head><body>
  <header><img src="${esc(logo)}" alt=""><div><h1>Vehicle Checklist</h1><p>Centric Auto Mobile</p></div><div class="number">${checklistNumber}</div></header>
  <div class="summary">
-  <div><b>Customer</b>${esc($("customer-name-input").value.trim()||"—")}</div>
+  <div><b>Customer</b>${esc($("customer-name-input").value.trim()||"—")}</div>\n  <div><b>Customer ID</b>${esc(customerCode)}</div>
   <div><b>Vehicle registration</b>${esc($("vehicle-registration-input").value.trim().toUpperCase()||"—")}</div>
   <div><b>Checklist completed by</b>${esc($("checked-by-input").value.trim()||"—")}</div>
   <div><b>Job card</b>${esc(linkedJob)}</div>
