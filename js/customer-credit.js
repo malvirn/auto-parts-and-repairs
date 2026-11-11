@@ -122,8 +122,8 @@ async function load() {
     const cleanParams = new URLSearchParams(location.search);
     cleanParams.delete("credit_note_id");
     history.replaceState(null, "", `${location.pathname}${cleanParams.toString() ? "?" + cleanParams.toString() : ""}${location.hash}`);
-    const card = list.querySelector(`[data-credit-note-id="${CSS.escape(requestedId)}"]`);
-    if (card) openCreditDetails(card);
+    const card = list.querySelector(`details[data-credit-note-id="${CSS.escape(requestedId)}"], details[data-overpayment-credit-id="${CSS.escape(requestedId)}"]`);
+    if (card) expandCreditRecord(card);
     else showMessage("The requested quotation credit note could not be found. You can still view all previous receipts below.", "error");
   }
 }
@@ -416,7 +416,7 @@ function render() {
       const linked = jobLink.repair_job_id || "";
       const linkBtn = linked ? '<a class="btn" href="repairs.html?highlight=' + encodeURIComponent(linked) + '">Open linked job card</a>' : "";
       const linkForm = !linked ? '<section class="overpayment-job-link"><h4>Link carried-forward amount to the next job card</h4><p>Enter the customer name, email, phone number and checklist number. The name, email and phone must match the original credit note.</p><div class="overpayment-job-link__fields" data-overpayment-link="' + escapeHtml(note.id) + '" data-credit-note-id="' + escapeHtml(note.id) + '"><input data-match="name" placeholder="Customer full name" required><input data-match="email" type="email" placeholder="Customer email address" required><input data-match="phone" type="tel" placeholder="Customer phone number" required><input data-match="checklist" placeholder="Next job card checklist number" required><button class="btn btn--primary" type="button" data-link-overpayment-job>Verify and link next job card</button></div></section>' : "";
-      return '<details class="customer-credit-record overpayment-credit-record" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customers?.company_name || note.customer_name || "—") + '</strong></div><div><small>Customer ID</small><strong>' + escapeHtml(note.customers?.customer_code || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Portable voucher</small><strong>' + escapeHtml(note.voucher_code || "Not issued") + '</strong></div><div><small>Voucher expiry</small><strong>' + dateLabel(note.expires_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div>' + (note.voucher_code ? '<div class="credit-voucher-modal-qr"><div><small>PORTABLE VOUCHER CODE</small><strong>' + escapeHtml(note.voucher_code) + '</strong></div><div data-voucher-qr="' + escapeHtml(note.voucher_code) + '"></div></div>' : '') + '<div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + linkBtn + '</div>' + linkForm + '</div></details>';
+      return '<details class="customer-credit-record overpayment-credit-record" data-overpayment-credit-id="' + escapeHtml(note.id) + '" style="margin-top:10px"><summary class="overpayment-credit-record__summary"><span><strong>' + number + '</strong><small>' + escapeHtml(note.customer_name || "Customer") + ' · ' + escapeHtml(invoiceNumber) + '</small></span><span class="credit-note-status status-' + tone + '">' + status + '</span><strong>' + money(available) + '<small>Carried forward</small></strong></summary><div class="overpayment-credit-record__body"><div class="credit-doc-heading"><div><small>CENTRIC AUTO MOBILE · INVOICE OVERPAYMENT</small><h3>' + number + '</h3></div><span class="credit-note-status status-' + tone + '">' + status + '</span></div><div class="credit-doc-facts"><div><small>Customer name</small><strong>' + escapeHtml(note.customers?.company_name || note.customer_name || "—") + '</strong></div><div><small>Customer ID</small><strong>' + escapeHtml(note.customers?.customer_code || "—") + '</strong></div><div><small>Phone</small><strong>' + escapeHtml(note.customer_phone || "—") + '</strong></div><div><small>Email</small><strong>' + escapeHtml(invoice.customer_email || "—") + '</strong></div><div><small>Original invoice</small><strong>' + escapeHtml(invoiceNumber) + '</strong></div><div><small>Original invoice total</small><strong>' + money(invoice.total) + '</strong></div><div><small>Issued</small><strong>' + dateLabel(note.issued_at) + '</strong></div><div><small>Portable voucher</small><strong>' + escapeHtml(note.voucher_code || "Not issued") + '</strong></div><div><small>Voucher expiry</small><strong>' + dateLabel(note.expires_at) + '</strong></div><div><small>Original job card</small><strong>' + (linked ? "Linked" : "Not linked") + '</strong></div><div><small>Status</small><strong>' + status + '</strong></div></div>' + (note.voucher_code ? '<div class="credit-voucher-modal-qr"><div><small>PORTABLE VOUCHER CODE</small><strong>' + escapeHtml(note.voucher_code) + '</strong></div><div data-voucher-qr="' + escapeHtml(note.voucher_code) + '"></div></div>' : '') + '<div class="credit-doc-totals"><div><small>Credit note amount</small><strong>' + money(note.amount) + '</strong></div><div><small>Refunded</small><strong>' + money(refunded) + '</strong></div><div><small>Applied</small><strong>' + money(applied) + '</strong></div><div><small>Amount carried forward</small><strong>' + money(available) + '</strong></div></div><div class="credit-doc-actions"><button class="btn" type="button" data-overpayment-print="' + escapeHtml(note.id) + '"><i data-lucide="printer"></i> Print</button>' + (wa ? '<a class="btn" href="' + wa + '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>' : '<button class="btn" disabled>WhatsApp unavailable</button>') + (mail ? '<a class="btn" href="' + mail + '"><i data-lucide="mail"></i> Email</a>' : '<button class="btn" disabled>Email unavailable</button>') + linkBtn + '</div>' + linkForm + '</div></details>';
     }).join("");
     list.insertAdjacentHTML("beforeend",
       '<section style="margin-top:24px"><div class="rc-tabs"><div><p class="section-kicker">Invoice overpayments</p><h3 style="margin:0">Overpayment Credit Notes</h3></div><span class="grow"></span><strong>' + money(overpaymentTotal) + ' carried forward</strong></div>' +
@@ -426,50 +426,22 @@ function render() {
   renderVoucherQrCodes(list);
 }
 
-let activeCreditDialog = null;
-let activeCreditPlaceholder = null;
-let activeCreditRecord = null;
-
-function closeCreditDetails() {
-  if (!activeCreditDialog) return;
-  const documentPanel = activeCreditDialog.querySelector(".credit-dialog-content");
-  if (documentPanel && activeCreditPlaceholder?.parentNode) {
-    activeCreditPlaceholder.parentNode.insertBefore(documentPanel.firstElementChild, activeCreditPlaceholder);
-    activeCreditPlaceholder.remove();
-  }
-  activeCreditDialog.remove();
-  activeCreditDialog = null;
-  activeCreditPlaceholder = null;
-  if (activeCreditRecord) activeCreditRecord.open = false;
-  activeCreditRecord = null;
-  document.body.style.overflow = "";
+function expandCreditRecord(record) {
+  if (!(record instanceof HTMLDetailsElement)) return;
+  list.querySelectorAll("details[data-credit-note-id][open], details[data-overpayment-credit-id][open]")
+    .forEach(other => { if (other !== record) other.open = false; });
+  record.open = true;
+  requestAnimationFrame(() => record.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 
-function openCreditDetails(record) {
-  if (!record) return;
-  if (activeCreditDialog) closeCreditDetails();
-  const details = record.querySelector(".customer-credit-document, .overpayment-credit-record__body");
-  if (!details) return;
-  const placeholder = document.createComment("credit note details return point");
-  details.parentNode.insertBefore(placeholder, details);
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay credit-note-dialog-overlay";
-  overlay.setAttribute("role", "presentation");
-  overlay.innerHTML = `<section class="modal credit-note-dialog" role="dialog" aria-modal="true" aria-label="Customer credit note details">
-    <header class="credit-note-dialog-head"><strong>Customer credit note</strong><button type="button" class="credit-note-dialog-close" aria-label="Close credit note">×</button></header>
-    <div class="credit-dialog-content"></div>
-  </section>`;
-  overlay.querySelector(".credit-dialog-content").appendChild(details);
-  document.body.appendChild(overlay);
-  record.open = false;
-  activeCreditDialog = overlay;
-  activeCreditPlaceholder = placeholder;
-  activeCreditRecord = record;
-  document.body.style.overflow = "hidden";
-  overlay.querySelector(".credit-note-dialog-close").addEventListener("click", closeCreditDetails);
-  overlay.addEventListener("click", event => { if (event.target === overlay) closeCreditDetails(); });
-  requestAnimationFrame(() => overlay.querySelector(".credit-note-dialog-close")?.focus());
-}
+list.addEventListener("toggle", event => {
+  const record = event.target;
+  if (!(record instanceof HTMLDetailsElement) || !record.open ||
+      !record.matches("details[data-credit-note-id], details[data-overpayment-credit-id]")) return;
+  list.querySelectorAll("details[data-credit-note-id][open], details[data-overpayment-credit-id][open]")
+    .forEach(other => { if (other !== record) other.open = false; });
+  requestAnimationFrame(() => record.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+}, true);
 
 const creditInlineStyle = document.createElement("style");
 creditInlineStyle.id = "customer-credit-inline-details";
@@ -518,7 +490,7 @@ creditInlineStyle.textContent = `
 .customer-credit-panel-scope .status-applied{background:#303b49!important;border-color:#536174!important;color:#e2e8f0!important}
 .customer-credit-panel-scope .customer-credit-document,
 .customer-credit-panel-scope .overpayment-credit-record__body{
- display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;
+ display:block!important;
  position:static!important;inset:auto!important;float:none!important;transform:none!important;
  width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;max-height:none!important;
  margin:0!important;padding:16px!important;overflow:visible!important;visibility:visible!important;opacity:1!important;
@@ -559,8 +531,6 @@ creditInlineStyle.textContent = `
 .customer-credit-panel-scope button,
 .customer-credit-panel-scope a.btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;max-width:100%!important;min-height:42px!important;padding:10px 14px!important;border:1px solid #5b687a!important;border-radius:8px!important;background:#354253!important;color:#f5f7fa!important;font:inherit!important;font-size:13px!important;font-weight:700!important;text-decoration:none!important;white-space:normal!important;overflow-wrap:anywhere!important}
 .customer-credit-panel-scope button:disabled{opacity:.48!important}
-.customer-credit-panel-scope .credit-doc-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;width:100%!important;min-width:0!important;padding-top:10px!important;border-top:1px solid #3c4857!important}
-.customer-credit-panel-scope .credit-doc-actions>*{width:100%!important;min-width:0!important}
 .customer-credit-panel-scope .customer-credit-history{display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:12px!important;border:1px solid #3c4857!important;border-radius:10px!important;background:#202a36!important;color:#c5cfda!important}
 .customer-credit-panel-scope .customer-credit-history>summary{cursor:pointer!important;color:#f0f3f7!important;font-weight:700!important}
 .customer-credit-panel-scope .credit-history-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px!important;padding:10px 0!important;border-bottom:1px solid #3b4653!important}
@@ -580,16 +550,13 @@ creditInlineStyle.textContent = `
  .customer-credit-panel-scope .customer-credit-summary{grid-template-columns:minmax(0,1fr)!important}
  .customer-credit-panel-scope .customer-credit-document,
  .customer-credit-panel-scope .overpayment-credit-record__body{padding:13px!important}
- .customer-credit-panel-scope .credit-doc-facts,
- .customer-credit-panel-scope .credit-doc-totals{grid-template-columns:minmax(0,1fr)!important}
- .customer-credit-panel-scope .credit-doc-actions{grid-template-columns:minmax(0,1fr)!important}
  .customer-credit-panel-scope .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;gap:3px!important}
  .customer-credit-panel-scope .credit-detail-row>strong{text-align:left!important}
 }
 html,body{max-width:100%!important;overflow-x:hidden!important}
 `;
 creditInlineStyle.textContent += `
-/* Clear English labels, readable spacing and a deliberate light theme. */
+/* Clear English labels and readable spacing. */
 .customer-credit-panel-scope .credit-detail-row{display:grid!important;grid-template-columns:minmax(115px,.8fr) minmax(0,1.2fr)!important;align-items:start!important;column-gap:18px!important;row-gap:5px!important;padding:11px 0!important}
 .customer-credit-panel-scope .credit-detail-row>span{display:block!important;line-height:1.45!important;color:#b8c3d0!important}
 .customer-credit-panel-scope .credit-detail-row>strong{display:block!important;line-height:1.5!important;overflow-wrap:anywhere!important;word-break:normal!important}
@@ -597,51 +564,6 @@ creditInlineStyle.textContent += `
 .customer-credit-panel-scope .credit-note-validity{line-height:1.6!important}
 .customer-credit-panel-scope .credit-apply-section h4,
 .customer-credit-panel-scope .credit-details-card h4{line-height:1.4!important}
-.credit-note-dialog .credit-dialog-content{color:#edf1f6!important}
-.credit-note-dialog .credit-dialog-content p{line-height:1.6!important}
-:root[data-theme="light"] .credit-note-dialog-overlay{background:rgba(20,28,38,.48)!important;backdrop-filter:blur(3px)!important}
-:root[data-theme="light"] .credit-note-dialog{border-color:#cbd3dc!important;background:#fff!important;box-shadow:0 24px 70px rgba(20,30,45,.28)!important}
-:root[data-theme="light"] .credit-note-dialog-head{border-color:#dce2e8!important;background:#f2f5f8!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog-close{border-color:#c5ced8!important;background:#e5eaf0!important;color:#17212d!important}
-:root[data-theme="light"] .credit-dialog-content{background:#fff!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .customer-credit-document,
-:root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body{background:#fff!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-modal-title h3,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-heading h3,
-:root[data-theme="light"] .credit-note-dialog .credit-details-card h4,
-:root[data-theme="light"] .credit-note-dialog .credit-apply-section h4,
-:root[data-theme="light"] .credit-note-dialog .overpayment-job-link h4{color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-modal-title small,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-heading small,
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row>span,
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row>strong small,
-:root[data-theme="light"] .credit-note-dialog .credit-available-card small,
-:root[data-theme="light"] .credit-note-dialog .credit-unused-badge,
-:root[data-theme="light"] .credit-note-dialog .overpayment-job-link p{color:#536273!important}
-:root[data-theme="light"] .credit-note-dialog .credit-available-card{border-color:#d6dee7!important;background:#eef2f6!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-available-card strong,
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row>strong,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts strong,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals strong{color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-details-card,
-:root[data-theme="light"] .credit-note-dialog .credit-apply-section,
-:root[data-theme="light"] .credit-note-dialog .overpayment-job-link,
-:root[data-theme="light"] .credit-note-dialog .customer-credit-history,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts>div,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals>div{border-color:#d6dee7!important;background:#f7f9fb!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-validity{border-left-color:#7b8795!important;background:#f1f4f7!important;color:#39485a!important}
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row{border-color:#e0e5eb!important}
-:root[data-theme="light"] .credit-note-dialog .credit-history-row{border-color:#e0e5eb!important;color:#263445!important}
-:root[data-theme="light"] .credit-note-dialog .credit-history-row strong,
-:root[data-theme="light"] .credit-note-dialog .customer-credit-history>summary{color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog input,
-:root[data-theme="light"] .credit-note-dialog select,
-:root[data-theme="light"] .credit-note-dialog textarea{border-color:#bdc8d4!important;background:#fff!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog input::placeholder{color:#687789!important;opacity:1!important}
-:root[data-theme="light"] .credit-note-dialog button,
-:root[data-theme="light"] .credit-note-dialog a.btn{border-color:#aebac7!important;background:#e7ecf1!important;color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-status{border-color:#c4ced8!important;background:#e9eef3!important;color:#263445!important}
-:root[data-theme="light"] .credit-note-dialog .credit-job-table-wrap{overflow-x:auto!important}
 @media(max-width:600px){.customer-credit-panel-scope .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;row-gap:4px!important}.customer-credit-panel-scope .credit-detail-row>strong{text-align:left!important}}
 `;
 creditInlineStyle.textContent += `
@@ -652,549 +574,68 @@ creditInlineStyle.textContent += `
 .customer-credit-panel-scope .credit-note-narrative p{margin:0!important;color:#e2e8f0!important;font-size:14px!important;line-height:1.8!important;overflow-wrap:anywhere!important}
 .customer-credit-panel-scope .credit-note-narrative p+p{margin-top:12px!important}
 .customer-credit-panel-scope .credit-note-narrative p strong{color:#fff!important;font-weight:750!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-brand-header{border-color:#d8e0e8!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-narrative p{color:#344256!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-narrative p strong{color:#17212d!important}
 @media(max-width:600px){.customer-credit-panel-scope .credit-note-brand-logo{width:58px!important;height:58px!important}.customer-credit-panel-scope .credit-note-brand-header{gap:11px!important}}
 `;
 
-creditInlineStyle.textContent += `
-/* Responsive credit-note dialog: use the available screen instead of a narrow floating card. */
-.credit-note-dialog-overlay{
-  position:fixed!important;inset:0!important;z-index:2147483000!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100vw!important;height:100vh!important;height:100dvh!important;
-  padding:16px!important;overflow:hidden!important;
-  background:rgba(7,13,19,.72)!important;backdrop-filter:blur(4px)!important;
-}
-.credit-note-dialog{
-  display:flex!important;flex-direction:column!important;
-  width:min(920px,calc(100vw - 32px))!important;
-  max-width:none!important;max-height:calc(100dvh - 32px)!important;
-  min-width:0!important;overflow:hidden!important;
-  border:1px solid #465365!important;border-radius:16px!important;
-  background:#151c25!important;color:#e9eef4!important;
-  box-shadow:0 24px 70px rgba(0,0,0,.35)!important;
-}
-.credit-note-dialog-head{
-  display:flex!important;align-items:center!important;justify-content:space-between!important;
-  flex:none!important;gap:12px!important;padding:12px 18px!important;
-  border-bottom:1px solid #3d4958!important;background:#202a36!important;color:#f1f4f8!important;
-}
-.credit-note-dialog-close{width:36px!important;height:36px!important;border:1px solid #5b687a!important;border-radius:9px!important;background:#354253!important;color:#fff!important;font-size:24px!important}
-.credit-dialog-content{min-width:0!important;overflow-y:auto!important;overscroll-behavior:contain!important}
-.credit-note-dialog .overpayment-credit-record__body,
-.credit-note-dialog .customer-credit-document{
-  display:grid!important;width:100%!important;max-width:none!important;
-  max-height:none!important;min-width:0!important;margin:0!important;
-  padding:16px!important;overflow:visible!important;border:0!important;border-radius:0!important;
-}
-.credit-note-dialog .credit-doc-facts,
-.credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record,
-:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record{
-  border-color:#d8e0e8!important;background:#fff!important;color:#17212d!important;
-  box-shadow:0 5px 16px rgba(15,23,42,.06)!important;
-}
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary,
-:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary{
-  background:#fff!important;color:#17212d!important;
-}
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary strong,
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child strong,
-:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong{
-  color:#17212d!important;
-}
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary small,
-:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance small,
-:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer small{
-  color:#64748b!important;
-}
-:root[data-theme="light"] .customer-credit-panel-scope .credit-note-status{
-  border-color:#d5dee7!important;background:#edf2f6!important;color:#344256!important;
-}
-:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary::after,
-:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary::after{color:#526174!important}
-:root[data-theme="light"] .credit-note-dialog-overlay{
-  background:rgba(15,23,42,.14)!important;backdrop-filter:blur(2px)!important;
-}
-:root[data-theme="light"] .credit-note-dialog{
-  border-color:#d8e0e8!important;background:#fff!important;color:#17212d!important;
-  box-shadow:0 16px 48px rgba(15,23,42,.16)!important;
-}
-:root[data-theme="light"] .credit-note-dialog-head{
-  border-color:#e2e8f0!important;background:#f8fafc!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-note-dialog-close{
-  border-color:#d5dee7!important;background:#edf2f6!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body,
-:root[data-theme="light"] .credit-note-dialog .customer-credit-document{
-  background:#fff!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts>div,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals>div{
-  border-color:#dfe7e1!important;background:#f7f9fb!important;color:#17212d!important;
-}
-@media(max-width:600px){
-  .credit-note-dialog-overlay{padding:8px!important}
-  .credit-note-dialog{
-    width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;
-    border-radius:13px!important;
-  }
-  .credit-note-dialog-head{padding:9px 12px!important}
-  .credit-note-dialog .overpayment-credit-record__body,
-  .credit-note-dialog .customer-credit-document{padding:12px!important}
-  .credit-note-dialog .credit-doc-facts,
-  .credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-  .credit-note-dialog .credit-doc-facts>div,
-  .credit-note-dialog .credit-doc-totals>div{padding:9px!important}
-}
-`;
 document.head.appendChild(creditInlineStyle);
 
-creditInlineStyle.textContent += `
-.credit-note-dialog-overlay{position:fixed!important;inset:0!important;z-index:2147483600!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(10px,3vw,24px)!important;background:rgba(5,9,14,.78)!important;backdrop-filter:blur(5px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
-.credit-note-dialog{display:flex!important;flex-direction:column!important;width:min(760px,100%)!important;max-width:100%!important;max-height:calc(100dvh - 24px)!important;min-width:0!important;margin:auto!important;overflow:hidden!important;border:1px solid #526174!important;border-radius:16px!important;background:#1b232e!important;box-shadow:0 24px 80px rgba(0,0,0,.55)!important}
-.credit-note-dialog-head{position:sticky!important;top:0!important;z-index:2!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex:none!important;padding:12px 16px!important;border-bottom:1px solid #3c4857!important;background:#252f3c!important;color:#f2f5f8!important;font-size:14px!important}
-.credit-note-dialog-close{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;flex:none!important;border:1px solid #566477!important;border-radius:9px!important;background:#354253!important;color:#fff!important;font-size:25px!important;line-height:1!important;cursor:pointer!important}
-.credit-dialog-content{min-width:0!important;max-width:100%!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
-.credit-note-dialog .customer-credit-document,.credit-note-dialog .overpayment-credit-record__body{width:100%!important;max-width:100%!important;min-width:0!important;max-height:none!important;overflow:visible!important;border:0!important;border-radius:0!important}
-@media(max-width:600px){.credit-note-dialog-overlay{align-items:center!important;padding:10px!important}.credit-note-dialog{width:100%!important;max-height:calc(100dvh - 20px)!important;border-radius:14px!important}.credit-note-dialog .customer-credit-document,.credit-note-dialog .overpayment-credit-record__body{padding:12px!important}}
-`;
-
-creditInlineStyle.textContent += "\n.credit-note-dialog{border-radius:12px!important;max-height:calc(100dvh - 20px)!important}\n.credit-dialog-content{overflow-x:hidden!important;overflow-y:auto!important}\n.credit-note-dialog .customer-credit-document{padding:16px!important;overflow-x:hidden!important;border-radius:0!important}\n.credit-note-dialog .credit-note-brand-header{display:flex!important;align-items:center!important;gap:12px!important;padding:0 0 14px!important;margin:0 0 14px!important;border-bottom:1px solid #465365!important;min-width:0!important}\n.credit-note-dialog .credit-note-brand-logo{width:56px!important;height:56px!important;max-width:56px!important;max-height:56px!important;object-fit:contain!important;flex:0 0 56px!important}\n.credit-note-dialog .credit-modal-title{min-width:0!important}\n.credit-note-dialog .credit-modal-title>small{display:block!important;font-size:11px!important;letter-spacing:.09em!important;font-weight:800!important}\n.credit-note-dialog .credit-modal-title h3{margin:3px 0 6px!important;font-size:17px!important;line-height:1.25!important}\n.credit-note-dialog .credit-note-number-row{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important}\n.credit-note-dialog .credit-note-number-row>strong{font-size:17px!important;font-weight:850!important}\n.credit-note-dialog .credit-note-status-pill{display:inline-flex!important;padding:4px 10px!important;border-radius:999px!important;font-size:11px!important;font-weight:800!important}\n.credit-note-dialog .credit-note-status-pill.status-available{background:#14532d!important;color:#dcfce7!important}\n.credit-note-dialog .credit-note-status-pill.status-partial{background:#78350f!important;color:#fef3c7!important}\n.credit-note-dialog .credit-note-status-pill.status-applied,.credit-note-dialog .credit-note-status-pill.status-refunded{background:#475569!important;color:#f1f5f9!important}\n.credit-note-dialog .credit-available-card{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:5px!important;margin:0 0 14px!important;padding:14px!important;border:1px solid #465365!important;border-radius:10px!important}\n.credit-note-dialog .credit-available-card small{font-size:12px!important}\n.credit-note-dialog .credit-available-card strong{font-size:28px!important;line-height:1.15!important;font-weight:850!important}\n.credit-note-dialog .credit-details-card,.credit-note-dialog .credit-apply-section,.credit-note-dialog .credit-unpaid-jobs,.credit-note-dialog .customer-credit-history{margin:0 0 14px!important;padding:13px!important;border:1px solid #465365!important;border-radius:10px!important;min-width:0!important;max-width:100%!important}\n.credit-note-dialog .credit-details-card h4,.credit-note-dialog .credit-apply-section h4,.credit-note-dialog .credit-unpaid-jobs h4{margin:0 0 8px!important;font-size:14px!important;font-weight:800!important}\n.credit-note-dialog .credit-detail-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)!important;gap:10px!important;padding:9px 0!important;border-bottom:1px solid rgba(148,163,184,.22)!important;font-size:13px!important;min-width:0!important}\n.credit-note-dialog .credit-detail-row:last-child{border-bottom:0!important;padding-bottom:0!important}\n.credit-note-dialog .credit-detail-row>span{color:#aeb8c5!important;min-width:0!important}\n.credit-note-dialog .credit-detail-row>strong{text-align:right!important;overflow-wrap:anywhere!important;min-width:0!important}\n.credit-note-dialog .credit-detail-row>strong small{display:block!important;margin-top:3px!important;font-size:11px!important;font-weight:500!important}\n.credit-note-dialog .credit-note-validity{display:block!important;margin:0 0 14px!important;padding:10px 12px!important;border-left:3px solid #d69a32!important;border-radius:7px!important;font-size:12px!important;line-height:1.5!important}\n.credit-note-dialog .credit-apply-section .customer-credit-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;width:100%!important;min-width:0!important}\n.credit-note-dialog .credit-apply-section select,.credit-note-dialog .credit-apply-section input{width:100%!important;max-width:100%!important;min-width:0!important;min-height:44px!important;border-radius:8px!important;padding:10px 12px!important}\n.credit-note-dialog .credit-apply-section .customer-credit-apply{width:100%!important;min-height:46px!important;border-radius:8px!important;font-weight:800!important}\n.credit-note-dialog .credit-apply-helper{margin:9px 0 0!important;font-size:12px!important;color:#aeb8c5!important}\n.credit-note-dialog .credit-apply-empty,.credit-note-dialog .credit-unpaid-jobs p{margin:0!important;font-size:13px!important}\n.credit-note-dialog .credit-doc-actions--footer{position:sticky!important;bottom:0!important;z-index:4!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:14px -16px -16px!important;padding:12px 16px max(12px,env(safe-area-inset-bottom))!important;border-top:1px solid #465365!important;background:#1b232e!important}\n.credit-note-dialog .credit-doc-actions--footer .btn{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-width:0!important;min-height:46px!important;padding:10px 12px!important;border-radius:9px!important;font-size:14px!important;font-weight:800!important}\n.credit-note-dialog .credit-doc-actions--footer .credit-refund-placeholder{background:transparent!important;border:1px solid #64748b!important;color:inherit!important}\n.credit-note-dialog .credit-doc-actions--footer .customer-credit-print{background:#f58220!important;border:1px solid #f58220!important;color:#fff!important}\n.credit-note-dialog .credit-job-table-wrap{max-width:100%!important;overflow-x:auto!important}\n.credit-note-dialog .credit-job-table{min-width:560px!important}\n:root[data-theme=\"light\"] .credit-note-dialog .credit-note-status-pill.status-available{background:#dcfce7!important;color:#166534!important}\n:root[data-theme=\"light\"] .credit-note-dialog .credit-note-status-pill.status-partial{background:#fef3c7!important;color:#92400e!important}\n:root[data-theme=\"light\"] .credit-note-dialog .credit-note-status-pill.status-applied,:root[data-theme=\"light\"] .credit-note-dialog .credit-note-status-pill.status-refunded{background:#e2e8f0!important;color:#334155!important}\n:root[data-theme=\"light\"] .credit-note-dialog .credit-doc-actions--footer{background:#fff!important;border-color:#d6dee7!important}\n.credit-voucher-modal-qr{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0;padding:12px;border:1px solid #64748b;border-radius:10px}.credit-voucher-modal-qr small{display:block;color:#94a3b8;font-size:10px}.credit-voucher-modal-qr strong{font:800 16px ui-monospace,monospace;letter-spacing:.08em;overflow-wrap:anywhere}.credit-voucher-modal-qr>div:last-child{flex:0 0 auto}.credit-voucher-modal-qr canvas,.credit-voucher-modal-qr img{display:block;width:112px!important;height:112px!important}\n@media(max-width:600px){.credit-note-dialog .customer-credit-document{padding:16px!important}.credit-note-dialog .credit-detail-row{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important}.credit-note-dialog .credit-detail-row>strong{text-align:right!important}}\n";
-
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && activeCreditDialog) closeCreditDetails();
-});
-
-document.addEventListener("click", event => {
-  const summary = event.target instanceof Element ? event.target.closest(".customer-credit-record__summary, .overpayment-credit-record__summary") : null;
-  if (!summary) return;
-  const record = summary.closest("details[data-credit-note-id], details[data-overpayment-credit-id]");
-  if (!record) return;
-  event.preventDefault();
-  openCreditDetails(record);
-}, true);
-
-document.addEventListener("click", async event => {
-  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-  if (!target) return;
-  const printButton = target.closest("[data-credit-print]");
-  if (printButton) {
-    const note = creditNotes.find(item => item.id === printButton.dataset.creditPrint);
-    if (note) await printCreditNote(note);
-    return;
-  }
-  const overpaymentPrintButton = target.closest("[data-overpayment-print]");
-  if (overpaymentPrintButton) {
-    const note = overpaymentCreditNotes.find(item => item.id === overpaymentPrintButton.dataset.overpaymentPrint);
-    if (!note) return;
-    const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
-    const available = Number(note.customer_overpayment_credits?.available_amount ?? note.amount) || 0;
-    const refunded = overpaymentRefunds.filter(row => row.credit_note_id === note.id && !row.voided_at)
-      .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const applied = Math.max(0, Number(note.amount || 0) - available - refunded);
-    const popup = window.open("", "_blank", "width=900,height=720");
-    if (!popup) { showMessage("Allow pop-ups for this site to print the credit note.", "error"); return; }
-    let qrData = "";
-    if (note.voucher_code) {
-      try {
-        await auditCreditVoucherAction(note.voucher_code, "printed");
-        qrData = await voucherQrDataUrl(note.voucher_code);
-      } catch (error) {
-        popup.close();
-        throw error;
-      }
-    }
-    popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>CN-" +
-      String(note.note_number).padStart(5, "0") + " · Centric Auto Mobile</title><style>" +
-      "*{box-sizing:border-box}body{margin:0;padding:28px;background:#eef1f4;color:#17212b;font:14px/1.5 Arial,sans-serif}.sheet{max-width:820px;margin:auto;background:#fff;border:1px solid #dce2e8}.hero{padding:28px;background:#27364d;color:#fff}.hero h1{margin:0}.amount{font-size:28px;font-weight:800}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:22px 28px}.facts div{padding:12px;background:#f5f7f9}.facts small{display:block;color:#687789;text-transform:uppercase;font-size:10px}.totals{padding:0 28px 24px}.line{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #e2e6eb}footer{text-align:center;padding:18px;color:#657384}@page{size:auto;margin:0}@media print{body{padding:10mm;background:#fff}.sheet{border:0}}@media(max-width:600px){body{padding:10px}.facts{grid-template-columns:1fr}}</style></head><body>" +
-      "<main class='sheet'><header class='hero'><h1>CN-" + String(note.note_number).padStart(5, "0") +
-      "</h1><p>Invoice overpayment credit note</p><div class='amount'>" + money(note.amount) +
-      "</div></header><section class='facts'><div><small>Customer</small><strong>" + escapeHtml(note.customer_name || "—") +
-      "</strong></div><div><small>Phone</small><strong>" + escapeHtml(note.customer_phone || "—") +
-      "</strong></div><div><small>Email</small><strong>" + escapeHtml(invoice.customer_email || "—") +
-      "</strong></div><div><small>Original invoice</small><strong>" + escapeHtml(invoice.invoice_number || "—") +
-      "</strong></div><div><small>Invoice total</small><strong>" + money(invoice.total) +
-      "</strong></div><div><small>Issued</small><strong>" + dateLabel(note.issued_at) +
-      "</strong></div><div><small>Voucher code</small><strong>" + escapeHtml(note.voucher_code || "Not issued") +
-      "</strong></div><div><small>Voucher expiry</small><strong>" + dateLabel(note.expires_at) +
-      "</strong></div></section><section class='totals'><div class='line'><span>Applied</span><strong>" + money(applied) +
-      "</strong></div><div class='line'><span>Refunded</span><strong>" + money(refunded) +
-      "</strong></div><div class='line'><span>Carried forward</span><strong>" + money(available) +
-      "</strong></div></section>"+(qrData ? "<section style=\"text-align:center;padding:12px\"><img src=\"" + qrData + "\" style=\"width:130px;height:130px\"><p style=\"font:800 18px monospace\">" + escapeHtml(note.voucher_code) + "</p></section>" : "")+"<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main></body></html>");
-    popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 350);
-    return;
-  }
-  const linkOverpaymentButton = target.closest("[data-link-overpayment-job]");
-  if (linkOverpaymentButton) {
-    const fields = linkOverpaymentButton.closest("[data-overpayment-link]");
-    const note = overpaymentCreditNotes.find(item => item.id === fields?.dataset.overpaymentLink);
-    if (!note || !fields) return;
-    const value = key => fields.querySelector('[data-match="' + key + '"]')?.value.trim() || "";
-    const name = value("name"), email = value("email"), phone = value("phone");
-    const checklist = value("checklist").replace(/^#/, "").trim();
-    const invoice = Array.isArray(note.invoices) ? (note.invoices[0] || {}) : (note.invoices || {});
-    const digits = value => String(value || "").replace(/\D/g, "");
-    const normalName = value => String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase();
-    if (!name || !email || !phone || !checklist) {
-      showMessage("Enter the customer name, email, phone number and checklist number.", "error");
-      return;
-    }
-    if (normalName(name) !== normalName(note.customer_name) ||
-        email.toLocaleLowerCase() !== String(invoice.customer_email || "").trim().toLocaleLowerCase() ||
-        digits(phone) !== digits(note.customer_phone)) {
-      showMessage("Customer details do not match the original credit note. Check the name, email and phone.", "error");
-      return;
-    }
-    linkOverpaymentButton.disabled = true;
-    linkOverpaymentButton.textContent = "Verifying job card…";
-    try {
-      const { data: job, error: jobError } = await supabase.from("repair_jobs")
-        .select("id, checklist_number").eq("checklist_number", checklist).maybeSingle();
-      if (jobError) throw jobError;
-      if (!job) throw new Error("No job card was found with that checklist number.");
-      const { error } = await supabase.rpc("link_overpayment_credit_to_job", {
-        p_credit_note_id: note.id, p_repair_job_id: job.id,
-      });
-      if (error) throw error;
-      await load();
-      showMessage("Customer credit note verified and linked to the job card.", "success");
-    } catch (error) {
-      showMessage(error.message || "The credit note could not be linked.", "error");
-      linkOverpaymentButton.disabled = false;
-      linkOverpaymentButton.textContent = "Verify and link next job card";
-    }
-    return;
-  }
-  const applyButton = target.closest(".customer-credit-apply");
-  const reverseButton = target.closest(".customer-credit-reverse");
-  if (!applyButton && !reverseButton) return;
-
-  if (reverseButton) {
-    const reason = prompt("Reason for reversing this customer-credit transaction:")?.trim();
-    if (!reason) return;
-    reverseButton.disabled = true;
-    const { error } = await supabase.rpc("reverse_customer_credit_movement", {
-      p_movement_id: reverseButton.dataset.movementId,
-      p_reason: reason,
-    });
-    if (error) {
-      showMessage(error.message, "error");
-      reverseButton.disabled = false;
-      return;
-    }
-    await load();
-    showMessage("Credit transaction reversed with a compensating journal entry.", "success");
-    return;
-  }
-
-  const action = applyButton.closest("[data-action]");
-  const amount = Number(action.querySelector(".credit-amount")?.value);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    showMessage("Enter an amount greater than zero.", "error");
-    return;
-  }
-  applyButton.disabled = true;
-  try {
-    const [targetType, targetId] = (action.querySelector(".credit-target")?.value || "").split("|");
-    if (!targetType || !targetId) throw new Error("Choose a same-customer repair job, sale or invoice.");
-    const requestSignature = [action.dataset.creditId, targetType, targetId, amount.toFixed(2)].join("|");
-    if (action.dataset.idempotencySignature !== requestSignature) {
-      action.dataset.idempotencySignature = requestSignature;
-      action.dataset.idempotencyKey = crypto.randomUUID();
-    }
-    const idempotencyKey = action.dataset.idempotencyKey;
-    const customerId = creditNotes.find(note => note.id === action.dataset.creditId)?.customer_id;
-    const customer = creditNotes.find(note => note.id === action.dataset.creditId)?.customers || {};
-    const confirmationValue = prompt(customer.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
-    if (!confirmationValue) throw new Error("Customer confirmation is required before applying credit.");
-    const authorisedBy = customer.is_company ? prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim() : null;
-    if (customer.is_company && !authorisedBy) throw new Error("Authorised by is required for company credit.");
-    const result = await supabase.rpc("apply_customer_credit_verified", {
-      p_deposit_receipt_id: action.dataset.creditId,
-      p_amount: amount,
-      p_target_type: targetType,
-      p_target_id: targetId,
-      p_reason: "Staff-applied quotation deposit",
-      p_idempotency_key: idempotencyKey,
-      p_confirmation_value: confirmationValue,
-      p_authorised_by: authorisedBy,
-    });
-    if (result.error) throw result.error;
-    if (result.data?.error) throw new Error(result.data.error);
-    await load();
-    showMessage("Credit applied to the customer balance.", "success");
-  } catch (error) {
-    showMessage(error.message || "The customer-credit transaction could not be completed.", "error");
-    applyButton.disabled = false;
-  }
-}, true);
-
-["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => {
-  const field = document.getElementById(id);
-  field?.addEventListener("input", render);
-  field?.addEventListener("change", render);
-});
-document.getElementById("customer-credit-clear")?.addEventListener("click", () => {
-  ["customer-credit-search","customer-credit-from","customer-credit-to","customer-credit-status","customer-credit-method","customer-credit-min","customer-credit-max"].forEach(id => { const field = document.getElementById(id); if (field) field.value = ""; });
-  render();
-});
-async function safeLoad() {
-  let timer;
-  try {
-    await Promise.race([
-      load(),
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Customer credit request timed out. Check your connection and tap refresh to try again.")), 15000);
-      }),
-    ]);
-  } catch (error) {
-    console.error("Customer credit notes failed to load:", error);
-    list.innerHTML = '<div class="customer-credit-empty">Could not load credit notes: ' + escapeHtml(error?.message || String(error)) + '<br><button type="button" class="btn" id="customer-credit-load-retry" style="margin-top:12px">Try again</button></div>';
-    document.getElementById("customer-credit-load-retry")?.addEventListener("click", safeLoad);
-  } finally {
-    clearTimeout(timer);
-  }
+const creditAccordionStyle = document.createElement("style");
+creditAccordionStyle.id = "customer-credit-accordion-layout";
+creditAccordionStyle.textContent = `
+/* Credit notes expand in place as normal page content. */
+.customer-credit-panel-scope details.customer-credit-record[open] > .customer-credit-document,
+.customer-credit-panel-scope details.overpayment-credit-record[open] > .overpayment-credit-record__body{
+  display:block!important;position:static!important;inset:auto!important;float:none!important;
+  width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;
+  min-width:0!important;overflow:visible!important;overflow-y:visible!important;overflow-x:visible!important;
+  transform:none!important;visibility:visible!important;opacity:1!important;
+  margin:0!important;padding:15px!important;box-sizing:border-box!important;
+  border:0!important;border-top:1px solid var(--line,#cbd5e1)!important;
+  border-radius:0 0 13px 13px!important;box-shadow:none!important;
+  background:var(--surface,#f2f7fc)!important;color:var(--text,#172b40)!important;
 }
-refreshButton?.addEventListener("click", safeLoad);
-safeLoad();
-
-const creditLiveChannel = supabase.channel("customer-credit-job-status")
-  .on("postgres_changes", { event: "*", schema: "public", table: "repair_jobs" }, () => load())
-  .on("postgres_changes", { event: "*", schema: "public", table: "quotations" }, () => load())
-  .subscribe();
-window.addEventListener("focus", () => load());
-document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
-
-
-/* Credit note modal and tabs styling. Kept inside a style element so this module remains valid JavaScript. */
-const creditNoteLayoutStyle = document.createElement("style");
-creditNoteLayoutStyle.id = "credit-note-layout-style";
-creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal instead of the old floating voucher card. */
-.credit-note-dialog-overlay.modal-overlay{
-  position:fixed!important;inset:0!important;z-index:2147483600!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  padding:12px!important;overflow:hidden!important;
-  background:rgba(15,23,42,.28)!important;backdrop-filter:blur(2px)!important;
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-facts,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-facts,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-totals{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;min-width:0!important;gap:10px!important;
 }
-.credit-note-dialog.modal{
-  position:relative!important;display:flex!important;flex-direction:column!important;
-  width:min(560px,calc(100vw - 24px))!important;max-width:560px!important;
-  max-height:90vh!important;max-height:90dvh!important;min-width:0!important;
-  margin:auto!important;padding:0!important;overflow:hidden!important;
-  border:1px solid var(--line,#d6dee7)!important;border-radius:18px!important;
-  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
-  box-shadow:0 24px 70px rgba(0,0,0,.28)!important;
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-facts>div,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-facts>div,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-totals>div{
+  min-width:0!important;box-sizing:border-box!important;
 }
-.credit-note-dialog .credit-note-dialog-head{
-  position:relative!important;top:auto!important;z-index:2!important;
-  flex:none!important;padding:16px 20px!important;
-  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
-  border-bottom:1px solid var(--line,#d6dee7)!important;
-}
-.credit-note-dialog .credit-dialog-content{
-  flex:1 1 auto!important;min-height:0!important;overflow-x:hidden!important;
-  overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;
-  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
-}
-.credit-note-dialog .overpayment-credit-record__body,
-.credit-note-dialog .customer-credit-document{
-  width:100%!important;max-width:100%!important;margin:0!important;
-  padding:20px!important;border:0!important;border-radius:0!important;
-  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
-}
-.credit-note-dialog .credit-doc-facts,
-.credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-:root[data-theme="light"] .credit-note-dialog.modal,
-:root[data-theme="light"] .credit-note-dialog .credit-dialog-content,
-:root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body,
-:root[data-theme="light"] .credit-note-dialog .customer-credit-document{
-  background:#fff!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-note-dialog .credit-note-dialog-head{
-  background:#f8fafc!important;color:#17212d!important;border-color:#d8e0e8!important;
-}
-:root[data-theme="light"] .credit-note-dialog .credit-note-dialog-close{
-  background:#eef2f6!important;color:#17212d!important;border-color:#cbd5df!important;
-}
-:root[data-theme="light"] .credit-note-dialog .credit-doc-heading h3,
-:root[data-theme="light"] .credit-note-dialog .credit-modal-title h3,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts strong,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals strong,
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row>strong{color:#17212d!important}
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts>div,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals>div,
-:root[data-theme="light"] .credit-note-dialog .credit-details-card,
-:root[data-theme="light"] .credit-note-dialog .credit-apply-section{
-  background:#f7f9fb!important;border-color:#d8e0e8!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-note-dialog .credit-doc-facts small,
-:root[data-theme="light"] .credit-note-dialog .credit-doc-totals small,
-:root[data-theme="light"] .credit-note-dialog .credit-detail-row>span{color:#596879!important}
-:root[data-theme="light"] .credit-note-dialog button,
-:root[data-theme="light"] .credit-note-dialog a.btn{
-  background:#f1f4f7!important;color:#17212d!important;border-color:#cbd5df!important;
-}
-:root[data-theme="light"] .credit-note-dialog .customer-credit-print{background:#f58220!important;color:#fff!important;border-color:#f58220!important}
-:root[data-theme="light"] .credit-note-dialog .credit-note-status{background:#edf2f6!important;color:#344256!important;border-color:#d5dee7!important}
-
-/* Keep the Credit Notes / Vouchers controls readable and aligned in light mode. */
-#customer-credit-panel .rc-tabs{
-  display:flex!important;align-items:center!important;justify-content:flex-start!important;
-  flex-wrap:wrap!important;gap:8px!important;width:100%!important;
-}
-#customer-credit-panel .rc-tabs button,
-#customer-credit-panel #customer-credit-clear,
-#customer-credit-panel #credit-notes-tab,
-#customer-credit-panel #credit-voucher-tab,
-#customer-credit-panel .rc-tabs .btn{
-  display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  min-height:40px!important;padding:9px 15px!important;border-radius:10px!important;
-  border:1px solid #cbd5df!important;background:#f1f4f7!important;color:#263445!important;
-  font:600 13px/1.2 Inter,"Segoe UI",Arial,sans-serif!important;box-shadow:none!important;
-}
-:root[data-theme="light"] #customer-credit-panel .rc-tabs button,
-:root[data-theme="light"] #customer-credit-panel #customer-credit-clear,
-:root[data-theme="light"] #customer-credit-panel #credit-notes-tab,
-:root[data-theme="light"] #customer-credit-panel #credit-voucher-tab,
-:root[data-theme="light"] #customer-credit-panel .rc-tabs .btn{
-  background:#f1f4f7!important;color:#263445!important;border-color:#cbd5df!important;
-}
-@media(max-width:600px){
-  .credit-note-dialog-overlay.modal-overlay{padding:8px!important}
-  .credit-note-dialog.modal{width:calc(100vw - 16px)!important;max-height:92dvh!important;border-radius:14px!important}
-  .credit-note-dialog .credit-note-dialog-head{padding:12px 14px!important}
-  .credit-note-dialog .overpayment-credit-record__body,
-  .credit-note-dialog .customer-credit-document{padding:14px!important}
-}
-
-
-.credit-voucher-tabs{
- display:flex!important;align-items:center!important;justify-content:flex-start!important;
- flex-wrap:wrap!important;gap:8px!important;width:100%!important;margin:12px 0!important;
-}
-.credit-voucher-tabs #credit-notes-tab,
-.credit-voucher-tabs #credit-voucher-tab{
- display:inline-flex!important;align-items:center!important;justify-content:center!important;
- min-height:42px!important;padding:9px 16px!important;border:1px solid #cbd5df!important;
- border-radius:10px!important;background:#f1f4f7!important;color:#263445!important;
- font:600 13px/1.2 Inter,"Segoe UI",Arial,sans-serif!important;box-shadow:none!important;
-}
-.credit-voucher-tabs #credit-notes-tab[aria-pressed="true"],
-.credit-voucher-tabs #credit-voucher-tab[aria-pressed="true"]{
- background:#e2eaf2!important;border-color:#9aabba!important;color:#17212d!important;
-}
-:root[data-theme="light"] .credit-voucher-tabs #credit-notes-tab,
-:root[data-theme="light"] .credit-voucher-tabs #credit-voucher-tab{
- background:#f1f4f7!important;color:#263445!important;border-color:#cbd5df!important;
-}
-:root[data-theme="light"] .credit-voucher-tabs #credit-notes-tab[aria-pressed="true"],
-:root[data-theme="light"] .credit-voucher-tabs #credit-voucher-tab[aria-pressed="true"]{
- background:#e2eaf2!important;color:#17212d!important;border-color:#9aabba!important;
-}`;
-document.head.append(creditNoteLayoutStyle);
-
-const creditNoteFullscreenStyle = document.createElement("style");
-creditNoteFullscreenStyle.id = "customer-credit-fullscreen-view";
-creditNoteFullscreenStyle.textContent = `/* Full-screen credit note detail view: no floating/narrow popup. */
-.credit-note-dialog-overlay.modal-overlay{
-  position:fixed!important;inset:0!important;z-index:2147483600!important;
-  display:flex!important;align-items:stretch!important;justify-content:stretch!important;
-  width:100vw!important;height:100vh!important;height:100dvh!important;
-  max-width:100vw!important;max-height:100dvh!important;
-  margin:0!important;padding:0!important;overflow:hidden!important;
-  background:rgba(15,23,42,.12)!important;backdrop-filter:none!important;
-}
-.credit-note-dialog.modal{
-  display:flex!important;flex-direction:column!important;flex:1 1 100%!important;
-  width:100vw!important;min-width:0!important;max-width:100vw!important;
-  height:100vh!important;height:100dvh!important;min-height:100dvh!important;
-  max-height:100dvh!important;margin:0!important;padding:0!important;
-  overflow:hidden!important;border:0!important;border-radius:0!important;
-  box-shadow:none!important;background:#fff!important;color:#17212d!important;
-}
-.credit-note-dialog .credit-note-dialog-head{
-  position:sticky!important;top:0!important;z-index:2!important;flex:0 0 auto!important;
-  min-height:56px!important;padding:10px clamp(14px,3vw,32px)!important;
-  border-bottom:1px solid #d8e0e8!important;background:#f8fafc!important;color:#17212d!important;
-}
-.credit-note-dialog .credit-dialog-content{
-  flex:1 1 auto!important;width:100%!important;min-width:0!important;
-  min-height:0!important;max-height:none!important;overflow-y:auto!important;
-  overflow-x:hidden!important;overscroll-behavior:contain!important;
-  background:#fff!important;color:#17212d!important;
-}
-.credit-note-dialog .customer-credit-document,
-.credit-note-dialog .overpayment-credit-record__body{
-  width:100%!important;max-width:1180px!important;min-width:0!important;
-  margin:0 auto!important;padding:clamp(16px,3vw,34px)!important;
-  border:0!important;border-radius:0!important;background:#fff!important;color:#17212d!important;
-}
-.credit-note-dialog .credit-doc-facts,
-.credit-note-dialog .credit-doc-totals{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-}
-.credit-note-dialog .credit-detail-row{grid-template-columns:minmax(150px,.8fr) minmax(0,1.2fr)!important}
-:root[data-theme="dark"] .credit-note-dialog.modal,
-:root[data-theme="dark"] .credit-note-dialog .credit-dialog-content,
-:root[data-theme="dark"] .credit-note-dialog .customer-credit-document,
-:root[data-theme="dark"] .credit-note-dialog .overpayment-credit-record__body{
-  background:#151c25!important;color:#e9eef4!important;
-}
-:root[data-theme="dark"] .credit-note-dialog .credit-note-dialog-head{
-  background:#202a36!important;color:#f1f4f8!important;border-color:#3d4958!important;
-}
-@media(max-width:700px){
-  .credit-note-dialog .customer-credit-document,
-  .credit-note-dialog .overpayment-credit-record__body{padding:14px!important}
-  .credit-note-dialog .credit-doc-facts,
-  .credit-note-dialog .credit-doc-totals{grid-template-columns:minmax(0,1fr)!important}
-  .credit-note-dialog .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;gap:4px!important}
-  .credit-note-dialog .credit-detail-row>strong{text-align:left!important}
-}
-`;
-document.head.appendChild(creditNoteFullscreenStyle);
-
-
-/* Final credit-note dialog overrides. Keep this as the last injected style block. */
-const creditNoteFinalLayoutStyle = document.createElement("style");
-creditNoteFinalLayoutStyle.id = "customer-credit-final-layout";
-creditNoteFinalLayoutStyle.textContent = `
-.credit-note-dialog-overlay.modal-overlay{
-  position:fixed!important;inset:0!important;z-index:2147483600!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:100vw!important;height:100vh!important;height:100dvh!important;
-  padding:24px!important;overflow:hidden!important;
-  background:rgba(5,9,14,.55)!important;backdrop-filter:blur(3px)!important;
-}
-.credit-note-dialog.modal{
-  display:flex!important;flex-direction:column!important;flex:0 1 920px!important;
-  width:min(920px,calc(100vw - 48px))!important;max-width:920px!important;
-  height:auto!important;min-width:0!important;min-height:0!important;
-  max-height:calc(100dvh - 48px)!important;margin:auto!important;padding:0!important;
-  overflow:hidden!important;border-radius:16px!important;
-}
-.credit-note-dialog .credit-doc-actions{
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-actions,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-actions{
   display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
-  justify-content:center!important;align-items:center!important;
-  gap:10px!important;padding:14px 16px!important;
+  align-items:center!important;justify-content:flex-start!important;gap:10px!important;
+  width:100%!important;min-width:0!important;margin:0!important;padding:14px 0 0!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;
 }
-.credit-note-dialog .credit-doc-actions>*{
-  flex:0 0 auto!important;width:auto!important;min-width:0!important;
-  padding:10px 16px!important;justify-content:center!important;
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-actions>*,
+.customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-actions>*{
+  display:inline-flex!important;flex:0 0 auto!important;flex-basis:auto!important;
+  width:auto!important;min-width:0!important;max-width:100%!important;
+  grid-column:auto!important;margin:0!important;padding:10px 16px!important;
 }
-@media(max-width:700px){
-  .credit-note-dialog-overlay.modal-overlay{
-    align-items:stretch!important;justify-content:stretch!important;padding:0!important;
-  }
-  .credit-note-dialog.modal{
-    flex:1 1 100%!important;width:100%!important;max-width:100%!important;
-    height:100dvh!important;max-height:100dvh!important;min-height:100dvh!important;
-    margin:0!important;border-radius:0!important;
-  }
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-actions--footer{position:static!important;bottom:auto!important;z-index:auto!important}
+.customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-actions--footer .btn{width:auto!important;min-width:0!important}
+.customer-credit-panel-scope .credit-voucher-modal-qr{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:14px!important;margin:12px 0!important;padding:12px!important;
+  border:1px solid var(--line,#64748b)!important;border-radius:10px!important;
+}
+.customer-credit-panel-scope .credit-voucher-modal-qr small{display:block!important;font-size:10px!important}
+.customer-credit-panel-scope .credit-voucher-modal-qr strong{font:800 16px ui-monospace,monospace!important;letter-spacing:.08em!important;overflow-wrap:anywhere!important}
+.customer-credit-panel-scope .credit-voucher-modal-qr>div:last-child{flex:0 0 auto!important}
+.customer-credit-panel-scope .credit-voucher-modal-qr canvas,
+.customer-credit-panel-scope .credit-voucher-modal-qr img{display:block!important;width:112px!important;height:112px!important}
+@media(max-width:420px){
+  .customer-credit-panel-scope details.customer-credit-record[open] .credit-doc-facts,
+  .customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-facts,
+  .customer-credit-panel-scope details.overpayment-credit-record[open] .credit-doc-totals{grid-template-columns:minmax(0,1fr)!important}
 }
 `;
-document.head.appendChild(creditNoteFinalLayoutStyle);
+document.head.appendChild(creditAccordionStyle);
+
+
