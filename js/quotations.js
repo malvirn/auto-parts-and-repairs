@@ -615,7 +615,7 @@ quoteForm.addEventListener("submit", async event => {
     let copied = false;
     try { await navigator.clipboard.writeText(createdCustomerCode); copied = true; } catch {}
     const customerLabel = is_company ? company_name : walk_in_name;
-    const phoneDigits = walk_in_phone.replace(/\\D/g, "");
+    const phoneDigits = walk_in_phone.replace(/\D/g, "");
     if (phoneDigits && confirm(`Customer ID ${createdCustomerCode}${copied ? " copied to clipboard." : ""} Share it with the customer on WhatsApp?`)) {
       window.open("https://wa.me/" + phoneDigits + "?text=" + encodeURIComponent("Hello " + customerLabel + ", your Centric Auto Mobile Customer ID is " + createdCustomerCode + ". Please keep it for future visits."), "_blank", "noopener");
     } else if (!copied) {
