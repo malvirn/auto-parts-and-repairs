@@ -15,6 +15,8 @@ let editingVehicleId = null;
 let savedCustomerId = null;
 let savedVehicleId = null;
 let customerSubmissionInProgress = false;
+let canManageCustomerCode = false;
+let savedCustomerCode = "";
 const VEHICLE_BODY_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Other"];
 const vehicleBodyTypeValue = value =>
   VEHICLE_BODY_TYPES.find(type => type.toLowerCase() === String(value || "").trim().toLowerCase()) || "Other";
@@ -69,7 +71,7 @@ function resetCustomerFormMode() {
 async function fetchCustomersList() {
   let query = supabase
     .from("customers")
-    .select("id, customer_code, full_name, phone, email, customer_type, is_repeat_customer, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, is_repeat_customer, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
     .order("created_at", { ascending: false });
   query = showingArchived ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
   const { data, error } = await query;
@@ -85,8 +87,8 @@ function renderCustomersList(data) {
   }
   tableBody.innerHTML = data.map(c => `
     <tr data-customer-id="${c.id}" data-archived="${showingArchived}">
-      <td data-label="Customer">${escapeHtml(c.full_name)}<small>Customer ID: ${escapeHtml(c.customer_code || "—")}</small></td>
-      <td data-label="Type"><span class="customer-type" data-type="${c.customer_type === "company" ? "company" : "individual"}">${c.customer_type === "company" ? "Company" : "Individual"}</span></td>
+      <td data-label="Customer">${escapeHtml(c.full_name)}<small>Customer ID: ${escapeHtml(c.customer_code || "—")}</small>${c.is_company && c.company_name ? `<small>Company: ${escapeHtml(c.company_name)}</small>` : ""}</td>
+      <td data-label="Type"><span class="customer-type" data-type="${c.is_company ? "company" : "individual"}">${c.is_company ? "Company" : "Individual"}</span></td>
       <td data-label="Phone">${escapeHtml(c.phone || "—")}</td>
       <td data-label="Vehicles">${vehiclePlates(c.vehicles)}</td>
       <td data-label="Customer status"><span class="customer-repeat${c.is_repeat_customer ? "" : " is-new"}">${c.is_repeat_customer ? "Repeat customer" : "New customer"}</span></td>
@@ -155,7 +157,7 @@ async function findExistingCustomer(phone, email) {
 
   const { data, error } = await supabase
     .from("customers")
-    .select("id, full_name, phone, email, is_repeat_customer")
+    .select("id, customer_code, full_name, phone, email, is_company, company_name, is_repeat_customer")
     .or(filters.join(","))
     .is("deleted_at", null)
     .limit(1);
@@ -200,7 +202,7 @@ async function addVehicle(customerId, vehicle) {
 async function startEditingCustomer(customerId) {
   const { data: customer, error } = await supabase
     .from("customers")
-    .select("id, full_name, phone, email, customer_type, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
     .eq("id", customerId)
     .single();
   if (error || !customer) {
@@ -212,6 +214,11 @@ async function startEditingCustomer(customerId) {
   editingCustomerId = customer.id;
   editingVehicleId = customer.vehicles?.[0]?.id || null;
   document.getElementById("cust-name").value = customer.full_name || "";
+  document.getElementById("cust-is-company").checked = Boolean(customer.is_company);
+  document.getElementById("cust-company-name").value = customer.company_name || "";
+  document.getElementById("cust-company-name-field").hidden = !customer.is_company;
+  document.getElementById("cust-company-name").required = Boolean(customer.is_company);
+  document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-type").value = customer.customer_type || "individual";
   document.getElementById("cust-phone").value = customer.phone || "";
   document.getElementById("customer-email").value = customer.email || "";
@@ -266,6 +273,11 @@ plateField?.addEventListener("change", async () => {
   document.getElementById("cust-type").value = data.customers.customer_type || "individual";
   document.getElementById("cust-phone").value = data.customers.phone || "";
   document.getElementById("customer-email").value = data.customers.email || "";
+  document.getElementById("cust-is-company").checked = Boolean(data.customers.is_company);
+  document.getElementById("cust-company-name").value = data.customers.company_name || "";
+  document.getElementById("cust-company-name-field").hidden = !data.customers.is_company;
+  document.getElementById("cust-company-name").required = Boolean(data.customers.is_company);
+  document.getElementById("cust-customer-code").value = data.customers.customer_code || "";
   document.getElementById("cust-body-type").value = vehicleBodyTypeValue(data.body_type);
   document.getElementById("cust-make").value = data.make || "";
   document.getElementById("cust-model").value = data.model || "";
@@ -287,10 +299,15 @@ if (form) {
     hideSavedActions();
 
     const full_name = document.getElementById("cust-name").value.trim();
+    const isCompanyToggle = document.getElementById("cust-is-company");
+    const companyNameField = document.getElementById("cust-company-name");
     const customer_type = document.getElementById("cust-type").value;
     const phone = document.getElementById("cust-phone").value.trim();
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
+    const is_company = document.getElementById("cust-is-company")?.checked || false;
+    const company_name = document.getElementById("cust-company-name")?.value.trim() || "";
+    if (is_company && !company_name) { showCustomerMessage("Company name is required.", "error"); document.getElementById("cust-company-name")?.focus(); return; }
     const vehicle = {
       license_plate,
       body_type: document.getElementById("cust-body-type").value,
@@ -340,7 +357,7 @@ if (form) {
     if (editingCustomerId) {
       const { error: customerError } = await supabase
         .from("customers")
-        .update({ full_name, customer_type, phone, email: email || null })
+        .update({ full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null })
         .eq("id", editingCustomerId);
       if (customerError) {
         alert(`Couldn't update customer details: ${customerError.message}`);
@@ -441,8 +458,8 @@ if (form) {
 
     // No existing match — this really is a new customer.
     const { data: customer, error } = await supabase.from("customers").insert([
-      { full_name, customer_type, phone, email: email || null }
-    ]).select("id").single();
+      { full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null }
+    ]).select("id, customer_code").single();
 
     if (error) {
       console.error("Error adding customer:", error);
@@ -505,3 +522,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadCustomers();
   highlightFromUrl();
 });
+
+
+document.getElementById("cust-is-company")?.addEventListener("change", event => {
+  const enabled = event.currentTarget.checked;
+  const wrap = document.getElementById("cust-company-name-field");
+  const input = document.getElementById("cust-company-name");
+  if (wrap) wrap.hidden = !enabled;
+  if (input) { input.required = enabled; if (!enabled) input.value = ""; }
+});
+
+document.getElementById("customer-directory-search")?.addEventListener("input", () => loadCustomers());
+
+async function loadCustomerCodePermissions() {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user?.id) return;
+  const { data: profile } = await supabase.from("profiles").select("role,access_level").eq("id", auth.user.id).maybeSingle();
+  const role = String(profile?.role || "").toLowerCase();
+  canManageCustomerCode = Number(profile?.access_level || 0) >= 2 || ["super_admin", "superadmin", "accounting"].includes(role);
+  const field = document.getElementById("cust-customer-code");
+  if (field) field.readOnly = !canManageCustomerCode;
+}
+loadCustomerCodePermissions().catch(error => console.warn("Could not load Customer ID permissions:", error));
