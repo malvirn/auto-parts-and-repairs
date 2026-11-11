@@ -1143,11 +1143,18 @@ async function load(){
   ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
   : `<option value="">Choose a payment method first…</option>`;
  if(a.error)console.error("Couldn't load accounts for customer invoice payments:",a.error);
- const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount)").order("issued_at",{ascending:false}).limit(500);
+ const creditNotesResult=await supabase.from("customer_overpayment_credit_notes").select("id,note_number,customer_id,invoice_id,overpayment_credit_id,customer_name,customer_phone,amount,issued_at,invoices(invoice_number,customer_email,subtotal,discount,vat_rate,vat_base,total,items,reference),customer_overpayment_credits(available_amount),customers(customer_code,is_company,company_name)").order("issued_at",{ascending:false}).limit(500);
  if(creditNotesResult.error)console.error("Could not load overpayment credit notes:",creditNotesResult.error);
+ const invoiceIdsForCredit=(i.data||[]).map(row=>row.id).filter(Boolean);
+ const invoiceCreditResult=invoiceIdsForCredit.length
+  ? await supabase.from("customer_credit_movements").select("target_id,amount").in("target_id",invoiceIdsForCredit).eq("target_type","invoice").eq("movement_type","application").is("reversed_at",null)
+  : {data:[],error:null};
+ if(invoiceCreditResult.error)console.error("Could not load invoice customer-credit applications:",invoiceCreditResult.error);
+ const invoiceCreditTotals=new Map();
+ (invoiceCreditResult.data||[]).forEach(m=>{const key=String(m.target_id);invoiceCreditTotals.set(key,(invoiceCreditTotals.get(key)||0)+Number(m.amount||0));});
  const [creditLinksResult,creditRefundsResult]=await Promise.all([
   supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)"),
-  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone)")
+  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone,customers(customer_code))")
  ]);
  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
  if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
@@ -1165,7 +1172,7 @@ async function load(){
  });
  const refundReceipts=(creditRefundsResult.data||[]).map(refund=>({kind:"receipt",id:refund.id,creditRefundReceipt:true,voidedAt:refund.voided_at,voidReason:refund.void_reason,number:"RF-"+String(refund.refund_number).padStart(5,"0"),date:refund.payment_date||refund.created_at,customer:{name:refund.customer_overpayment_credit_notes?.customer_name||"Customer",phone:refund.customer_overpayment_credit_notes?.customer_phone||"",customer_code:refund.customer_overpayment_credit_notes?.customers?.customer_code||""},ref:"Refund for CN-"+String(refund.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0"),receiptAmount:Number(refund.amount)||0,paymentMethod:refund.payment_method||"Refund",items:[{d:"Refund of customer credit note",q:1,p:Number(refund.amount)||0}],jobPayment:null}));
  rows.creditRefundReceipts=refundReceipts;
- rows.invoices=(i.data||[]).map(x=>{const amountPaid=Number(x.amount_paid)||0,items=normalizeInvoiceItems(x.items),discount=Number(x.discount)||0,total=Number(x.total)||0,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customers?.company_name||x.customer_name,phone:x.customer_phone,email:x.customer_email,customer_code:x.customers?.customer_code||"",company_name:x.customers?.company_name||"",is_company:Boolean(x.customers?.is_company)},ref:x.reference,items,subtotal:Number(x.subtotal)||0,total,discount,vat:Number(x.vat_rate??5),vatBase:Number(x.vat_base??x.subtotal)||0,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
+ rows.invoices=(i.data||[]).map(x=>{const amountPaid=(Number(x.amount_paid)||0)+(invoiceCreditTotals.get(String(x.id))||0),items=normalizeInvoiceItems(x.items),discount=Number(x.discount)||0,total=Number(x.total)||0,balance=Math.max(0,total-amountPaid);return{kind:"invoice",id:x.id,repairJobId:x.repair_job_id,customerId:x.customer_id,number:"INV-"+String(x.invoice_number).padStart(5,"0"),date:x.issued_at,due:x.due_date,customer:{name:x.customers?.company_name||x.customer_name,phone:x.customer_phone,email:x.customer_email,customer_code:x.customers?.customer_code||"",company_name:x.customers?.company_name||"",is_company:Boolean(x.customers?.is_company)},ref:x.reference,items,subtotal:Number(x.subtotal)||0,total,discount,vat:Number(x.vat_rate??5),vatBase:Number(x.vat_base??x.subtotal)||0,notes:x.notes,status:balance<=0.005?"paid":amountPaid>0?"partially_paid":"unpaid",amountPaid}});
  const jobIds=[...new Set([
   ...(r.data||[]).map(x=>x.repair_job_id),
   ...rows.invoices.map(invoice=>invoice.repairJobId),
