@@ -891,12 +891,9 @@ async function initializeAfterAccess() {
 // until the current session's access check supplies an authoritative role.
 if (!isDashboardHome()) {
   try {
-    const remembered = JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}");
-    // Keep the cached role as a rendering hint only. Do not mark access as
-    // verified; initializeAfterAccess must still wait for apr:access-ready.
-    if (!document.body.dataset.accessLevel && remembered.accessLevel != null) {
-      document.body.dataset.accessLevel = String(remembered.accessLevel);
-    }
+    // The cached role/access level remains a rendering hint only. Keep it
+    // out of body.dataset so the verified access event still runs normally.
+    JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}");
   } catch (_) {}
   const initialSidebar = document.querySelector("body.dashboard-page .sidebar");
   if (initialSidebar) normalizeDashboardSidebar(initialSidebar);
