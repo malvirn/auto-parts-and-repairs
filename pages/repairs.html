@@ -1489,10 +1489,20 @@ jobVoucherCheck.onclick=async()=>{
   if(error)throw error;if(data?.error)throw new Error(data.error);
   if(data.status!=="active"||Number(data.available_amount)<=0.005)throw new Error("This voucher is "+data.status+" and cannot be redeemed.");
   const sourceTable=data.credit_note_type==="quotation_deposit"?"quotation_deposit_receipts":"customer_overpayment_credit_notes";
-  const{data:sourceNote,error:sourceError}=await supabase.from(sourceTable).select("customer_id").eq("id",data.credit_note_id).maybeSingle();
-  if(sourceError)throw sourceError;if(!sourceNote?.customer_id)throw new Error("This voucher is not linked to a registered customer.");
-  const{data:customer,error:customerError}=await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id",sourceNote.customer_id).single();
-  if(customerError)throw customerError;
+  const{data:sourceNote,error:sourceError}=await supabase.from(sourceTable).select("customer_id,customer_name,customer_phone").eq("id",data.credit_note_id).maybeSingle();
+  if(sourceError)throw sourceError;
+  let customer;
+  if(sourceNote?.customer_id){
+   const result=await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id",sourceNote.customer_id).single();
+   if(result.error)throw result.error;customer=result.data;
+  }else{
+   const result=await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").limit(1000);
+   if(result.error)throw result.error;
+   const digits=value=>String(value||"").replace(/\\D/g,""),name=String(sourceNote?.customer_name||"").trim().toLocaleLowerCase(),phone=digits(sourceNote?.customer_phone);
+   const matches=(result.data||[]).filter(candidate=>[candidate.full_name,candidate.company_name].some(value=>String(value||"").trim().toLocaleLowerCase()===name)&&(!phone||digits(candidate.phone)===phone));
+   if(matches.length!==1)throw new Error("This voucher is not linked to one registered customer. Register or link the customer before redeeming it.");
+   customer=matches[0];
+  }
   jobVoucherData={...data,code,customer};jobVoucherBalance=balance.balance;
   $("job-voucher-confirm-label").textContent=customer.is_company?"Confirm company name exactly":"Customer phone last 4 digits or full name";
   $("job-voucher-author-label").hidden=!customer.is_company;jobVoucherAuthorisedBy.hidden=!customer.is_company;jobVoucherAuthorisedBy.required=Boolean(customer.is_company);
@@ -2472,6 +2482,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=customer-cid-10"></script>
+<script type="module" src="../js/credit-vouchers.js?v=customer-cid-11"></script>
 </body>
 </html>
