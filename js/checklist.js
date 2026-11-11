@@ -292,9 +292,37 @@ async function saveDraft(){
    }
   }
   try{localStorage.setItem("centric-inspection-draft-"+checklistId,JSON.stringify({report,updated_at:new Date().toISOString()}));localStorage.removeItem("centric-inspection-draft-new");}catch{}
+  // Link automatically only when exactly one job matches this customer's vehicle.
+  if(!record.job_id&&customerName&&vehicleRegistration){
+   const{data:jobs,error:jobsError}=await supabase.from("repair_jobs")
+    .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name),vehicles(license_plate)")
+    .order("created_at",{ascending:false}).limit(1000);
+   if(jobsError)throw new Error("Checklist saved, but matching job cards could not be checked: "+jobsError.message);
+   const matches=(jobs||[]).filter(job=>
+    normalizeMatch(job.customers?.full_name)===normalizeMatch(customerName)
+    &&normalizeMatch(job.vehicles?.license_plate)===normalizeMatch(vehicleRegistration)
+    &&(!record.customer_id||String(record.customer_id)===String(job.customer_id))
+    &&(!record.vehicle_id||String(record.vehicle_id)===String(job.vehicle_id))
+   );
+   if(matches.length===1){
+    const{error:linkError}=await supabase.rpc("link_vehicle_condition_checklist",{p_checklist_id:checklistId,p_job_id:matches[0].id});
+    if(linkError)throw new Error("Checklist saved, but automatic job linking failed: "+linkError.message);
+    record.job_id=matches[0].id;selectedJob=matches[0];
+   }
+  }
+  if(record.job_id){
+   try{record=await loadRecord(checklistId);selectedJob={id:record.job_id,customer_id:record.customer_id,vehicle_id:record.vehicle_id,...record.repair_jobs};}catch{}
+  }
   $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
-  $("checklist-number-display").hidden=false;syncInspectionStrip();renderInspectionSummary();
-  setDetailMessage("Draft saved. Link a job card when you're ready to complete the inspection.");
+  $("checklist-number-display").hidden=false;
+  $("open-job").classList.toggle("hidden",Boolean(record.voided_at));
+  $("open-job").textContent=record.job_id?"Open linked job card":"Create job card with checklist details";
+  $("open-job").href=record.job_id?"repairs.html?edit="+encodeURIComponent(record.job_id):"repairs.html?checklist="+encodeURIComponent(checklistId);
+  $("job-meta").hidden=!record.job_id;
+  $("job-meta").textContent=record.job_id?"Linked to "+(record.repair_jobs?.cro_number||"job card"):"";
+  $("link-existing-fields").hidden=true;
+  syncInspectionStrip();renderInspectionSummary();
+  setDetailMessage(record.job_id?"Checklist saved. Inspection number generated and job card linked automatically.":"Checklist saved. Inspection number generated. You can create its job card later.");
   button.disabled=false;
  }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
 }
