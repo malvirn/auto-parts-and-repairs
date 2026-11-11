@@ -686,4 +686,134 @@ group by receipt.id, customer.id;
 revoke all on public.customer_credit_balances from public, anon;
 grant select on public.customer_credit_balances to authenticated;
 
+
+-- Safely register and link an older credit record that predates customer IDs.
+-- Staff must explicitly choose individual/company and confirm the historical
+-- name and phone; this never guesses which existing customer owns the credit.
+create or replace function public.register_and_link_legacy_credit_customer(
+  p_credit_note_type text,
+  p_credit_note_id uuid,
+  p_full_name text,
+  p_phone text,
+  p_is_company boolean default false,
+  p_company_name text default null
+) returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $
+declare
+  source_name text;
+  source_phone text;
+  existing_customer_id uuid;
+  new_customer_id uuid;
+  new_customer_code text;
+begin
+  if auth.uid() is null or public.current_access_level() < 1 then
+    raise exception 'Authorised staff access is required' using errcode = '42501';
+  end if;
+
+  if nullif(btrim(coalesce(p_full_name, '')), '') is null
+     or nullif(btrim(coalesce(p_phone, '')), '') is null then
+    raise exception 'Customer name and phone are required';
+  end if;
+
+  if coalesce(p_is_company, false)
+     and nullif(btrim(coalesce(p_company_name, '')), '') is null then
+    raise exception 'Company name is required';
+  end if;
+
+  if p_credit_note_type = 'quotation_deposit' then
+    select customer_name, customer_phone into source_name, source_phone
+    from public.quotation_deposit_receipts
+    where id = p_credit_note_id and customer_id is null
+    for update;
+  elsif p_credit_note_type = 'invoice_overpayment' then
+    select customer_name, customer_phone into source_name, source_phone
+    from public.customer_overpayment_credit_notes
+    where id = p_credit_note_id and customer_id is null
+    for update;
+  else
+    raise exception 'Unsupported credit note type';
+  end if;
+
+  if not found then
+    raise exception 'Credit note is already linked or could not be found';
+  end if;
+
+  if not exists (
+    select 1 from public.customer_credit_vouchers v
+    where v.credit_note_type = p_credit_note_type
+      and v.credit_note_id = p_credit_note_id
+  ) then
+    raise exception 'No portable voucher exists for this credit note';
+  end if;
+
+  if exists (
+    select 1 from public.credit_voucher_redemptions r
+    where r.credit_note_type = p_credit_note_type
+      and r.credit_note_id = p_credit_note_id
+  ) then
+    raise exception 'This credit note has redemption history and cannot be linked through legacy registration';
+  end if;
+
+  if p_is_company then
+    if lower(btrim(p_company_name)) <> lower(btrim(source_name)) then
+      raise exception 'Company name must match the name recorded on the original credit note';
+    end if;
+  elsif lower(btrim(p_full_name)) <> lower(btrim(source_name)) then
+    raise exception 'Customer name must match the name recorded on the original credit note';
+  end if;
+
+  if nullif(regexp_replace(coalesce(source_phone, ''), '[^0-9]', '', 'g'), '') is not null
+     and regexp_replace(p_phone, '[^0-9]', '', 'g')
+       <> regexp_replace(source_phone, '[^0-9]', '', 'g') then
+    raise exception 'Phone number must match the original credit note';
+  end if;
+
+  select id into existing_customer_id
+  from public.customers
+  where lower(btrim(full_name)) = lower(btrim(p_full_name))
+     or (p_is_company and lower(btrim(coalesce(company_name, ''))) = lower(btrim(p_company_name)))
+  limit 1;
+
+  if existing_customer_id is not null then
+    raise exception 'A matching customer already exists. Use the existing customer record instead of creating a duplicate';
+  end if;
+
+  insert into public.customers(full_name, phone, is_company, company_name)
+  values (
+    btrim(p_full_name),
+    btrim(p_phone),
+    coalesce(p_is_company, false),
+    case when coalesce(p_is_company, false) then btrim(p_company_name) else null end
+  )
+  returning id, customer_code into new_customer_id, new_customer_code;
+
+  if p_credit_note_type = 'quotation_deposit' then
+    update public.quotation_deposit_receipts
+    set customer_id = new_customer_id
+    where id = p_credit_note_id and customer_id is null;
+  else
+    update public.customer_overpayment_credit_notes
+    set customer_id = new_customer_id
+    where id = p_credit_note_id and customer_id is null;
+  end if;
+
+  if not found then
+    raise exception 'Credit note was linked by another request. Refresh and check its customer';
+  end if;
+
+  return jsonb_build_object(
+    'customer_id', new_customer_id,
+    'customer_code', new_customer_code,
+    'is_company', coalesce(p_is_company, false),
+    'company_name', case when coalesce(p_is_company, false) then btrim(p_company_name) else null end
+  );
+end;
+$;
+
+revoke all on function public.register_and_link_legacy_credit_customer(text,uuid,text,text,boolean,text) from public, anon;
+grant execute on function public.register_and_link_legacy_credit_customer(text,uuid,text,text,boolean,text) to authenticated;
+
 commit;
