@@ -971,7 +971,11 @@ const creditLiveChannel = supabase.channel("customer-credit-job-status")
 window.addEventListener("focus", () => load());
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 
-/* Match the Repairs > Edit Job Card modal instead of the old floating voucher card. */
+
+/* Credit note modal and tabs styling. Kept inside a style element so this module remains valid JavaScript. */
+const creditNoteLayoutStyle = document.createElement("style");
+creditNoteLayoutStyle.id = "credit-note-layout-style";
+creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal instead of the old floating voucher card. */
 .credit-note-dialog-overlay.modal-overlay{
   position:fixed!important;inset:0!important;z-index:2147483600!important;
   display:flex!important;align-items:center!important;justify-content:center!important;
@@ -1094,4 +1098,5 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) load
 :root[data-theme="light"] .credit-voucher-tabs #credit-notes-tab[aria-pressed="true"],
 :root[data-theme="light"] .credit-voucher-tabs #credit-voucher-tab[aria-pressed="true"]{
  background:#e2eaf2!important;color:#17212d!important;border-color:#9aabba!important;
-}
+}`;
+document.head.append(creditNoteLayoutStyle);
