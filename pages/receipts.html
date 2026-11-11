@@ -2700,23 +2700,27 @@ async function loadReceiptsSafely(){
  const attempt=++receiptLoadAttempt;
  const params=new URLSearchParams(location.search);
  $("list").innerHTML='<div class="ov-empty">Loading receipts…</div>';
- let timer;
+ const timers=[];
+ const withTimeout=(promise,ms,message)=>Promise.race([
+  promise,
+  new Promise((_,reject)=>{timers.push(setTimeout(()=>reject(new Error(message)),ms))})
+ ]);
  try{
-  // Open Quick Sale receipts immediately. The full Receipts page loads several
-  // historical ledgers and must not block the receipt created by the Shop flow.
+  // Open a requested Quick Sale receipt first, then load the ledger independently.
   if(params.get("quickSalePayment")){
-   await Promise.race([
+   await withTimeout(
     openQuickSalePaymentReceipt(params.get("quickSalePayment"),params.get("paymentMethod")),
-    new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("The Quick Sale receipt could not be retrieved in time. Check your connection and payment access.")),10000)})
-   ]);
+    10000,
+    "The Quick Sale receipt could not be retrieved in time. Check your connection and payment access."
+   );
   }
-  await Promise.race([load(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("The receipts request took too long. Check your connection and try again.")),15000)})]);
+  await withTimeout(load(),30000,"The receipts request took too long. Check your connection and try again.");
  }catch(error){
   if(attempt!==receiptLoadAttempt)return;
   console.error("Receipts page failed to load:",error);
   $("list").innerHTML='<div class="ov-empty">Could not load receipts: '+esc(error?.message||String(error))+'<br><button type="button" class="btn" id="receipt-load-retry" style="margin-top:12px">Try again</button></div>';
   $("receipt-load-retry")?.addEventListener("click",loadReceiptsSafely);
- }finally{clearTimeout(timer)}
+ }finally{timers.forEach(clearTimeout)}
 }
 loadReceiptsSafely();
 </script>
