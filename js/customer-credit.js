@@ -1071,3 +1071,27 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) load
   .credit-note-dialog .credit-doc-actions{grid-template-columns:1fr!important}
 }
 
+
+.credit-voucher-tabs{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ flex-wrap:wrap!important;gap:8px!important;width:100%!important;margin:12px 0!important;
+}
+.credit-voucher-tabs #credit-notes-tab,
+.credit-voucher-tabs #credit-voucher-tab{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ min-height:42px!important;padding:9px 16px!important;border:1px solid #cbd5df!important;
+ border-radius:10px!important;background:#f1f4f7!important;color:#263445!important;
+ font:600 13px/1.2 Inter,"Segoe UI",Arial,sans-serif!important;box-shadow:none!important;
+}
+.credit-voucher-tabs #credit-notes-tab[aria-pressed="true"],
+.credit-voucher-tabs #credit-voucher-tab[aria-pressed="true"]{
+ background:#e2eaf2!important;border-color:#9aabba!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-voucher-tabs #credit-notes-tab,
+:root[data-theme="light"] .credit-voucher-tabs #credit-voucher-tab{
+ background:#f1f4f7!important;color:#263445!important;border-color:#cbd5df!important;
+}
+:root[data-theme="light"] .credit-voucher-tabs #credit-notes-tab[aria-pressed="true"],
+:root[data-theme="light"] .credit-voucher-tabs #credit-voucher-tab[aria-pressed="true"]{
+ background:#e2eaf2!important;color:#17212d!important;border-color:#9aabba!important;
+}
