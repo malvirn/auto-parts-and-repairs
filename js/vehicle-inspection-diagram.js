@@ -44,7 +44,7 @@ function ensureStyles(){
  .vi-part-icon{display:grid;place-items:center;width:100px;height:66px;flex:none;border-radius:7px;background:#0b1220;color:var(--part-color,#20ad5a)}
  .vi-part-icon svg{width:54px;height:48px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
  .vi-part-card.vi-photo-card{display:block;aspect-ratio:4/3;padding:0;overflow:hidden;border-radius:11px;background:#0b1220;line-height:0}
- .vi-part-card.vi-photo-card .vi-part-photo{display:block;width:100%;height:100%;min-height:100%;object-fit:cover;border:0;border-radius:inherit;background:#0b1220}
+ .vi-part-card.vi-photo-card .vi-part-photo{display:block;width:100%;height:100%;min-height:100%;object-fit:contain;padding:5px;border:0;border-radius:inherit;background:transparent}
  .vi-part-card.vi-photo-card[data-condition="No Damage"]{border-color:#20ad5a}
  .vi-part-card.vi-photo-card[data-condition="Scratch"]{border-color:#f59e0b}
  .vi-part-card.vi-photo-card[data-condition="Crack"]{border-color:#a855f7}
@@ -53,6 +53,8 @@ function ensureStyles(){
  .vi-part-card.vi-photo-card[data-condition="Dent"]{border-color:#ef4444}
  .vi-part-photo[data-photo-part="bonnet"]{object-position:50% 50%}
  .vi-part-photo[data-photo-part="roof"]{object-position:50% 50%}
+ .vi-part-photo[data-photo-part="windscreen"]{object-position:50% 50%}
+ .vi-part-photo[data-photo-part^="wheel"]{object-position:50% 50%}
  .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
  .vi-part-card[data-condition="Scratch"]{--part-color:#f59e0b;border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 13%,var(--check-card-2,#1c242e))}
  .vi-part-card[data-condition="Crack"]{--part-color:#a855f7;border-color:#a855f7;background:color-mix(in srgb,#a855f7 13%,var(--check-card-2,#1c242e))}
@@ -108,11 +110,13 @@ function partIcon(part){
 function partVisual(part){
  if(part.key==="bonnet")return `<img class="vi-part-photo" data-photo-part="bonnet" src="https://images.pexels.com/photos/12920563/pexels-photo-12920563.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car bonnet" loading="lazy">`;
  if(part.key==="roof")return `<img class="vi-part-photo" data-photo-part="roof" src="https://images.pexels.com/photos/10989743/pexels-photo-10989743.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Silver car roof, top view" loading="lazy">`;
+ if(part.key==="windscreen")return `<img class="vi-part-photo" data-photo-part="windscreen" src="https://www.pngkey.com/png/detail/842-8427367_windshield-png-car-glass-png.png" alt="Isolated car windscreen with transparent background" loading="lazy">`;
+ if(part.key.startsWith("wheel-")||part.key==="spare-wheel")return `<img class="vi-part-photo" data-photo-part="wheel" src="https://pngimg.com/uploads/car_wheel/car_wheel_PNG1069.png" alt="Silver alloy wheel and tyre with transparent background" loading="lazy">`;
  return partIcon(part);
 }
 function partCard(part,report,interactive){
  const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
- const photoPart=part.key==="bonnet"||part.key==="roof";
+ const photoPart=part.key==="bonnet"||part.key==="roof"||part.key==="windscreen"||part.key.startsWith("wheel-")||part.key==="spare-wheel";
  return `<button type="button" class="vi-part-card${photoPart?" vi-photo-card":""}" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
  ${partVisual(part)}${photoPart?"":`<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span>`}</button>`;
 }
