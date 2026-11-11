@@ -892,7 +892,8 @@ async function initializeAfterAccess() {
 if (!isDashboardHome()) {
   try {
     const remembered = JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}");
-    if (!document.body.dataset.role && remembered.role) document.body.dataset.role = remembered.role;
+    // Keep the cached role as a rendering hint only. Do not mark access as
+    // verified; initializeAfterAccess must still wait for apr:access-ready.
     if (!document.body.dataset.accessLevel && remembered.accessLevel != null) {
       document.body.dataset.accessLevel = String(remembered.accessLevel);
     }
