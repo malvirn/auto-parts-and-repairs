@@ -11,12 +11,16 @@ on:
       - 'js/prefetch.js'
       - 'pages/repairs.html'
       - 'pages/receipts.html'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
       - '.github/workflows/credit-voucher-syntax.yml'
   pull_request:
     paths:
       - 'js/credit-vouchers.js'
       - 'js/customer-credit.js'
       - 'js/repairs.js'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
       - '.github/workflows/credit-voucher-syntax.yml'
 jobs:
   syntax:
@@ -34,6 +38,17 @@ jobs:
           node --check js/quotations.js
           node --check js/repairs.js
           node --check js/prefetch.js
+      - name: Check customer credit security migration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          migration = Path('supabase/migrations/20261111120000_require_confirmation_for_deposit_application.sql').read_text(encoding='utf-8')
+          assert 'Could not safely remove automatic credit application' in migration
+          assert 'revoke all on function public.apply_quotation_deposits_to_repair_job' in migration
+          tests = Path('supabase/tests/customer_credit_confirmation_security.sql').read_text(encoding='utf-8')
+          assert 'deposit recording must not bypass customer confirmation' in tests
+          print('Customer credit security migration checks passed')
+          PY
       - name: Check inline page scripts
         run: |
           python - <<'PY'
