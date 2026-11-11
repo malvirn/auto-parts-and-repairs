@@ -83,6 +83,7 @@ function persistInspectionLocally(){
 }
 async function saveAreaMark(area){
  if(!record?.id||!editable)return;
+ $("inspection-save-state").textContent="Saving…";
  const entry=report.parts?.[area]||{dmg:[]};
  let photo_path=null;
  if(entry.photo?.startsWith("data:image/")){
@@ -337,7 +338,7 @@ function printChecklist(){
   <section><h2>${esc(group)}</h2><table><tbody>${items.map(([key,name])=>{
    const marked=report.parts?.[key],damage=Array.isArray(marked?.dmg)?marked.dmg:[];
    const condition=damage.length?damage.join(", "):"No Damage";
-   return `<tr><th>${esc(name)}</th><td>${esc(condition)}</td></tr>`;
+   return `<tr><th>${esc(name)}</th><td>${esc(condition)}${marked?.note?`<br><small>${esc(marked.note)}</small>`:""}${marked?.photo?`<br><img src="${esc(marked.photo)}" style="max-width:110px;max-height:80px;object-fit:cover;border-radius:5px" alt="Damage photo">`:""}</td></tr>`;
   }).join("")}</tbody></table></section>`).join("");
  const checklistNumber=record?.checklist_number?`#${esc(record.checklist_number)}`:"Draft — not yet saved";
  const linkedJob=selectedJob?(selectedJob.cro_number||`JC-${String(selectedJob.job_number??"").padStart(5,"0")}`):"—";
