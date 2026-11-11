@@ -819,6 +819,16 @@ async function initializeAfterAccess() {
   initializeNavigation();
 }
 
+// Conceal the module's placeholder sidebar immediately, before access checks or
+// the asynchronous Index-template fetch can give the drawer an open state.
+if (!isDashboardHome()) {
+  const pendingSidebar = document.querySelector("body.dashboard-page .sidebar");
+  if (pendingSidebar && pendingSidebar.dataset.dashboardCanonical !== "true") {
+    pendingSidebar.style.setProperty("visibility", "hidden", "important");
+    pendingSidebar.setAttribute("aria-hidden", "true");
+  }
+}
+
 initializePageChrome();
 startSharedDashboardHeaderClock();
 watchSharedNotificationBell();
