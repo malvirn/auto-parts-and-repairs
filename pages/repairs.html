@@ -843,7 +843,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
       <label class="job-vat-option" for="f-is-company"><input id="f-is-company" type="checkbox"> This is a company</label>
       <input id="f-company-name" placeholder="Company name (required)" hidden>
-      <small id="f-customer-cid" class="section-note" aria-live="polite"></small>
+      <div class="customer-cid-actions"><small id="f-customer-cid" class="section-note" aria-live="polite"></small><button type="button" class="btn" id="f-customer-cid-copy" hidden>Copy ID</button><button type="button" class="btn" id="f-customer-cid-whatsapp" hidden>WhatsApp</button></div>
       <h3>2 · Vehicle</h3>
       <select id="f-veh"><option value="">+ New vehicle</option></select>
       <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
@@ -2035,7 +2035,7 @@ async function openBuilder(fromChecklist=null){
  buildInspection=emptyReport();
  renderBuildInspection();
  $("f-cust").value="__new_customer__";
- $("f-is-company").checked=false;$("f-company-name").value="";$("f-company-name").hidden=true;$("f-customer-cid").textContent="";
+ $("f-is-company").checked=false;$("f-company-name").value="";$("f-company-name").hidden=true;$("f-customer-cid").textContent="";$("f-customer-cid-copy").hidden=true;$("f-customer-cid-whatsapp").hidden=true;
  ["f-name","f-phone","f-email","f-make","f-model","f-year","f-plate","f-fault","f-work-done","f-work-missing","f-custom-part","f-fuel-in","f-odometer-in"].forEach(id=>$(id).value="");
  syncBuildReadings();
  ["f-name","f-phone","f-email"].forEach(id=>$(id).readOnly=false);
@@ -2224,6 +2224,7 @@ $("f-cust").onchange=async e=>{
  $("f-company-name").hidden=!customer?.is_company;
  $("f-company-name").required=Boolean(customer?.is_company);
  $("f-customer-cid").textContent=customer?.customer_code?"Customer ID: "+customer.customer_code:"";
+ $("f-customer-cid-copy").hidden=!customer?.customer_code;$("f-customer-cid-whatsapp").hidden=!customer?.customer_code;
  $("f-phone").value=customer?.phone||"";
  $("f-email").value=customer?.email||"";
  if(!customer)return;
@@ -2259,7 +2260,7 @@ $("save").onclick=async()=>{const b=$("save");
    reservedParts.push({id:item.id,quantity:item.quantity});
   }
   let cid=$("f-cust").value;
-  if(cid==="__new_customer__"){const isCompany=$("f-is-company").checked,companyName=$("f-company-name").value.trim();if(isCompany&&!companyName)throw new Error("Enter the company name.");const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null,is_company:isCompany,company_name:isCompany?companyName:null}).select("id,customer_code").single();if(r.error)throw r.error;cid=r.data.id;$("f-customer-cid").textContent="Customer ID: "+r.data.customer_code;}
+  if(cid==="__new_customer__"){const isCompany=$("f-is-company").checked,companyName=$("f-company-name").value.trim();if(isCompany&&!companyName)throw new Error("Enter the company name.");const r=await supabase.from("customers").insert({full_name:$("f-name").value.trim(),phone:$("f-phone").value||null,email:$("f-email").value||null,is_company:isCompany,company_name:isCompany?companyName:null}).select("id,customer_code").single();if(r.error)throw r.error;cid=r.data.id;$("f-customer-cid").textContent="Customer ID: "+r.data.customer_code;$("f-customer-cid-copy").hidden=false;$("f-customer-cid-whatsapp").hidden=false;}
   let vid=$("f-veh").value||null;
   const vehicleDetails={
    make:$("f-make").value.trim()||null,
@@ -2449,6 +2450,8 @@ $("s-inv").onclick=async()=>{
  }catch(error){console.error("Couldn't check balance before invoicing job:",error);toast(error.message||String(error))}
 };
 
+$("f-customer-cid-copy").onclick=async()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim();if(!code)return;try{await navigator.clipboard.writeText(code);toast(code+" copied")}catch{toast("Copy was blocked. Select the Customer ID and copy it manually.")}};
+$("f-customer-cid-whatsapp").onclick=()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim(),phone=String($("f-phone").value||"").replace(/[^0-9]/g,"");if(!code)return;const message="Hello "+($("f-company-name").value.trim()||$("f-name").value.trim()||"Customer")+", your Centric Auto Mobile Customer ID is "+code+". Please keep it for future visits.";window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener")};
 $("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
 $("hs-input")?.addEventListener("input",render);
 load().then(()=>{
@@ -2459,6 +2462,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=customer-cid-6"></script>
+<script type="module" src="../js/credit-vouchers.js?v=customer-cid-7"></script>
 </body>
 </html>
