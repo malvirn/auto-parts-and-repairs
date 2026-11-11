@@ -1492,47 +1492,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
   </script>
 
 
-<script>
-(() => {
-  const init = () => {
-    const actions = document.querySelector(".dashboard-topbar-actions");
-    if (!actions) return;
-    let indicator = actions.querySelector(".dashboard-connection-status");
-    if (!indicator) {
-      indicator = document.createElement("span");
-      indicator.className = "dashboard-connection-status";
-      indicator.setAttribute("role","status");
-      indicator.setAttribute("aria-label","Network status");
-      indicator.innerHTML = '<i data-lucide="wifi"></i><span class="dashboard-connection-bars" aria-hidden="true"><i></i><i></i><i></i></span>';
-      actions.insertBefore(indicator, actions.querySelector("#dashboard-refresh"));
-    }
-    let seq=0;
-    const paint=(state,label)=>{
-      indicator.dataset.state=state;
-      indicator.title=label;
-      indicator.setAttribute("aria-label",label);
-    };
-    const check=async()=>{
-      const id=++seq;
-      if(!navigator.onLine){paint("offline","Offline");return;}
-      const start=performance.now();
-      try{
-        const response=await fetch(location.pathname+"?network_check="+Date.now(),{method:"HEAD",cache:"no-store",credentials:"same-origin"});
-        if(id!==seq)return;
-        if(!response.ok)throw new Error("Network check failed");
-        const elapsed=performance.now()-start;
-        paint(elapsed<350?"good":elapsed<900?"fair":"poor",elapsed<350?"Good connection":elapsed<900?"Fair connection":"Slow connection");
-      }catch(e){if(id===seq)paint("offline","Connection unavailable");}
-    };
-    check();
-    window.addEventListener("online",check);
-    window.addEventListener("offline",()=>paint("offline","Offline"));
-    setInterval(check,30000);
-    if(window.lucide)window.lucide.createIcons();
-  };
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
-})();
-</script>
+
 
 </body>
 </html>
