@@ -802,6 +802,7 @@ function buildDetailHtml(record, kind, items) {
       <section class="quotation-paper-customer">
         <span class="quotation-paper-kicker">${kind === "Quotation" ? "Prepared for" : "Customer"}</span>
         <strong>${escapeHtml(customer.full_name)}</strong>
+        <span>Customer ID: ${escapeHtml(customer.customer_code || "—")}${customer.is_company && customer.company_name ? " · Company: " + escapeHtml(customer.company_name) : ""}</span>
         <span>${escapeHtml(customer.phone)}${customer.email && customer.email !== "—" ? ` · ${escapeHtml(customer.email)}` : ""}</span>
       </section>
       ${isQuote && record.prepared_by ? `<p class="quotation-paper-note">Created by: ${escapeHtml(record.prepared_by)}</p>` : ""}
