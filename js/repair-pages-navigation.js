@@ -447,6 +447,30 @@ function ensureDashboardToolbarActions(toolbar) {
   });
 }
 
+let dashboardChromeFallbackTimer = null;
+
+function markDashboardChromeReady() {
+  if (!document.body?.classList.contains("dashboard-workshop")) return;
+  document.body.classList.add("dashboard-chrome-ready");
+  if (dashboardChromeFallbackTimer !== null) {
+    clearTimeout(dashboardChromeFallbackTimer);
+    dashboardChromeFallbackTimer = null;
+  }
+}
+
+function revealDashboardChromeWhenReady() {
+  if (dashboardChromeFallbackTimer === null) {
+    dashboardChromeFallbackTimer = window.setTimeout(markDashboardChromeReady, 3000);
+  }
+  const stylesheet = document.querySelector('link[data-shared-dashboard-chrome]');
+  if (!stylesheet || stylesheet.sheet) {
+    markDashboardChromeReady();
+    return;
+  }
+  stylesheet.addEventListener("load", markDashboardChromeReady, { once: true });
+  stylesheet.addEventListener("error", markDashboardChromeReady, { once: true });
+}
+
 function initializePageChrome() {
   if (!document.body.classList.contains("dashboard-page")) return;
 
@@ -455,6 +479,7 @@ function initializePageChrome() {
   if (!isDashboardHome()) {
     document.body.classList.add("dashboard-workshop");
     addDashboardToolbar(main);
+    revealDashboardChromeWhenReady();
     return;
   }
 
