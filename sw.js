@@ -1,6 +1,6 @@
 // Network-first app shell. New workers wait until the user taps Refresh.
-const CACHE="apr-v46";
-const SHELL=["/","/index.html","/login.html","/css/style.css","/css/mh-theme.css","/assets/logo.png","/img/vehicle-inspection.svg","/pages/checklist.html","/js/checklist.js","/js/vehicle-inspection-diagram.js","/icons/icon-192.png","/manifest.webmanifest"];
+const CACHE="apr-v48";
+const SHELL=["/","/index.html","/login.html","/css/style.css","/css/mh-theme.css","/assets/logo.png","/img/vehicle-inspection.svg","/img/vehicle-parts.webp","/pages/checklist.html","/js/checklist.js","/js/vehicle-inspection-diagram.js","/icons/icon-192.png","/manifest.webmanifest"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
 self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting();});

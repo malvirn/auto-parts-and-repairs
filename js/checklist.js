@@ -3,31 +3,24 @@ import { openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspect
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const PART_SPRITES={
+ bonnet:[0,0,120,80],windscreen:[120,0,120,80],roof:[240,0,120,80],"rear-glass":[360,0,120,80],boot:[480,0,120,80],"boot-lid":[480,0,120,80],
+ "front-bumper":[0,80,120,80],"rear-bumper":[120,80,120,80],
+ "l-headlight":[240,80,120,80],"r-headlight":[360,80,120,80],
+ "l-taillight":[480,80,120,80],"r-taillight":[0,160,120,80],
+ "lf-wing":[120,160,120,80],"rf-wing":[240,160,120,80],
+ "lf-door":[360,160,120,80],"lr-door":[480,160,120,80],
+ "rf-door":[0,240,120,80],"rr-door":[120,240,120,80],
+ "l-mirror":[240,240,120,80],"r-mirror":[360,240,120,80],
+ "wheel-lf":[480,240,120,80],"wheel-rf":[0,320,120,80],"wheel-lr":[120,320,120,80],"wheel-rr":[240,320,120,80]
+};
+function partSpriteHTML(key){
+ const crop=PART_SPRITES[key];if(!crop)return "";
+ const scale=Math.min(40/crop[2],40/crop[3]);
+ return `<span class="part-sprite" aria-hidden="true" style="background-size:${600*scale}px ${400*scale}px;background-position:${-crop[0]*scale}px ${-crop[1]*scale}px"></span>`;
+}
 const params=new URLSearchParams(location.search);
 const DAMAGE_TYPES=["Scratch","Dent","Crack","Chip","Broken","Missing","Stretched","Worn","Flat","Bald"];
-const PI={
- bumper:'<path class="g" d="M6 29c0-5 3-8 8-8h20c5 0 8 3 8 8v4H6z"/><path d="M11 33v3M37 33v3M13 25h22"/>',
- bonnet:'<path class="g" d="M10 35l4-17c.5-2 2-3 4-3h12c2 0 3.5 1 4 3l4 17z"/><path d="M19 23h10M17 28h14"/>',
- roof:'<rect class="g" x="14" y="8" width="20" height="32" rx="8"/><path d="M18 16h12M18 32h12"/>',
- wing:'<path class="g" d="M7 34v-8c0-3 2-5 5-5h8c3 0 5 2 7 5l3 8z"/><path d="M12 34a6 6 0 0 1 12 0M30 17h9"/>',
- door:'<path class="g" d="M11 37V14c0-2 1-3 3-3h15c3 0 5 2 6 5l2 21z"/><path d="M17 19h14M31 29h5"/>',
- glass:'<path class="g" d="M9 34l5-17c.4-1.3 1.5-2 3-2h14c1.5 0 2.6.7 3 2l5 17z"/><path d="M24 15v19M13 30h22"/>',
- rearglass:'<path class="g" d="M11 33l3-14c.4-1.5 1.5-2 3-2h14c1.5 0 2.6.5 3 2l3 14z"/><path d="M15 23h18M14 28h20"/>',
- mirror:'<path class="g" d="M16 12h16a5 5 0 0 1 5 5v7a5 5 0 0 1-5 5H16a5 5 0 0 1-5-5v-7a5 5 0 0 1 5-5z"/><path d="M24 29v7M18 37h12"/>',
- headlight:'<path class="g" d="M8 24c0-8 5-13 12-13v26c-7 0-12-5-12-13z"/><path d="M26 15h14M26 21h14M26 27h14M26 33h14"/>',
- taillight:'<rect class="g" x="8" y="16" width="25" height="16" rx="4"/><path d="M37 18v12M41 20v8M14 24h13"/>',
- boot:'<path class="g" d="M8 35V23c0-2 1.5-3.5 3.5-3.5h25c2 0 3.5 1.5 3.5 3.5v12z"/><path d="M14 19l2-7h16l2 7M18 28h12"/>',
- wheel:'<circle cx="24" cy="24" r="14"/><circle class="g" cx="24" cy="24" r="4"/><path d="M24 10v10M24 28v10M10 24h10M28 24h10"/>',
- seat:'<path class="g" d="M14 9h8c2 0 3 1 3 3l1 15h9c2 0 3 1 3 3v3H14z"/><path d="M14 37v3M37 37v3"/>',
- speedo:'<path d="M9 33a15 15 0 1 1 30 0"/><circle class="g" cx="24" cy="31" r="3.5"/><path d="M26 29l7-8M24 12v3M14 28h2M34 28h-2"/>',
- steer:'<circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="10"/><path d="M14 26c6-2 14-2 20 0M24 28v8"/><circle class="g" cx="24" cy="26" r="3"/>',
- belt:'<path class="g" d="M16 10l9-1 6 11-9 8z"/><path d="M31 20l8 13-8 5M13 26l-3 3"/>',
- engine:'<rect class="g" x="13" y="19" width="22" height="15" rx="3"/><path d="M18 19v-4h12v4M9 24v6M39 24v6M24 23l-3.5 4.5h5L23 32"/>',
- radiator:'<rect class="g" x="12" y="12" width="24" height="5" rx="2"/><rect x="14" y="17" width="20" height="18"/><path d="M19 17v18M24 17v18M29 17v18"/><rect class="g" x="12" y="35" width="24" height="4" rx="2"/>',
- brake:'<circle cx="24" cy="24" r="15"/><circle class="g" cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="2.5"/>',
- exhaust:'<rect class="g" x="7" y="21" width="9" height="8" rx="1.5"/><rect x="16" y="21" width="12" height="8" rx="1"/><path d="M33 19c3-2.5 5 .5 3 3 3 .5 3 5-.5 5M32 32l4 3"/>'
-};
-const partIcon=(icon,flip)=>`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="21"/>${PI[icon]||PI.bonnet}</svg>`;
 // [key, name, icon, flip right-hand icons]
 const CONDITION_GROUPS=[
  ["Top view",[
@@ -72,7 +65,7 @@ function renderDamage(){
     return `<label class="body-part-option ${damaged?"is-damaged":""}">
       <input type="checkbox" data-body-part="${esc(key)}" ${damaged?"checked":""} ${editable?"":"disabled"}>
       <span class="body-part-check" aria-hidden="true"></span>
-      <span class="body-part-name">${esc(name)}</span>
+      ${partSpriteHTML(key)}<span class="body-part-name">${esc(name)}</span>
       <small>${damaged?esc(report.parts[key].dmg.join(", ")):"No damage"}</small>
       ${damaged&&editable?`<button type="button" class="body-part-details" data-edit-part="${esc(key)}">Details</button>`:""}
     </label>`;
