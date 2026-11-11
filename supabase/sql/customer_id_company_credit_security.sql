@@ -439,7 +439,7 @@ begin
     else
       select count(*), (array_agg(c.id))[1] into match_count, customer_id_value
       from public.customer_overpayment_credit_notes n
-      join public.customers c on lower(btrim(c.full_name)) = lower(btrim(n.customer_name))
+      join public.customers c on (lower(btrim(c.full_name)) = lower(btrim(n.customer_name)) or lower(btrim(coalesce(c.company_name,''))) = lower(btrim(n.customer_name)))
         and (nullif(regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'),'') is null
           or regexp_replace(c.phone,'[^0-9]','','g') = regexp_replace(coalesce(n.customer_phone,''),'[^0-9]','','g'))
       where n.id = voucher_row.credit_note_id;
