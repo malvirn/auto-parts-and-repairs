@@ -103,7 +103,6 @@ begin
  raise exception 'The linked job card must match this customer and vehicle'; end if;
  update public.job_condition_reports set status='completed',completed_by=auth.uid(),completed_at=v_done,
  confirmed_by=auth.uid(),confirmed_at=v_done,updated_at=v_done where id=p_inspection_id;
- update public.repair_jobs set checklist_number=v_row.checklist_number,fuel_level_in=v_row.fuel_level_in,odometer_in=v_row.odometer_in where id=v_row.job_id;
  insert into public.job_condition_report_audit(inspection_id,action,performed_by,performed_at)
  values(p_inspection_id,'completed',auth.uid(),v_done);
  return v_done;
