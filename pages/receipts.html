@@ -1136,7 +1136,7 @@ async function loadRepairJobPayments(jobIds){
 async function load(){
  const [r,i,a]=await Promise.all([
  loadAllReceipts(),
-  supabase.from("invoices").select("*,customers(customer_code,is_company,company_name,full_name)").order("issued_at",{ascending:false}).limit(300),
+  supabase.from("invoices").select("*,customers(customer_code,is_company,company_name,full_name,phone,email)").order("issued_at",{ascending:false}).limit(300),
   supabase.from("accounts").select("id,code,name").eq("is_active",true).eq("type","asset").like("code","10%").order("code")]);
  invoiceAccounts=a.data||[];
  $("invoice-payment-account").innerHTML=a.error
@@ -1279,7 +1279,7 @@ async function load(){
     kind:"receipt",id:payment.id,invoicePaymentReceipt:true,voidedAt:payment.voided_at,voidReason:payment.void_reason,
     number:"PAY-"+String(invoice.invoice_number).padStart(5,"0")+"-"+String(payment.id).slice(0,6).toUpperCase(),
     date:payment.payment_date,repairJobId:invoice.repair_job_id,
-    customer:{name:invoice.customer_name||"Customer",phone:invoice.customer_phone||"",email:invoice.customer_email||""},
+    customer:invoice.customer||{name:invoice.customer_name||"Customer",phone:invoice.customer_phone||"",email:invoice.customer_email||""},
     ref:invoice.reference||"INV-"+String(invoice.invoice_number).padStart(5,"0"),
     receiptAmount:amount,paymentMethod:payment.payment_method||"Not recorded",
     items:items.map(item=>({d:item.d,q:item.q,p:item.p})),
@@ -1456,7 +1456,7 @@ async function loadRepairJobInvoiceDetails(invoice){
  invoice.items=items;
  invoice.vatBase=partsSubtotal;
  invoice.subtotal=targetSubtotal;
- invoice.customer={name:invoice.customer?.name||job.customers?.full_name||"",phone:invoice.customer?.phone||job.customers?.phone||"",email:invoice.customer?.email||job.customers?.email||""};
+ invoice.customer={...invoice.customer,name:invoice.customer?.name||job.customers?.company_name||job.customers?.full_name||"",phone:invoice.customer?.phone||job.customers?.phone||"",email:invoice.customer?.email||job.customers?.email||"",customer_code:invoice.customer?.customer_code||job.customers?.customer_code||"",company_name:invoice.customer?.company_name||job.customers?.company_name||"",is_company:Boolean(invoice.customer?.is_company??job.customers?.is_company)};
  invoice.ref=invoice.ref||job.cro_number||`JC-${String(job.job_number||"").padStart(5,"0")}`;
  invoice.notes=invoice.notes||[job.fault_reported&&`Customer concern: ${job.fault_reported}`,job.diagnosis&&`Diagnosis: ${job.diagnosis}`,job.work_done&&`Work completed: ${job.work_done}`,job.job_description&&!job.work_done&&`Work completed: ${job.job_description}`].filter(Boolean).join("\n");
  if(!invoice.total)invoice.total=targetSubtotal+(partsSubtotal*(Number(invoice.vat)||0)/100)-Number(invoice.discount||0);
@@ -1477,7 +1477,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   .eq("journal_entry_id",journalEntryId).maybeSingle();
  if(paymentError)throw new Error(paymentError.message);
  if(!payment)throw new Error("No saved invoice payment matches this receipt link.");
- const{data:invoice,error:invoiceError}=await supabase.from("invoices").select("*").eq("id",payment.invoice_id).maybeSingle();
+ const{data:invoice,error:invoiceError}=await supabase.from("invoices").select("*,customers(customer_code,is_company,company_name,full_name,phone,email)").eq("id",payment.invoice_id).maybeSingle();
  if(invoiceError)throw new Error(invoiceError.message);
  if(!invoice)throw new Error("The invoice for this payment could not be found.");
  let jobCard=null;
@@ -1525,7 +1525,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   invoicePaymentReceipt:true,
   number:`PAY-${String(invoice.invoice_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
   date:payment.payment_date,
-  customer:{name:invoice.customer_name,phone:invoice.customer_phone,email:invoice.customer_email},
+  customer:{name:invoice.customers?.company_name||invoice.customer_name||invoice.customers?.full_name,phone:invoice.customer_phone||invoice.customers?.phone||"",email:invoice.customer_email||invoice.customers?.email||"",customer_code:invoice.customers?.customer_code||"",company_name:invoice.customers?.company_name||"",is_company:Boolean(invoice.customers?.is_company)},
   ref:invoice.reference||invoiceNumber,
   jobCard,
   receiptAmount:amount,
