@@ -456,7 +456,7 @@ returns table(
   voucher_id uuid, voucher_code text, credit_note_type text, credit_note_id uuid,
   status text, expires_at date, holder_note text, customer_name text, customer_phone text,
   original_amount numeric, available_amount numeric, credit_note_number text,
-  customer_code text, is_company boolean, company_name text, customer_id uuid
+  customer_code text, is_company boolean, company_name text, customer_id uuid, issued_at timestamptz
 )
 language plpgsql
 security definer
@@ -478,7 +478,7 @@ begin
     public.credit_voucher_available_balance(v.id),
     case when v.credit_note_type='quotation_deposit' then 'QCN-'||lpad(d.credit_note_number::text,6,'0')
          else 'CN-'||lpad(o.note_number::text,5,'0') end,
-    c.customer_code, c.is_company, c.company_name, c.id
+    c.customer_code, c.is_company, c.company_name, c.id, v.issued_at
   from public.customer_credit_vouchers v
   left join public.quotation_deposit_receipts d
     on v.credit_note_type='quotation_deposit' and d.id=v.credit_note_id
@@ -486,7 +486,7 @@ begin
     on v.credit_note_type='invoice_overpayment' and o.id=v.credit_note_id
   left join public.customers c
     on c.id=case when v.credit_note_type='quotation_deposit' then d.customer_id else o.customer_id end
-  order by v.issued_at desc;
+  order by v.issued_at asc;
 end;
 $;
 revoke all on function public.list_customer_credit_vouchers_with_identity() from public, anon;
