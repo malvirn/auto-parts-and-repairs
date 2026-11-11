@@ -72,7 +72,7 @@ function renderDamage(){
    if(!part)return;
    openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
     report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)?entry.dmg:[]};
-    renderDamage();renderInspectionSummary();persistInspectionLocally();if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));
+    renderDamage();renderInspectionSummary();persistInspectionLocally();if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
    }});
   }
  });
@@ -142,8 +142,46 @@ function setEditable(value){
  if(editable)applyNoDamageDefaults();
  renderDamage();renderInspectionSummary();syncInspectionStrip();
 }
+let checklistAutosaveTimer=null;
+let checklistCreating=false;
+async function ensureChecklistRecord(){
+ if(record?.id||checklistCreating||!editable)return record;
+ checklistCreating=true;
+ try{
+  const payload={job_id:selectedJob?.id||null,customer_id:selectedJob?.customer_id||null,vehicle_id:selectedJob?.vehicle_id||null,customer_name:$("customer-name-input").value.trim()||null,vehicle_registration:$("vehicle-registration-input").value.trim().toUpperCase()||null,checked_by:$("checked-by-input").value.trim()||null,report:{...report,parts:{}},fuel_level_in:$("fuel").value||null,odometer_in:$("odometer").value.trim()?Number($("odometer").value):null,status:"draft"};
+  const{data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number,inspection_no").single();
+  if(error)throw error;
+  record={...data,...payload};
+  try{localStorage.removeItem("centric-inspection-draft-new");}catch{}
+  $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
+  $("checklist-number-display").hidden=false;
+  $("print-checklist-number").textContent="#"+record.checklist_number;
+  syncInspectionStrip();
+  return record;
+ }catch(error){setDetailMessage("Couldn't create checklist automatically: "+error.message,true);throw error;}
+ finally{checklistCreating=false;}
+}
+function scheduleChecklistAutosave(){
+ if(!editable)return;
+ persistInspectionLocally();
+ clearTimeout(checklistAutosaveTimer);
+ checklistAutosaveTimer=setTimeout(async()=>{
+  try{
+   await ensureChecklistRecord();
+   const odometerText=$("odometer").value.trim(),odometer=odometerText?Number(odometerText):null;
+   if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))return;
+   const payload={customer_name:$("customer-name-input").value.trim()||null,vehicle_registration:$("vehicle-registration-input").value.trim().toUpperCase()||null,checked_by:$("checked-by-input").value.trim()||null,report:{...report,notes:$("checklist-notes").value||"",parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||"",photo_path:value.photo_path||null}]))},fuel_level_in:$("fuel").value||null,odometer_in:odometer,updated_at:new Date().toISOString()};
+   const{error}=await supabase.from("job_condition_reports").update(payload).eq("id",record.id);
+   if(error)throw error;
+   record={...record,...payload};
+   $("inspection-save-state").textContent="Saved automatically";
+   $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
+   $("checklist-number-display").hidden=false;syncInspectionStrip();
+  }catch(error){console.warn("Checklist autosave failed:",error);$("inspection-save-state").textContent="Autosave failed. Changes kept on this device.";}
+ },650);
+}
 function startNewChecklist(prefillJob=null){
- record=null;report={parts:{},notes:""};try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-new")||"null");if(local?.report)report=local.report;}catch{}selectedJob=prefillJob;
+ record=null;clearTimeout(checklistAutosaveTimer);report={parts:{},notes:""};try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-new")||"null");if(local?.report)report=local.report;}catch{}selectedJob=prefillJob;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
  $("checklist-number-display").hidden=true;$("checklist-number-display").textContent="";
  $("reopen-inspection").hidden=true;syncInspectionStrip();
@@ -163,6 +201,7 @@ function startNewChecklist(prefillJob=null){
  $("detail-status").textContent=prefillJob?"Complete the required drop-off details and confirm this checklist.":"Enter the customer and vehicle details, then complete the checklist.";
  $("save-checklist").textContent="Save and confirm checklist";
  setDetailMessage("");setEditable(true);renderInspectionSummary();syncInspectionStrip();
+ ensureChecklistRecord().then(()=>scheduleChecklistAutosave()).catch(()=>{});
 }
 function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
@@ -468,7 +507,8 @@ $("inspection-grid").addEventListener("change",event=>{
  choice.classList.toggle("has-dmg",Boolean(choice.value));
  choice.closest(".cond-card")?.classList.toggle("has-dmg",Boolean(choice.value));
 });
-$("checklist-notes").addEventListener("input",event=>{report.notes=event.target.value});
+$("checklist-notes").addEventListener("input",event=>{report.notes=event.target.value;scheduleChecklistAutosave();});
+["customer-name-input","vehicle-registration-input","checked-by-input","fuel","odometer"].forEach(id=>{const el=$(id);el.addEventListener("input",scheduleChecklistAutosave);el.addEventListener("change",scheduleChecklistAutosave);});
 $("confirm-check").onchange=event=>{$("save-checklist").disabled=!event.target.checked};
 $("save-draft").onclick=saveDraft;
 $("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-check").checked)return setDetailMessage("Confirm that the customer name and registration above are correct for this vehicle at drop-off.",true);saveAndConfirm()};
