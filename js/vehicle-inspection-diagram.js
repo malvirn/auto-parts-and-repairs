@@ -111,7 +111,7 @@ export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
  <label>Notes (optional)<textarea data-note rows="2" maxlength="500" ${readOnly?"disabled":""} placeholder="Describe the damage">${esc(draft.note)}</textarea></label>
  <label>Photo (optional)<input type="file" accept="image/*" data-photo ${readOnly?"disabled":""}></label>
  ${draft.photo?`<img class="vi-part-photo" src="${draft.photo}" alt="Photo of ${esc(part.name)}"><button type="button" class="vi-cancel" data-remove-photo ${readOnly?"disabled":""}>Remove photo</button>`:""}
- <div class="vi-part-actions"><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save Mark</button></div></section>`;
+ <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save Mark</button></div></section>`;
  };
  const close=()=>{overlay.remove();document.removeEventListener("keydown",keyHandler)};
  const keyHandler=e=>{if(e.key==="Escape")close()};
@@ -120,6 +120,7 @@ export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
   if(e.target.closest("[data-none]")){draft.dmg=[];render();return}
   const damage=e.target.closest("[data-damage]");if(damage){draft.dmg=[damage.dataset.damage];render();return}
   if(e.target.closest("[data-remove-photo]")){draft.photo="";render();return}
+  if(e.target.closest("[data-reset]")){if(!window.confirm("Clear the condition, notes and photo for this area?"))return;draft.dmg=[];draft.note="";draft.photo="";render();return}
   if(e.target.closest("[data-save]")){onSave?.({...entry,...draft,dmg:draft.dmg});close()}
  });
  overlay.addEventListener("input",e=>{if(e.target.matches("[data-note]"))draft.note=e.target.value});
