@@ -46,6 +46,8 @@ begin
     select customer_name,customer_phone into note_name,note_phone from public.customer_overpayment_credit_notes where id=v.credit_note_id;
   end if;
   update public.credit_voucher_lookup_limits set failed_count=0,window_started_at=now(),blocked_until=null where user_id=uid;
+  insert into public.credit_voucher_audit(voucher_id,voucher_code,action,details,performed_by)
+  values(v.id,v.voucher_code,'lookup_succeeded',jsonb_build_object('status',status_value,'available_amount',balance_value),uid);
   return jsonb_build_object(
     'voucher_id',v.id,'voucher_code',v.voucher_code,'status',status_value,
     'available_amount',balance_value,'expires_at',v.expires_at,
