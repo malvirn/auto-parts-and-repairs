@@ -133,21 +133,32 @@ function addJournalLine() {
   row.querySelector(".remove-line-btn").addEventListener("click", () => { row.remove(); recalcBalance(); });
 }
 
-function recalcBalance() {
-  let totalDebit = 0, totalCredit = 0;
-  journalLinesContainer.querySelectorAll(".journal-line-row").forEach(row => {
-    totalDebit += Number(row.querySelector(".je-debit").value) || 0;
-    totalCredit += Number(row.querySelector(".je-credit").value) || 0;
-  });
-  totalDebitEl.textContent = money(totalDebit);
-  totalCreditEl.textContent = money(totalCredit);
+function amountToCents(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return 0;
+  if (!/^\\d+(?:\\.\\d{1,2})?$/.test(raw)) return NaN;
+  const [whole, fraction = ""] = raw.split(".");
+  return Number(whole) * 100 + Number((fraction + "00").slice(0, 2));
+}
 
-  const debitCents = Math.round((totalDebit + Number.EPSILON) * 100);
-  const creditCents = Math.round((totalCredit + Number.EPSILON) * 100);
-  const balanced = debitCents > 0 && debitCents === creditCents;
+function recalcBalance() {
+  let totalDebitCents = 0, totalCreditCents = 0;
+  let invalidAmount = false;
+  journalLinesContainer.querySelectorAll(".journal-line-row").forEach(row => {
+    const debit = amountToCents(row.querySelector(".je-debit").value);
+    const credit = amountToCents(row.querySelector(".je-credit").value);
+    if (!Number.isSafeInteger(debit) || !Number.isSafeInteger(credit)) invalidAmount = true;
+    else {
+      totalDebitCents += debit;
+      totalCreditCents += credit;
+    }
+  });
+  totalDebitEl.textContent = money(totalDebitCents / 100);
+  totalCreditEl.textContent = money(totalCreditCents / 100);
+  const balanced = !invalidAmount && totalDebitCents > 0 && totalDebitCents === totalCreditCents;
   balanceCheck.classList.toggle("balanced", balanced);
   balanceCheck.classList.toggle("unbalanced", !balanced);
-  balanceStatusEl.textContent = balanced ? "Balanced ✓" : "Not balanced yet";
+  balanceStatusEl.textContent = invalidAmount ? "Use amounts with up to 2 decimal places" : balanced ? "Balanced ✓" : "Not balanced yet";
   postEntryBtn.disabled = !balanced;
 }
 
@@ -161,32 +172,44 @@ journalForm.addEventListener("submit", async (e) => {
   try {
   const lines = [...journalLinesContainer.querySelectorAll(".journal-line-row")].map(row => ({
     account_id: row.querySelector(".je-account").value,
-    debit: Number(row.querySelector(".je-debit").value) || 0,
-    credit: Number(row.querySelector(".je-credit").value) || 0,
-  })).filter(l => l.account_id && (l.debit > 0 || l.credit > 0));
+    debitCents: amountToCents(row.querySelector(".je-debit").value),
+    creditCents: amountToCents(row.querySelector(".je-credit").value),
+  })).filter(line => line.account_id || line.debitCents || line.creditCents);
 
-  if (lines.length < 2) { journalFormMessage.textContent = "Add at least two lines."; journalFormMessage.dataset.tone = "error"; return; }
+  if (lines.some(line => !Number.isSafeInteger(line.debitCents) || !Number.isSafeInteger(line.creditCents))) {
+    journalFormMessage.textContent = "Use valid amounts with no more than 2 decimal places.";
+    journalFormMessage.dataset.tone = "error";
+    return;
+  }
+  if (lines.length < 2 || lines.some(line => !line.account_id || line.debitCents < 0 || line.creditCents < 0 ||
+    !((line.debitCents > 0 && line.creditCents === 0) || (line.creditCents > 0 && line.debitCents === 0)))) {
+    journalFormMessage.textContent = "Add at least two complete lines. Each line needs one account and either a debit or a credit.";
+    journalFormMessage.dataset.tone = "error";
+    return;
+  }
+  const debitTotalCents = lines.reduce((sum, line) => sum + line.debitCents, 0);
+  const creditTotalCents = lines.reduce((sum, line) => sum + line.creditCents, 0);
+  if (!Number.isSafeInteger(debitTotalCents) || debitTotalCents <= 0 || debitTotalCents !== creditTotalCents) {
+    journalFormMessage.textContent = "The journal entry must balance exactly to the cent.";
+    journalFormMessage.dataset.tone = "error";
+    return;
+  }
 
   journalFormMessage.textContent = "Posting…"; journalFormMessage.dataset.tone = "info";
+  postEntryBtn.disabled = true;
+  const { error: postError } = await supabase.rpc("post_manual_journal_entry", {
+    p_entry_date: document.getElementById("je-date").value,
+    p_reference: document.getElementById("je-reference").value.trim() || null,
+    p_description: document.getElementById("je-description").value.trim(),
+    p_lines: lines.map(line => ({
+      account_id: line.account_id,
+      debit: line.debitCents / 100,
+      credit: line.creditCents / 100,
+    })),
+  });
 
-  const { data: entry, error: entryError } = await supabase.from("journal_entries").insert([{
-    entry_date: document.getElementById("je-date").value,
-    reference: document.getElementById("je-reference").value.trim() || null,
-    description: document.getElementById("je-description").value.trim(),
-    source_type: "manual",
-  }]).select().single();
-
-  if (entryError) { journalFormMessage.textContent = "Failed to create entry: " + entryError.message; journalFormMessage.dataset.tone = "error"; return; }
-
-  const { error: linesError } = await supabase.from("journal_lines").insert(
-    lines.map(l => ({ ...l, journal_entry_id: entry.id }))
-  );
-
-  if (linesError) {
-    // Database rejected it — almost certainly the balance trigger. Clean up
-    // the orphaned header row rather than leaving a half-posted entry behind.
-    await supabase.from("journal_entries").delete().eq("id", entry.id);
-    journalFormMessage.textContent = "Failed to post entry: " + linesError.message;
+  if (postError) {
+    journalFormMessage.textContent = "Failed to post entry: " + postError.message;
     journalFormMessage.dataset.tone = "error";
     return;
   }
