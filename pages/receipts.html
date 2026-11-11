@@ -1017,8 +1017,8 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
   <script type="module" src="../js/dashboard-search.js"></script>
-<script type="module" src="../js/customer-credit.js?v=credit-vouchers-10"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-10"></script>
+<script type="module" src="../js/customer-credit.js?v=credit-vouchers-12"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-12"></script>
 <script>
 window.addEventListener("unhandledrejection",event=>{
  console.error("Unhandled receipt-page promise rejection:",event.reason);
@@ -2414,6 +2414,36 @@ html.phone-layout .customer-credit-panel-scope .credit-doc-actions>*,
 html.phone-layout .customer-credit-panel-scope .customer-credit-actions>*{width:100%!important;min-width:0!important}
 html.phone-layout body.dashboard-page table{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important}
 html.phone-layout body.dashboard-page .site-foot{width:100%!important;flex-wrap:wrap!important}
+
+/* Light theme: expanded credit notes must follow the selected app theme. */
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record){
+  background:linear-gradient(145deg,#fff 0%,#f5f7fa 100%)!important;
+  border-color:#cbd5df!important;box-shadow:0 8px 22px rgba(15,23,42,.08)!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record)>.customer-credit-record__summary{
+  background:linear-gradient(110deg,rgba(31,196,103,.09),#fff 68%,rgba(255,122,18,.045))!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer small,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance small{color:#526174!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance strong{color:#167344!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .customer-credit-document{
+  background:#f5f7fa!important;color:#17212b!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document h3,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document h4,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document p,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-detail-row{border-color:#d9e0e8!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-detail-row>span{color:#526174!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-detail-row>strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-available-card{background:#e7edf3!important;color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-available-card strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-apply-section,
+:root[data-theme="light"] .customer-credit-panel-scope .credit-unpaid-jobs,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-history{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-validity{color:#526174!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-voucher-modal-qr{background:#fff!important;color:#17212b!important;border-color:#d9e0e8!important}
 </style>
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
 window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
