@@ -83,7 +83,24 @@
   :root[data-theme="light"] body.dashboard-page .main .condition-option input:checked+span{background:#14723b;color:#fff}
   :root[data-theme="light"] body.dashboard-page .main .liability-note{background:#fff2e9;color:#66341e}
 
-  @media print{
+
+  .inspection-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
+  .inspection-strip>div{min-width:0;padding:10px 12px;border:1px solid var(--check-border);border-radius:10px;background:var(--check-card-2)}
+  .inspection-strip small{display:block;color:var(--check-muted);font-size:.68rem;font-weight:750;text-transform:uppercase;letter-spacing:.06em}
+  .inspection-strip strong{display:block;margin-top:4px;overflow-wrap:anywhere;font-size:.9rem}
+  .inspection-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:18px;align-items:start}
+  .inspection-diagram-panel{min-width:0}.inspection-side-panel{position:sticky;top:16px;min-width:0}
+  .inspection-summary{padding:14px;border:1px solid var(--check-border);border-radius:12px;background:var(--check-card-2)}
+  .inspection-summary h3{margin:0 0 10px;font-size:1rem}.inspection-summary-list{display:grid;gap:8px}
+  .inspection-summary-item{padding:9px;border:1px solid var(--check-border);border-radius:8px;background:var(--check-card)}
+  .inspection-summary-item b{display:block}.inspection-summary-item small{display:block;margin-top:4px;color:var(--check-muted)}
+  .inspection-photo-thumb{width:100%;max-height:110px;object-fit:cover;border-radius:7px;margin-top:7px}
+  .inspection-complete-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--check-border)}
+  .inspection-complete-bar .btn{min-height:48px;padding:12px 18px}
+  .inspection-readonly{padding:10px;border-radius:9px;background:#123b25;color:#a7f0c0;font-weight:750}
+  @media(max-width:850px){.inspection-layout{grid-template-columns:minmax(0,1fr)}.inspection-side-panel{position:static}.inspection-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:768px){body.dashboard-page.dashboard-workshop .main{padding-bottom:100px!important}.inspection-complete-bar{position:sticky;bottom:0;z-index:30;margin:14px -14px -14px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--check-card);box-shadow:0 -8px 20px #0003}.inspection-complete-bar .btn{flex:1}}
+\n  @media print{
     @page{margin:14mm}
     body.dashboard-page,.main{min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important}
     .sidebar,.dashboard-topbar,.dashboard-sidebar-backdrop,.heading,#list-view,#page-message,.actions,#confirm-label,#detail-error,#link-existing-fields,#save-checklist,#delete-checklist,#void-checklist,#open-job{display:none!important}
