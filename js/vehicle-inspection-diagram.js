@@ -12,7 +12,7 @@ function condition(entry){
  const dmg=Array.isArray(entry?.dmg)?entry.dmg:[];
  if(!entry)return "good";
  if(!dmg.length)return "good";
- if(dmg.includes("Scratch"))return "scratch";
+ if(dmg.every(type=>type==="Scratch"))return "scratch";
  return "damage";
 }
 function zoneMarkup(parts,report,interactive){
