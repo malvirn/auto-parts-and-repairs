@@ -610,3 +610,46 @@ body.dashboard-page.dashboard-workshop .dashboard-header-date .hdr-live{
   body.dashboard-page.dashboard-workshop .dashboard-header-date{flex:0 1 auto!important;max-width:38%!important}
   body.dashboard-page.dashboard-workshop .dashboard-header-date #dashboard-date{max-width:66px!important}
 }
+
+
+/* Clear three-bar network strength indicator. */
+body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-connection-status{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:40px!important;height:40px!important;flex:0 0 40px!important;padding:0!important;
+  background:#202a38!important;border:1px solid #46556a!important;border-radius:11px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-connection-bars{
+  display:flex!important;align-items:flex-end!important;justify-content:center!important;
+  gap:3px!important;width:18px!important;height:17px!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-connection-bars i{
+  display:block!important;width:4px!important;border-radius:2px 2px 0 0!important;
+  background:currentColor!important;opacity:.28!important;
+}
+body.dashboard-page.dashboard-workshop .dashboard-connection-bars i:nth-child(1){height:6px!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-bars i:nth-child(2){height:11px!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-bars i:nth-child(3){height:16px!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="good"]{color:#22c55e!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="good"] .dashboard-connection-bars i{opacity:1!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="fair"]{color:#f59e0b!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="fair"] .dashboard-connection-bars i:nth-child(-n+2){opacity:1!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="poor"],
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="offline"]{color:#ef4444!important}
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="poor"] .dashboard-connection-bars i:first-child,
+body.dashboard-page.dashboard-workshop .dashboard-connection-status[data-state="offline"] .dashboard-connection-bars i:first-child{opacity:1!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{
+  background:#202a38!important;border:1px solid #46556a!important;color:#f3f6fb!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell svg,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell i{
+  color:#f3f6fb!important;stroke:#f3f6fb!important;opacity:1!important;
+}
+@media(max-width:480px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-connection-status{
+    width:32px!important;height:32px!important;flex-basis:32px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-connection-bars{transform:scale(.85)}
+}
