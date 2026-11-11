@@ -32,8 +32,8 @@ const partIcon=(icon,flip)=>`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 4
 const CONDITION_GROUPS=[
  ["Body",[
   ["front-bumper","Front bumper","bumper"],["bonnet","Bonnet","bonnet"],["roof","Roof","roof"],["lf-wing","Left front wing","wing"],["rf-wing","Right front wing","wing",1],
-  ["lf-door","Left front door","door"],["lr-door","Left rear door","door"],["rf-door","Right front door","door",1],["rr-door","Right rear door","door",1],
-  ["boot","Boot / tailgate","boot"],["rear-bumper","Rear bumper","bumper"]
+  ["lf-door","Left front door","door"],["lr-door","Left rear door","door"],["rf-door","Right front door","door",1],["rr-door","Right rear door","door",1],["lr-quarter","Left rear quarter panel","wing"],["rr-quarter","Right rear quarter panel","wing",1],
+  ["boot","Boot / tailgate","boot"],["boot-lid","Boot lid","boot"],["grille","Front grille","bumper"],["rear-bumper","Rear bumper","bumper"]
  ]],
  ["Glass and lights",[
   ["windscreen","Front windscreen","glass"],["rear-glass","Rear windscreen","rearglass"],["l-headlight","Left headlight","headlight"],["r-headlight","Right headlight","headlight",1],
