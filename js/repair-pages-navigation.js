@@ -478,6 +478,11 @@ function initializePageChrome() {
   if (!main) return;
   if (!isDashboardHome()) {
     document.body.classList.add("dashboard-workshop");
+    // Start the safety release before building the toolbar so even an
+    // initialization error cannot leave the page header hidden indefinitely.
+    if (dashboardChromeFallbackTimer === null) {
+      dashboardChromeFallbackTimer = window.setTimeout(markDashboardChromeReady, 3000);
+    }
     addDashboardToolbar(main);
     revealDashboardChromeWhenReady();
     return;
