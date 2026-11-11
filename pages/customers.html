@@ -118,6 +118,13 @@
       padding-top: 2px;
     }
     body.customer-page .customer-form__saved-actions[hidden] { display: none; }
+    body.customer-page .customer-toggle-label{display:flex;align-items:center;gap:9px;min-height:44px;color:var(--text);font-size:.9rem;font-weight:700}
+    body.customer-page .customer-toggle-label input{width:18px;height:18px;accent-color:#1fc467}
+    body.customer-page .customer-cid-result{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px;border:1px solid rgba(31,196,103,.28);border-radius:12px;background:rgba(31,196,103,.07)}
+    body.customer-page .customer-cid-result[hidden]{display:none}
+    body.customer-page .customer-cid-pill{display:inline-flex;padding:7px 12px;border-radius:999px;background:#dcfce7;color:#166534;font:800 .88rem ui-monospace,monospace;letter-spacing:.04em}
+    body.customer-page .customer-directory-search{display:grid;gap:5px;min-width:min(100%,280px);color:var(--text-muted);font-size:.75rem;font-weight:700}
+    body.customer-page .customer-directory-search input{min-height:40px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit}
     body.customer-page .customer-optional {
       color: #9db0cc;
       font-size: .68rem;
@@ -374,6 +381,18 @@
             <option value="company">Company</option>
           </select>
         </div>
+        <div class="field customer-company-toggle">
+          <label class="customer-toggle-label" for="cust-is-company"><input type="checkbox" id="cust-is-company"> This is a company</label>
+        </div>
+        <div class="field" id="cust-company-name-field" hidden>
+          <label for="cust-company-name">Company name</label>
+          <input type="text" id="cust-company-name" placeholder="Registered company name">
+        </div>
+        <div class="field">
+          <label for="cust-customer-code">Customer ID</label>
+          <input type="text" id="cust-customer-code" placeholder="Generated when saved" readonly autocomplete="off">
+          <small class="customer-optional">Automatically assigned. Only managers can change it.</small>
+        </div>
         <div class="field">
           <label for="cust-phone">Phone Number</label>
           <input type="tel" id="cust-phone" placeholder="77 123 4567" title="Choose a country code and enter a valid phone number" required />
@@ -397,6 +416,11 @@
           <button type="button" id="customer-cancel-edit" class="btn" hidden>Cancel edit</button>
           <p id="customer-form-message" class="form-message" role="status" aria-live="polite"></p>
         </div>
+        <div id="customer-cid-result" class="customer-cid-result" hidden>
+          <span class="customer-cid-pill" id="customer-cid-pill">CID-000</span>
+          <button type="button" class="btn" id="customer-cid-copy"><i data-lucide="copy"></i> Copy ID</button>
+          <button type="button" class="btn" id="customer-cid-whatsapp"><i data-lucide="message-circle"></i> WhatsApp</button>
+        </div>
         <div id="customer-saved-actions" class="customer-form__saved-actions" hidden>
           <button type="button" id="customer-open-job" class="btn btn--primary"><i data-lucide="clipboard-plus"></i> Open job card</button>
           <button type="button" id="customer-edit-saved" class="btn"><i data-lucide="pencil"></i> Edit customer details</button>
@@ -408,6 +432,9 @@
         <div class="section-heading"><div><p class="section-kicker">Customer directory</p><h2><i class="section-heading-icon" data-lucide="users"></i><span id="customer-directory-title">Registered Customers</span></h2></div><span class="section-note">Vehicles and repeat visits</span></div>
         <div class="customer-directory-toolbar">
           <p id="customer-directory-description" aria-live="polite">Active customer records</p>
+          <label class="customer-directory-search" for="customer-directory-search">Search customers
+            <input id="customer-directory-search" type="search" placeholder="Name, CID, company or phone">
+          </label>
           <button type="button" class="btn" id="customer-archive-toggle" aria-pressed="false">View archived customers</button>
         </div>
         <div class="panel customer-directory">
