@@ -10,7 +10,7 @@ const ZONES={
 const esc=value=>String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function condition(entry){
  const dmg=Array.isArray(entry?.dmg)?entry.dmg:[];
- if(!entry)return "uninspected";
+ if(!entry)return "good";
  if(!dmg.length)return "good";
  if(dmg.every(type=>type==="Scratch"))return "scratch";
  return "damage";
