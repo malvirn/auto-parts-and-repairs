@@ -2330,9 +2330,19 @@ $("save").onclick=async()=>{const b=$("save");
   let depositNote="";
   const depositQuoteId=new URLSearchParams(location.search).get("quote");
   if(depositQuoteId){
-   const{data:dep,error:depError}=await supabase.rpc("apply_quotation_deposits_to_repair_job",{p_quotation_id:depositQuoteId,p_repair_job_id:savedJobId});
-   if(depError){console.error("Quotation deposit not applied:",depError);depositNote=` The quotation deposit was not applied automatically (${depError.message}). Open the job card and tap Apply quotation deposit.`}
-   else if(Number(dep?.applied_amount||0)>0.005)depositNote=` Quotation deposit of ${money(dep.applied_amount)} applied.`;
+   const{data:creditCustomer,error:creditCustomerError}=await supabase.from("customers").select("full_name,phone,is_company,company_name").eq("id",cid).single();
+   if(creditCustomerError){console.error("Could not load credit customer:",creditCustomerError);depositNote=" Quotation deposit was not applied. Open the job card to review the credit."}
+   else{
+    const confirmationValue=prompt(creditCustomer.is_company?"Type the company name exactly to authorise this credit:":"Confirm the customer's phone last 4 digits or full name:")?.trim();
+    const authorisedBy=creditCustomer.is_company?prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim():null;
+    if(!confirmationValue||(creditCustomer.is_company&&!authorisedBy))depositNote=" Quotation deposit was not applied because customer confirmation was not completed.";
+    else{
+     const{data:dep,error:depError}=await supabase.rpc("apply_quotation_deposits_to_repair_job_verified",{p_quotation_id:depositQuoteId,p_repair_job_id:savedJobId,p_confirmation_value:confirmationValue,p_authorised_by:authorisedBy});
+     if(depError){console.error("Quotation deposit not applied:",depError);depositNote=` Quotation deposit was not applied (${depError.message}). Open the job card to review the credit.`}
+     else if(dep?.error)depositNote=` Quotation deposit was not applied (${dep.error}).`;
+     else if(Number(dep?.applied_amount||0)>0.005)depositNote=` Quotation deposit of ${money(dep.applied_amount)} applied.`;
+    }
+   }
   }
   const checklistToLink=activeChecklist;activeChecklist=null;let linkError=null;
   if(checklistToLink){const{error:le}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:savedJobId,p_checklist_number:checklistToLink.checklist_number});linkError=le||null}
@@ -2462,6 +2472,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=customer-cid-8"></script>
+<script type="module" src="../js/credit-vouchers.js?v=customer-cid-9"></script>
 </body>
 </html>
