@@ -1101,8 +1101,9 @@ creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal 
 }`;
 document.head.append(creditNoteLayoutStyle);
 
-
-/* Full-screen credit note detail view: no floating/narrow popup. */
+const creditNoteFullscreenStyle = document.createElement("style");
+creditNoteFullscreenStyle.id = "customer-credit-fullscreen-view";
+creditNoteFullscreenStyle.textContent = `/* Full-screen credit note detail view: no floating/narrow popup. */
 .credit-note-dialog-overlay.modal-overlay{
   position:fixed!important;inset:0!important;z-index:2147483600!important;
   display:flex!important;align-items:stretch!important;justify-content:stretch!important;
@@ -1163,3 +1164,5 @@ document.head.append(creditNoteLayoutStyle);
   .credit-note-dialog .credit-detail-row>strong{text-align:left!important}
   .credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
 }
+`;
+document.head.appendChild(creditNoteFullscreenStyle);
