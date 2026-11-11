@@ -629,8 +629,8 @@ const creditAccordionStyle = document.createElement("style");
 creditAccordionStyle.id = "customer-credit-accordion-layout";
 creditAccordionStyle.textContent = `
 /* Credit notes expand in place as normal page content. */
-.customer-credit-panel-scope details.customer-credit-record[open] > .customer-credit-document,
-.customer-credit-panel-scope details.overpayment-credit-record[open] > .overpayment-credit-record__body{
+#customer-credit-panel.customer-credit-panel-scope details.customer-credit-record[open] > .customer-credit-document,
+#customer-credit-panel.customer-credit-panel-scope details.overpayment-credit-record[open] > .overpayment-credit-record__body{
   display:block!important;position:static!important;inset:auto!important;float:none!important;
   width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;
   min-width:0!important;overflow:visible!important;overflow-y:visible!important;overflow-x:visible!important;
