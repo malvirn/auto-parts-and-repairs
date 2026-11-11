@@ -42,7 +42,51 @@ if (!host) {
   launcher.setAttribute("aria-label","Open customer credit vouchers");
   document.body.append(launcher);
   const style = document.createElement("style");
-  style.textContent = '.credit-voucher-launcher{position:fixed;right:16px;bottom:86px;z-index:9990;padding:12px 17px;border:0;border-radius:28px;background:#f58220;color:#fff;font-weight:800;box-shadow:0 8px 24px #0004}.credit-voucher-overlay{position:fixed;z-index:9991;inset:4vh 3vw auto auto;width:min(720px,94vw);max-height:90vh;overflow:auto;padding:18px;border:1px solid #526174;border-radius:16px;background:#10181a;color:#eef3ef;box-shadow:0 18px 60px #0008}.credit-voucher-overlay[hidden]{display:none}.credit-voucher-overlay>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.credit-voucher-overlay>header h2{margin:3px 0 12px}.credit-voucher-overlay>header button{font-size:25px;background:transparent;color:inherit;border:0}.credit-voucher-overlay-tools{display:grid;grid-template-columns:minmax(0,1fr) 140px auto;gap:8px;margin:12px 0}.credit-voucher-overlay input,.credit-voucher-overlay select{min-width:0;padding:10px;border:1px solid #53635a;border-radius:8px;background:#0c1210;color:inherit}.credit-voucher-overlay .credit-voucher-card{background:#14211b}.credit-voucher-overlay .credit-voucher-actions{display:flex;flex-wrap:wrap;gap:7px}.credit-voucher-overlay .credit-voucher-actions button,.credit-voucher-overlay-tools button{padding:9px;border-radius:8px}.credit-voucher-overlay .credit-voucher-redeem{display:grid;gap:9px;margin:12px 0;padding:14px;border:1px solid #40564a;border-radius:12px}.credit-voucher-overlay .credit-voucher-code-entry{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.credit-voucher-overlay .credit-voucher-redeem button{min-height:42px}.credit-voucher-overlay #voucher-redeem-apply{width:100%;background:#f58220;color:#fff;border:0;border-radius:8px;font-weight:800}.credit-voucher-overlay .credit-voucher-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.credit-voucher-overlay .credit-voucher-code{font-size:20px}.credit-voucher-overlay video{width:100%;max-height:230px;object-fit:cover}.credit-voucher-overlay .credit-voucher-history{margin-top:12px}.credit-voucher-overlay .credit-voucher-preview{padding:10px;border:1px solid #40564a;border-radius:8px}.credit-voucher-overlay .credit-voucher-expired-note{color:#fbbf24}
+  import supabase from "./supabaseClient.js";
+
+let host = document.getElementById("credit-voucher-panel");
+let list = document.getElementById("credit-voucher-list");
+let search = document.getElementById("credit-voucher-search");
+let statusFilter = document.getElementById("credit-voucher-status");
+let refresh = document.getElementById("credit-voucher-refresh");
+let settingsButton = document.getElementById("credit-voucher-settings");
+const tabButton = document.getElementById("credit-voucher-tab");
+const notesTabButton = document.getElementById("credit-notes-tab");
+let redeemCode = document.getElementById("voucher-redeem-code");
+let redeemCheck = document.getElementById("voucher-redeem-check");
+let redeemScan = document.getElementById("voucher-redeem-scan");
+let redeemPreview = document.getElementById("voucher-redeem-preview");
+let redeemTarget = document.getElementById("voucher-redeem-target");
+let redeemAmount = document.getElementById("voucher-redeem-amount");
+let redeemConfirmation = document.getElementById("voucher-redeem-confirmation");
+let redeemSourceSelect = document.getElementById("voucher-redeem-source");
+let redeemAuthorisedBy = document.getElementById("voucher-redeem-authorised-by");
+let redeemApply = document.getElementById("voucher-redeem-apply");
+let redeemMessage = document.getElementById("voucher-redeem-message");
+let redeemVideo = document.getElementById("voucher-redeem-video");
+const notesPanel = document.getElementById("customer-credit-panel");
+let launcher = null;
+if (!host) {
+  host = document.createElement("section");
+  host.id = "credit-voucher-panel";
+  host.hidden = true;
+  host.className = "credit-voucher-overlay";
+  host.innerHTML = '<header><div><small>CENTRIC AUTO MOBILE</small><h2>Customer Credit Vouchers</h2></div><button type="button" id="credit-voucher-close" aria-label="Close vouchers">×</button></header>' +
+    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-settings" type="button">Settings</button><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
+    '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
+    '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
+    '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-source">Customer credit available for this balance</label><select id="voucher-redeem-source"><option value="">Choose a credit note or voucher…</option></select><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
+    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
+    '<div id="credit-voucher-list" aria-live="polite"></div>';
+  document.body.append(host);
+  launcher = document.createElement("button");
+  launcher.type = "button";
+  launcher.className = "credit-voucher-launcher";
+  launcher.textContent = "Redeem voucher";
+  launcher.setAttribute("aria-label","Open customer credit vouchers");
+  document.body.append(launcher);
+  const style = document.createElement("style");
+  style.textContent = `.credit-voucher-launcher{position:fixed;right:16px;bottom:86px;z-index:9990;padding:12px 17px;border:0;border-radius:28px;background:#f58220;color:#fff;font-weight:800;box-shadow:0 8px 24px #0004}.credit-voucher-overlay{position:fixed;z-index:9991;inset:4vh 3vw auto auto;width:min(720px,94vw);max-height:90vh;overflow:auto;padding:18px;border:1px solid #526174;border-radius:16px;background:#10181a;color:#eef3ef;box-shadow:0 18px 60px #0008}.credit-voucher-overlay[hidden]{display:none}.credit-voucher-overlay>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.credit-voucher-overlay>header h2{margin:3px 0 12px}.credit-voucher-overlay>header button{font-size:25px;background:transparent;color:inherit;border:0}.credit-voucher-overlay-tools{display:grid;grid-template-columns:minmax(0,1fr) 140px auto;gap:8px;margin:12px 0}.credit-voucher-overlay input,.credit-voucher-overlay select{min-width:0;padding:10px;border:1px solid #53635a;border-radius:8px;background:#0c1210;color:inherit}.credit-voucher-overlay .credit-voucher-card{background:#14211b}.credit-voucher-overlay .credit-voucher-actions{display:flex;flex-wrap:wrap;gap:7px}.credit-voucher-overlay .credit-voucher-actions button,.credit-voucher-overlay-tools button{padding:9px;border-radius:8px}.credit-voucher-overlay .credit-voucher-redeem{display:grid;gap:9px;margin:12px 0;padding:14px;border:1px solid #40564a;border-radius:12px}.credit-voucher-overlay .credit-voucher-code-entry{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px}.credit-voucher-overlay .credit-voucher-redeem button{min-height:42px}.credit-voucher-overlay #voucher-redeem-apply{width:100%;background:#f58220;color:#fff;border:0;border-radius:8px;font-weight:800}.credit-voucher-overlay .credit-voucher-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.credit-voucher-overlay .credit-voucher-code{font-size:20px}.credit-voucher-overlay video{width:100%;max-height:230px;object-fit:cover}.credit-voucher-overlay .credit-voucher-history{margin-top:12px}.credit-voucher-overlay .credit-voucher-preview{padding:10px;border:1px solid #40564a;border-radius:8px}.credit-voucher-overlay .credit-voucher-expired-note{color:#fbbf24}
 :root[data-theme="light"] .credit-voucher-overlay{background:#fff!important;color:#17212b!important;border-color:#d8e0e8!important;box-shadow:0 18px 60px rgba(15,23,42,.2)!important;color-scheme:light}
 :root[data-theme="light"] .credit-voucher-overlay h2,:root[data-theme="light"] .credit-voucher-overlay h3,:root[data-theme="light"] .credit-voucher-overlay p,:root[data-theme="light"] .credit-voucher-overlay label,:root[data-theme="light"] .credit-voucher-overlay small,:root[data-theme="light"] .credit-voucher-overlay strong,:root[data-theme="light"] .credit-voucher-overlay summary{color:#17212b}
 :root[data-theme="light"] .credit-voucher-overlay input,:root[data-theme="light"] .credit-voucher-overlay select{background:#fff!important;color:#17212b!important;border-color:#cbd5df!important;color-scheme:light}
@@ -51,7 +95,7 @@ if (!host) {
 :root[data-theme="light"] .credit-voucher-overlay .credit-voucher-code{color:#126b3a}
 :root[data-theme="light"] .credit-voucher-overlay .credit-voucher-expired-note{color:#9a5700}
 :root[data-theme="light"] .credit-voucher-overlay>header button{color:#17212b}
-@media(max-width:560px){.credit-voucher-overlay{inset:2vh 2vw auto;width:96vw;max-height:94vh;padding:12px}.credit-voucher-overlay-tools{grid-template-columns:1fr 1fr}.credit-voucher-overlay-tools input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-code-entry{grid-template-columns:1fr 1fr}.credit-voucher-overlay .credit-voucher-code-entry input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-facts{grid-template-columns:1fr 1fr}}';
+@media(max-width:560px){.credit-voucher-overlay{inset:2vh 2vw auto;width:96vw;max-height:94vh;padding:12px}.credit-voucher-overlay-tools{grid-template-columns:1fr 1fr}.credit-voucher-overlay-tools input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-code-entry{grid-template-columns:1fr 1fr}.credit-voucher-overlay .credit-voucher-code-entry input{grid-column:1/-1}.credit-voucher-overlay .credit-voucher-facts{grid-template-columns:1fr 1fr}}`;
   document.head.append(style);
   launcher.addEventListener("click", async () => {
     host.hidden = false;
