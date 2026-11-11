@@ -364,7 +364,6 @@ body.dashboard-page .overpayment-credit-record__summary::-webkit-details-marker 
 body.dashboard-page .overpayment-credit-record__summary > span:first-child {display:grid;gap:4px;min-width:0}
 body.dashboard-page .overpayment-credit-record__summary small {display:block;color:var(--cam-muted);font-size:12px}
 body.dashboard-page .overpayment-credit-record__amount {font-size:18px;text-align:right;color:#35d58a}
-body.dashboard-page .overpayment-credit-record__body {display:grid;gap:14px;padding:16px;border-top:1px solid var(--cam-border)}
 body.dashboard-page .overpayment-credit-record__body .credit-doc-facts {display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
 body.dashboard-page .overpayment-credit-record__body .credit-doc-facts > div,
 body.dashboard-page .overpayment-credit-record__body .credit-doc-totals > div {
