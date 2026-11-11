@@ -4,7 +4,7 @@ import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const params=new URLSearchParams(location.search);
-const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
+const DAMAGE_TYPES=["Scratch","Dent","Crack","Chip","Broken","Missing","Stretched","Worn","Flat","Bald"];
 const PI={
  bumper:'<path class="g" d="M6 29c0-5 3-8 8-8h20c5 0 8 3 8 8v4H6z"/><path d="M11 33v3M37 33v3M13 25h22"/>',
  bonnet:'<path class="g" d="M10 35l4-17c.5-2 2-3 4-3h12c2 0 3.5 1 4 3l4 17z"/><path d="M19 23h10M17 28h14"/>',
@@ -72,10 +72,24 @@ function renderDamage(){
    if(!part)return;
    openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
     report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)?entry.dmg:[]};
-    renderDamage();
+    renderDamage();renderInspectionSummary();
    }});
   }
  });
+}
+function renderInspectionSummary(){
+ const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
+ const marked=parts.filter(p=>report.parts?.[p.key]?.dmg?.length);
+ const list=$("inspection-summary-list");if(!list)return;
+ list.innerHTML=marked.length?marked.map(p=>{const e=report.parts[p.key];return `<div class="inspection-summary-item"><b>${esc(p.name)} · ${esc(e.dmg.join(", "))}</b>${e.note?`<small>${esc(e.note)}</small>`:""}${e.photo?`<img class="inspection-photo-thumb" src="${esc(e.photo)}" alt="Damage photo">`:""}</div>`}).join(""):'<p class="message">No damage recorded.</p>';
+ $("inspection-mark-count").textContent=marked.length+" mark"+(marked.length===1?"":"s");
+ $("inspection-save-state").textContent=marked.length?marked.length+" damaged area(s) recorded. All others are No Damage.":"All unmarked areas are No Damage.";
+}
+function syncInspectionStrip(){
+ $("inspection-number-top").textContent=record?.inspection_no||(record?.checklist_number?"CL-"+String(record.checklist_number).padStart(6,"0"):"New inspection");
+ $("inspection-job-top").textContent=selectedJob?(selectedJob.cro_number||"JC-"+String(selectedJob.job_number??"").padStart(5,"0")):"Not linked";
+ $("inspection-cid-top").textContent=record?.customers?.customer_code||selectedJob?.customers?.customer_code||"Not linked";
+ $("inspection-plate-top").textContent=$("vehicle-registration-input").value.trim().toUpperCase()||"Not recorded";
 }
 function getIncompleteConditions(){ return []; }
 
@@ -95,12 +109,13 @@ function setEditable(value){
  $("save-checklist").disabled=editable;
  $("confirm-label").classList.toggle("hidden",!editable);
  if(editable)applyNoDamageDefaults();
- renderDamage();
+ renderDamage();renderInspectionSummary();syncInspectionStrip();
 }
 function startNewChecklist(prefillJob=null){
  record=null;report={parts:{},notes:""};selectedJob=prefillJob;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
  $("checklist-number-display").hidden=true;$("checklist-number-display").textContent="";
+ $("reopen-inspection").hidden=true;syncInspectionStrip();
  $("print-checklist-number").textContent="";
  $("job-meta").hidden=!prefillJob;
  $("job-meta").textContent=prefillJob?`Checklist for ${prefillJob.cro_number||`JC-${String(prefillJob.job_number??"").padStart(5,"0")}`}`:"";
@@ -116,7 +131,7 @@ function startNewChecklist(prefillJob=null){
  $("link-existing-fields").hidden=true;
  $("detail-status").textContent=prefillJob?"Complete the required drop-off details and confirm this checklist.":"Enter the customer and vehicle details, then complete the checklist.";
  $("save-checklist").textContent="Save and confirm checklist";
- setDetailMessage("");setEditable(true);
+ setDetailMessage("");setEditable(true);renderInspectionSummary();syncInspectionStrip();
 }
 function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
@@ -130,7 +145,7 @@ function renderChecklistList(rows){
 }
 async function loadList(){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,voided_at,void_reason,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,voided_at,void_reason,customers(full_name,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .order("updated_at",{ascending:false}).limit(300);
  if(error)throw new Error(`Couldn't load saved checklists: ${error.message}`);
  renderChecklistList(data||[]);
@@ -142,7 +157,7 @@ async function loadJob(jobId){
 }
 async function loadRecord(id){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,voided_at,voided_by,void_reason,customers(full_name),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,voided_at,voided_by,void_reason,customers(full_name,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .eq("id",id).single();
  if(error)throw new Error(`Couldn't load this checklist: ${error.message}`);
  return data;
@@ -154,7 +169,8 @@ async function showRecord(item){
  $("customer-name-input").value=item.customer_name||item.customers?.full_name||"";
  $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
  $("checklist-notes").value=report.notes;
- $("checklist-number-display").textContent=`Checklist #${item.checklist_number}`;
+ $("checklist-number-display").textContent=item.inspection_no||"CL-"+String(item.checklist_number).padStart(6,"0");
+ syncInspectionStrip();
  $("checklist-number-display").hidden=false;
  $("print-checklist-number").textContent=`#${item.checklist_number}`;
  $("checked-by-input").value=item.checked_by||"";
@@ -175,6 +191,9 @@ async function showRecord(item){
  $("link-existing-fields").hidden=!item.confirmed_at||Boolean(item.job_id)||Boolean(item.voided_at);
  $("link-job").disabled=true;
  setEditable(!item.voided_at);
+ $("reopen-inspection").hidden=true;
+ if(item.status==="completed"||item.confirmed_at){const {data:u}=await supabase.auth.getUser();if(u?.user?.id){const {data:p}=await supabase.from("profiles").select("role").eq("id",u.user.id).maybeSingle();$("reopen-inspection").hidden=!["super_admin","superadmin"].includes(String(p?.role||"").toLowerCase());}}
+ renderInspectionSummary();syncInspectionStrip();
  setDetailMessage("");
  if(item.confirmed_at&&!item.job_id&&!item.voided_at)await loadMatchingJobs(item);
 }
