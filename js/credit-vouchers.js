@@ -266,7 +266,7 @@ async function applyVoucher() {
     const remainingCredit = wasCreditNote ? Math.max(0, Number(sourceSnapshot.available_amount) - amount) : Number(data.remaining_balance);
     setRedeemMessage((wasCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
       money(remainingCredit) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
-    if (redeemSourceSelect) redeemSourceSelect.value = "";
+    if (redeemSourceSelect && !customerCreditSources.some(source => source.kind === "voucher" && source.id === checkedVoucher?.voucher_id)) redeemSourceSelect.value = "";
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
     redeemApply.disabled = false;
@@ -630,7 +630,10 @@ async function loadCustomerCreditSources(target) {
     if (error) throw error;
     quotationDates = new Map((quotes || []).map(row => [row.id, row.created_at]));
   }
-  const noteSources = notes.map(row => {
+  const activeVoucherNoteIds = new Set((voucherResult.data || [])
+    .filter(row => row.customer_id === customer.id && row.status === "active" && Number(row.available_amount) > 0.005 && row.credit_note_type === "quotation_deposit")
+    .map(row => row.credit_note_id));
+  const noteSources = notes.filter(row => !activeVoucherNoteIds.has(row.deposit_receipt_id)).map(row => {
     const createdAt = quotationDates.get(row.quotation_id) || row.created_at;
     const expiry = createdAt ? new Date(Date.parse(createdAt) + 7 * 86400000).toISOString().slice(0,10) : null;
     return {
