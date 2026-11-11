@@ -583,7 +583,6 @@ grant execute on function public.list_customer_credit_vouchers_with_identity() t
 
 -- Expose CID and company identity in the existing customer credit wallet view.
 create or replace view public.customer_credit_balances
-with (security_invoker = true)
 as
 select
   receipt.id as deposit_receipt_id,
