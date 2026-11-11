@@ -1348,7 +1348,7 @@ async function load(){
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
  const q=( $("hs-input")?.value || "" ).toLowerCase(),sts=statuses();
- const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.full_name,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
+ const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
  const active=jobs.filter(j=>!stClass(j.status)).length;
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
@@ -2459,6 +2459,6 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=customer-cid-4"></script>
+<script type="module" src="../js/credit-vouchers.js?v=customer-cid-5"></script>
 </body>
 </html>
