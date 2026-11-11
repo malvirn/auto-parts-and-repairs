@@ -205,33 +205,54 @@ function addDashboardToolbar(main) {
   window.lucide?.createIcons();
 }
 
-async function normalizeDashboardSidebar(sidebar) {
-  if (!sidebar || sidebar.dataset.dashboardCanonical === "true" || sidebar.dataset.dashboardCanonicalizing === "true" || isDashboardHome()) return;
-  sidebar.dataset.dashboardCanonicalizing = "true";
-  // Keep the module's placeholder sidebar hidden even when the mobile drawer opens.
-  // The CSS uses !important visibility rules, so the inline loading state must too.
-  sidebar.style.setProperty("visibility", "hidden", "important");
-  sidebar.setAttribute("aria-hidden", "true");
-  const indexUrl = new URL("../index.html", import.meta.url);
-  try {
-    const response = await fetch(indexUrl, { credentials: "same-origin" });
-    if (!response.ok) throw new Error(`Could not load the dashboard navigation (${response.status})`);
-    const html = await response.text();
-    const indexDocument = new DOMParser().parseFromString(html, "text/html");
+const SHELL_CACHE_KEY = "apr-shell-v1";
+const ACCESS_CACHE_KEY = "apr-last-access-v1";
 
-    // Every module loads the exact chrome rules from the Index master page.
-    let sharedChromeCss = document.querySelector('link[data-shared-dashboard-chrome]');
-    if (!sharedChromeCss) {
-      sharedChromeCss = document.createElement("link");
-      sharedChromeCss.rel = "stylesheet";
-      sharedChromeCss.href = new URL("../css/dashboard-chrome.css?v=shared-chrome-alignment-1", import.meta.url).href;
-      sharedChromeCss.dataset.sharedDashboardChrome = "true";
-      const cssLoaded = new Promise(resolve => {
-        sharedChromeCss.addEventListener("load", resolve, { once: true });
-        sharedChromeCss.addEventListener("error", resolve, { once: true });
-      });
-      document.head.append(sharedChromeCss);
-      await cssLoaded;
+function readCachedShellDocument() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(SHELL_CACHE_KEY) || "null");
+    if (!cached || !cached.sidebar || !cached.header || !cached.toggle || !cached.backdrop) return null;
+    const html = `<!doctype html><html><body class="dashboard-page dashboard-workshop">${cached.header}${cached.sidebar}${cached.toggle}${cached.backdrop}</body></html>`;
+    return new DOMParser().parseFromString(html, "text/html");
+  } catch (_) { return null; }
+}
+
+function cacheCanonicalShell(indexDocument) {
+  try {
+    const sidebar = indexDocument.querySelector("body.dashboard-page .sidebar");
+    const header = indexDocument.querySelector("body.dashboard-workshop > .dashboard-topbar");
+    const toggle = indexDocument.querySelector("#dashboard-sidebar-toggle");
+    const backdrop = indexDocument.querySelector(".dashboard-sidebar-backdrop");
+    if (sidebar && header && toggle && backdrop) {
+      localStorage.setItem(SHELL_CACHE_KEY, JSON.stringify({
+        sidebar: sidebar.outerHTML, header: header.outerHTML,
+        toggle: toggle.outerHTML, backdrop: backdrop.outerHTML
+      }));
+    }
+  } catch (error) { console.warn("Could not cache the dashboard shell:", error); }
+}
+
+async function normalizeDashboardSidebar(sidebar) {
+  if (!sidebar || sidebar.dataset.dashboardCanonicalizing === "true" || isDashboardHome()) return;
+  sidebar.dataset.dashboardCanonicalizing = "true";
+  const indexUrl = new URL("../index.html", import.meta.url);
+  let indexDocument = readCachedShellDocument();
+  const usedCache = Boolean(indexDocument);
+  try {
+    if (!indexDocument) {
+      const response = await fetch(indexUrl, { credentials: "same-origin" });
+      if (!response.ok) throw new Error(`Could not load the dashboard navigation (${response.status})`);
+      const html = await response.text();
+      indexDocument = new DOMParser().parseFromString(html, "text/html");
+      cacheCanonicalShell(indexDocument);
+    }
+    // The shared stylesheet is linked in each module page head, so cached
+    // shell rendering does not wait for a late stylesheet request.
+    if (usedCache) {
+      fetch(indexUrl, { credentials: "same-origin" })
+        .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.text(); })
+        .then(html => cacheCanonicalShell(new DOMParser().parseFromString(html, "text/html")))
+        .catch(error => console.warn("Could not refresh the cached dashboard shell:", error));
     }
     const source = indexDocument.querySelector("body.dashboard-page .sidebar");
     const sourceHeader = indexDocument.querySelector("body.dashboard-workshop > .dashboard-topbar");
@@ -241,10 +262,12 @@ async function normalizeDashboardSidebar(sidebar) {
       throw new Error("The Index shared layout template is incomplete");
     }
 
-    const rawRole = String(document.body.dataset.role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
+    let rememberedAccess = {};
+    try { rememberedAccess = JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}"); } catch (_) {}
+    const rawRole = String(document.body.dataset.role || rememberedAccess.role || "staff").trim().toLowerCase().replace(/[\s-]+/g, "_");
     const normalizedRole = rawRole === "superadmin" ? "super_admin" : rawRole;
     // Verified numeric access level is authoritative for super-admin navigation.
-    const role = Number(document.body.dataset.accessLevel) >= 2 ? "super_admin" : normalizedRole;
+    const role = Number(document.body.dataset.accessLevel || rememberedAccess.accessLevel) >= 2 ? "super_admin" : normalizedRole;
     const accessByPage = {
       accounting: ["super_admin", "accounting"],
       ledger: ["super_admin", "accounting"],
@@ -358,12 +381,22 @@ async function normalizeDashboardSidebar(sidebar) {
         window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: nextMode } }));
       });
     }
+    delete sidebar.dataset.dashboardCanonicalizing;
+    sidebar.dataset.dashboardCanonical = "true";
+    sidebar.style.removeProperty("visibility");
+    sidebar.removeAttribute("aria-hidden");
+    try {
+      localStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({
+        role: document.body.dataset.role || role,
+        accessLevel: document.body.dataset.accessLevel || rememberedAccess.accessLevel || null
+      }));
+    } catch (_) {}
     window.lucide?.createIcons();
   } catch (error) {
     delete sidebar.dataset.dashboardCanonicalizing;
     sidebar.style.removeProperty("visibility");
     sidebar.removeAttribute("aria-hidden");
-    console.error("Could not apply the shared dashboard sidebar:", error);
+    console.warn("Using this page's navigation because the shared shell could not load:", error);
   }
 }
 
