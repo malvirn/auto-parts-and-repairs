@@ -521,7 +521,7 @@ function printChecklist(blank=false){
  .note,.liability{margin-top:16px;padding:10px 12px;border:1px solid #d2d9e2;border-radius:6px}
  .liability{border-left:4px solid #b45309;background:#fff7ed}
  footer{margin-top:24px;padding-top:10px;border-top:1px solid #d2d9e2;color:#536273;font-size:10px}
- @page{size:A4;margin:12mm}@media print{body{padding:0}}
+ @page{size:A4;margin:0}@media print{body{padding:10mm}}
  </style></head><body>
  <header><img src="${esc(logo)}" alt=""><div><h1>Vehicle Checklist</h1><p>Centric Auto Mobile</p></div><div class="number">${checklistNumber}</div></header>
  <div class="summary">
