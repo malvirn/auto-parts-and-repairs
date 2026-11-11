@@ -890,11 +890,6 @@ async function initializeAfterAccess() {
 // Render the cached canonical shell immediately, using the last verified role
 // until the current session's access check supplies an authoritative role.
 if (!isDashboardHome()) {
-  try {
-    // The cached role/access level remains a rendering hint only. Keep it
-    // out of body.dataset so the verified access event still runs normally.
-    JSON.parse(localStorage.getItem(ACCESS_CACHE_KEY) || "{}");
-  } catch (_) {}
   const initialSidebar = document.querySelector("body.dashboard-page .sidebar");
   if (initialSidebar) normalizeDashboardSidebar(initialSidebar);
 }
