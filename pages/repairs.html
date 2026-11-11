@@ -1092,7 +1092,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 <script type="module" src="../js/notifications.js"></script>
 <script type="module" src="../js/repair-pages-navigation.js"></script>
 <script>
-(()=>{const t=()=>{const n=new Date(),c=document.getElementById("hdr-clock"),d=document.getElementById("dashboard-date");if(c)c.textContent=n.toLocaleTimeString("en-GB",{hour12:false});if(d)d.textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};const o=()=>{const l=document.getElementById("hdr-live");if(l){l.dataset.state=navigator.onLine?"online":"offline";const label=l.querySelector("span");if(label)label.textContent=navigator.onLine?"Live":"Offline"}};t();o();setInterval(t,1000);addEventListener("online",o);addEventListener("offline",o)})();
+(()=>{const zone="Africa/Harare",timeOpts={timeZone:zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false},dateOpts={timeZone:zone,weekday:"long",day:"numeric",month:"long",year:"numeric"};const t=()=>{const n=new Date(),c=document.getElementById("hdr-clock"),d=document.getElementById("dashboard-date");if(c)c.textContent=new Intl.DateTimeFormat("en-GB",timeOpts).format(n);if(d)d.textContent=new Intl.DateTimeFormat("en-GB",dateOpts).format(n)};const o=()=>{const l=document.getElementById("hdr-live");if(l){l.dataset.state=navigator.onLine?"online":"offline";const label=l.querySelector("span");if(label)label.textContent=navigator.onLine?"Live":"Offline"}};t();o();setInterval(t,1000);addEventListener("online",o);addEventListener("offline",o)})();
 </script>
 <script>
 /* Three-dot menu: show every module in categories (built from the role-filtered sidebar). */
@@ -1618,13 +1618,16 @@ async function fillCloseMoney(job){
 }
 $("draft-confirm").onclick=confirmDraftChecklist;
 $("draft-checklist-no").addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();confirmDraftChecklist()}});
+let openJobRequest=0;
 async function open(j){
+ const request=++openJobRequest;
  cur=j;
  $("close-job-modal").classList.add("hidden");
  const[partsResult,incidentalsResult]=await Promise.all([
   supabase.from("job_parts").select("id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",j.id),
   supabase.from("job_incidentals").select("description,amount").eq("job_id",j.id)
  ]);
+ if(request!==openJobRequest)return;
  const{data:parts,error}=partsResult;
  curPartsLoaded=!error;
  if(error){console.error("Couldn't load parts for job card:",error);toast(`Couldn't load job-card parts: ${error.message}`);curParts=[]}
@@ -1632,11 +1635,13 @@ async function open(j){
  if(incidentalsResult.error){console.error("Couldn't load additional job costs:",incidentalsResult.error);toast(`Couldn't load additional job costs: ${incidentalsResult.error.message}`);curIncidentals=[]}
  else curIncidentals=incidentalsResult.data||[];
  const savedReport=await loadReport(j.id);
+ if(request!==openJobRequest)return;
  if(savedReport)inspectionState.set(String(j.id),savedReport);
  renderJobDoc(j);
  const inspectionPanel=$("job-inspection-panel"),inspectionMeta=$("job-inspection-meta"),inspectionLink=$("job-inspection-link");
  if(inspectionPanel&&inspectionMeta&&inspectionLink){
   const {data:inspection,error:inspectionError}=await supabase.from("job_condition_reports").select("id,checklist_number,inspection_no,status,confirmed_at").eq("job_id",j.id).is("voided_at",null).maybeSingle();
+  if(request!==openJobRequest)return;
   inspectionPanel.hidden=!inspection;
   if(inspectionError){console.error("Couldn't load the linked vehicle inspection:",inspectionError);inspectionMeta.textContent="Inspection details unavailable";inspectionLink.hidden=true;}
   else if(inspection){
@@ -1920,16 +1925,28 @@ $("edit-job-form").onsubmit=async event=>{
 };
 async function saveDailyUpdate(status,extraFields={}){
  if(!cur)return false;
+ const jobId=cur.id;
  const note=$("d-update-note").value.trim();
  const now=new Date().toISOString();
  const updates={work_done:$("d-work-done").value.trim()||null,work_missing:$("d-work-missing").value.trim()||null,daily_update_note:note,daily_update_at:now,...extraFields};
  if(status)updates.status=status;
- const{error}=await supabase.from("repair_jobs").update(updates).eq("id",cur.id);
- if(error){toast("Couldn't save job update: "+error.message);return false}
- Object.assign(cur,updates);$("d-update-note").value="";$("daily-update-warning").textContent="";
- renderJobDoc(cur);
- if(status===CLOSED_STATUS){$("close-job-modal").classList.add("hidden");$("close-job-card").hidden=true;$("mark-job-collected").hidden=false;$("d-status").value=CLOSED_STATUS;$("d-status").disabled=true}
- toast(status===CLOSED_STATUS?"Job card closed":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved");render();
+ const{data:saved,error}=await supabase.from("repair_jobs").update(updates).eq("id",jobId).select("id,status,closed_at,ready_at,tested_by,next_service_mileage,work_done,work_missing,daily_update_note,daily_update_at").maybeSingle();
+ if(error){toast("Couldn't save job update: "+error.message);$("close-job-message").textContent=error.message;return false}
+ if(!saved){const message="No job card was updated. Your account may not have permission to change this job card.";toast(message);$("close-job-message").textContent=message;return false}
+ const updated={...cur,...updates,...saved};
+ jobs=jobs.map(job=>job.id===jobId?{...job,...updated}:job);
+ if(cur?.id===jobId)cur=updated;
+ $("d-update-note").value="";$("daily-update-warning").textContent="";
+ renderJobDoc(updated);
+ if(status===CLOSED_STATUS){
+  $("close-job-modal").classList.add("hidden");
+  $("close-job-card").hidden=true;
+  $("mark-job-collected").hidden=false;
+  $("d-status").value=saved.status;
+  $("d-status").disabled=true;
+ }
+ toast(status===CLOSED_STATUS?"Job card closed and saved":status?"Status updated — tap WhatsApp update to tell the customer":"Daily update saved");
+ render();
  return true;
 }
 $("save-daily-update").onclick=()=>saveDailyUpdate();
