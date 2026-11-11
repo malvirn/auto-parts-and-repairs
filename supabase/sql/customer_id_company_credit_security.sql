@@ -78,7 +78,6 @@ begin
 end;
 $$;
 
-revoke all on function public.generate_customer_code_value() from public, anon, authenticated;
 create or replace function public.enforce_customer_identity_fields()
 returns trigger
 language plpgsql
@@ -124,6 +123,7 @@ begin
   return new;
 end;
 $$;
+revoke all on function public.generate_customer_code_value() from public, anon, authenticated;
 revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
 
 -- Refuse to proceed if legacy non-empty values are duplicated.
