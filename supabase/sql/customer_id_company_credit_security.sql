@@ -156,12 +156,21 @@ set customer_code = null
 where nullif(btrim(customer_code), '') is null;
 
 alter table public.customers alter column customer_code set not null;
-do $
+do $block$
 begin
   if not exists (
-    select 1 from pg_indexes
-    where schemaname='public' and tablename='customers'
-      and indexdef ilike 'create unique index%' and indexdef ~ '\\(customer_code\\)
+    select 1
+    from pg_index i
+    join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any(i.indkey)
+    where i.indrelid = 'public.customers'::regclass
+      and i.indisunique
+      and i.indnatts = 1
+      and a.attname = 'customer_code'
+  ) then
+    create unique index customers_customer_code_uidx on public.customers(customer_code);
+  end if;
+end;
+$block$;
 
 -- Keep the existing RLS policies and add a manager-only UPDATE path for accounting
 -- managers who are not included in the operational staff policy.
