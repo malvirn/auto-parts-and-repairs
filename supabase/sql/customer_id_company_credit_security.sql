@@ -19,9 +19,6 @@ create unique index if not exists customer_code_registry_customer_uidx
   on public.customer_code_registry(customer_id, customer_code);
 alter table public.customer_code_registry enable row level security;
 revoke all on public.customer_code_registry from public, anon, authenticated;
-revoke all on function public.generate_customer_code() from public, anon, authenticated;
-revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
-
 create or replace function public.generate_customer_code()
 returns text
 language plpgsql
@@ -122,7 +119,9 @@ begin
   end if;
   return new;
 end;
-$$;
+$;
+revoke all on function public.generate_customer_code() from public, anon, authenticated;
+revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
 
 -- Refuse to proceed if legacy non-empty values are duplicated.
 do $$
@@ -403,6 +402,7 @@ as $$
 declare
   voucher_row public.customer_credit_vouchers%rowtype;
   customer_id_value uuid;
+  target_customer_id uuid;
   customer_row public.customers%rowtype;
   match_count integer;
   credit_ref text;
@@ -449,6 +449,18 @@ begin
     end if;
   end if;
   select * into customer_row from public.customers where id = customer_id_value;
+  if p_target_type = 'repair_job' then
+    select customer_id into target_customer_id from public.repair_jobs where id=p_target_id;
+  elsif p_target_type = 'invoice' then
+    select customer_id into target_customer_id from public.invoices where id=p_target_id;
+  elsif p_target_type = 'sales_order' then
+    select customer_id into target_customer_id from public.sales_orders where id=p_target_id;
+  else
+    return jsonb_build_object('error','Unsupported credit target');
+  end if;
+  if target_customer_id is distinct from customer_id_value then
+    return jsonb_build_object('error','This credit belongs to a different customer');
+  end if;
   verified := public.verify_customer_credit_confirmation(customer_row.id, p_confirmation_value, p_authorised_by);
   if coalesce((verified->>'allowed')::boolean, false) is not true then
     return verified;
