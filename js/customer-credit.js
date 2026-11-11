@@ -691,8 +691,6 @@ creditInlineStyle.textContent += `
 }
 .credit-note-dialog .credit-doc-facts,
 .credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-.credit-note-dialog .credit-doc-actions{display:flex!important;flex-wrap:wrap!important;gap:9px!important}
-.credit-note-dialog .credit-doc-actions>*{flex:1 1 130px!important}
 :root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record,
 :root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record{
   border-color:#d8e0e8!important;background:#fff!important;color:#17212d!important;
@@ -751,18 +749,9 @@ creditInlineStyle.textContent += `
   .credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
   .credit-note-dialog .credit-doc-facts>div,
   .credit-note-dialog .credit-doc-totals>div{padding:9px!important}
-  .credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:1fr!important}
 }
 `;
 document.head.appendChild(creditInlineStyle);
-
-const creditPopupActionsStyle = document.createElement("style");
-creditPopupActionsStyle.id = "customer-credit-popup-actions";
-creditPopupActionsStyle.textContent = `
-.credit-note-dialog .credit-doc-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:10px!important;padding:14px 16px!important}
-.credit-note-dialog .credit-doc-actions > *{flex:0 0 auto!important;width:auto!important;min-width:0!important;padding:10px 16px!important;justify-content:center!important}
-`;
-document.head.appendChild(creditPopupActionsStyle);
 
 creditInlineStyle.textContent += `
 .credit-note-dialog-overlay{position:fixed!important;inset:0!important;z-index:2147483600!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(10px,3vw,24px)!important;background:rgba(5,9,14,.78)!important;backdrop-filter:blur(5px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
@@ -1019,7 +1008,6 @@ creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal 
 }
 .credit-note-dialog .credit-doc-facts,
 .credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-.credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
 :root[data-theme="light"] .credit-note-dialog.modal,
 :root[data-theme="light"] .credit-note-dialog .credit-dialog-content,
 :root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body,
@@ -1081,7 +1069,6 @@ creditNoteLayoutStyle.textContent = `/* Match the Repairs > Edit Job Card modal 
   .credit-note-dialog .credit-note-dialog-head{padding:12px 14px!important}
   .credit-note-dialog .overpayment-credit-record__body,
   .credit-note-dialog .customer-credit-document{padding:14px!important}
-  .credit-note-dialog .credit-doc-actions{grid-template-columns:1fr!important}
 }
 
 
@@ -1150,10 +1137,6 @@ creditNoteFullscreenStyle.textContent = `/* Full-screen credit note detail view:
 .credit-note-dialog .credit-doc-totals{
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
 }
-.credit-note-dialog .credit-doc-actions{
-  display:flex!important;flex-wrap:wrap!important;gap:10px!important;
-}
-.credit-note-dialog .credit-doc-actions>*{flex:1 1 150px!important;min-width:0!important}
 .credit-note-dialog .credit-detail-row{grid-template-columns:minmax(150px,.8fr) minmax(0,1.2fr)!important}
 :root[data-theme="dark"] .credit-note-dialog.modal,
 :root[data-theme="dark"] .credit-note-dialog .credit-dialog-content,
@@ -1171,7 +1154,47 @@ creditNoteFullscreenStyle.textContent = `/* Full-screen credit note detail view:
   .credit-note-dialog .credit-doc-totals{grid-template-columns:minmax(0,1fr)!important}
   .credit-note-dialog .credit-detail-row{grid-template-columns:minmax(0,1fr)!important;gap:4px!important}
   .credit-note-dialog .credit-detail-row>strong{text-align:left!important}
-  .credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
 }
 `;
 document.head.appendChild(creditNoteFullscreenStyle);
+
+
+/* Final credit-note dialog overrides. Keep this as the last injected style block. */
+const creditNoteFinalLayoutStyle = document.createElement("style");
+creditNoteFinalLayoutStyle.id = "customer-credit-final-layout";
+creditNoteFinalLayoutStyle.textContent = `
+.credit-note-dialog-overlay.modal-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483600!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  padding:24px!important;overflow:hidden!important;
+  background:rgba(5,9,14,.55)!important;backdrop-filter:blur(3px)!important;
+}
+.credit-note-dialog.modal{
+  display:flex!important;flex-direction:column!important;flex:0 1 920px!important;
+  width:min(920px,calc(100vw - 48px))!important;max-width:920px!important;
+  height:auto!important;min-width:0!important;min-height:0!important;
+  max-height:calc(100dvh - 48px)!important;margin:auto!important;padding:0!important;
+  overflow:hidden!important;border-radius:16px!important;
+}
+.credit-note-dialog .credit-doc-actions{
+  display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+  justify-content:center!important;align-items:center!important;
+  gap:10px!important;padding:14px 16px!important;
+}
+.credit-note-dialog .credit-doc-actions>*{
+  flex:0 0 auto!important;width:auto!important;min-width:0!important;
+  padding:10px 16px!important;justify-content:center!important;
+}
+@media(max-width:700px){
+  .credit-note-dialog-overlay.modal-overlay{
+    align-items:stretch!important;justify-content:stretch!important;padding:0!important;
+  }
+  .credit-note-dialog.modal{
+    flex:1 1 100%!important;width:100%!important;max-width:100%!important;
+    height:100dvh!important;max-height:100dvh!important;min-height:100dvh!important;
+    margin:0!important;border-radius:0!important;
+  }
+}
+`;
+document.head.appendChild(creditNoteFinalLayoutStyle);
