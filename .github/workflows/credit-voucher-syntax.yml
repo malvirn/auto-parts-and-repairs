@@ -5,6 +5,8 @@ on:
     paths:
       - 'js/credit-vouchers.js'
       - 'js/customer-credit.js'
+      - 'js/customers.js'
+      - 'js/quotations.js'
       - '.github/workflows/credit-voucher-syntax.yml'
   pull_request:
     paths:
@@ -23,3 +25,5 @@ jobs:
         run: |
           node --check js/credit-vouchers.js
           node --check js/customer-credit.js
+          node --check js/customers.js
+          node --check js/quotations.js
