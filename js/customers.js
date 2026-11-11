@@ -180,7 +180,7 @@ async function findExistingCustomer(phone, email) {
 
   const { data: archived, error: archivedError } = await supabase
     .from("customers")
-    .select("id, full_name, phone, email, is_repeat_customer")
+    .select("id, customer_code, full_name, phone, email, is_company, company_name, is_repeat_customer")
     .or(filters.join(","))
     .not("deleted_at", "is", null)
     .limit(1);
@@ -230,9 +230,6 @@ async function startEditingCustomer(customerId) {
   document.getElementById("cust-company-name").required = Boolean(customer.is_company);
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-customer-code").readOnly = !canManageCustomerCode;
-  document.getElementById("cust-is-company").checked = Boolean(customer.is_company);
-  document.getElementById("cust-company-name").value = customer.company_name || "";
-  document.getElementById("cust-company-name-field").hidden = !customer.is_company;
   document.getElementById("cust-company-name").required = Boolean(customer.is_company);
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-type").value = customer.customer_type || "individual";
@@ -375,7 +372,7 @@ if (form) {
     if (editingCustomerId) {
       const { error: customerError } = await supabase
         .from("customers")
-        .update({ full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null })
+        .update({ full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) })
         .eq("id", editingCustomerId);
       if (customerError) {
         alert(`Couldn't update customer details: ${customerError.message}`);
@@ -457,6 +454,12 @@ if (form) {
         }
         savedVehicleIdForExisting = vehicleResult.vehicle?.id || null;
       }
+      if (is_company !== Boolean(existing.is_company) || (is_company && company_name !== existing.company_name)) {
+        const { error: companyError } = await supabase.from("customers")
+          .update({ is_company, company_name: is_company ? company_name : null })
+          .eq("id", existing.id);
+        if (companyError) throw new Error("Customer was found, but company details could not be saved: " + companyError.message);
+      }
       if (!existing.is_repeat_customer) {
         const { error: flagError } = await supabase
           .from("customers")
@@ -477,7 +480,7 @@ if (form) {
 
     // No existing match — this really is a new customer.
     const { data: customer, error } = await supabase.from("customers").insert([
-      { full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null }
+      { full_name, customer_type, phone, email: email || null, is_company, company_name: is_company ? company_name : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) }
     ]).select("id, customer_code").single();
 
     if (error) {
