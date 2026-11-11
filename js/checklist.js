@@ -30,23 +30,23 @@ const PI={
 const partIcon=(icon,flip)=>`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="21"/>${PI[icon]||PI.bonnet}</svg>`;
 // [key, name, icon, flip right-hand icons]
 const CONDITION_GROUPS=[
- ["Body",[
-  ["front-bumper","Front bumper","bumper"],["bonnet","Bonnet","bonnet"],["roof","Roof","roof"],["lf-wing","Left front wing","wing"],["rf-wing","Right front wing","wing",1],
-  ["lf-door","Left front door","door"],["lr-door","Left rear door","door"],["rf-door","Right front door","door",1],["rr-door","Right rear door","door",1],["lr-quarter","Left rear quarter panel","wing"],["rr-quarter","Right rear quarter panel","wing",1],
-  ["boot","Boot / tailgate","boot"],["boot-lid","Boot lid","boot"],["grille","Front grille","bumper"],["rear-bumper","Rear bumper","bumper"]
+ ["Top view",[
+  ["bonnet","Bonnet (hood)","bonnet"],["windscreen","Windscreen with frame","glass"],["roof","Roof","roof"],["rear-glass","Rear screen (rear window)","rearglass"],["boot-lid","Boot lid (trunk lid)","boot"]
  ]],
- ["Glass and lights",[
-  ["windscreen","Front windscreen","glass"],["rear-glass","Rear windscreen","rearglass"],["l-headlight","Left headlight","headlight"],["r-headlight","Right headlight","headlight",1],
-  ["l-taillight","Left tail light","taillight"],["r-taillight","Right tail light","taillight",1],["l-mirror","Left mirror","mirror"],["r-mirror","Right mirror","mirror",1]
+ ["Front end",[
+  ["front-bumper","Front bumper","bumper"],["grille","Front grille","bumper"],["l-headlight","Left headlight","headlight"],["r-headlight","Right headlight","headlight",1],["l-fog-light","Left fog light","headlight"],["r-fog-light","Right fog light","headlight",1],["front-plate-area","Front number plate area","boot"]
+ ]],
+ ["Rear end",[
+  ["rear-bumper","Rear bumper","bumper"],["l-taillight","Left tail light","taillight"],["r-taillight","Right tail light","taillight",1],["rear-plate-area","Rear number plate area","boot"],["boot-spoiler","Boot spoiler lip","boot"]
+ ]],
+ ["Left side",[
+  ["lf-wing","Left front fender (wing)","wing"],["lf-door","Left front door","door"],["lr-door","Left rear door","door"],["lr-quarter","Left rear quarter panel","wing"],["l-mirror","Left side mirror","mirror"],["l-side-skirt","Left side skirt","bumper"]
+ ]],
+ ["Right side",[
+  ["rf-wing","Right front fender (wing)","wing",1],["rf-door","Right front door","door",1],["rr-door","Right rear door","door",1],["rr-quarter","Right rear quarter panel","wing",1],["r-mirror","Right side mirror","mirror",1],["r-side-skirt","Right side skirt","bumper",1]
  ]],
  ["Wheels",[
-  ["wheel-lf","Left front wheel","wheel"],["wheel-rf","Right front wheel","wheel"],["wheel-lr","Left rear wheel","wheel"],["wheel-rr","Right rear wheel","wheel"]
- ]],
- ["Interior",[
-  ["seats","Seats","seat"],["dashboard","Dashboard","speedo"],["steering","Steering wheel","steer"],["seatbelts","Seat belts","belt"]
- ]],
- ["Under the bonnet and chassis",[
-  ["engine","Engine","engine"],["radiator","Radiator","radiator"],["brakes","Brakes","brake"],["exhaust","Exhaust","exhaust"]
+  ["wheel-lf","Left front alloy wheel and tyre","wheel"],["wheel-rf","Right front alloy wheel and tyre","wheel"],["wheel-lr","Left rear alloy wheel and tyre","wheel"],["wheel-rr","Right rear alloy wheel and tyre","wheel"],["spare-wheel","Spare wheel","wheel"]
  ]]
 ];
 let selectedJob=null,record=null,report={parts:{},notes:""},editable=false;
@@ -63,19 +63,42 @@ function applyNoDamageDefaults(){
  report.parts=report.parts||{};
 }
 function renderDamage(){
- const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
- mountVehicleInspectionDiagram($("inspection-grid"),{
-  parts,getReport:()=>report,interactive:editable,
-  onSelect:key=>{
-   if(!editable)return;
-   const part=parts.find(item=>item.key===key);
-   if(!part)return;
-   openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
-    report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)?entry.dmg:[]};
-    renderDamage();renderInspectionSummary();persistInspectionLocally();if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
-   }});
-  }
- });
+ const grid=$("inspection-grid");
+ const groups=CONDITION_GROUPS.map(([group,items])=>`
+  <section class="body-part-group">
+   <h3>${esc(group)}</h3>
+   <div class="body-part-grid">${items.map(([key,name])=>{
+    const damaged=Boolean(report.parts?.[key]?.dmg?.length);
+    return `<label class="body-part-option ${damaged?"is-damaged":""}">
+      <input type="checkbox" data-body-part="${esc(key)}" ${damaged?"checked":""} ${editable?"":"disabled"}>
+      <span class="body-part-check" aria-hidden="true"></span>
+      <span class="body-part-name">${esc(name)}</span>
+      <small>${damaged?esc(report.parts[key].dmg.join(", ")):"No damage"}</small>
+      ${damaged&&editable?`<button type="button" class="body-part-details" data-edit-part="${esc(key)}">Details</button>`:""}
+    </label>`;
+   }).join("")}</div>
+  </section>`).join("");
+ grid.innerHTML=groups;
+ grid.onchange=event=>{
+  const input=event.target.closest("[data-body-part]");
+  if(!input||!editable)return;
+  const key=input.dataset.bodyPart;
+  report.parts[key]=input.checked?{...(report.parts[key]||{}),dmg:["Damaged"]}:{dmg:[],note:"",photo:"",photo_path:null};
+  renderDamage();renderInspectionSummary();persistInspectionLocally();
+  if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
+ };
+ grid.onclick=event=>{
+  const button=event.target.closest("[data-edit-part]");
+  if(!button||!editable)return;
+  const key=button.dataset.editPart;
+  const part=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name}))).find(item=>item.key===key);
+  if(!part)return;
+  openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
+   report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)&&entry.dmg.length?entry.dmg:["Damaged"]};
+   renderDamage();renderInspectionSummary();persistInspectionLocally();
+   if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
+  }});
+ };
 }
 function persistInspectionLocally(){
  try{localStorage.setItem("centric-inspection-draft-"+(record?.id||"new"),JSON.stringify({report,updated_at:new Date().toISOString()}));$("inspection-save-state").textContent="Saved on this device";}
