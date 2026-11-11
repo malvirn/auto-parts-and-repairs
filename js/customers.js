@@ -230,8 +230,6 @@ async function startEditingCustomer(customerId) {
   document.getElementById("cust-company-name").required = Boolean(customer.is_company);
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-customer-code").readOnly = !canManageCustomerCode;
-  document.getElementById("cust-company-name").required = Boolean(customer.is_company);
-  document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-type").value = customer.customer_type || "individual";
   document.getElementById("cust-phone").value = customer.phone || "";
   document.getElementById("customer-email").value = customer.email || "";
