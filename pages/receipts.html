@@ -1686,7 +1686,7 @@ $("invoice-payment-amount").addEventListener("input",()=>{if($("invoice-payment-
 function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="0.01" step="any" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
  r.querySelector("button").onclick=()=>{r.remove();prev()};r.oninput=e=>{if(e.target===r.children[0]){const m=parts.find(x=>x.name===e.target.value);if(m)r.children[2].value=m.price}prev()};$("items").append(r)}
 function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:5,
- vatBase:invoiceVatBase,customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value},
+ vatBase:invoiceVatBase,customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value,customer_code:$("f-cust").selectedOptions[0]?._c?.customer_code||"",company_name:$("f-cust").selectedOptions[0]?._c?.company_name||"",is_company:Boolean($("f-cust").selectedOptions[0]?._c?.is_company)},
  items:[...$("items").children].map(r=>{const d=r.children[0].value.trim(),q=r.children[1].value.trim(),p=r.children[2].value.trim();return{d,q:q===""?NaN:Number(q),p:p===""?NaN:Number(p),hasInput:Boolean(d||p||(q!==""&&q!=="1"))}}).filter(i=>i.hasInput).map(({hasInput,...item})=>item)}}
 function validateInvoiceDraft(o){
  if(!o.items.length)return"Add at least one complete invoice item";
@@ -1699,10 +1699,10 @@ function validateInvoiceDraft(o){
  return"";
 }
 const prev=()=>{$("doc-new").innerHTML=`<div id="doc" style="box-shadow:none">${docHTML(collect())}</div>`};
-async function ensureBuilderOptions(){if($("f-cust").options.length>=2)return;const [c,p]=await Promise.all([supabase.from("customers").select("id,full_name,phone,email").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
+async function ensureBuilderOptions(){if($("f-cust").options.length>=2)return;const [c,p]=await Promise.all([supabase.from("customers").select("id,customer_code,full_name,phone,email,is_company,company_name").is("deleted_at",null).order("full_name").limit(1000),supabase.from("parts").select("*").limit(1000)]);
   if(c.error){console.error("Couldn't load customers for invoice billing:",c.error);toast(`Couldn't load customer list: ${c.error.message}`)}
   if(p.error){console.error("Couldn't load parts for invoice billing:",p.error);toast(`Couldn't load parts list: ${p.error.message}`)}
-  $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option(x.full_name||"Unnamed",x.id),{_c:x})));
+  $("f-cust").append(...(c.data||[]).map(x=>Object.assign(new Option([x.customer_code,x.company_name||x.full_name||"Unnamed",x.phone].filter(Boolean).join(" · "),x.id),{_c:x})));
   parts=(p.data||[]).map(x=>({name:x.name,price:x.selling_price??x.unit_price??x.sale_price??x.price??""})).filter(x=>x.name);
  $("parts-dl").innerHTML=parts.map(x=>`<option value="${esc(x.name)}">`).join("")}
 async function openBuilder(jobId=""){editingInvoiceId=null;invoiceRepairJobId=jobId||null;invoiceVatBase=null;if(jobId){const existing=rows.invoices.find(invoice=>invoice.repairJobId===jobId);if(existing){open(existing);toast(`This job already has invoice ${existing.number}.`);if(payAfterSave)setTimeout(openInvoicePayment,0);return}}$("build-title").textContent="New invoice";$("save").innerHTML='<i data-lucide="check"></i> Save invoice &amp; share';show("build");await ensureBuilderOptions();$("items").replaceChildren();addLine();const dueDate=new Date();dueDate.setDate(dueDate.getDate()+7);$("f-due").value=dueDate.toISOString().slice(0,10);prev();
