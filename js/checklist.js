@@ -276,7 +276,7 @@ async function saveAndConfirm(){
    fuel_level_in:$("fuel").value||null,odometer_in:odometer,
    updated_at:new Date().toISOString()
   };
-  if(!payload.job_id)return setDetailMessage("Link this inspection to its job card before completing it.",true);
+  if(!payload.job_id){button.disabled=false;return setDetailMessage("Link this inspection to its job card before completing it.",true);}
   let checklistId=record?.id;
   if(checklistId){
    const{error}=await supabase.from("job_condition_reports").update({
@@ -345,7 +345,7 @@ function printChecklist(){
  const confirmed=record?.voided_at?`Voided ${new Date(record.voided_at).toLocaleString()} · ${record.void_reason||"No reason recorded"}`:record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
  const note=String(report.notes||"").trim();
  const logo=new URL("../assets/logo.png",location.href).href;
- const inspectionImage=new URL("../img/vehicle-inspection.webp",location.href).href;
+ const inspectionImage=new URL("../img/vehicle-inspection.svg",location.href).href;
  const customerCode=record?.customers?.customer_code||selectedJob?.customers?.customer_code||"—";
  printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Vehicle checklist ${checklistNumber}</title>
  <style>
@@ -399,6 +399,7 @@ $("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
 $("delete-checklist").onclick=()=>deleteChecklist(record?.id);
 $("void-checklist").onclick=()=>voidChecklist(record?.id);
 $("print-checklist").onclick=printChecklist;
+$("reopen-inspection").onclick=async()=>{const reason=prompt("Why are you reopening this completed inspection?")?.trim();if(!reason)return;const button=$("reopen-inspection");button.disabled=true;const{error}=await supabase.rpc("reopen_vehicle_inspection",{p_inspection_id:record?.id,p_reason:reason});if(error){setDetailMessage("Couldn't reopen inspection: "+error.message,true);button.disabled=false;return;}location.reload();};
 $("checklist-list").addEventListener("click",event=>{
  const voidButton=event.target.closest("[data-void-checklist]");
  if(voidButton){voidChecklist(voidButton.dataset.voidChecklist,voidButton);return}
