@@ -71,7 +71,7 @@ function ensureStyles(){
  .vi-part-photo{display:block;max-width:100%;max-height:190px;object-fit:contain;border-radius:8px;margin-top:8px}
  .vi-part-actions{display:flex;gap:8px;margin-top:14px}.vi-part-actions button{flex:1;min-height:44px;border:0;border-radius:9px;background:#18a65b;color:white;font:inherit;font-weight:800}.vi-part-actions .vi-cancel{background:#344252}
  @media(min-width:760px){.vi-part-dialog{place-items:center}}
- @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-image,.vi-no-sprite{width:100%;height:auto;aspect-ratio:120/80;background-size:500% 500%}}
+ @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-image,.vi-no-sprite{width:100px;height:66px;flex:none}}
  `;
  document.head.append(style);
 }
