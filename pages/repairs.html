@@ -1153,6 +1153,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 </script>
 <script type="module">
 import supabase from "../js/supabaseClient.js";
+import { mountVehicleInspectionDiagram, vehicleDiagramSnapshot, openVehiclePartEditor } from "../js/vehicle-inspection-diagram.js";
 const $=id=>document.getElementById(id);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
@@ -1244,11 +1245,17 @@ function openPartSheet(key,getReport,onDone){
  document.addEventListener("keydown",onKey);document.body.append(box);draw();box.querySelector("[data-done]")?.focus();
 }
 function mountDamageGrid(el,getReport){
- const rows=Math.ceil(CAR_PARTS.length/4);
- const render=()=>{const r=getReport();el.style.setProperty("--rows",rows);el.innerHTML=CAR_PARTS.map(p=>partTileHTML(p,r.parts[p.key])).join("")};
- const refresh=key=>{const p=CAR_PARTS.find(x=>x.key===key),tile=el.querySelector(`[data-part="${key}"]`);if(tile)tile.outerHTML=partTileHTML(p,getReport().parts[key])};
- el.onclick=event=>{const tile=event.target.closest(".dmg-tile");if(tile)openPartSheet(tile.dataset.part,getReport,refresh)};
- el.onchange=null;
+ const render=()=>mountVehicleInspectionDiagram(el,{
+  parts:CAR_PARTS,getReport,interactive:true,
+  onSelect:key=>{
+   const part=CAR_PARTS.find(item=>item.key===key);if(!part)return;
+   const current=getReport(),entry=current.parts[key]||{dmg:[],photo:"",note:""};
+   openVehiclePartEditor({part,entry,onSave:updated=>{
+    current.parts[key]={...updated,dmg:Array.isArray(updated.dmg)?updated.dmg:[]};
+    render();
+   }});
+  }
+ });
  render();
 }
 async function loadReport(jobId){
@@ -1273,11 +1280,12 @@ async function saveReport(jobId,report){
 }
 function damageSummaryHTML(j){
  const r=reportOf(j.id);
- const marked=CAR_PARTS.filter(p=>{const e=r.parts[p.key];return e&&(e.dmg?.length||e.photo)});
- if(!marked.length&&!r.notes)return '<div class="dm-sum">No damage or photos recorded at drop-off.</div>';
- const clear=CAR_PARTS.filter(p=>!marked.includes(p)).map(p=>p.name);
- return `<div class="dm-figs">${marked.map(p=>{const e=r.parts[p.key];return `<div class="dm-fig">${e.photo?`<img src="${e.photo}" alt="${esc(p.name)}">`:'<div class="noimg">No photo</div>'}<b>${esc(p.name)}</b><span class="tags">${e.dmg?.length?esc(e.dmg.join(", ")):"No damage marked"}</span></div>`}).join("")}</div>
- ${clear.length&&marked.length?`<div class="dm-sum"><b>No damage marked:</b> ${esc(clear.join(", "))}</div>`:""}`;
+ const marked=CAR_PARTS.filter(p=>{const e=r.parts[p.key];return e&&(e.dmg?.length||e.photo||e.note)});
+ const details=marked.map(p=>{
+  const e=r.parts[p.key],condition=e.dmg?.length?e.dmg.join(", "):"No damage";
+  return `<div class="dm-fig"><b>${esc(p.name)}</b><span class="tags">${esc(condition)}</span>${e.note?`<small>${esc(e.note)}</small>`:""}${e.photo?`<img src="${e.photo}" alt="Photo of ${esc(p.name)}">`:""}</div>`;
+ }).join("");
+ return `${vehicleDiagramSnapshot(CAR_PARTS,r)}${details?`<div class="dm-figs">${details}</div>`:""}`;
 }
 const veh=v=>v?[v.year,v.make,v.model].filter(Boolean).join(" "):"";
 const jn=j=>"JC-"+String(j.job_number??"").padStart(5,"0");
