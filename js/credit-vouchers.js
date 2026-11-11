@@ -263,7 +263,7 @@ async function applyVoucher() {
     const remainingCredit = wasCreditNote ? Math.max(0, Number(sourceSnapshot.available_amount) - amount) : Number(data.remaining_balance);
     setRedeemMessage((wasCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
       money(remainingCredit) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
-    if (redeemSourceSelect && !customerCreditSources.some(source => source.kind === "voucher" && source.id === checkedVoucher?.voucher_id)) redeemSourceSelect.value = "";
+
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
     redeemApply.disabled = false;
