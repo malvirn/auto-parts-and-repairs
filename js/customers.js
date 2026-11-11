@@ -39,15 +39,23 @@ function showCustomerMessage(text, tone = "success") {
 function hideSavedActions() {
   const actions = document.getElementById("customer-saved-actions");
   if (actions) actions.hidden = true;
+  const cidResult = document.getElementById("customer-cid-result");
+  if (cidResult) cidResult.hidden = true;
+  savedCustomerCode = "";
   savedCustomerId = null;
   savedVehicleId = null;
 }
 
-function showSavedActions(customerId, vehicleId = null) {
+function showSavedActions(customerId, vehicleId = null, customerCode = "") {
   savedCustomerId = customerId;
   savedVehicleId = vehicleId;
+  savedCustomerCode = customerCode || "";
   const actions = document.getElementById("customer-saved-actions");
+  const cidResult = document.getElementById("customer-cid-result");
+  const cidPill = document.getElementById("customer-cid-pill");
   if (actions) actions.hidden = false;
+  if (cidPill) cidPill.textContent = savedCustomerCode || "CID pending";
+  if (cidResult) cidResult.hidden = !savedCustomerCode;
   if (window.lucide) lucide.createIcons();
 }
 
@@ -80,6 +88,8 @@ async function fetchCustomersList() {
 }
 
 function renderCustomersList(data) {
+  const term = document.getElementById("customer-directory-search")?.value.trim().toLocaleLowerCase() || "";
+  data = data.filter(c => [c.full_name,c.customer_code,c.company_name,c.phone,c.email].filter(Boolean).join(" ").toLocaleLowerCase().includes(term));
   if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="${showingArchived ? "archive" : "user-plus"}"></i></div><div class="apr-state__copy"><strong>${showingArchived ? "No archived customers" : "No customers yet"}</strong><p>${showingArchived ? "There are no archived records to restore." : "Add a customer above to build your directory."}</p></div></div></td></tr>`;
     if (window.lucide) lucide.createIcons();
@@ -219,6 +229,12 @@ async function startEditingCustomer(customerId) {
   document.getElementById("cust-company-name-field").hidden = !customer.is_company;
   document.getElementById("cust-company-name").required = Boolean(customer.is_company);
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
+  document.getElementById("cust-customer-code").readOnly = !canManageCustomerCode;
+  document.getElementById("cust-is-company").checked = Boolean(customer.is_company);
+  document.getElementById("cust-company-name").value = customer.company_name || "";
+  document.getElementById("cust-company-name-field").hidden = !customer.is_company;
+  document.getElementById("cust-company-name").required = Boolean(customer.is_company);
+  document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-type").value = customer.customer_type || "individual";
   document.getElementById("cust-phone").value = customer.phone || "";
   document.getElementById("customer-email").value = customer.email || "";
@@ -236,6 +252,7 @@ async function startEditingCustomer(customerId) {
   document.getElementById("customer-form-kicker").textContent = "Update record";
   document.getElementById("customer-submit-button").innerHTML = '<i data-lucide="save"></i> Save Changes';
   document.getElementById("customer-cancel-edit").hidden = false;
+  showSavedActions(customer.id, customer.vehicles?.[0]?.id || null, customer.customer_code);
   showCustomerMessage("Editing customer details. Save to apply changes.");
   form.scrollIntoView({ behavior: "smooth", block: "start" });
   if (window.lucide) lucide.createIcons();
@@ -305,6 +322,7 @@ if (form) {
     const phone = document.getElementById("cust-phone").value.trim();
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
+    const requestedCustomerCode = document.getElementById("cust-customer-code")?.value.trim() || "";
     const is_company = document.getElementById("cust-is-company")?.checked || false;
     const company_name = document.getElementById("cust-company-name")?.value.trim() || "";
     if (is_company && !company_name) { showCustomerMessage("Company name is required.", "error"); document.getElementById("cust-company-name")?.focus(); return; }
@@ -402,7 +420,8 @@ if (form) {
       resetCustomerFormMode();
       await loadCustomers();
       showCustomerMessage(`${full_name}'s customer details were updated.`);
-      showSavedActions(savedId, vehicleId);
+      const { data: savedCustomer } = await supabase.from("customers").select("customer_code").eq("id", savedId).maybeSingle();
+      showSavedActions(savedId, vehicleId, savedCustomer?.customer_code || requestedCustomerCode);
       if (window.APRUI?.success) window.APRUI.success("Customer updated", `${full_name} was updated successfully.`);
       return;
     }
@@ -452,7 +471,7 @@ if (form) {
         : license_plate
           ? `${existing.full_name} is already registered. Vehicle ${license_plate} has been added to their customer record.`
           : `${existing.full_name} is already registered. No duplicate customer was created.`);
-      showSavedActions(existing.id, savedVehicleIdForExisting);
+      showSavedActions(existing.id, savedVehicleIdForExisting, existing.customer_code);
       return;
     }
 
@@ -483,7 +502,7 @@ if (form) {
     vehicleSaveError ? "error" : "success");
     if (!vehicleSaveError) {
       window.APRUI?.success("Customer saved", `${full_name} was added successfully.`);
-      showSavedActions(customer.id, savedVehicle?.id || null);
+      showSavedActions(customer.id, savedVehicle?.id || null, customer.customer_code);
     }
     } catch (error) {
       console.error("Customer save failed:", error);
@@ -544,3 +563,16 @@ async function loadCustomerCodePermissions() {
   if (field) field.readOnly = !canManageCustomerCode;
 }
 loadCustomerCodePermissions().catch(error => console.warn("Could not load Customer ID permissions:", error));
+
+
+document.getElementById("customer-cid-copy")?.addEventListener("click", async () => {
+  if (!savedCustomerCode) return;
+  try { await navigator.clipboard.writeText(savedCustomerCode); showCustomerMessage(savedCustomerCode + " copied."); }
+  catch { showCustomerMessage("Copy was blocked. Select the Customer ID and copy it manually.", "error"); }
+});
+document.getElementById("customer-cid-whatsapp")?.addEventListener("click", () => {
+  if (!savedCustomerCode) return;
+  const customerName = document.getElementById("cust-company-name")?.value.trim() || document.getElementById("cust-name")?.value.trim() || "Customer";
+  const message = "Hello " + customerName + ", your Centric Auto Mobile Customer ID is " + savedCustomerCode + ". Please keep it for future visits.";
+  window.open("https://wa.me/?text=" + encodeURIComponent(message), "_blank", "noopener");
+});
