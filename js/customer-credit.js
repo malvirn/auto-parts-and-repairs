@@ -341,6 +341,13 @@ function render() {
           : "";
         return `<div class="credit-history-row"><span>${label} · ${dateLabel(movement.created_at)}</span><strong>${money(movement.amount)}</strong><small>${escapeHtml(movement.reason || "")}${reversed}</small>${reverseAction}</div>`;
       }).join("")}</details>` : "";
+      const waPhone = String(note.customer_phone || "").replace(/[^0-9]/g, "");
+      const waText = "Centric Auto Mobile credit note QCN-" + String(note.credit_note_number).padStart(6, "0") +
+        ". Customer: " + (note.customers?.company_name || note.customer_name || "Customer") +
+        ". Customer ID: " + (note.customers?.customer_code || "Not assigned") +
+        ". Available credit: " + money(note.available_amount) +
+        (note.voucher_code ? ". Voucher: " + note.voucher_code : "") + ".";
+      const waLink = waPhone ? "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(waText) : "";
       const applyFields = note.available_amount > 0.005
         ? `<div class="customer-credit-actions" data-credit-id="${escapeHtml(note.id)}" data-action="apply">
             <select class="credit-target" aria-label="Apply credit to" ${quoteTargets.length ? "" : "disabled"}><option value="">${quoteTargets.length ? "Apply to customer balance…" : "No same-customer balance"}</option>${targetOptions}</select>
@@ -384,6 +391,7 @@ function render() {
           <div class="credit-doc-actions credit-doc-actions--footer">
             <button type="button" class="btn credit-refund-placeholder" disabled title="Quotation deposit refunds are not yet supported by the current accounting workflow">Refund</button>
             <button type="button" class="btn customer-credit-print" data-credit-print="${escapeHtml(note.id)}"><i data-lucide="printer"></i> Print</button>
+            ${waLink ? `<a class="btn" href="${waLink}" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>` : ""}
           </div>
         </div>
       </details>`;
