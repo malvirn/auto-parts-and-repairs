@@ -981,6 +981,8 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label>Customer name<input id="edit-customer-name" required maxlength="160"></label>
       <label>Phone<input id="edit-customer-phone" type="tel"></label>
       <label>Email<input id="edit-customer-email" type="email"></label>
+      <label class="job-vat-option" for="edit-customer-is-company"><input id="edit-customer-is-company" type="checkbox"> This is a company</label>
+      <label id="edit-company-name-wrap" hidden>Company name<input id="edit-company-name" autocomplete="organization"></label>
       <h3 class="job-edit-section">Vehicle</h3>
       <label>Make<input id="edit-vehicle-make"></label>
       <label>Model<input id="edit-vehicle-model"></label>
@@ -1655,6 +1657,10 @@ async function showEditJobModal(){
  $("edit-customer-name").value=customer.full_name||"";
  $("edit-customer-phone").value=customer.phone||"";
  $("edit-customer-email").value=customer.email||"";
+ $("edit-customer-is-company").checked=Boolean(customer.is_company);
+ $("edit-company-name").value=customer.company_name||"";
+ $("edit-company-name-wrap").hidden=!customer.is_company;
+ $("edit-company-name").required=Boolean(customer.is_company);
  $("edit-vehicle-make").value=vehicle.make||"";
  $("edit-vehicle-model").value=vehicle.model||"";
  $("edit-vehicle-year").value=vehicle.year||"";
@@ -1809,14 +1815,16 @@ function validateEditParts(){
   if(!Number.isInteger(quantity)||quantity<1)throw new Error("Each part quantity must be a whole number greater than zero.");
  }
 }
+$("edit-customer-is-company").addEventListener("change",()=>{$("edit-company-name-wrap").hidden=!$("edit-customer-is-company").checked;$("edit-company-name").required=$("edit-customer-is-company").checked;if(!$("edit-customer-is-company").checked)$("edit-company-name").value="";});
 $("edit-job-form").onsubmit=async event=>{
  event.preventDefault();
  if(!cur)return;
  const button=$("edit-job-save"),message=$("edit-job-message");
  message.textContent="";
- const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim();
+ const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim(),isCompany=$("edit-customer-is-company").checked,companyName=$("edit-company-name").value.trim();
  const odometerValue=$("edit-odometer-in").value.trim(),odometer=odometerValue?Number(odometerValue):null;
  if(!customerName||!fault){message.textContent="Customer name and reported fault are required.";return}
+ if(isCompany&&!companyName){message.textContent="Company name is required."; $("edit-company-name").focus(); return}
  if(odometerValue&&(!Number.isSafeInteger(odometer)||odometer<0)){message.textContent="Enter a valid whole-number odometer reading.";return}
  const mode=$("edit-labour-mode").value,timeBased=mode==="time_based",hours=Number($("edit-labour-hours").value);
  const tier=labourTiers.find(item=>item.id===$("edit-rate-tier").value);
@@ -1827,16 +1835,16 @@ $("edit-job-form").onsubmit=async event=>{
  button.disabled=true;
  try{
   await saveEditedParts(editPartsDraft);
-  const customerFields={full_name:customerName,phone:$("edit-customer-phone").value.trim()||null,email:$("edit-customer-email").value.trim()||null};
+  const customerFields={full_name:customerName,phone:$("edit-customer-phone").value.trim()||null,email:$("edit-customer-email").value.trim()||null,is_company:isCompany,company_name:isCompany?companyName:null};
   let customerId=cur.customer_id;
   if(customerId){
    const{data,error}=await supabase.from("customers").update(customerFields).eq("id",customerId).select("id").maybeSingle();
    if(error)throw new Error(`Parts were saved, but customer details could not be updated: ${error.message}`);
    if(!data)throw new Error("Parts were saved, but customer details could not be confirmed.");
   }else{
-   const{data,error}=await supabase.from("customers").insert(customerFields).select("id").single();
+   const{data,error}=await supabase.from("customers").insert(customerFields).select("id,customer_code").single();
    if(error)throw new Error(`Parts were saved, but the customer could not be registered: ${error.message}`);
-   customerId=data.id;
+   customerId=data.id;customerFields.customer_code=data.customer_code;
   }
   cur.customer_id=customerId;
   cur.customers=customerFields;
