@@ -198,7 +198,7 @@ async function loadInspectionMarks(item){
  for(const mark of data||[]){
   let photo="";
   if(mark.photo_path){const {data:signed,error:signedError}=await supabase.storage.from("vehicle-inspections").createSignedUrl(mark.photo_path,3600);if(!signedError)photo=signed?.signedUrl||"";}
-  report.parts[mark.area_code]={...(report.parts[mark.area_code]||{}),dmg:[mark.condition],note:mark.note||"",photo};
+  report.parts[mark.area_code]={...(report.parts[mark.area_code]||{}),dmg:[mark.condition],note:mark.note||"",photo,photo_path:mark.photo_path||null};
  }
 }
 async function showRecord(item){
@@ -300,7 +300,7 @@ async function saveAndConfirm(){
   for(const [area,entry] of Object.entries(report.parts||{})){
    const conditions=Array.isArray(entry?.dmg)?entry.dmg:[];
    if(!conditions.length)continue;
-   let photo_path=null;
+   let photo_path=entry.photo_path||null;
    if(entry.photo?.startsWith("data:image/")){
     const response=await fetch(entry.photo),blob=await response.blob();
     photo_path=checklistId+"/"+area+".jpg";
