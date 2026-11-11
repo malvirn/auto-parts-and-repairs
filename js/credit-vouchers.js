@@ -14,6 +14,8 @@ let redeemScan = document.getElementById("voucher-redeem-scan");
 let redeemPreview = document.getElementById("voucher-redeem-preview");
 let redeemTarget = document.getElementById("voucher-redeem-target");
 let redeemAmount = document.getElementById("voucher-redeem-amount");
+let redeemConfirmation = document.getElementById("voucher-redeem-confirmation");
+let redeemAuthorisedBy = document.getElementById("voucher-redeem-authorised-by");
 let redeemApply = document.getElementById("voucher-redeem-apply");
 let redeemMessage = document.getElementById("voucher-redeem-message");
 let redeemVideo = document.getElementById("voucher-redeem-video");
@@ -29,7 +31,7 @@ if (!host) {
     '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
     '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
     '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
-    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
+    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
     '<div id="credit-voucher-list" aria-live="polite"></div>';
   document.body.append(host);
   launcher = document.createElement("button");
@@ -69,6 +71,8 @@ redeemScan = redeemScan || host.querySelector("#voucher-redeem-scan");
 redeemPreview = redeemPreview || host.querySelector("#voucher-redeem-preview");
 redeemTarget = redeemTarget || host.querySelector("#voucher-redeem-target");
 redeemAmount = redeemAmount || host.querySelector("#voucher-redeem-amount");
+redeemConfirmation = redeemConfirmation || host.querySelector("#voucher-redeem-confirmation");
+redeemAuthorisedBy = redeemAuthorisedBy || host.querySelector("#voucher-redeem-authorised-by");
 redeemApply = redeemApply || host.querySelector("#voucher-redeem-apply");
 redeemMessage = redeemMessage || host.querySelector("#voucher-redeem-message");
 redeemVideo = redeemVideo || host.querySelector("#voucher-redeem-video");
@@ -110,7 +114,7 @@ async function loadRedeemTargets() {
     .select("customer_id,customer_name,source_id,source_type,reference,balance_due")
     .gt("balance_due", 0.005);
   if (error) throw error;
-  redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type)).map(targetLabel);
+  redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type) && (!checkedVoucher?.customer_id || row.customer_id === checkedVoucher.customer_id)).map(targetLabel);
   redeemTarget.innerHTML = '<option value="">Choose an outstanding balance…</option>' +
     redeemTargets.map(row => '<option value="' + esc(row.target_type + "|" + row.source_id) + '">' + esc(row.label) + '</option>').join("");
   redeemTarget.disabled = !redeemTargets.length || !checkedVoucher || checkedVoucher.status !== "active";
@@ -152,9 +156,25 @@ async function previewVoucher() {
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     checkedVoucher = data;
-    const masked = (data.customer_first_name || "Customer") + (data.phone_last4 ? " · phone ending " + data.phone_last4 : "");
-    redeemPreview.innerHTML = '<strong>' + esc(masked) + '</strong><span>' + money(data.available_amount) +
+    const sourceTable = data.credit_note_type === "quotation_deposit" ? "quotation_deposit_receipts" : "customer_overpayment_credit_notes";
+    const { data: sourceNote, error: sourceError } = await supabase.from(sourceTable).select("customer_id").eq("id", data.credit_note_id).maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!sourceNote?.customer_id) throw new Error("This voucher is not linked to a customer record. Link the customer before redeeming it.");
+    const { data: customer, error: customerError } = await supabase.from("customers").select("id,customer_code,is_company,company_name,full_name,phone").eq("id", sourceNote.customer_id).single();
+    if (customerError) throw customerError;
+    checkedVoucher.customer_id = customer.id;
+    checkedVoucher.customer = customer;
+    const customerLabel = customer.company_name || customer.full_name || data.customer_first_name || "Customer";
+    const cidLabel = customer.customer_code ? " · " + customer.customer_code : "";
+    redeemPreview.innerHTML = '<strong>' + esc(customerLabel) + '</strong><span>' + esc(cidLabel) + ' · ' + money(data.available_amount) +
       ' available · expires ' + dateLabel(data.expires_at) + '</span><small>Status: ' + esc(data.status) + '</small>';
+    const confirmationLabel = host.querySelector("#voucher-redeem-confirmation-label");
+    const authorLabel = host.querySelector("#voucher-redeem-authorised-label");
+    if (confirmationLabel) confirmationLabel.textContent = customer.is_company ? "Confirm company name exactly" : "Customer phone last 4 digits or full name";
+    if (authorLabel) authorLabel.hidden = !customer.is_company;
+    if (redeemAuthorisedBy) { redeemAuthorisedBy.hidden = !customer.is_company; redeemAuthorisedBy.required = Boolean(customer.is_company); }
+    if (redeemConfirmation) { redeemConfirmation.value = ""; redeemConfirmation.placeholder = customer.is_company ? "Type the company name" : "Last 4 phone digits or full name"; }
+    if (redeemAuthorisedBy) redeemAuthorisedBy.value = "";
     if (data.status !== "active" || Number(data.available_amount) <= 0.005) {
       redeemTarget.innerHTML = '<option value="">This voucher cannot be redeemed</option>';
       redeemTarget.disabled = true;
@@ -195,14 +215,17 @@ async function applyVoucher() {
     redemptionRequest = { signature, key: crypto.randomUUID() };
   }
   try {
-    const { data, error } = await supabase.rpc("redeem_credit_voucher", {
+    const { data, error } = await supabase.rpc("redeem_credit_voucher_verified", {
       p_code: redeemCode.value.trim().toUpperCase(),
       p_amount: amount,
       p_target_type: targetType,
       p_target_id: targetId,
       p_idempotency_key: redemptionRequest.key,
+      p_confirmation_value: redeemConfirmation?.value.trim() || "",
+      p_authorised_by: redeemAuthorisedBy?.value.trim() || null,
     });
     if (error) throw error;
+    if (data?.error) throw new Error(data.error);
     const { data: refreshed, error: refreshError } = await supabase.from("customer_account_statement")
       .select("balance_due").eq("source_id", targetId).eq("source_type", target.source_type).maybeSingle();
     if (refreshError) throw refreshError;
@@ -273,7 +296,7 @@ async function loadQrLibrary() {
 async function load() {
   list.innerHTML = '<div class="customer-credit-empty">Loading vouchers…</div>';
   const [voucherResult, redemptionResult, resolutionResult, settingsResult] = await Promise.all([
-    supabase.rpc("list_customer_credit_vouchers"),
+    supabase.rpc("list_customer_credit_vouchers_with_identity"),
     supabase.from("credit_voucher_redemptions").select("id,voucher_id,amount,target_type,target_id,redeemed_at,reversed_at").order("redeemed_at", { ascending: false }),
     supabase.from("credit_voucher_expiry_resolutions").select("id,voucher_id,decision,amount,reason,performed_at").order("performed_at", { ascending: false }),
     supabase.from("credit_voucher_settings").select("terms,default_expiry_days").eq("id", true).maybeSingle(),
@@ -292,7 +315,7 @@ function render() {
   const query = search?.value.trim().toLowerCase() || "";
   const status = statusFilter?.value || "";
   const rows = vouchers.filter(v => {
-    const text = [v.voucher_code, v.customer_name, v.credit_note_number, v.holder_note].join(" ").toLowerCase();
+    const text = [v.voucher_code, v.customer_name, v.customer_code, v.company_name, v.credit_note_number, v.holder_note].join(" ").toLowerCase();
     return (!query || text.includes(query)) && (!status || v.status === status);
   });
   if (!rows.length) {
@@ -313,7 +336,7 @@ function render() {
       const canResolve = v.status === "expired" && Number(v.available_amount) > 0.005;
       return '<article class="credit-voucher-card" data-voucher-id="' + esc(v.voucher_id) + '">' +
         '<div class="credit-voucher-card__top"><div><small>' + esc(v.credit_note_number || "Customer credit") +
-        '</small><strong>' + esc(v.customer_name || "Customer") + '</strong></div><span class="credit-voucher-status status-' +
+        '</small><strong>' + esc(v.company_name || v.customer_name || "Customer") + '</strong>' + (v.customer_code ? '<small>Customer ID: ' + esc(v.customer_code) + '</small>' : '') + '</div><span class="credit-voucher-status status-' +
         esc(v.status) + '">' + esc(v.status) + '</span></div>' +
         '<div class="credit-voucher-code">' + esc(v.voucher_code) + '</div>' +
         '<div class="credit-voucher-facts"><span><small>Available</small><strong>' + money(v.available_amount) +
@@ -372,7 +395,7 @@ async function printVoucher(v) {
     '<header class="brand"><img src="' + logo + '" alt="Centric Auto Mobile"><div><strong>CENTRIC AUTO MOBILE</strong><small>Auto Parts &amp; Repairs · Norton, Zimbabwe</small></div></header>' +
     '<h1>Customer Credit Voucher</h1><p class="sub">Portable customer credit · Keep this code safe</p><section class="amount"><small>Available voucher value</small><strong>' + money(v.available_amount) + '</strong></section>' +
     '<section class="code"><small>VOUCHER CODE</small><strong>' + esc(v.voucher_code) + '</strong><div class="qr"><img src="' + qr + '" alt="Voucher QR code"></div></section>' +
-    '<section class="facts"><div><small>Issued to</small><strong>' + esc(v.customer_name || "Customer") + '</strong></div><div><small>Credit note</small><strong>' + esc(v.credit_note_number || "—") +
+    '<section class="facts"><div><small>Issued to</small><strong>' + esc(v.company_name || v.customer_name || "Customer") + '</strong></div><div><small>Customer ID</small><strong>' + esc(v.customer_code || "—") + '</strong></div><div><small>Credit note</small><strong>' + esc(v.credit_note_number || "—") +
     '</strong></div><div><small>Expiry date</small><strong>' + dateLabel(v.expires_at) + '</strong></div><div><small>Status</small><strong>' + esc(v.status) + '</strong></div></section>' +
     '<section class="terms"><strong>Terms &amp; conditions</strong><p>' + esc(terms) + '</p><p>Present this voucher code or QR at Centric Auto Mobile when paying for an eligible job card, invoice or sales order. Partial redemption is permitted while value remains.</p></section>' +
     '<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main><script>window.addEventListener("load",()=>{window.focus();window.print()},{once:true});<\/script></body></html>');
@@ -487,6 +510,8 @@ window.addEventListener("apr:open-voucher-redemption", async event => {
   redeemTarget.disabled = true;
   redeemAmount.value = "";
   redeemAmount.disabled = true;
+  if (redeemConfirmation) redeemConfirmation.value = "";
+  if (redeemAuthorisedBy) redeemAuthorisedBy.value = "";
   redeemApply.disabled = true;
   setRedeemMessage(preferredRedeemTarget ? "Check the voucher code. This job card will be selected automatically." : "Enter a voucher code to continue.");
   try { await load(); } catch (error) { setRedeemMessage(error.message || String(error), "error"); }
@@ -512,7 +537,7 @@ list.addEventListener("click", async event => {
       try {
         const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "whatsapp_shared" });
         if (auditError) throw auditError;
-        const message = "Hello " + (v.customer_name || "Customer") + ", your Centric Auto Mobile credit voucher is ready.\n\nValue: " + money(v.available_amount) +
+        const message = "Hello " + (v.company_name || v.customer_name || "Customer") + ", your Centric Auto Mobile credit voucher is ready.\n\nCustomer ID: " + (v.customer_code || "Not assigned") + "\nValue: " + money(v.available_amount) +
           "\nVoucher code: " + v.voucher_code + "\nExpiry: " + dateLabel(v.expires_at) + "\n\n" + terms;
         whatsappWindow.location.href = "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
       } catch (error) {
