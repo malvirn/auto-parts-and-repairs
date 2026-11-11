@@ -1838,9 +1838,9 @@ $("edit-job-form").onsubmit=async event=>{
   const customerFields={full_name:customerName,phone:$("edit-customer-phone").value.trim()||null,email:$("edit-customer-email").value.trim()||null,is_company:isCompany,company_name:isCompany?companyName:null};
   let customerId=cur.customer_id;
   if(customerId){
-   const{data,error}=await supabase.from("customers").update(customerFields).eq("id",customerId).select("id").maybeSingle();
+   const{data,error}=await supabase.from("customers").update(customerFields).eq("id",customerId).select("id,customer_code").maybeSingle();
    if(error)throw new Error(`Parts were saved, but customer details could not be updated: ${error.message}`);
-   if(!data)throw new Error("Parts were saved, but customer details could not be confirmed.");
+   if(!data)throw new Error("Parts were saved, but customer details could not be confirmed.");customerFields.customer_code=data.customer_code;
   }else{
    const{data,error}=await supabase.from("customers").insert(customerFields).select("id,customer_code").single();
    if(error)throw new Error(`Parts were saved, but the customer could not be registered: ${error.message}`);
