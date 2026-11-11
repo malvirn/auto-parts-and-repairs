@@ -453,9 +453,9 @@ function openCreditDetails(record) {
   const placeholder = document.createComment("credit note details return point");
   details.parentNode.insertBefore(placeholder, details);
   const overlay = document.createElement("div");
-  overlay.className = "credit-note-dialog-overlay";
+  overlay.className = "modal-overlay credit-note-dialog-overlay";
   overlay.setAttribute("role", "presentation");
-  overlay.innerHTML = `<section class="credit-note-dialog" role="dialog" aria-modal="true" aria-label="Customer credit note details">
+  overlay.innerHTML = `<section class="modal credit-note-dialog" role="dialog" aria-modal="true" aria-label="Customer credit note details">
     <header class="credit-note-dialog-head"><strong>Customer credit note</strong><button type="button" class="credit-note-dialog-close" aria-label="Close credit note">×</button></header>
     <div class="credit-dialog-content"></div>
   </section>`;
@@ -970,3 +970,104 @@ const creditLiveChannel = supabase.channel("customer-credit-job-status")
   .subscribe();
 window.addEventListener("focus", () => load());
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+
+/* Match the Repairs > Edit Job Card modal instead of the old floating voucher card. */
+.credit-note-dialog-overlay.modal-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483600!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:12px!important;overflow:hidden!important;
+  background:rgba(15,23,42,.28)!important;backdrop-filter:blur(2px)!important;
+}
+.credit-note-dialog.modal{
+  position:relative!important;display:flex!important;flex-direction:column!important;
+  width:min(560px,calc(100vw - 24px))!important;max-width:560px!important;
+  max-height:90vh!important;max-height:90dvh!important;min-width:0!important;
+  margin:auto!important;padding:0!important;overflow:hidden!important;
+  border:1px solid var(--line,#d6dee7)!important;border-radius:18px!important;
+  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.28)!important;
+}
+.credit-note-dialog .credit-note-dialog-head{
+  position:relative!important;top:auto!important;z-index:2!important;
+  flex:none!important;padding:16px 20px!important;
+  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
+  border-bottom:1px solid var(--line,#d6dee7)!important;
+}
+.credit-note-dialog .credit-dialog-content{
+  flex:1 1 auto!important;min-height:0!important;overflow-x:hidden!important;
+  overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;
+  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
+}
+.credit-note-dialog .overpayment-credit-record__body,
+.credit-note-dialog .customer-credit-document{
+  width:100%!important;max-width:100%!important;margin:0!important;
+  padding:20px!important;border:0!important;border-radius:0!important;
+  background:var(--panel,#fff)!important;color:var(--text,#17212d)!important;
+}
+.credit-note-dialog .credit-doc-facts,
+.credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+:root[data-theme="light"] .credit-note-dialog.modal,
+:root[data-theme="light"] .credit-note-dialog .credit-dialog-content,
+:root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body,
+:root[data-theme="light"] .credit-note-dialog .customer-credit-document{
+  background:#fff!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-note-dialog .credit-note-dialog-head{
+  background:#f8fafc!important;color:#17212d!important;border-color:#d8e0e8!important;
+}
+:root[data-theme="light"] .credit-note-dialog .credit-note-dialog-close{
+  background:#eef2f6!important;color:#17212d!important;border-color:#cbd5df!important;
+}
+:root[data-theme="light"] .credit-note-dialog .credit-doc-heading h3,
+:root[data-theme="light"] .credit-note-dialog .credit-modal-title h3,
+:root[data-theme="light"] .credit-note-dialog .credit-doc-facts strong,
+:root[data-theme="light"] .credit-note-dialog .credit-doc-totals strong,
+:root[data-theme="light"] .credit-note-dialog .credit-detail-row>strong{color:#17212d!important}
+:root[data-theme="light"] .credit-note-dialog .credit-doc-facts>div,
+:root[data-theme="light"] .credit-note-dialog .credit-doc-totals>div,
+:root[data-theme="light"] .credit-note-dialog .credit-details-card,
+:root[data-theme="light"] .credit-note-dialog .credit-apply-section{
+  background:#f7f9fb!important;border-color:#d8e0e8!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-note-dialog .credit-doc-facts small,
+:root[data-theme="light"] .credit-note-dialog .credit-doc-totals small,
+:root[data-theme="light"] .credit-note-dialog .credit-detail-row>span{color:#596879!important}
+:root[data-theme="light"] .credit-note-dialog button,
+:root[data-theme="light"] .credit-note-dialog a.btn{
+  background:#f1f4f7!important;color:#17212d!important;border-color:#cbd5df!important;
+}
+:root[data-theme="light"] .credit-note-dialog .customer-credit-print{background:#f58220!important;color:#fff!important;border-color:#f58220!important}
+:root[data-theme="light"] .credit-note-dialog .credit-note-status{background:#edf2f6!important;color:#344256!important;border-color:#d5dee7!important}
+
+/* Keep the Credit Notes / Vouchers controls readable and aligned in light mode. */
+#customer-credit-panel .rc-tabs{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  flex-wrap:wrap!important;gap:8px!important;width:100%!important;
+}
+#customer-credit-panel .rc-tabs button,
+#customer-credit-panel #customer-credit-clear,
+#customer-credit-panel #credit-notes-tab,
+#customer-credit-panel #credit-voucher-tab,
+#customer-credit-panel .rc-tabs .btn{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:40px!important;padding:9px 15px!important;border-radius:10px!important;
+  border:1px solid #cbd5df!important;background:#f1f4f7!important;color:#263445!important;
+  font:600 13px/1.2 Inter,"Segoe UI",Arial,sans-serif!important;box-shadow:none!important;
+}
+:root[data-theme="light"] #customer-credit-panel .rc-tabs button,
+:root[data-theme="light"] #customer-credit-panel #customer-credit-clear,
+:root[data-theme="light"] #customer-credit-panel #credit-notes-tab,
+:root[data-theme="light"] #customer-credit-panel #credit-voucher-tab,
+:root[data-theme="light"] #customer-credit-panel .rc-tabs .btn{
+  background:#f1f4f7!important;color:#263445!important;border-color:#cbd5df!important;
+}
+@media(max-width:600px){
+  .credit-note-dialog-overlay.modal-overlay{padding:8px!important}
+  .credit-note-dialog.modal{width:calc(100vw - 16px)!important;max-height:92dvh!important;border-radius:14px!important}
+  .credit-note-dialog .credit-note-dialog-head{padding:12px 14px!important}
+  .credit-note-dialog .overpayment-credit-record__body,
+  .credit-note-dialog .customer-credit-document{padding:14px!important}
+  .credit-note-dialog .credit-doc-actions{grid-template-columns:1fr!important}
+}
+
