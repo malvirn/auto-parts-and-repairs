@@ -1,7 +1,6 @@
 const CONDITIONS=[
  {name:"Scratch",color:"#f59e0b"},{name:"Dent",color:"#ef4444"},{name:"Crack",color:"#a855f7"},
- {name:"Broken",color:"#64748b"},{name:"Missing",color:"#3b82f6"},{name:"Chip",color:"#8b5cf6"},
- {name:"Stretched",color:"#14b8a6"},{name:"Worn",color:"#a16207"},{name:"Flat",color:"#ec4899"},{name:"Bald",color:"#eab308"}
+ {name:"Missing",color:"#3b82f6"},{name:"Broken",color:"#64748b"}
 ];
 const ZONES={
  "front-bumper":[242,166,250,42],"bonnet":[260,42,214,112],"windscreen":[274,278,170,84],
@@ -17,7 +16,8 @@ const ZONES={
 const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isTyre=key=>key.startsWith("wheel-");
 const isGlass=key=>["windscreen","rear-glass"].includes(key);
-function conditionsFor(key){return ["Scratch","Dent","Crack","Broken","Missing",...(isTyre(key)?["Stretched","Worn","Flat","Bald"]:[]),...(isGlass(key)?["Chip"]:[])];}
+function conditionsFor(){return ["Scratch","Crack","Missing","Broken","Dent"];}
+const CONDITION_LABELS={Scratch:"Scratched",Crack:"Cracked",Missing:"Missing",Broken:"Broken",Dent:"Dent"};
 function statusFor(entry){return entry?.dmg?.[0]||"No Damage";}
 function tintFor(value){return CONDITIONS.find(x=>x.name===value)?.color||"#16a34a";}
 function ensureStyles(){
@@ -47,6 +47,8 @@ function ensureStyles(){
  .vi-options button[aria-pressed=true]{border-color:#24b66a;background:#12663b}
  .vi-options button[data-damage=Scratch][aria-pressed=true]{background:#80500a;border-color:#f59e0b}
  .vi-options button[data-damage=Dent][aria-pressed=true]{background:#842a2a;border-color:#ef4444}
+ .vi-options button[data-damage=Missing][aria-pressed=true]{background:#173f78;border-color:#3b82f6}
+ .vi-options button[data-damage=Broken][aria-pressed=true]{background:#39434f;border-color:#94a3b8}
  .vi-options button[data-damage=Crack][aria-pressed=true],.vi-options button[data-damage=Chip][aria-pressed=true]{background:#562c7d;border-color:#a855f7}
  .vi-part-panel label{display:grid;gap:6px;margin-top:12px;font-size:.82rem;font-weight:700}
  .vi-part-panel textarea,.vi-part-panel input[type=file]{width:100%;min-height:44px;padding:9px;border:1px solid #465363;border-radius:8px;background:#202d3b;color:#fff;font:inherit}
@@ -69,14 +71,14 @@ function svgZone(part,report,interactive){
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
- return `<span class="vi-count">${marked} mark${marked===1?"":"s"}</span><span class="vi-count">${parts.length-marked} other areas: No Damage</span>`;
+ return `<span class="vi-count">${marked} damaged part${marked===1?"":"s"}</span><span class="vi-count">${parts.length-marked} parts: No Damage</span>`;
 }
 export function mountVehicleInspectionDiagram(el,{parts,getReport,onSelect,interactive=true}){
  if(!el)return;ensureStyles();const report=getReport?.()||{parts:{}};
  const mapped=parts.filter(p=>ZONES[p.key]);
  const extra=parts.filter(p=>!ZONES[p.key]);
  el.innerHTML=`<div class="vi-wrap">
-  <div class="vi-legend"><span><i class="vi-dot" style="background:#16a34a"></i>No Damage</span><span><i class="vi-dot" style="background:#f59e0b"></i>Scratch</span><span><i class="vi-dot" style="background:#ef4444"></i>Dent</span><span><i class="vi-dot" style="background:#a855f7"></i>Crack / Chip</span><span><i class="vi-dot" style="background:#64748b"></i>Broken</span></div>
+  <div class="vi-legend"><span><i class="vi-dot" style="background:#16a34a"></i>No Damage</span><span><i class="vi-dot" style="background:#f59e0b"></i>Scratched</span><span><i class="vi-dot" style="background:#a855f7"></i>Cracked</span><span><i class="vi-dot" style="background:#3b82f6"></i>Missing</span><span><i class="vi-dot" style="background:#64748b"></i>Broken</span><span><i class="vi-dot" style="background:#ef4444"></i>Dent</span></div>
   <div class="vi-stage"><svg viewBox="0 0 720 960" role="img" aria-label="Four-view vehicle inspection diagram">
    <image href="../img/vehicle-inspection.svg" x="0" y="0" width="720" height="960" preserveAspectRatio="none"/>
    <text class="vi-view-label" x="360" y="20" text-anchor="middle">FRONT</text>
@@ -106,12 +108,12 @@ export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
  const overlay=document.createElement("div");overlay.className="vi-part-dialog";
  const render=()=>{const selected=draft.dmg[0]||"";
  overlay.innerHTML=`<section class="vi-part-panel" role="dialog" aria-modal="true" aria-label="${esc(part.name)} condition">
- <h3>${esc(part.name)}</h3><p>Choose the condition. Leave it on No Damage if the area is clear.</p>
- <div class="vi-options"><button type="button" data-none aria-pressed="${!selected}" ${readOnly?"disabled":""}>No Damage</button>${choices.map(type=>`<button type="button" data-damage="${type}" aria-pressed="${selected===type}" ${readOnly?"disabled":""}>${type}</button>`).join("")}</div>
+ <h3>${esc(part.name)}</h3><p>Select one condition. Every part starts as No Damage.</p>
+ <div class="vi-options"><button type="button" data-none aria-pressed="${!selected}" ${readOnly?"disabled":""}>No Damage</button>${choices.map(type=>`<button type="button" data-damage="${type}" aria-pressed="${selected===type}" ${readOnly?"disabled":""}>${CONDITION_LABELS[type]||type}</button>`).join("")}</div>
  <label>Notes (optional)<textarea data-note rows="2" maxlength="500" ${readOnly?"disabled":""} placeholder="Describe the damage">${esc(draft.note)}</textarea></label>
  <label>Photo (optional)<input type="file" accept="image/*" data-photo ${readOnly?"disabled":""}></label>
  ${draft.photo?`<img class="vi-part-photo" src="${draft.photo}" alt="Photo of ${esc(part.name)}"><button type="button" class="vi-cancel" data-remove-photo ${readOnly?"disabled":""}>Remove photo</button>`:""}
- <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save Mark</button></div></section>`;
+ <div class="vi-part-actions"><button type="button" class="vi-cancel" data-reset ${readOnly?"disabled":""}>Reset area</button><button type="button" class="vi-cancel" data-close>Cancel</button><button type="button" data-save ${readOnly?"disabled":""}>Save condition</button></div></section>`;
  };
  const close=()=>{overlay.remove();document.removeEventListener("keydown",keyHandler)};
  const keyHandler=e=>{if(e.key==="Escape")close()};
