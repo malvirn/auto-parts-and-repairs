@@ -8,8 +8,11 @@ on:
       - 'js/customers.js'
       - 'js/quotations.js'
       - 'js/repairs.js'
+      - 'js/checklist.js'
+      - 'js/vehicle-inspection-diagram.js'
       - 'js/prefetch.js'
       - 'pages/repairs.html'
+      - 'pages/checklist.html'
       - 'pages/receipts.html'
       - 'supabase/migrations/**'
       - 'supabase/tests/**'
@@ -37,6 +40,8 @@ jobs:
           node --check js/customers.js
           node --check js/quotations.js
           node --check js/repairs.js
+          node --check js/checklist.js
+          node --check js/vehicle-inspection-diagram.js
           node --check js/prefetch.js
       - name: Check customer credit security migration
         run: |
