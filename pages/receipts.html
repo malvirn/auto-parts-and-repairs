@@ -1356,7 +1356,7 @@ async function load(){
   else toast(`No receipt found for this ${requestedJob?"job card":"sales order"}.`);
  }}
 function render(){
- const queries=[$("hs-input").value,$("receipt-filter-search").value].map(value=>value.trim().toLocaleLowerCase()).filter(Boolean);
+ const queries=[$("hs-input")?.value||"",$("receipt-filter-search")?.value||""].map(value=>value.trim().toLocaleLowerCase()).filter(Boolean);
  const from=$("receipt-filter-from").value,to=$("receipt-filter-to").value;
  const min=$("receipt-filter-min").value===""?null:Number($("receipt-filter-min").value);
  const max=$("receipt-filter-max").value===""?null:Number($("receipt-filter-max").value);
@@ -2719,7 +2719,7 @@ receiptBack.onclick=()=>{
  else if(from==="accounting")location.href="accounting.html";
  else show("list");
 };
-$("hs-input").oninput=render;
+if($("hs-input"))$("hs-input").oninput=render;
 ["receipt-filter-search","receipt-filter-from","receipt-filter-to","receipt-filter-min","receipt-filter-max","receipt-filter-status","receipt-filter-method"].forEach(id=>{
  $(id).addEventListener("input",render);
  $(id).addEventListener("change",render);
