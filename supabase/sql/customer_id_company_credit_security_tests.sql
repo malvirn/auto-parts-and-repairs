@@ -157,6 +157,8 @@ begin
   join public.repair_jobs target_job on target_job.id=target.source_id
   join public.customers c on c.id=b.customer_id
   where b.available_amount>0.005
+    and target_job.vehicle_id is not null
+    and original_job.vehicle_id is not null
     and target_job.vehicle_id is distinct from original_job.vehicle_id
   order by b.created_at
   limit 1;
@@ -167,7 +169,7 @@ begin
       scenario.deposit_receipt_id,amount_to_apply,'repair_job',scenario.target_job_id,
       'CID QA different-vehicle customer ownership test',gen_random_uuid(),
       case when scenario.is_company then scenario.company_name
-           else right(regexp_replace(coalesce(scenario.phone,''),'[^0-9]','','g'),4) end,
+           else scenario.full_name end,
       case when scenario.is_company then 'CID QA Accounts Authoriser' else null end
     );
     if result ? 'error' then
