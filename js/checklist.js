@@ -1,5 +1,5 @@
 import supabase from "./supabaseClient.js";
-import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=original-silver-parts-1";
+import { mountVehicleInspectionDiagram, openVehiclePartEditor, vehicleDiagramSnapshot } from "./vehicle-inspection-diagram.js?v=original-silver-parts-1";
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -433,7 +433,79 @@ async function saveAndConfirm(){
  }
 }
 
+function printBlankInspectionSheet(){
+ const printWindow=window.open("","_blank");
+ if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
+ const parts=CONDITION_GROUPS.flatMap(([group,items])=>items.map(([key,name])=>({key,name,group})));
+ const diagram=vehicleDiagramSnapshot(parts,{parts:{}});
+ const logo=new URL("../assets/logo.png",location.href).href;
+ printWindow.addEventListener("load",async()=>{
+  try{await Promise.all([...printWindow.document.images].map(img=>img.decode().catch(()=>{})))}catch{}
+  printWindow.focus();printWindow.print();
+ },{once:true});
+ printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Blank Vehicle Inspection Form</title>
+ <style>
+ *{box-sizing:border-box}
+ @page{size:A4 portrait;margin:6mm}
+ html,body{margin:0;padding:0;background:#fff;color:#111;font:8pt/1.2 Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body{width:198mm;max-width:100%;margin:0 auto}
+ header{height:15mm;display:flex;align-items:center;gap:3mm;border-bottom:1.2pt solid #111;padding-bottom:2mm}
+ header img{width:13mm;height:13mm;object-fit:contain}
+ header h1{margin:0;font-size:15pt;line-height:1.1;letter-spacing:.2pt}
+ header p{margin:1mm 0 0;font-size:7pt;font-weight:700;letter-spacing:1pt}
+ .ref{margin-left:auto;min-width:42mm;text-align:right;font-size:8pt;font-weight:700}
+ .ref span{display:block;margin-top:2mm;border-bottom:1px solid #111;height:4mm}
+ .details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2mm 4mm;margin:3mm 0 2.5mm}
+ .field{height:7mm;border-bottom:.6pt solid #777;display:flex;align-items:flex-start;gap:1mm}
+ .field b{font-size:6.5pt;white-space:nowrap}
+ .field span{flex:1;min-width:0}
+ h2{margin:2mm 0 1.5mm;font-size:8.5pt;text-transform:uppercase;letter-spacing:.4pt}
+ .diagram{width:100%}
+ .vi-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.2mm}
+ .vi-part-card{height:22mm;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:1mm;border:.55pt solid #aab0b5;border-radius:1mm;overflow:hidden;background:#fff;color:#111;text-align:center}
+ .vi-part-photo{display:block;width:100%;height:14mm;min-height:0;object-fit:contain;padding:0}
+ .vi-part-icon{display:grid;place-items:center;width:100%;height:14mm;color:#222}
+ .vi-part-icon svg{width:13mm;height:12mm;stroke:#222;fill:none;stroke-width:2}
+ .vi-part-caption,.vi-part-name{display:block;width:100%;font-size:6pt;font-weight:700;line-height:1.05;white-space:normal;overflow-wrap:anywhere}
+ .vi-part-card:after{content:"Code: ______";display:block;width:100%;font-size:5.5pt;line-height:1.1;text-align:left;color:#111}
+ .key{display:flex;flex-wrap:wrap;gap:1mm 4mm;padding:1.5mm 2mm;border:.6pt solid #888;margin-top:2mm;font-size:6.5pt}
+ .key b{font-size:6.5pt}
+ .accessories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5mm 4mm;margin:1mm 0 0}
+ .accessory{white-space:nowrap;font-size:6.5pt}
+ .box{display:inline-block;width:2.5mm;height:2.5mm;border:.6pt solid #111;vertical-align:-.5mm;margin:0 .7mm 0 1mm}
+ .notes{height:12mm;border:.6pt solid #888;padding:1.5mm;margin-top:1mm}
+ .notes b{font-size:6.5pt}
+ .signatures{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;margin-top:3mm}
+ .sig{height:8mm;border-bottom:.6pt solid #555;font-size:6.5pt;display:flex;align-items:flex-end;padding-bottom:1mm}
+ footer{margin-top:2mm;font-size:5.5pt;text-align:center;color:#555}
+ @media print{body{width:auto}.vi-part-card{break-inside:avoid}}
+ </style></head><body>
+ <header><img src="${esc(logo)}" alt="Centric Auto Mobile"><div><h1>VEHICLE INSPECTION FORM</h1><p>CENTRIC AUTO MOBILE · VEHICLE CONDITION REPORT</p></div><div class="ref">INSPECTION REF<span></span></div></header>
+ <section class="details">
+  <div class="field"><b>Customer:</b><span></span></div><div class="field"><b>Phone:</b><span></span></div><div class="field"><b>Date / Time:</b><span></span></div>
+  <div class="field"><b>Make / Model:</b><span></span></div><div class="field"><b>Registration:</b><span></span></div><div class="field"><b>Mileage (km):</b><span></span></div>
+ </section>
+ <h2>Exterior condition · write one code for each part</h2>
+ <div class="diagram">${diagram}</div>
+ <div class="key"><b>CONDITION KEY:</b><span><b>N</b> No damage</span><span><b>S</b> Scratched</span><span><b>C</b> Cracked</span><span><b>M</b> Missing</span><span><b>B</b> Broken</span><span><b>D</b> Dent</span></div>
+ <h2>Accessories and items received</h2>
+ <div class="accessories">
+  <div class="accessory">Spare wheel <i class="box"></i>Present <i class="box"></i>Missing</div>
+  <div class="accessory">Jack <i class="box"></i>Present <i class="box"></i>Missing</div>
+  <div class="accessory">Wheel spanner <i class="box"></i>Present <i class="box"></i>Missing</div>
+  <div class="accessory">Radio <i class="box"></i>Present <i class="box"></i>Missing</div>
+  <div class="accessory">Toolkit <i class="box"></i>Present <i class="box"></i>Missing</div>
+  <div class="accessory">Other: __________________</div>
+ </div>
+ <h2>Additional notes</h2><div class="notes"></div>
+ <div class="signatures"><div class="sig">Customer / Driver signature:</div><div class="sig">Inspector signature:</div><div class="sig">Date:</div></div>
+ <footer>Please remove all valuables from the vehicle. Centric Auto Mobile is not responsible for valuables left in the vehicle.</footer>
+ </body></html>`);
+ printWindow.document.close();
+}
+
 function printChecklist(blank=false){
+ if(blank){printBlankInspectionSheet();return}
  const printWindow=window.open("","_blank");
  if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
  printWindow.addEventListener("load",()=>{printWindow.focus();printWindow.print()},{once:true});
