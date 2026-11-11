@@ -376,10 +376,11 @@
         </div>
         <div class="field">
           <label for="cust-type">Customer Type</label>
-          <select id="cust-type">
+          <select id="cust-type" disabled aria-describedby="cust-type-unchanged">
             <option value="individual">Individual</option>
             <option value="company">Company</option>
           </select>
+          <small id="cust-type-unchanged" class="customer-optional">Kept unchanged. Company status is recorded separately.</small>
         </div>
         <div class="field customer-company-toggle">
           <label class="customer-toggle-label" for="cust-is-company"><input type="checkbox" id="cust-is-company"> This is a company</label>
