@@ -120,12 +120,14 @@ async function loadRedeemTargets() {
     .select("customer_id,customer_name,source_id,source_type,reference,balance_due")
     .gt("balance_due", 0.005);
   if (error) throw error;
-  redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type) && (!checkedVoucher?.customer_id || row.customer_id === checkedVoucher.customer_id)).map(targetLabel);
+  const targetCustomerId = checkedVoucher?.customer_id || selectedCustomerCreditNote?.customer_id || currentTarget?.customer_id;
+  redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type) && (!targetCustomerId || row.customer_id === targetCustomerId)).map(targetLabel);
   redeemTarget.innerHTML = '<option value="">Choose an outstanding balance…</option>' +
     redeemTargets.map(row => '<option value="' + esc(row.target_type + "|" + row.source_id) + '">' + esc(row.label) + '</option>').join("");
   redeemTarget.disabled = !redeemTargets.length || (!checkedVoucher && !selectedCustomerCreditNote) || (checkedVoucher && checkedVoucher.status !== "active");
-  if (preferredRedeemTarget) {
-    const match = redeemTargets.find(row => row.target_type === preferredRedeemTarget.targetType && String(row.source_id) === String(preferredRedeemTarget.targetId));
+  const targetToPreselect = preferredRedeemTarget || currentTarget;
+  if (targetToPreselect) {
+    const match = redeemTargets.find(row => row.target_type === targetToPreselect.targetType && String(row.source_id) === String(targetToPreselect.targetId));
     if (match) {
       redeemTarget.value = match.target_type + "|" + match.source_id;
       updateRedeemAmount();
