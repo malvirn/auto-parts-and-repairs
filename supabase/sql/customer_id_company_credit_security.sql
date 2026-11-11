@@ -19,6 +19,8 @@ create unique index if not exists customer_code_registry_customer_uidx
   on public.customer_code_registry(customer_id, customer_code);
 alter table public.customer_code_registry enable row level security;
 revoke all on public.customer_code_registry from public, anon, authenticated;
+revoke all on function public.generate_customer_code() from public, anon, authenticated;
+revoke all on function public.enforce_customer_identity_fields() from public, anon, authenticated;
 
 create or replace function public.generate_customer_code()
 returns text
@@ -96,12 +98,16 @@ begin
     elsif not manager_override then
       raise exception 'Customer IDs are generated automatically';
     end if;
-  elsif new.customer_code is distinct from old.customer_code then
-    if not manager_override then
-      raise exception 'Only a manager can change a Customer ID';
-    end if;
+  else
     if nullif(btrim(new.customer_code), '') is null then
-      raise exception 'Customer ID cannot be empty';
+      if old.customer_code is not null then
+        raise exception 'Customer ID cannot be cleared';
+      end if;
+      new.customer_code := public.generate_customer_code();
+    elsif new.customer_code is distinct from old.customer_code then
+      if not manager_override then
+        raise exception 'Only a manager can change a Customer ID';
+      end if;
     end if;
   end if;
 
@@ -176,6 +182,7 @@ create table if not exists public.customer_credit_redemption_audit (
   confirmed_as text not null,
   authorised_by text,
   performed_by uuid references auth.users(id),
+  source_redemption_id uuid not null unique,
   performed_at timestamptz not null default now()
 );
 create index if not exists customer_credit_redemption_audit_customer_idx
@@ -319,10 +326,11 @@ begin
 
   insert into public.customer_credit_redemption_audit(
     customer_id, customer_code, credit_reference, target_type, target_id,
-    amount, confirmed_as, authorised_by, performed_by
+    amount, confirmed_as, authorised_by, performed_by, source_redemption_id
   ) values (
     customer_row.id, customer_row.customer_code, credit_ref, p_target_type, p_target_id,
-    round(p_amount,2), verified->>'confirmed_as', nullif(btrim(p_authorised_by), ''), auth.uid()
+    round(p_amount,2), verified->>'confirmed_as', nullif(btrim(p_authorised_by), ''), auth.uid(),
+    (result->>'id')::uuid
   );
   return result || jsonb_build_object('customer_code', customer_row.customer_code, 'credit_reference', credit_ref);
 end;
@@ -382,12 +390,12 @@ begin
 
   insert into public.customer_credit_redemption_audit(
     customer_id, customer_code, credit_reference, target_type, target_id,
-    amount, confirmed_as, authorised_by, performed_by
+    amount, confirmed_as, authorised_by, performed_by, source_redemption_id
   ) values (
     customer_row.id, customer_row.customer_code,
     coalesce(credit_ref, voucher_row.voucher_code) || ' / ' || voucher_row.voucher_code,
     p_target_type, p_target_id, round(p_amount,2), verified->>'confirmed_as',
-    nullif(btrim(p_authorised_by), ''), auth.uid()
+    nullif(btrim(p_authorised_by), ''), auth.uid(), (result->>'id')::uuid
   );
   return result || jsonb_build_object('customer_code', customer_row.customer_code,
     'credit_reference', credit_ref, 'voucher_code', voucher_row.voucher_code);
