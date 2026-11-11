@@ -1,5 +1,5 @@
 import supabase from "./supabaseClient.js";
-import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-upgrade-5";
+import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-upgrade-6";
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -483,7 +483,7 @@ function printChecklist(blank=false){
  const confirmed=record?.voided_at?`Voided ${new Date(record.voided_at).toLocaleString()} · ${record.void_reason||"No reason recorded"}`:record?.confirmed_at?new Date(record.confirmed_at).toLocaleString():"Not confirmed";
  const note=String(report.notes||"").trim();
  const logo=new URL("../assets/logo.png",location.href).href;
- const inspectionImage=new URL("../img/vehicle-inspection.svg",location.href).href;
+ const inspectionImage=new URL("../img/vehicle-parts.webp",location.href).href;
  const customerCode=record?.customers?.customer_code||selectedJob?.customers?.customer_code||"—";
  printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Vehicle checklist ${checklistNumber}</title>
  <style>
