@@ -1364,7 +1364,7 @@ function render(){
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- $("list").innerHTML=L.map((j,i)=>`<div class="rc-row" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${stClass(j.status)} status-${statusTone(j.status)}">${esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
+ $("list").innerHTML=L.map((j,i)=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
  $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]));
  const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
  if(CL.length){
@@ -1380,7 +1380,7 @@ return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mo
 <div><h1>JOB CARD</h1><div style="text-align:right"><b>${jn(j)}</b>${j.cro_number?`<br>CRO ${esc(j.cro_number)}`:""}<br>${dt(j.created_at)}</div></div></div>
 <div class="meta"><div><small>Customer</small><b>${esc(c.company_name||c.full_name||"—")}</b><br>Customer ID: ${esc(c.customer_code||"No customer ID")}${c.is_company&&c.company_name?"<br>Company: "+esc(c.company_name):""}<br>${esc(c.phone||"")}<br>${esc(c.email||"")}</div>
 <div style="text-align:right"><small>Vehicle</small><b>${esc(veh(v)||"—")}</b><br>Reg: <b>${esc(v.license_plate||"—")}</b><br>Technician: ${esc(techs[j.technician_id]||"Unassigned")}</div></div>
-<div><small style="color:#6b7570;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Status</small> <span class="stamp" style="transform:none;margin:0 0 0 6px;font-size:12px">${esc((j.status||"open").toUpperCase())}</span></div>
+<div class="job-card-state ${isClosed(j)?"is-closed":""}"><small style="color:#6b7570;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Status</small> <span class="stamp" style="transform:none;margin:0 0 0 6px;font-size:12px">${isClosed(j)?"JOB CARD CLOSED":esc((j.status||"open").toUpperCase())}</span></div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Fault reported</small><br>${esc(j.fault_reported||"—")}</div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Labour charge</small><br>${j.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based tier"} · ${money(j.labour_cost||0)}${j.labour_mode==="time_based"&&j.labour_hours?` (${Number(j.labour_hours)} hr${Number(j.labour_hours)===1?"":"s"})`:""}</div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work done</small><br>${esc(j.work_done||"—")}</div>
@@ -2558,3 +2558,23 @@ load().then(()=>{
 <script type="module" src="../js/credit-vouchers.js?v=customer-cid-15-syntaxfix"></script>
 </body>
 </html>
+
+
+<style id="closed-job-card-visual-state">
+body.dashboard-workshop .rc-row--closed{
+ background:#f1f3f5!important;border-color:#d8dde3!important;color:#66717d!important;
+ box-shadow:none!important;opacity:.82!important;
+}
+body.dashboard-workshop .rc-row--closed b,
+body.dashboard-workshop .rc-row--closed small{color:#788390!important}
+body.dashboard-workshop .rc-row--closed .pill.status-closed{
+ background:#e5e9ed!important;border:1px solid #cbd2d9!important;color:#687481!important;
+}
+body.dashboard-workshop .job-card-state.is-closed{
+ margin:10px 0!important;padding:9px 12px!important;border:1px solid #d7dde3!important;
+ border-radius:9px!important;background:#f0f2f4!important;color:#707b87!important;
+}
+body.dashboard-workshop .job-card-state.is-closed .stamp{
+ background:#e2e6ea!important;border-color:#cbd2d9!important;color:#65717e!important;
+}
+</style>
