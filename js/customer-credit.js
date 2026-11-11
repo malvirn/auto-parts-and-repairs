@@ -657,6 +657,103 @@ creditInlineStyle.textContent += `
 :root[data-theme="light"] .credit-note-dialog .credit-note-narrative p strong{color:#17212d!important}
 @media(max-width:600px){.customer-credit-panel-scope .credit-note-brand-logo{width:58px!important;height:58px!important}.customer-credit-panel-scope .credit-note-brand-header{gap:11px!important}}
 `;
+
+creditInlineStyle.textContent += `
+/* Responsive credit-note dialog: use the available screen instead of a narrow floating card. */
+.credit-note-dialog-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483000!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  padding:16px!important;overflow:hidden!important;
+  background:rgba(7,13,19,.72)!important;backdrop-filter:blur(4px)!important;
+}
+.credit-note-dialog{
+  display:flex!important;flex-direction:column!important;
+  width:min(920px,calc(100vw - 32px))!important;
+  max-width:none!important;max-height:calc(100dvh - 32px)!important;
+  min-width:0!important;overflow:hidden!important;
+  border:1px solid #465365!important;border-radius:16px!important;
+  background:#151c25!important;color:#e9eef4!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.35)!important;
+}
+.credit-note-dialog-head{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex:none!important;gap:12px!important;padding:12px 18px!important;
+  border-bottom:1px solid #3d4958!important;background:#202a36!important;color:#f1f4f8!important;
+}
+.credit-note-dialog-close{width:36px!important;height:36px!important;border:1px solid #5b687a!important;border-radius:9px!important;background:#354253!important;color:#fff!important;font-size:24px!important}
+.credit-dialog-content{min-width:0!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+.credit-note-dialog .overpayment-credit-record__body,
+.credit-note-dialog .customer-credit-document{
+  display:grid!important;width:100%!important;max-width:none!important;
+  max-height:none!important;min-width:0!important;margin:0!important;
+  padding:16px!important;overflow:visible!important;border:0!important;border-radius:0!important;
+}
+.credit-note-dialog .credit-doc-facts,
+.credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.credit-note-dialog .credit-doc-actions{display:flex!important;flex-wrap:wrap!important;gap:9px!important}
+.credit-note-dialog .credit-doc-actions>*{flex:1 1 130px!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record{
+  border-color:#d8e0e8!important;background:#fff!important;color:#17212d!important;
+  box-shadow:0 5px 16px rgba(15,23,42,.06)!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary{
+  background:#fff!important;color:#17212d!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary strong,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child strong,
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong{
+  color:#17212d!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary small,
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance small,
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer small{
+  color:#64748b!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-status{
+  border-color:#d5dee7!important;background:#edf2f6!important;color:#344256!important;
+}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary::after,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary::after{color:#526174!important}
+:root[data-theme="light"] .credit-note-dialog-overlay{
+  background:rgba(15,23,42,.14)!important;backdrop-filter:blur(2px)!important;
+}
+:root[data-theme="light"] .credit-note-dialog{
+  border-color:#d8e0e8!important;background:#fff!important;color:#17212d!important;
+  box-shadow:0 16px 48px rgba(15,23,42,.16)!important;
+}
+:root[data-theme="light"] .credit-note-dialog-head{
+  border-color:#e2e8f0!important;background:#f8fafc!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-note-dialog-close{
+  border-color:#d5dee7!important;background:#edf2f6!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-note-dialog .overpayment-credit-record__body,
+:root[data-theme="light"] .credit-note-dialog .customer-credit-document{
+  background:#fff!important;color:#17212d!important;
+}
+:root[data-theme="light"] .credit-note-dialog .credit-doc-facts>div,
+:root[data-theme="light"] .credit-note-dialog .credit-doc-totals>div{
+  border-color:#dfe7e1!important;background:#f7f9fb!important;color:#17212d!important;
+}
+@media(max-width:600px){
+  .credit-note-dialog-overlay{padding:8px!important}
+  .credit-note-dialog{
+    width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;
+    border-radius:13px!important;
+  }
+  .credit-note-dialog-head{padding:9px 12px!important}
+  .credit-note-dialog .overpayment-credit-record__body,
+  .credit-note-dialog .customer-credit-document{padding:12px!important}
+  .credit-note-dialog .credit-doc-facts,
+  .credit-note-dialog .credit-doc-totals{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  .credit-note-dialog .credit-doc-facts>div,
+  .credit-note-dialog .credit-doc-totals>div{padding:9px!important}
+  .credit-note-dialog .credit-doc-actions{display:grid!important;grid-template-columns:1fr!important}
+}
+`;
 document.head.appendChild(creditInlineStyle);
 creditInlineStyle.textContent += `
 .credit-note-dialog-overlay{position:fixed!important;inset:0!important;z-index:2147483600!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(10px,3vw,24px)!important;background:rgba(5,9,14,.78)!important;backdrop-filter:blur(5px)!important;overflow-y:auto!important;overscroll-behavior:contain!important}
