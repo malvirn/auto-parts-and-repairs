@@ -196,7 +196,7 @@ function renderChecklistList(rows){
   const customer=item.customer_name||item.customers?.full_name||"Customer not recorded";
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
   const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
-  const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Ready to link to a job card";
+  const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Independent checklist · no job card linked";
   const activeActions=(item.voided_at||item.status==="completed"||item.confirmed_at)?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
   return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a>${activeActions}</div></div>`;
  }).join(""):'<p class="message">No saved vehicle checklists yet. Create one to begin.</p>';
@@ -244,7 +244,7 @@ async function showRecord(item){
  $("job-meta").hidden=!item.job_id;
  $("job-meta").textContent=item.job_id?`Linked to ${item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`}`:"";
  $("fuel").value=item.fuel_level_in||"";$("odometer").value=item.odometer_in??"";
- $("detail-status").textContent=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()}. ${item.void_reason||"No reason recorded"}`:item.confirmed_at?`Completed ${new Date(item.confirmed_at).toLocaleString()}. This inspection is read-only.`:"Complete the inspection when all drop-off details are ready.";
+ $("detail-status").textContent=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()}. ${item.void_reason||"No reason recorded"}`:item.confirmed_at?`Completed ${new Date(item.confirmed_at).toLocaleString()}. This inspection is read-only.`:"Complete the inspection when all drop-off details are ready. A job card is optional.";
  $("save-checklist").textContent=item.confirmed_at?"Inspection completed":"Complete inspection";
  $("confirmed-notice").textContent=item.confirmed_at?`Checklist confirmed by ${item.checked_by||"staff"}.`:"";
  $("confirmed-notice").classList.toggle("hidden",!item.confirmed_at);
@@ -349,7 +349,7 @@ async function saveDraft(){
   $("job-meta").textContent=record.job_id?"Linked to "+(record.repair_jobs?.cro_number||"job card"):"";
   $("link-existing-fields").hidden=true;
   syncInspectionStrip();renderInspectionSummary();
-  setDetailMessage(record.job_id?"Checklist saved. Inspection number generated and job card linked automatically.":"Checklist saved. Inspection number generated. You can create its job card later.");
+  setDetailMessage(record.job_id?"Checklist saved. Inspection number generated and job card linked automatically.":"Checklist saved independently. You can link or create its job card later.");
   button.disabled=false;
  }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
 }
@@ -379,7 +379,6 @@ async function saveAndConfirm(){
    fuel_level_in:$("fuel").value||null,odometer_in:odometer,
    updated_at:new Date().toISOString()
   };
-  if(!payload.job_id){button.disabled=false;return setDetailMessage("Link this inspection to its job card before completing it.",true);}
   let checklistId=record?.id;
   if(checklistId){
    const{error}=await supabase.from("job_condition_reports").update({
