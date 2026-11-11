@@ -67,6 +67,7 @@ let checkedVoucher = null;
 let redeemTargets = [];
 let scannerStream = null;
 let scannerActive = false;
+let redemptionRequest = { signature: null, key: null };
 
 const money = value => "$" + Number(value || 0).toFixed(2);
 const esc = value => {
@@ -118,6 +119,7 @@ function updateRedeemAmount() {
   redeemAmount.max = String(amount);
   redeemAmount.disabled = amount <= 0;
   redeemApply.disabled = amount <= 0;
+  redemptionRequest = { signature: null, key: null };
 }
 
 async function previewVoucher() {
@@ -163,28 +165,34 @@ async function applyVoucher() {
   const [targetType,targetId] = (redeemTarget.value || "").split("|");
   const amount = Number(redeemAmount.value);
   const target = redeemTargets.find(row => row.target_type === targetType && row.source_id === targetId);
-  if (!targetType || !target || !Number.isFinite(amount) || amount <= 0) {
+  const maximum = Math.min(Number(target?.balance_due) || 0, Number(checkedVoucher.available_amount) || 0);
+  if (!targetType || !target || !Number.isFinite(amount) || amount <= 0 || amount > maximum + 0.005) {
     setRedeemMessage("Choose a valid target and amount.", "error");
     return;
   }
   redeemApply.disabled = true;
   setRedeemMessage("Applying voucher and posting the accounting entry…");
+  const signature = [redeemCode.value.trim().toUpperCase(), targetType, targetId, amount.toFixed(2)].join("|");
+  if (redemptionRequest.signature !== signature) {
+    redemptionRequest = { signature, key: crypto.randomUUID() };
+  }
   try {
     const { data, error } = await supabase.rpc("redeem_credit_voucher", {
       p_code: redeemCode.value.trim().toUpperCase(),
       p_amount: amount,
       p_target_type: targetType,
       p_target_id: targetId,
-      p_idempotency_key: crypto.randomUUID(),
+      p_idempotency_key: redemptionRequest.key,
     });
     if (error) throw error;
     const { data: refreshed, error: refreshError } = await supabase.from("customer_account_statement")
       .select("balance_due").eq("source_id", targetId).eq("source_type", target.source_type).maybeSingle();
     if (refreshError) throw refreshError;
     const remainingDue = Math.max(0, Number(refreshed?.balance_due) || 0);
+    redemptionRequest = { signature: null, key: null };
     await load();
     await previewVoucher();
-    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: " +
+    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: "
       money(data.remaining_balance) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
@@ -329,11 +337,12 @@ function phoneForWhatsApp(phone) {
 }
 
 async function printVoucher(v) {
-  const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "printed" });
-  if (auditError) throw auditError;
-  const qr = await qrDataUrl(v.voucher_code);
   const popup = window.open("", "_blank", "width=900,height=720");
   if (!popup) throw new Error("Allow pop-ups to print the voucher.");
+  try {
+    const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "printed" });
+    if (auditError) throw auditError;
+    const qr = await qrDataUrl(v.voucher_code);
   const logo = window.location.origin + "/assets/logo.png";
   popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Credit Voucher ' + esc(v.voucher_code) + '</title>' +
     '<style>*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#18212b;font:13px/1.5 Arial,sans-serif}.sheet{width:210mm;min-height:297mm;margin:auto;padding:18mm;background:#fff}' +
@@ -350,6 +359,10 @@ async function printVoucher(v) {
     '<section class="terms"><strong>Terms &amp; conditions</strong><p>' + esc(terms) + '</p><p>Present this voucher code or QR at Centric Auto Mobile when paying for an eligible job card, invoice or sales order. Partial redemption is permitted while value remains.</p></section>' +
     '<footer>CENTRIC AUTO MOBILE · Auto Parts &amp; Repairs · Norton, Zimbabwe</footer></main><script>window.addEventListener("load",()=>{window.focus();window.print()},{once:true});<\/script></body></html>');
   popup.document.close();
+  } catch (error) {
+    popup.close();
+    throw error;
+  }
 }
 
 async function resolveExpiredCredit(v) {
@@ -439,6 +452,11 @@ redeemCheck?.addEventListener("click", previewVoucher);
 redeemScan?.addEventListener("click", startScanner);
 redeemApply?.addEventListener("click", applyVoucher);
 redeemTarget?.addEventListener("change", updateRedeemAmount);
+redeemAmount?.addEventListener("input", () => {
+  const max = Number(redeemAmount.max) || 0;
+  const amount = Number(redeemAmount.value);
+  redeemApply.disabled = !checkedVoucher || !Number.isFinite(amount) || amount <= 0 || amount > max + 0.005;
+});
 redeemCode?.addEventListener("input", () => { checkedVoucher = null; redeemApply.disabled = true; });
 document.addEventListener("visibilitychange", () => { if (document.hidden) stopScanner(); });
 search?.addEventListener("input", render);
@@ -454,13 +472,20 @@ list.addEventListener("click", async event => {
   try {
     if (button.dataset.voucherPrint) await printVoucher(v);
     else if (button.dataset.voucherWhatsapp) {
-      const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "whatsapp_shared" });
-      if (auditError) throw auditError;
       const phone = phoneForWhatsApp(v.customer_phone);
       if (!phone) throw new Error("No WhatsApp number is saved for this customer.");
-      const message = "Hello " + (v.customer_name || "Customer") + ", your Centric Auto Mobile credit voucher is ready.\n\nValue: " + money(v.available_amount) +
-        "\nVoucher code: " + v.voucher_code + "\nExpiry: " + dateLabel(v.expires_at) + "\n\n" + terms;
-      window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message), "_blank");
+      const whatsappWindow = window.open("about:blank", "_blank");
+      if (!whatsappWindow) throw new Error("Allow pop-ups to open WhatsApp.");
+      try {
+        const { error: auditError } = await supabase.rpc("log_credit_voucher_event", { p_voucher_id: v.voucher_id, p_action: "whatsapp_shared" });
+        if (auditError) throw auditError;
+        const message = "Hello " + (v.customer_name || "Customer") + ", your Centric Auto Mobile credit voucher is ready.\n\nValue: " + money(v.available_amount) +
+          "\nVoucher code: " + v.voucher_code + "\nExpiry: " + dateLabel(v.expires_at) + "\n\n" + terms;
+        whatsappWindow.location.href = "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
+      } catch (error) {
+        whatsappWindow.close();
+        throw error;
+      }
     } else if (button.dataset.voucherExpiry) {
       const value = prompt("Enter the new expiry date (YYYY-MM-DD):", v.expires_at);
       if (!value) return;
