@@ -15,6 +15,7 @@ let redeemPreview = document.getElementById("voucher-redeem-preview");
 let redeemTarget = document.getElementById("voucher-redeem-target");
 let redeemAmount = document.getElementById("voucher-redeem-amount");
 let redeemConfirmation = document.getElementById("voucher-redeem-confirmation");
+let redeemSourceSelect = document.getElementById("voucher-redeem-source");
 let redeemAuthorisedBy = document.getElementById("voucher-redeem-authorised-by");
 let redeemApply = document.getElementById("voucher-redeem-apply");
 let redeemMessage = document.getElementById("voucher-redeem-message");
@@ -30,7 +31,7 @@ if (!host) {
     '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-settings" type="button">Settings</button><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
     '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
     '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
-    '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
+    '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-source">Customer credit available for this balance</label><select id="voucher-redeem-source"><option value="">Choose a credit note or voucher…</option></select><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
     '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
     '<div id="credit-voucher-list" aria-live="polite"></div>';
   document.body.append(host);
@@ -72,11 +73,16 @@ redeemPreview = redeemPreview || host.querySelector("#voucher-redeem-preview");
 redeemTarget = redeemTarget || host.querySelector("#voucher-redeem-target");
 redeemAmount = redeemAmount || host.querySelector("#voucher-redeem-amount");
 redeemConfirmation = redeemConfirmation || host.querySelector("#voucher-redeem-confirmation");
+redeemSourceSelect = redeemSourceSelect || host.querySelector("#voucher-redeem-source");
 redeemAuthorisedBy = redeemAuthorisedBy || host.querySelector("#voucher-redeem-authorised-by");
 redeemApply = redeemApply || host.querySelector("#voucher-redeem-apply");
 redeemMessage = redeemMessage || host.querySelector("#voucher-redeem-message");
 redeemVideo = redeemVideo || host.querySelector("#voucher-redeem-video");
 let checkedVoucher = null;
+let selectedCustomerCreditNote = null;
+let currentCustomer = null;
+let currentTarget = null;
+let customerCreditSources = [];
 let redeemTargets = [];
 let preferredRedeemTarget = null;
 let scannerStream = null;
@@ -117,7 +123,7 @@ async function loadRedeemTargets() {
   redeemTargets = (data || []).filter(row => ["Repair job","Sales order","Invoice"].includes(row.source_type) && (!checkedVoucher?.customer_id || row.customer_id === checkedVoucher.customer_id)).map(targetLabel);
   redeemTarget.innerHTML = '<option value="">Choose an outstanding balance…</option>' +
     redeemTargets.map(row => '<option value="' + esc(row.target_type + "|" + row.source_id) + '">' + esc(row.label) + '</option>').join("");
-  redeemTarget.disabled = !redeemTargets.length || !checkedVoucher || checkedVoucher.status !== "active";
+  redeemTarget.disabled = !redeemTargets.length || (!checkedVoucher && !selectedCustomerCreditNote) || (checkedVoucher && checkedVoucher.status !== "active");
   if (preferredRedeemTarget) {
     const match = redeemTargets.find(row => row.target_type === preferredRedeemTarget.targetType && String(row.source_id) === String(preferredRedeemTarget.targetId));
     if (match) {
@@ -131,12 +137,13 @@ async function loadRedeemTargets() {
 function updateRedeemAmount() {
   const [type,id] = (redeemTarget.value || "").split("|");
   const target = redeemTargets.find(row => row.target_type === type && row.source_id === id);
-  if (!target || !checkedVoucher) {
+  if (!target || (!checkedVoucher && !selectedCustomerCreditNote)) {
     redeemAmount.value = "";
     redeemApply.disabled = true;
     return;
   }
-  const amount = Math.min(Number(target.balance_due) || 0, Number(checkedVoucher.available_amount) || 0);
+  const sourceBalance = Number(selectedCustomerCreditNote?.available_amount ?? checkedVoucher?.available_amount) || 0;
+  const amount = Math.min(Number(target.balance_due) || 0, sourceBalance);
   redeemAmount.value = amount > 0 ? amount.toFixed(2) : "";
   redeemAmount.max = String(amount);
   redeemAmount.disabled = amount <= 0;
@@ -156,6 +163,7 @@ async function previewVoucher() {
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     checkedVoucher = data;
+    selectedCustomerCreditNote = null;
     const sourceTable = data.credit_note_type === "quotation_deposit" ? "quotation_deposit_receipts" : "customer_overpayment_credit_notes";
     const { data: sourceNote, error: sourceError } = await supabase.from(sourceTable).select("customer_id").eq("id", data.credit_note_id).maybeSingle();
     if (sourceError) throw sourceError;
@@ -164,6 +172,7 @@ async function previewVoucher() {
     if (customerError) throw customerError;
     checkedVoucher.customer_id = customer.id;
     checkedVoucher.customer = customer;
+    currentCustomer = customer;
     const customerLabel = customer.company_name || customer.full_name || data.customer_first_name || "Customer";
     const cidLabel = customer.customer_code ? " · " + customer.customer_code : "";
     redeemPreview.innerHTML = '<strong>' + esc(customerLabel) + '</strong><span>' + esc(cidLabel) + ' · ' + money(data.available_amount) +
@@ -199,31 +208,42 @@ async function previewVoucher() {
 }
 
 async function applyVoucher() {
-  if (!checkedVoucher) return;
+  if (!checkedVoucher && !selectedCustomerCreditNote) return;
   const [targetType,targetId] = (redeemTarget.value || "").split("|");
   const amount = Number(redeemAmount.value);
   const target = redeemTargets.find(row => row.target_type === targetType && row.source_id === targetId);
-  const maximum = Math.min(Number(target?.balance_due) || 0, Number(checkedVoucher.available_amount) || 0);
+  const sourceBalance = Number(selectedCustomerCreditNote?.available_amount ?? checkedVoucher?.available_amount) || 0;
+  const maximum = Math.min(Number(target?.balance_due) || 0, sourceBalance);
   if (!targetType || !target || !Number.isFinite(amount) || amount <= 0 || amount > maximum + 0.005) {
     setRedeemMessage("Choose a valid target and amount.", "error");
     return;
   }
   redeemApply.disabled = true;
   setRedeemMessage("Applying voucher and posting the accounting entry…");
-  const signature = [redeemCode.value.trim().toUpperCase(), targetType, targetId, amount.toFixed(2)].join("|");
+  const signature = [selectedCustomerCreditNote ? selectedCustomerCreditNote.id : redeemCode.value.trim().toUpperCase(), targetType, targetId, amount.toFixed(2)].join("|");
   if (redemptionRequest.signature !== signature) {
     redemptionRequest = { signature, key: crypto.randomUUID() };
   }
   try {
-    const { data, error } = await supabase.rpc("redeem_credit_voucher_verified", {
-      p_code: redeemCode.value.trim().toUpperCase(),
-      p_amount: amount,
-      p_target_type: targetType,
-      p_target_id: targetId,
-      p_idempotency_key: redemptionRequest.key,
-      p_confirmation_value: redeemConfirmation?.value.trim() || "",
-      p_authorised_by: redeemAuthorisedBy?.value.trim() || null,
-    });
+    let data, error;
+    if (selectedCustomerCreditNote) {
+      ({ data, error } = await supabase.rpc("apply_customer_credit_verified", {
+        p_deposit_receipt_id: selectedCustomerCreditNote.deposit_receipt_id,
+        p_amount: amount, p_target_type: targetType, p_target_id: targetId,
+        p_reason: "Customer credit applied from job or invoice payment",
+        p_idempotency_key: redemptionRequest.key,
+        p_confirmation_value: redeemConfirmation?.value.trim() || "",
+        p_authorised_by: redeemAuthorisedBy?.value.trim() || null,
+      }));
+    } else {
+      ({ data, error } = await supabase.rpc("redeem_credit_voucher_verified", {
+        p_code: redeemCode.value.trim().toUpperCase(), p_amount: amount,
+        p_target_type: targetType, p_target_id: targetId,
+        p_idempotency_key: redemptionRequest.key,
+        p_confirmation_value: redeemConfirmation?.value.trim() || "",
+        p_authorised_by: redeemAuthorisedBy?.value.trim() || null,
+      }));
+    }
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     const { data: refreshed, error: refreshError } = await supabase.from("customer_account_statement")
@@ -233,8 +253,11 @@ async function applyVoucher() {
     redemptionRequest = { signature: null, key: null };
     await load();
     await previewVoucher();
-    setRedeemMessage("Voucher applied: " + money(data.amount) + ". Voucher remaining: " +
-      money(data.remaining_balance) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
+    const remainingCredit = selectedCustomerCreditNote ? Math.max(0, Number(selectedCustomerCreditNote.available_amount) - amount) : Number(data.remaining_balance);
+    setRedeemMessage((selectedCustomerCreditNote ? "Credit note" : "Voucher") + " applied: " + money(data.amount || amount) + ". Credit remaining: " +
+      money(remainingCredit) + ". Target balance remaining: " + money(remainingDue) + ".", "success");
+    selectedCustomerCreditNote = null;
+    if (redeemSourceSelect) redeemSourceSelect.value = "";
   } catch (error) {
     setRedeemMessage(error.message || String(error), "error");
     redeemApply.disabled = false;
@@ -505,6 +528,10 @@ window.addEventListener("apr:open-voucher-redemption", async event => {
   host.hidden = false;
   redeemCode.value = "";
   checkedVoucher = null;
+  selectedCustomerCreditNote = null;
+  currentCustomer = null;
+  currentTarget = null;
+  if (redeemSourceSelect) redeemSourceSelect.innerHTML = '<option value="">Loading customer credit…</option>';
   redeemPreview.textContent = "";
   redeemTarget.innerHTML = '<option value="">Check a voucher first</option>';
   redeemTarget.disabled = true;
@@ -514,7 +541,10 @@ window.addEventListener("apr:open-voucher-redemption", async event => {
   if (redeemAuthorisedBy) redeemAuthorisedBy.value = "";
   redeemApply.disabled = true;
   setRedeemMessage(preferredRedeemTarget ? "Check the voucher code. This job card will be selected automatically." : "Enter a voucher code to continue.");
-  try { await load(); } catch (error) { setRedeemMessage(error.message || String(error), "error"); }
+  try {
+    await load();
+    await loadCustomerCreditSources(preferredRedeemTarget);
+  } catch (error) { setRedeemMessage(error.message || String(error), "error"); }
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden) stopScanner(); });
 search?.addEventListener("input", render);
@@ -556,3 +586,120 @@ list.addEventListener("click", async event => {
   finally { button.disabled = false; }
 });
 document.addEventListener("apr:access-ready", () => { if (!host.hidden) load().catch(error => console.error("Voucher refresh failed:", error)); });
+
+
+async function loadCustomerCreditSources(target) {
+  if (!target?.targetId) return;
+  const sourceType = target.targetType === "repair_job" ? "Repair job" : target.targetType === "sales_order" ? "Sales order" : "Invoice";
+  const { data: statement, error: statementError } = await supabase.from("customer_account_statement")
+    .select("customer_id,customer_name,source_id,source_type,balance_due")
+    .eq("source_id", target.targetId).eq("source_type", sourceType).maybeSingle();
+  if (statementError) throw statementError;
+  if (!statement?.customer_id) {
+    setRedeemMessage("This job card or invoice is not linked to a registered customer.", "error");
+    return;
+  }
+  currentTarget = { ...target, customer_id: statement.customer_id, balance_due: Number(statement.balance_due) || 0, source_type: sourceType };
+  const { data: customer, error: customerError } = await supabase.from("customers")
+    .select("id,customer_code,is_company,company_name,full_name,phone")
+    .eq("id", statement.customer_id).single();
+  if (customerError) throw customerError;
+  currentCustomer = customer;
+  const [notesResult, voucherResult] = await Promise.all([
+    supabase.from("customer_credit_balances")
+      .select("deposit_receipt_id,credit_note_number,quotation_id,available_amount,created_at,customer_code,is_company,company_name")
+      .eq("customer_id", customer.id).gt("available_amount", 0.005).order("created_at", { ascending: true }),
+    supabase.rpc("list_customer_credit_vouchers_with_identity"),
+  ]);
+  if (notesResult.error) throw notesResult.error;
+  if (voucherResult.error) throw voucherResult.error;
+  const notes = notesResult.data || [];
+  const quotationIds = [...new Set(notes.map(row => row.quotation_id).filter(Boolean))];
+  let quotationDates = new Map();
+  if (quotationIds.length) {
+    const { data: quotes, error } = await supabase.from("quotations").select("id,created_at").in("id", quotationIds);
+    if (error) throw error;
+    quotationDates = new Map((quotes || []).map(row => [row.id, row.created_at]));
+  }
+  const noteSources = notes.map(row => {
+    const createdAt = quotationDates.get(row.quotation_id) || row.created_at;
+    const expiry = createdAt ? new Date(Date.parse(createdAt) + 7 * 86400000).toISOString().slice(0,10) : null;
+    return {
+      kind: "deposit", id: row.deposit_receipt_id,
+      deposit_receipt_id: row.deposit_receipt_id,
+      code: "QCN-" + String(row.credit_note_number).padStart(6,"0"),
+      available_amount: Number(row.available_amount) || 0,
+      expires_at: expiry, issued_at: createdAt || row.created_at,
+      customer_id: customer.id,
+    };
+  });
+  const voucherSources = (voucherResult.data || []).filter(row =>
+    row.customer_id === customer.id && row.status === "active" && Number(row.available_amount) > 0.005
+  ).map(row => ({
+    kind: "voucher", id: row.voucher_id, code: row.voucher_code,
+    available_amount: Number(row.available_amount) || 0,
+    expires_at: row.expires_at, issued_at: row.issued_at,
+    customer_id: customer.id,
+  }));
+  customerCreditSources = [...noteSources, ...voucherSources].sort((a,b) =>
+    Date.parse(a.issued_at || a.expires_at || 0) - Date.parse(b.issued_at || b.expires_at || 0)
+  );
+  if (redeemSourceSelect) {
+    redeemSourceSelect.innerHTML = '<option value="">Choose a credit note or voucher…</option>' +
+      customerCreditSources.map(source => '<option value="' + esc(source.kind + ":" + source.id) + '">' +
+        esc(source.code + " · " + money(source.available_amount) + " available · expires " + dateLabel(source.expires_at)) +
+      '</option>').join("");
+  }
+  const label = (customer.company_name || customer.full_name || "Customer") +
+    (customer.customer_code ? " · " + customer.customer_code : "");
+  if (!customerCreditSources.length) {
+    redeemPreview.textContent = label + " has no active credit notes or vouchers.";
+    redeemTarget.innerHTML = '<option value="">No available customer credit</option>';
+    redeemTarget.disabled = true;
+    redeemAmount.value = "";
+    redeemAmount.disabled = true;
+    setRedeemMessage("No available customer credit was found for this customer.");
+    return;
+  }
+  redeemPreview.textContent = label + " · " + customerCreditSources.length + " available credit source(s).";
+  if (customerCreditSources.length === 1) {
+    const only = customerCreditSources[0];
+    if (redeemSourceSelect) redeemSourceSelect.value = only.kind + ":" + only.id;
+    await selectCustomerCreditSource(only);
+  } else {
+    selectedCustomerCreditNote = null;
+    checkedVoucher = null;
+    await loadRedeemTargets();
+    setRedeemMessage("Choose a credit note or voucher. Sources are listed oldest first.");
+  }
+}
+
+async function selectCustomerCreditSource(source) {
+  selectedCustomerCreditNote = source.kind === "deposit" ? source : null;
+  checkedVoucher = null;
+  if (source.kind === "voucher") {
+    redeemCode.value = source.code;
+    await previewVoucher();
+    return;
+  }
+  const customer = currentCustomer;
+  const label = customer?.company_name || customer?.full_name || "Customer";
+  const confirmationLabel = host.querySelector("#voucher-redeem-confirmation-label");
+  const authorLabel = host.querySelector("#voucher-redeem-authorised-label");
+  if (confirmationLabel) confirmationLabel.textContent = customer?.is_company ? "Confirm company name exactly" : "Customer phone last 4 digits or full name";
+  if (authorLabel) authorLabel.hidden = !customer?.is_company;
+  if (redeemAuthorisedBy) { redeemAuthorisedBy.hidden = !customer?.is_company; redeemAuthorisedBy.required = Boolean(customer?.is_company); }
+  if (redeemConfirmation) { redeemConfirmation.value = ""; redeemConfirmation.placeholder = customer?.is_company ? "Type the company name" : "Last 4 phone digits or full name"; }
+  if (redeemAuthorisedBy) redeemAuthorisedBy.value = "";
+  redeemPreview.textContent = label + " · " + source.code + " · " + money(source.available_amount) + " available · expires " + dateLabel(source.expires_at);
+  await loadRedeemTargets();
+  updateRedeemAmount();
+}
+
+redeemSourceSelect?.addEventListener("change", async () => {
+  const [kind,id] = (redeemSourceSelect.value || "").split(":");
+  const source = customerCreditSources.find(row => row.kind === kind && row.id === id);
+  if (!source) return;
+  try { await selectCustomerCreditSource(source); }
+  catch (error) { setRedeemMessage(error.message || String(error), "error"); }
+});
