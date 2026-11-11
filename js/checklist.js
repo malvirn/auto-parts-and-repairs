@@ -1,5 +1,5 @@
 import supabase from "./supabaseClient.js";
-import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-upgrade-6";
+import { openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-upgrade-7";
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
