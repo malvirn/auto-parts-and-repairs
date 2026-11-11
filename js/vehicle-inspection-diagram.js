@@ -41,8 +41,8 @@ function ensureStyles(){
  .vi-part-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:9px;border:2px solid var(--check-border,#394554);border-radius:11px;background:var(--check-card-2,#1c242e);color:var(--check-text,#edf1f7);text-align:center;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
  .vi-part-card:focus-visible{outline:3px solid #fff;outline-offset:2px}
  .vi-part-card[disabled]{cursor:default}
- .vi-part-image{position:relative;display:block;width:100px;height:66px;flex:none;border-radius:7px;background-color:#0b1220;background-image:url("../img/vehicle-parts.webp");background-repeat:no-repeat;mix-blend-mode:screen;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
- .vi-part-image:after{content:"";position:absolute;inset:0;border-radius:7px;background:var(--part-color,#20ad5a);opacity:.25;mix-blend-mode:color}
+ .vi-part-icon{display:grid;place-items:center;width:100px;height:66px;flex:none;border-radius:7px;background:#0b1220;color:var(--part-color,#20ad5a)}
+ .vi-part-icon svg{width:54px;height:48px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px var(--part-color,#20ad5a))}
  .vi-part-card[data-condition="No Damage"]{--part-color:#20ad5a}
  .vi-part-card[data-condition="Scratch"]{--part-color:#f59e0b;border-color:#f59e0b;background:color-mix(in srgb,#f59e0b 13%,var(--check-card-2,#1c242e))}
  .vi-part-card[data-condition="Crack"]{--part-color:#a855f7;border-color:#a855f7;background:color-mix(in srgb,#a855f7 13%,var(--check-card-2,#1c242e))}
@@ -51,7 +51,7 @@ function ensureStyles(){
  .vi-part-card[data-condition="Dent"]{--part-color:#ef4444;border-color:#ef4444;background:color-mix(in srgb,#ef4444 16%,var(--check-card-2,#1c242e))}
  .vi-part-name{font-size:.78rem;font-weight:800;line-height:1.25}
  .vi-part-condition{display:inline-flex;align-items:center;justify-content:center;min-height:25px;padding:4px 8px;border-radius:999px;background:var(--part-color,#20ad5a);color:#101820;font-size:.68rem;font-weight:900}
- .vi-no-sprite{display:grid;place-items:center;width:100px;height:66px;border-radius:7px;background:#0b1220;color:#9aa8b8;font-size:.65rem;font-weight:800}
+
  .vi-hotspot-hint{margin:10px 0 0;color:var(--check-muted,#9ca8b7);font-size:.8rem}
  .vi-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
  .vi-count{padding:7px 10px;border:1px solid var(--check-border,#394554);border-radius:8px;font-size:.78rem;font-weight:700;color:var(--check-text,#e7edf3)}
@@ -71,15 +71,34 @@ function ensureStyles(){
  .vi-part-photo{display:block;max-width:100%;max-height:190px;object-fit:contain;border-radius:8px;margin-top:8px}
  .vi-part-actions{display:flex;gap:8px;margin-top:14px}.vi-part-actions button{flex:1;min-height:44px;border:0;border-radius:9px;background:#18a65b;color:white;font:inherit;font-weight:800}.vi-part-actions .vi-cancel{background:#344252}
  @media(min-width:760px){.vi-part-dialog{place-items:center}}
- @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-image,.vi-no-sprite{width:100px;height:66px;flex:none}}
+ @media(max-width:520px){.vi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vi-part-card{padding:7px 4px}.vi-part-icon{width:100px;height:66px;flex:none}}
  `;
  document.head.append(style);
 }
+function partIcon(part){
+ const key=part.key,name=part.name.toLowerCase();
+ let type="panel";
+ if(key.startsWith("wheel")||key==="spare-wheel")type="wheel";
+ else if(key.includes("door"))type="door";
+ else if(key.includes("headlight")||key.includes("taillight")||key.includes("fog-light")||name.includes("light"))type="light";
+ else if(key.includes("windscreen")||key.includes("glass")||key==="roof")type="glass";
+ else if(key.includes("mirror"))type="mirror";
+ else if(key.includes("bumper")||key.includes("skirt"))type="bumper";
+ const shapes={
+ wheel:`<circle cx="32" cy="32" r="23"/><circle cx="32" cy="32" r="9"/><path d="M32 9v14m0 18v14M9 32h14m18 0h14M16 16l10 10m12 12 10 10m0-32L38 26M26 38 16 48"/>`,
+ door:`<path d="M15 8h29l5 48H11z"/><path d="M20 14h19l3 23H18zM37 43h5"/>`,
+ light:`<path d="M13 18Q32 6 51 18v28Q32 58 13 46z"/><path d="M19 23q13-8 26 0M19 41q13 8 26 0M56 18l7-5M58 32h8M56 46l7 5"/>`,
+ glass:`<path d="M8 43 17 15q15-8 30 0l9 28q-22 12-48 0z"/><path d="M17 15 21 42m26-27-4 27M11 44h42"/>`,
+ mirror:`<path d="M20 18q-5-8 5-10h15q12 0 12 13v14q0 13-12 13H25q-10-2-5-12z"/><path d="m24 47-8 11m8-11 10 1"/>`,
+ bumper:`<path d="M10 24q22-14 44 0l-3 20q-19 10-38 0z"/><path d="M16 29h32M17 43h30"/>`,
+ panel:`<path d="M10 19q22-12 44 0l-4 28q-18 9-36 0z"/><path d="M17 25q15-7 30 0"/>`
+ };
+ return `<span class="vi-part-icon" aria-hidden="true"><svg viewBox="0 0 64 64" role="img">${shapes[type]}</svg></span>`;
+}
 function partCard(part,report,interactive){
- const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry),sprite=PART_SPRITES[part.key];
- const visual=sprite?`<span class="vi-part-image" aria-hidden="true" style="${spriteStyle(part.key)}"></span>`:'<span class="vi-no-sprite" aria-hidden="true">PART VIEW</span>';
+ const entry=report?.parts?.[part.key]||{dmg:[]},condition=conditionFor(entry);
  return `<button type="button" class="vi-part-card" data-part="${esc(part.key)}" data-condition="${esc(condition)}" ${interactive?"":"disabled"} aria-label="${esc(part.name)}: ${esc(condition)}">
- ${visual}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
+ ${partIcon(part)}<span class="vi-part-name">${esc(part.name)}</span><span class="vi-part-condition">${esc(condition==="No Damage"?condition:CONDITION_LABELS[condition]||condition)}</span></button>`;
 }
 function summaryMarkup(parts,report){
  const marked=parts.filter(p=>report?.parts?.[p.key]?.dmg?.length).length;
