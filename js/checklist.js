@@ -1,26 +1,9 @@
 import supabase from "./supabaseClient.js";
-import { openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-upgrade-7";
+import { mountVehicleInspectionDiagram, openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspection-colors-1";
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-const PART_SPRITES={
- bonnet:[0,0,120,80],windscreen:[120,0,120,80],roof:[240,0,120,80],"rear-glass":[360,0,120,80],boot:[480,0,120,80],"boot-lid":[480,0,120,80],
- "front-bumper":[0,80,120,80],"rear-bumper":[120,80,120,80],
- "l-headlight":[240,80,120,80],"r-headlight":[360,80,120,80],
- "l-taillight":[480,80,120,80],"r-taillight":[0,160,120,80],
- "lf-wing":[120,160,120,80],"rf-wing":[240,160,120,80],
- "lf-door":[360,160,120,80],"lr-door":[480,160,120,80],
- "rf-door":[0,240,120,80],"rr-door":[120,240,120,80],
- "l-mirror":[240,240,120,80],"r-mirror":[360,240,120,80],
- "wheel-lf":[480,240,120,80],"wheel-rf":[0,320,120,80],"wheel-lr":[120,320,120,80],"wheel-rr":[240,320,120,80]
-};
-function partSpriteHTML(key){
- const crop=PART_SPRITES[key];if(!crop)return "";
- const scale=Math.min(40/crop[2],40/crop[3]);
- return `<span class="part-sprite" aria-hidden="true" style="background-size:${600*scale}px ${400*scale}px;background-position:${-crop[0]*scale}px ${-crop[1]*scale}px"></span>`;
-}
 const params=new URLSearchParams(location.search);
-const DAMAGE_TYPES=["Scratch","Dent","Crack","Chip","Broken","Missing","Stretched","Worn","Flat","Bald"];
 // [key, name, icon, flip right-hand icons]
 const CONDITION_GROUPS=[
  ["Top view",[
@@ -57,41 +40,30 @@ function applyNoDamageDefaults(){
 }
 function renderDamage(){
  const grid=$("inspection-grid");
- const groups=CONDITION_GROUPS.map(([group,items])=>`
-  <section class="body-part-group">
-   <h3>${esc(group)}</h3>
-   <div class="body-part-grid">${items.map(([key,name])=>{
-    const damaged=Boolean(report.parts?.[key]?.dmg?.length);
-    return `<label class="body-part-option ${damaged?"is-damaged":""}">
-      <input type="checkbox" data-body-part="${esc(key)}" ${damaged?"checked":""} ${editable?"":"disabled"}>
-      <span class="body-part-check" aria-hidden="true"></span>
-      ${partSpriteHTML(key)}<span class="body-part-name">${esc(name)}</span>
-      <small>${damaged?esc(report.parts[key].dmg.join(", ")):"No damage"}</small>
-      ${damaged&&editable?`<button type="button" class="body-part-details" data-edit-part="${esc(key)}">Details</button>`:""}
-    </label>`;
-   }).join("")}</div>
-  </section>`).join("");
- grid.innerHTML=groups;
- grid.onchange=event=>{
-  const input=event.target.closest("[data-body-part]");
-  if(!input||!editable)return;
-  const key=input.dataset.bodyPart;
-  report.parts[key]=input.checked?{...(report.parts[key]||{}),dmg:["Damaged"]}:{dmg:[],note:"",photo:"",photo_path:null};
-  renderDamage();renderInspectionSummary();persistInspectionLocally();
-  if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
- };
- grid.onclick=event=>{
-  const button=event.target.closest("[data-edit-part]");
-  if(!button||!editable)return;
-  const key=button.dataset.editPart;
-  const part=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name}))).find(item=>item.key===key);
-  if(!part)return;
-  openVehiclePartEditor({part,entry:report.parts[key],onSave:entry=>{
-   report.parts[key]={...entry,dmg:Array.isArray(entry.dmg)&&entry.dmg.length?entry.dmg:["Damaged"]};
-   renderDamage();renderInspectionSummary();persistInspectionLocally();
-   if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));else scheduleChecklistAutosave();
-  }});
- };
+ const parts=CONDITION_GROUPS.flatMap(([group,items])=>items.map(([key,name])=>({key,name,group})));
+ mountVehicleInspectionDiagram(grid,{
+  parts,
+  getReport:()=>report,
+  interactive:editable,
+  onSelect:key=>{
+   if(!editable)return;
+   const part=parts.find(item=>item.key===key);
+   if(!part)return;
+   openVehiclePartEditor({
+    part,
+    entry:report.parts?.[key]||{dmg:[]},
+    onSave:entry=>{
+     const damage=Array.isArray(entry.dmg)?entry.dmg.filter(Boolean).slice(0,1):[];
+     report.parts[key]={...entry,dmg:damage};
+     renderDamage();
+     renderInspectionSummary();
+     persistInspectionLocally();
+     if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));
+     else scheduleChecklistAutosave();
+    }
+   });
+  }
+ });
 }
 function persistInspectionLocally(){
  try{localStorage.setItem("centric-inspection-draft-"+(record?.id||"new"),JSON.stringify({report,updated_at:new Date().toISOString()}));$("inspection-save-state").textContent="Saved on this device";}
