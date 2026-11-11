@@ -1175,7 +1175,9 @@ import supabase from "../js/supabaseClient.js";
   try{
    const {error}=await supabase.rpc("price_job_card_parts",{p_job_id:activeJob.id,p_lines:updates});
    if(error)throw new Error(error.message||"Could not save the job-card pricing.");
-   setMsg("Prices saved. Refreshing the Ledger…");
+   const {error:invoiceSyncError}=await supabase.rpc("sync_repair_job_invoice",{p_repair_job_id:activeJob.id});
+   if(invoiceSyncError)throw new Error("Part prices were saved, but the linked invoice could not be updated: "+invoiceSyncError.message);
+   setMsg("Prices saved and the linked invoice updated. Refreshing the Ledger…");
    modal.classList.add("hidden");modal.style.display="none";
    await loadPricingQueue();
    const pending=activeParts.filter(p=>p.awaiting_accounting_price).length;
