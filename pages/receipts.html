@@ -903,6 +903,8 @@ select.st option{background:#10181a;color:#eef3ef}
       <p>Enter the voucher code or scan its QR. You can use it against another customer's outstanding balance.</p>
       <div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" aria-label="Voucher code"><button class="btn" id="voucher-redeem-check" type="button">Check code</button><button class="btn" id="voucher-redeem-scan" type="button">Scan QR</button></div>
       <div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div>
+      <label for="voucher-redeem-source">Customer credit available for this balance</label>
+      <select id="voucher-redeem-source"><option value="">Choose a credit note or voucher…</option></select>
       <label for="voucher-redeem-target">Apply to outstanding balance</label>
       <select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>
       <label for="voucher-redeem-amount">Amount to apply ($)</label>
