@@ -538,7 +538,8 @@ $("save-checklist").onclick=()=>{if(!validateInspection())return;if(!$("confirm-
 $("job-select").onchange=event=>{$("link-job").disabled=!event.target.value};
 $("delete-checklist").onclick=()=>deleteChecklist(record?.id);
 $("void-checklist").onclick=()=>voidChecklist(record?.id);
-$("print-checklist").onclick=()=>printChecklist(false);\n$("print-blank-checklist").onclick=()=>printChecklist(true);
+$("print-checklist").onclick=()=>printChecklist(false);
+$("print-blank-checklist").onclick=()=>printChecklist(true);
 $("reopen-inspection").onclick=async()=>{const reason=prompt("Why are you reopening this completed inspection?")?.trim();if(!reason)return;const button=$("reopen-inspection");button.disabled=true;const{error}=await supabase.rpc("reopen_vehicle_inspection",{p_inspection_id:record?.id,p_reason:reason});if(error){setDetailMessage("Couldn't reopen inspection: "+error.message,true);button.disabled=false;return;}location.reload();};
 $("checklist-list").addEventListener("click",event=>{
  const voidButton=event.target.closest("[data-void-checklist]");
