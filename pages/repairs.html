@@ -903,7 +903,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label for="d-status" class="sr-only">Status</label><select class="st" id="d-status"></select></div>
     <section class="panel draft-gate" id="draft-gate" hidden aria-labelledby="draft-title">
       <h2 id="draft-title">Draft job card</h2>
-      <p class="section-note">This job card stays a draft until it is linked to a confirmed vehicle checklist. Enter the checklist number. The customer name and vehicle registration on the checklist must match this job card.</p>
+      <p class="section-note">This job card stays a draft until it is linked to a confirmed vehicle checklist. Enter the checklist number. The customer name and vehicle registration on the checklist must match this job card.</p><p><a id="draft-create-inspection" class="btn" href="#">Create vehicle inspection</a></p>
       <div class="draft-row"><input id="draft-checklist-no" type="number" inputmode="numeric" min="1" step="1" placeholder="Checklist number" aria-label="Checklist number"><button class="btn btn--primary" id="draft-confirm" type="button">Confirm checklist</button></div>
       <p id="draft-msg" class="section-note" role="status"></p>
     </section>
@@ -1658,6 +1658,7 @@ async function open(j){
  $("v-doc").classList.toggle("is-draft",isDraft);
  $("draft-gate").hidden=!isDraft;
  $("draft-checklist-no").value="";$("draft-msg").textContent="";$("draft-msg").classList.remove("err");
+ $("draft-create-inspection").href="checklist.html?job="+encodeURIComponent(j.id);
  refreshJobMoney(j);
  $("d-work-done").value=j.work_done||"";
  $("d-work-missing").value=j.work_missing||"";
