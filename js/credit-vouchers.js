@@ -153,6 +153,67 @@ function updateRedeemAmount() {
   redemptionRequest = { signature: null, key: null };
 }
 
+function renderLegacyCustomerRegistration(sourceNote, voucher) {
+  const sourceName = String(sourceNote?.customer_name || "").trim();
+  const sourcePhone = String(sourceNote?.customer_phone || "").trim();
+  redeemPreview.innerHTML =
+    '<strong>Legacy credit record · ' + esc(sourceName || "Customer name not recorded") + '</strong>' +
+    '<span>This older voucher has no linked Customer ID. Register the customer below to create a CID and link this credit before redemption.</span>' +
+    '<label class="legacy-credit-company-toggle"><input id="legacy-credit-is-company" type="checkbox"> Register this customer as a company</label>' +
+    '<label for="legacy-credit-full-name">Customer / contact person name</label>' +
+    '<input id="legacy-credit-full-name" type="text" value="' + esc(sourceName) + '" autocomplete="name">' +
+    '<label id="legacy-credit-company-label" for="legacy-credit-company-name" hidden>Registered company name</label>' +
+    '<input id="legacy-credit-company-name" type="text" value="' + esc(sourceName) + '" autocomplete="organization" hidden>' +
+    '<label for="legacy-credit-phone">Phone number</label>' +
+    '<input id="legacy-credit-phone" type="tel" value="' + esc(sourcePhone) + '" autocomplete="tel">' +
+    '<button id="legacy-credit-register-link" type="button" class="btn btn--primary">Register customer and link credit</button>' +
+    '<small>For a company, enter the authorised contact person and keep the company name exactly as it appears on the original credit note. The original credit amount and accounting entries will not be changed.</small>';
+
+  const companyToggle = redeemPreview.querySelector("#legacy-credit-is-company");
+  const fullName = redeemPreview.querySelector("#legacy-credit-full-name");
+  const companyName = redeemPreview.querySelector("#legacy-credit-company-name");
+  const companyLabel = redeemPreview.querySelector("#legacy-credit-company-label");
+  const registerButton = redeemPreview.querySelector("#legacy-credit-register-link");
+  companyToggle.addEventListener("change", () => {
+    const isCompany = companyToggle.checked;
+    companyLabel.hidden = !isCompany;
+    companyName.hidden = !isCompany;
+    companyName.required = isCompany;
+    fullName.placeholder = isCompany ? "Contact person name" : "Customer name";
+    if (isCompany && fullName.value.trim().toLocaleLowerCase() === sourceName.toLocaleLowerCase()) fullName.value = "";
+    if (!isCompany && !fullName.value.trim()) fullName.value = sourceName;
+  });
+  registerButton.addEventListener("click", async () => {
+    const isCompany = companyToggle.checked;
+    const name = fullName.value.trim();
+    const phone = redeemPreview.querySelector("#legacy-credit-phone").value.trim();
+    const company = companyName.value.trim();
+    if (!name || !phone || (isCompany && !company)) {
+      setRedeemMessage("Enter the customer/contact name, phone, and company name where applicable.", "error");
+      return;
+    }
+    registerButton.disabled = true;
+    setRedeemMessage("Registering the customer and linking the existing credit…");
+    try {
+      const { data, error } = await supabase.rpc("register_and_link_legacy_credit_customer", {
+        p_credit_note_type: voucher.credit_note_type,
+        p_credit_note_id: voucher.credit_note_id,
+        p_full_name: name,
+        p_phone: phone,
+        p_is_company: isCompany,
+        p_company_name: isCompany ? company : null,
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setRedeemMessage("Customer registered and linked as " + (data?.customer_code || "a new customer") + ". Reloading voucher…", "success");
+      await previewVoucher();
+    } catch (error) {
+      setRedeemMessage(error.message || String(error), "error");
+      registerButton.disabled = false;
+    }
+  });
+}
+
 async function previewVoucher() {
   const code = redeemCode.value.trim().toUpperCase();
   if (!code) { setRedeemMessage("Enter a voucher code first.", "error"); return; }
@@ -184,7 +245,19 @@ async function previewVoucher() {
         [candidate.full_name,candidate.company_name].some(value => String(value || "").trim().toLocaleLowerCase() === name) &&
         (!phone || digits(candidate.phone) === phone)
       );
-      if (matches.length !== 1) throw new Error("This voucher is not linked to one registered customer. Register or link the customer before redeeming it.");
+      if (matches.length > 1) throw new Error("More than one registered customer matches this legacy credit. Ask a manager to resolve the duplicate customer records before redeeming it.");
+      if (matches.length === 0) {
+        checkedVoucher = null;
+        renderLegacyCustomerRegistration(sourceNote, data);
+        redeemTarget.innerHTML = '<option value="">Link the legacy credit to a customer first</option>';
+        redeemTarget.disabled = true;
+        redeemAmount.value = "";
+        redeemAmount.disabled = true;
+        setRedeemMessage(sourceNote?.customer_phone
+          ? "This voucher belongs to an older customer record. Register and link that customer before redemption."
+          : "This older credit has no recorded phone number. Register the customer with a verified phone number before linking it.", "error");
+        return;
+      }
       customer = matches[0];
     }
     checkedVoucher.customer_id = customer.id;
