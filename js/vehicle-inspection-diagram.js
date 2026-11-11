@@ -88,7 +88,7 @@ export function mountVehicleInspectionDiagram(el,{parts,getReport,onSelect,inter
    ${mapped.map(p=>svgZone(p,report,interactive)).join("")}
   </svg></div>
   <p class="vi-hotspot-hint">${interactive?"Tap a vehicle area to record damage. Unmarked areas remain No Damage.":"Vehicle condition markings recorded at drop-off."}</p>
-  ${extra.length?'<div class="vi-extra"><strong style="width:100%">Interior and mechanical checks</strong>'+extra.map(p=>'<button type="button" data-extra-part="'+esc(p.key)+'" data-marked="'+Boolean(report.parts?.[p.key]?.dmg?.length)+'">'+esc(p.name)+(report.parts?.[p.key]?.dmg?.length?' · '+esc(report.parts[p.key].dmg[0]):'')+'</button>').join("")+'</div>':""}
+  ${extra.length?'<div class="vi-extra"><strong style="width:100%">Interior and mechanical checks</strong>'+extra.map(p=>'<button type="button" data-extra-part="'+esc(p.key)+'" data-marked="'+Boolean(report.parts?.[p.key]?.dmg?.length)+'" '+(interactive?"":"disabled")+'">'+esc(p.name)+(report.parts?.[p.key]?.dmg?.length?' · '+esc(CONDITION_LABELS[report.parts[p.key].dmg[0]]||report.parts[p.key].dmg[0]):' · No Damage')+'</button>').join("")+'</div>':""}
   <div class="vi-summary">${summaryMarkup(parts,report)}</div>
  </div>`;
  if(interactive){
