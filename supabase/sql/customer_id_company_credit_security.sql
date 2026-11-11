@@ -462,7 +462,7 @@ begin
     coalesce(credit_ref, voucher_row.voucher_code) || ' / ' || voucher_row.voucher_code,
     p_target_type, p_target_id, round(p_amount,2), verified->>'confirmed_as',
     nullif(btrim(p_authorised_by), ''), auth.uid(), (result->>'id')::uuid
-  );
+  ) on conflict(source_redemption_id) do nothing;
   return result || jsonb_build_object('customer_code', customer_row.customer_code,
     'credit_reference', credit_ref, 'voucher_code', voucher_row.voucher_code);
 end;
