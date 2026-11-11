@@ -1018,7 +1018,7 @@ select.st option{background:#10181a;color:#eef3ef}
 <script type="module" src="../js/repair-pages-navigation.js"></script>
   <script type="module" src="../js/dashboard-search.js"></script>
 <script type="module" src="../js/customer-credit.js?v=credit-vouchers-12"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-12"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-13"></script>
 <script>
 window.addEventListener("unhandledrejection",event=>{
  console.error("Unhandled receipt-page promise rejection:",event.reason);
@@ -1106,12 +1106,12 @@ ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">
 async function loadAllReceipts(){
  const all=[];
  for(let offset=0;;offset+=1000){
-  let{data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,voided_at,void_reason,repair_job_id,sales_order_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999);
+  let{data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,voided_at,void_reason,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999);
   // Older deployments may not yet have the receipt-voiding migration.
   // Retry without its optional columns so one ledger payment cannot blank the
   // whole Receipts screen.
   if(error&&/voided_at|void_reason/i.test(error.message||"")){
-   ({data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_job_id,sales_order_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999));
+   ({data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999));
   }
   if(error)return{data:null,error};
   all.push(...(data||[]));
@@ -1164,12 +1164,13 @@ async function load(){
   ...(r.data||[]).map(x=>x.repair_job_id),
   ...rows.invoices.map(invoice=>invoice.repairJobId),
  ].filter(Boolean))];
- const [paymentResult,jobResult,jobPartsResult,jobExtrasResult]=jobIds.length?await Promise.all([
+ const [paymentResult,jobResult,jobPartsResult,jobExtrasResult,creditMovementResult]=jobIds.length?await Promise.all([
   loadRepairJobPayments(jobIds),
   supabase.from("repair_jobs").select("id,job_number,cro_number,checklist_number,total_cost,labour_cost,labour_hours,job_description,work_done,fault_reported,diagnosis,fuel_level_in,odometer_in,driver_name,driver_phone,vehicles(make,model,year,license_plate,chassis_number,engine_number),customers(full_name,phone,email)").in("id",jobIds),
   supabase.from("job_parts").select("job_id,part_name,quantity,price_at_time,parts(description)").in("job_id",jobIds),
-  supabase.from("job_incidentals").select("job_id,description,amount").in("job_id",jobIds)
- ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null}];
+  supabase.from("job_incidentals").select("job_id,description,amount").in("job_id",jobIds),
+  supabase.from("customer_credit_movements").select("target_id,amount").in("target_id",jobIds).eq("target_type","repair_job").eq("movement_type","application").is("reversed_at",null)
+ ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null},{data:[],error:null}];
  if(paymentResult.error)console.error("Couldn't load repair-job payments for receipts:",paymentResult.error);
  const jobDetailsError=jobResult.error||jobPartsResult.error||jobExtrasResult.error;
  if(jobDetailsError){
@@ -1189,15 +1190,18 @@ async function load(){
   if(!jobExtrasById.has(key))jobExtrasById.set(key,[]);
   jobExtrasById.get(key).push(item);
  });
- const paymentTotals=new Map(),paymentsByJob=new Map();
+ const paymentTotals=new Map(),creditTotals=new Map(),paymentsByJob=new Map();
  (paymentResult.data||[]).forEach(p=>{
   const key=String(p.repair_job_id);paymentTotals.set(key,(paymentTotals.get(key)||0)+Number(p.amount||0));
   if(!paymentsByJob.has(key))paymentsByJob.set(key,[]);paymentsByJob.get(key).push(p);
  });
+ (creditMovementResult.data||[]).forEach(m=>{
+  const key=String(m.target_id);creditTotals.set(key,(creditTotals.get(key)||0)+Number(m.amount||0));
+ });
  rows.receipts=(r.data||[]).map(x=>{const c=x.repair_jobs?.customers||x.sales_orders?.customers||{};const ref=x.repair_jobs?`Job #${x.repair_jobs.job_number}`:x.sales_orders?`Order #${x.sales_orders.order_number}`:"";
  const saleItems=x.sales_orders?.sales_order_items||[];
  const invoice=rows.invoices.find(inv=>String(inv.repairJobId)===String(x.repair_job_id));
- const currentPaid=Number(x.amount)||0,totalPaid=paymentTotals.get(String(x.repair_job_id))||currentPaid;
+ const currentPaid=Number(x.amount)||0,totalPaid=(paymentTotals.get(String(x.repair_job_id))||0)+(creditTotals.get(String(x.repair_job_id))||0)||currentPaid;
  const job=jobsById.get(String(x.repair_job_id))||{},jobTotal=invoice?calc(invoice).total:Number(job.total_cost)||0;
  const previousPaid=Math.max(0,totalPaid-currentPaid),jobBalance=Math.max(0,jobTotal-totalPaid);
  const jobStatus=jobTotal>0?(jobBalance<=0.005?"paid":totalPaid>0?"partially_paid":"unpaid"):"unavailable";
@@ -1228,7 +1232,7 @@ async function load(){
  const matchingPayment=paymentCandidates.find(p=>Math.abs(Number(p.amount||0)-currentPaid)<0.005);
  const accountId=matchingPayment?.account_id||matchingPayment?.payment_account_id||matchingPayment?.cash_account_id;
  const linkedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
- const storedMethod=matchingPayment?.payment_method||matchingPayment?.method||matchingPayment?.account_name||(linkedAccount?`${linkedAccount.code} — ${linkedAccount.name}`:null);
+ const storedMethod=x.payment_method||matchingPayment?.payment_method||matchingPayment?.method||matchingPayment?.account_name||(linkedAccount?`${linkedAccount.code} — ${linkedAccount.name}`:null);
  return{kind:"receipt",id:x.id,repairJobId:x.repair_job_id,salesOrderId:x.sales_order_id,number:"R-"+String(x.receipt_number??"").padStart(5,"0"),date:x.issued_at,voidedAt:x.voided_at,voidReason:x.void_reason,customer:{name:c.full_name||x.sales_orders?.walk_in_name||"",phone:c.phone,email:c.email},ref:x.repair_job_id?(job.cro_number||`Job #${job.job_number||x.repair_jobs?.job_number}`):ref,receiptAmount:currentPaid,paymentMethod:storedMethod||x.sales_orders?.payment_method||"Not recorded",jobPayment:context,jobCard,items:saleItems.length?saleItems.map(item=>({d:item.part_name,q:Number(item.quantity)||1,p:Number(item.unit_price_usd)||0})):jobItems.length?jobItems:[{d:"Payment received"+(ref?" — "+ref:""),q:1,p:currentPaid}],discount:Number(x.sales_orders?.discount_usd)||0,vat:0,status:jobStatus||"paid"}});
  const invoicePaymentsResult=await supabase.from("invoice_payments")
   .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id,voided_at,void_reason,invoices(id,invoice_number,repair_job_id,customer_name,customer_phone,customer_email,reference,items,subtotal,discount,vat_rate,vat_base,total,amount_paid)")
