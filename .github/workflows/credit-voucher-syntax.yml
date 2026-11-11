@@ -1,0 +1,25 @@
+name: Credit voucher JavaScript syntax
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/credit-vouchers.js'
+      - 'js/customer-credit.js'
+      - '.github/workflows/credit-voucher-syntax.yml'
+  pull_request:
+    paths:
+      - 'js/credit-vouchers.js'
+      - 'js/customer-credit.js'
+      - '.github/workflows/credit-voucher-syntax.yml'
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check changed JavaScript modules
+        run: |
+          node --check js/credit-vouchers.js
+          node --check js/customer-credit.js
