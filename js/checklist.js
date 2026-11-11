@@ -440,7 +440,7 @@ function printBlankInspectionSheet(){
  printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Blank Vehicle Inspection Form</title>
  <style>
  *{box-sizing:border-box}
- @page{size:A4 portrait;margin:8mm}
+ @page{size:A4 portrait;margin:0}
  html,body{margin:0;padding:0;background:#fff;color:#111;font:8pt/1.2 Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
  body{width:194mm;max-width:100%;margin:0 auto}
  header{height:16mm;display:flex;align-items:center;gap:3mm;border-bottom:1.2pt solid #14243a;padding-bottom:2mm}
