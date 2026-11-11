@@ -3,6 +3,22 @@ import { openVehiclePartEditor } from "./vehicle-inspection-diagram.js?v=inspect
 
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const PART_SPRITES={
+ bonnet:[14,13,124,66],windscreen:[147,14,111,65],roof:[266,14,95,65],"rear-glass":[370,14,112,65],boot:[487,14,104,64],"boot-lid":[487,14,104,64],
+ "front-bumper":[13,87,131,47],"rear-bumper":[14,138,141,40],grille:[155,91,94,37],
+ "l-headlight":[251,91,83,38],"r-headlight":[340,91,84,38],
+ "l-taillight":[188,139,59,34],"r-taillight":[275,139,59,34],
+ "lf-wing":[13,184,91,59],"rf-wing":[355,184,91,59],
+ "lf-door":[128,184,83,61],"rf-door":[230,184,84,61],
+ "lr-door":[128,250,88,57],"rr-door":[230,250,85,57],
+ "l-mirror":[467,197,42,33],"r-mirror":[467,255,42,33],
+ "wheel-lf":[71,309,75,76],"wheel-rf":[164,309,75,76],"wheel-lr":[258,309,75,76],"wheel-rr":[352,309,75,76]
+};
+function partSpriteHTML(key){
+ const crop=PART_SPRITES[key];if(!crop)return "";
+ const scale=Math.min(40/crop[2],40/crop[3]);
+ return `<span class="part-sprite" aria-hidden="true" style="background-size:${600*scale}px ${400*scale}px;background-position:${-crop[0]*scale}px ${-crop[1]*scale}px"></span>`;
+}
 const params=new URLSearchParams(location.search);
 const DAMAGE_TYPES=["Scratch","Dent","Crack","Chip","Broken","Missing","Stretched","Worn","Flat","Bald"];
 const PI={
@@ -72,7 +88,7 @@ function renderDamage(){
     return `<label class="body-part-option ${damaged?"is-damaged":""}">
       <input type="checkbox" data-body-part="${esc(key)}" ${damaged?"checked":""} ${editable?"":"disabled"}>
       <span class="body-part-check" aria-hidden="true"></span>
-      <span class="body-part-name">${esc(name)}</span>
+      ${partSpriteHTML(key)}<span class="body-part-name">${esc(name)}</span>
       <small>${damaged?esc(report.parts[key].dmg.join(", ")):"No damage"}</small>
       ${damaged&&editable?`<button type="button" class="body-part-details" data-edit-part="${esc(key)}">Details</button>`:""}
     </label>`;

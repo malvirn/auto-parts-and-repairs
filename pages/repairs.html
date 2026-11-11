@@ -423,6 +423,7 @@
 .pi .bg{fill:color-mix(in srgb,var(--text) 10%,transparent);stroke:none}
 .pi .g{fill:#7be0a0}
 .pi.flip{transform:scaleX(-1)}
+.part-sprite{display:block;width:44px;height:44px;flex:none;background-image:url("../img/vehicle-parts.webp");background-repeat:no-repeat;mix-blend-mode:screen}
 .dmg-sheet{position:fixed;inset:0;z-index:390;display:grid;align-items:end;background:rgba(0,0,0,.6)}
 .dmg-panel{display:grid;gap:12px;width:min(520px,100%);margin:0 auto;padding:16px;border-radius:18px 18px 0 0;background:var(--panel);color:var(--text)}
 .dmg-head{display:flex;align-items:center;gap:12px}
@@ -1188,7 +1189,23 @@ const PI={
  brake:'<circle cx="24" cy="24" r="15"/><circle class="g" cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="2.5"/>',
  exhaust:'<rect class="g" x="7" y="21" width="9" height="8" rx="1.5"/><rect x="16" y="21" width="12" height="8" rx="1"/><path d="M33 19c3-2.5 5 .5 3 3 3 .5 3 5-.5 5M32 32l4 3"/>'
 };
-const partIcon=(icon,flip)=>`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="21"/>${PI[icon]||PI.bonnet}</svg>`;
+const PART_SPRITES={
+ bonnet:[14,13,124,66],windscreen:[147,14,111,65],roof:[266,14,95,65],"rear-glass":[370,14,112,65],boot:[487,14,104,64],"boot-lid":[487,14,104,64],
+ "front-bumper":[13,87,131,47],"rear-bumper":[14,138,141,40],grille:[155,91,94,37],
+ "l-headlight":[251,91,83,38],"r-headlight":[340,91,84,38],
+ "l-taillight":[188,139,59,34],"r-taillight":[275,139,59,34],
+ "lf-wing":[13,184,91,59],"rf-wing":[355,184,91,59],
+ "lf-door":[128,184,83,61],"rf-door":[230,184,84,61],
+ "lr-door":[128,250,88,57],"rr-door":[230,250,85,57],
+ "l-mirror":[467,197,42,33],"r-mirror":[467,255,42,33],
+ "wheel-lf":[71,309,75,76],"wheel-rf":[164,309,75,76],"wheel-lr":[258,309,75,76],"wheel-rr":[352,309,75,76]
+};
+function partSpriteHTML(key){
+ const crop=PART_SPRITES[key];if(!crop)return "";
+ const scale=Math.min(40/crop[2],40/crop[3]);
+ return `<span class="part-sprite" aria-hidden="true" style="background-size:${600*scale}px ${400*scale}px;background-position:${-crop[0]*scale}px ${-crop[1]*scale}px"></span>`;
+}
+const partIcon=(icon,flip,key)=>PART_SPRITES[key]?partSpriteHTML(key):`<svg class="pi${flip?" flip":""}" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="21"/>${PI[icon]||PI.bonnet}</svg>`;
 
 const CAR_PARTS=[
  {key:"front-bumper",name:"Front bumper",icon:"bumper"},{key:"bonnet",name:"Bonnet",icon:"bonnet"},{key:"windscreen",name:"Windscreen",icon:"glass"},{key:"roof",name:"Roof",icon:"roof"},
@@ -1207,7 +1224,7 @@ let buildInspection=emptyReport();
 let editInspection=emptyReport();
 function partTileHTML(p,entry={}){
  const dmg=entry.dmg||[],state=dmg.length?dmg.join(", "):"No damage";
- return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
+ return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip,p.key)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
 }
 function compressImage(file,max=720,quality=.66){
  return new Promise((ok,no)=>{
