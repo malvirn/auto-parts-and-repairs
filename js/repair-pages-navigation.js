@@ -874,6 +874,14 @@ function ensureSidebarAccount(sidebar) {
 }
 
 async function initializeAfterAccess() {
+  if (document.body.dataset.role) {
+    try {
+      localStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({
+        role: document.body.dataset.role,
+        accessLevel: document.body.dataset.accessLevel || null
+      }));
+    } catch (_) {}
+  }
   if (!document.body.dataset.role) {
     document.addEventListener("apr:access-ready", initializeAfterAccess, { once: true });
     return;
