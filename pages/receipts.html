@@ -1584,7 +1584,7 @@ async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
   paymentItemsLabel:"Sale items",
   number:`PAY-${String(order.order_number).padStart(5,"0")}-${String(payment.id).slice(0,6).toUpperCase()}`,
   date:payment.payment_date,
-  customer:{name:customer.full_name||order.walk_in_name||"Walk-in customer",phone:customer.phone||"",email:customer.email||""},
+  customer:{name:customer.company_name||customer.full_name||order.walk_in_name||"Walk-in customer",phone:customer.phone||"",email:customer.email||"",customer_code:customer.customer_code||"",company_name:customer.company_name||"",is_company:Boolean(customer.is_company)},
   ref:orderNumber,
   receiptAmount:amount,
   paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
