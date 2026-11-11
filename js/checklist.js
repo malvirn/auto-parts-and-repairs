@@ -141,7 +141,7 @@ function setEditable(value){
  renderDamage();renderInspectionSummary();syncInspectionStrip();
 }
 function startNewChecklist(prefillJob=null){
- record=null;report={parts:{},notes:""};selectedJob=prefillJob;
+ record=null;report={parts:{},notes:""};try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-new")||"null");if(local?.report)report=local.report;}catch{}selectedJob=prefillJob;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
  $("checklist-number-display").hidden=true;$("checklist-number-display").textContent="";
  $("reopen-inspection").hidden=true;syncInspectionStrip();
@@ -201,7 +201,7 @@ async function loadInspectionMarks(item){
  }
 }
 async function showRecord(item){
- record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);
+ record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-"+item.id)||"null");if(local?.report&&new Date(local.updated_at).getTime()>new Date(item.updated_at||0).getTime())report=local.report;}catch{}
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
  $("customer-name-input").value=item.customer_name||item.customers?.full_name||"";
@@ -293,6 +293,7 @@ async function saveAndConfirm(){
    if(error)throw new Error(`Couldn't save the checklist: ${error.message}`);
    checklistId=data.id;
    record={id:checklistId,checklist_number:data.checklist_number,...payload};
+   try{localStorage.setItem("centric-inspection-draft-"+checklistId,JSON.stringify({report,updated_at:new Date().toISOString()}));}catch{}
   }
   const markRows=[];
   for(const [area,entry] of Object.entries(report.parts||{})){
@@ -316,6 +317,7 @@ async function saveAndConfirm(){
   const{data:confirmedAt,error:confirmError}=await supabase.rpc("complete_vehicle_inspection",{p_inspection_id:checklistId});
   if(confirmError)throw new Error(`Inspection was saved but could not be completed: ${confirmError.message}`);
   record={...record,...payload,status:"completed",confirmed_at:confirmedAt||new Date().toISOString()};
+  try{localStorage.removeItem("centric-inspection-draft-"+checklistId);localStorage.removeItem("centric-inspection-draft-new");}catch{}
   $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
   $("checklist-number-display").hidden=false;
   $("print-checklist-number").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
