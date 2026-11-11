@@ -78,7 +78,7 @@ export function mountVehicleInspectionDiagram(el,{parts,getReport,onSelect,inter
  el.innerHTML=`<div class="vi-wrap">
   <div class="vi-legend"><span><i class="vi-dot" style="background:#16a34a"></i>No Damage</span><span><i class="vi-dot" style="background:#f59e0b"></i>Scratch</span><span><i class="vi-dot" style="background:#ef4444"></i>Dent</span><span><i class="vi-dot" style="background:#a855f7"></i>Crack / Chip</span><span><i class="vi-dot" style="background:#64748b"></i>Broken</span></div>
   <div class="vi-stage"><svg viewBox="0 0 720 960" role="img" aria-label="Four-view vehicle inspection diagram">
-   <image href="../img/vehicle-inspection.webp" x="0" y="0" width="720" height="960" preserveAspectRatio="none"/>
+   <image href="../img/vehicle-inspection.svg" x="0" y="0" width="720" height="960" preserveAspectRatio="none"/>
    <text class="vi-view-label" x="360" y="20" text-anchor="middle">FRONT</text>
    <text class="vi-view-label" x="360" y="950" text-anchor="middle">REAR</text>
    <text class="vi-view-label" x="90" y="215" text-anchor="middle">LEFT SIDE</text>
@@ -97,7 +97,7 @@ export function mountVehicleInspectionDiagram(el,{parts,getReport,onSelect,inter
 export function vehicleDiagramSnapshot(parts,report){
  ensureStyles();const mapped=parts.filter(p=>ZONES[p.key]);
  return `<div class="vi-wrap vi-print"><div class="vi-stage"><svg viewBox="0 0 720 960" role="img" aria-label="Vehicle inspection diagram">
- <image href="../img/vehicle-inspection.webp" x="0" y="0" width="720" height="960"/>
+ <image href="../img/vehicle-inspection.svg" x="0" y="0" width="720" height="960"/>
  ${mapped.map(p=>svgZone(p,report,false)).join("")}</svg></div></div>`;
 }
 export function openVehiclePartEditor({part,entry,onSave,readOnly=false}){
