@@ -242,7 +242,7 @@ begin
       voucher_status=(select status from public.customer_credit_vouchers where credit_note_type='invoice_overpayment' and credit_note_id=r.id)
     where id=r.id;
   end loop;
-end $;
+end $$;
 
 insert into public.credit_voucher_audit(voucher_id,voucher_code,action,details,performed_by)
 select v.id,v.voucher_code,'issued',
