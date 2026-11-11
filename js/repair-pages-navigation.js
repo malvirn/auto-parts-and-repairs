@@ -905,8 +905,6 @@ if (!isDashboardHome()) {
 }
 
 initializePageChrome();
-document.body.classList.add("dashboard-chrome-ready");
-window.setTimeout(() => document.body.classList.add("dashboard-chrome-ready"), 3000);
 startSharedDashboardHeaderClock();
 watchSharedNotificationBell();
 
