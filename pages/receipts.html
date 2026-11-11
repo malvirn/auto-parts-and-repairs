@@ -1109,20 +1109,21 @@ ${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle<
 ${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 
 /* ---------- load lists ---------- */
+const RECEIPT_INITIAL_BATCH=1000;
+let receiptHistoryLimited=false;
 async function loadAllReceipts(){
- const all=[];
- for(let offset=0;;offset+=1000){
-  let{data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,voided_at,void_reason,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email,customer_code,is_company,company_name)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email,customer_code,is_company,company_name),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999);
-  // Older deployments may not yet have the receipt-voiding migration.
-  // Retry without its optional columns so one ledger payment cannot blank the
-  // whole Receipts screen.
-  if(error&&/voided_at|void_reason/i.test(error.message||"")){
-   ({data,error}=await supabase.from("receipts").select("id,receipt_number,amount,issued_at,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email,customer_code,is_company,company_name)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email,customer_code,is_company,company_name),sales_order_items(part_name,quantity,unit_price_usd,total_usd))").order("issued_at",{ascending:false}).order("id",{ascending:false}).range(offset,offset+999));
-  }
-  if(error)return{data:null,error};
-  all.push(...(data||[]));
-  if(!data||data.length<1000)return{data:all,error:null};
+ let{data,error}=await supabase.from("receipts")
+  .select("id,receipt_number,amount,issued_at,voided_at,void_reason,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email,customer_code,is_company,company_name)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email,customer_code,is_company,company_name),sales_order_items(part_name,quantity,unit_price_usd,total_usd))")
+  .order("issued_at",{ascending:false}).order("id",{ascending:false}).limit(RECEIPT_INITIAL_BATCH);
+ // Older deployments may not yet have the receipt-voiding migration.
+ // Retry without optional columns so a schema mismatch does not blank the page.
+ if(error&&/voided_at|void_reason/i.test(error.message||"")){
+  ({data,error}=await supabase.from("receipts")
+   .select("id,receipt_number,amount,issued_at,repair_job_id,sales_order_id,payment_method,credit_voucher_redemption_id,repair_jobs(job_number,customers(full_name,phone,email,customer_code,is_company,company_name)),sales_orders(order_number,walk_in_name,payment_method,discount_usd,customers(full_name,phone,email,customer_code,is_company,company_name),sales_order_items(part_name,quantity,unit_price_usd,total_usd))")
+   .order("issued_at",{ascending:false}).order("id",{ascending:false}).limit(RECEIPT_INITIAL_BATCH));
  }
+ receiptHistoryLimited=!error&&(data||[]).length===RECEIPT_INITIAL_BATCH;
+ return{data,error};
 }
 async function loadRepairJobPayments(jobIds){
  let result=await supabase.from("repair_job_payments").select("*").in("repair_job_id",jobIds).is("voided_at",null);
@@ -1153,8 +1154,8 @@ async function load(){
  const invoiceCreditTotals=new Map();
  (invoiceCreditResult.data||[]).forEach(m=>{const key=String(m.target_id);invoiceCreditTotals.set(key,(invoiceCreditTotals.get(key)||0)+Number(m.amount||0));});
  const [creditLinksResult,creditRefundsResult]=await Promise.all([
-  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)"),
-  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone,customers(customer_code,is_company,company_name,full_name))")
+  supabase.from("customer_overpayment_credit_job_links").select("credit_note_id,repair_job_id,applied_amount,repair_jobs(job_number,checklist_number)").limit(1000),
+  supabase.from("customer_overpayment_credit_refunds").select("id,refund_number,credit_note_id,amount,payment_date,payment_method,created_at,voided_at,void_reason,customer_overpayment_credit_notes(note_number,customer_name,customer_phone,customers(customer_code,is_company,company_name,full_name))").order("created_at",{ascending:false}).limit(1000)
  ]);
  if(creditLinksResult.error)console.error("Could not load credit-note job links:",creditLinksResult.error);
  if(creditRefundsResult.error)console.error("Could not load customer credit refunds:",creditRefundsResult.error);
@@ -1348,6 +1349,7 @@ function render(){
  const visible=L;
  $("list").innerHTML=(visible.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer?.company_name||o.customer?.name||"Walk-in")}${o.customer?.customer_code?" · "+esc(o.customer.customer_code):""} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}${o.customer?.phone?" · "+esc(o.customer.phone):""}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!o.invoicePaymentReceipt&&!o.creditRefundReceipt&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to||min!==null||max!==null||statusFilter||methodFilter)?"No records match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
  $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[Number(el.dataset.i)])});
+ if(tab==="receipts"&&receiptHistoryLimited)$("list").insertAdjacentHTML("beforeend",'<div class="ov-empty">Showing the latest 1,000 receipts. Older records remain saved.</div>');
  window.lucide?.createIcons();
 }
 function signalDocumentChange(table,label){
