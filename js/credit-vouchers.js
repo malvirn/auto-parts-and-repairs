@@ -525,9 +525,14 @@ redeemTarget?.addEventListener("change", updateRedeemAmount);
 redeemAmount?.addEventListener("input", () => {
   const max = Number(redeemAmount.max) || 0;
   const amount = Number(redeemAmount.value);
-  redeemApply.disabled = !checkedVoucher || !Number.isFinite(amount) || amount <= 0 || amount > max + 0.005;
+  redeemApply.disabled = (!checkedVoucher && !selectedCustomerCreditNote) || !Number.isFinite(amount) || amount <= 0 || amount > max + 0.005;
 });
-redeemCode?.addEventListener("input", () => { checkedVoucher = null; redeemApply.disabled = true; });
+redeemCode?.addEventListener("input", () => {
+  checkedVoucher = null;
+  selectedCustomerCreditNote = null;
+  if (redeemSourceSelect) redeemSourceSelect.value = "";
+  redeemApply.disabled = true;
+});
 window.addEventListener("apr:open-voucher-redemption", async event => {
   const detail = event.detail || {};
   preferredRedeemTarget = detail.targetId ? { targetType: detail.targetType || "repair_job", targetId: String(detail.targetId) } : null;
