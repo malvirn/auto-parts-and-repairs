@@ -1318,8 +1318,11 @@ async function load(){
    const total=Number(invoice.total)||Number(invoice.subtotal)||0;
    const amount=Number(payment.amount)||0;
     const paidBefore=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-(payment.voided_at?0:amount));
-    const applied=payment.voided_at?0:Math.min(amount,Math.max(0,total-paidBefore));
-   const totalApplied=Math.min(total,paidBefore+applied);
+    const jobCredits=invoice.repair_job_id?(creditApplicationsByJob.get(String(invoice.repair_job_id))||[]):[];
+    const creditApplied=jobCredits.reduce((sum,item)=>sum+item.amount,0);
+    const creditNoteReferences=[...new Set(jobCredits.filter(item=>item.amount>0.005).map(item=>item.reference))];
+    const applied=payment.voided_at?0:Math.min(amount,Math.max(0,total-paidBefore-creditApplied));
+   const totalApplied=Math.min(total,paidBefore+creditApplied+applied);
    const credit=Math.max(0,(paidByInvoice.get(String(payment.invoice_id))||0)-total);
    return{
     kind:"receipt",id:payment.id,invoicePaymentReceipt:true,voidedAt:payment.voided_at,voidReason:payment.void_reason,
@@ -1334,6 +1337,7 @@ async function load(){
     carriedForward:credit,
     jobPayment:{
      jobTotal:total,previousPaid:paidBefore,currentPaid:applied,received:amount,
+     creditApplied,creditNoteReferences,
      customerCredit:credit,totalPaid:totalApplied,balance:Math.max(0,total-totalApplied),
      status:total-totalApplied<=0.005?"paid":totalApplied>0?"partially_paid":"unpaid"
     }
