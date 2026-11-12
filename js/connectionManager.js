@@ -325,6 +325,7 @@ window.addEventListener("online", () => {
     probeConnection();
   }
 });
+if (navigator.onLine === false) { nextProbeAt = Date.now() + OPEN_INTERVAL_MS; setState("open"); }
 window.addEventListener("pageshow", renderStatus);
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderStatus, { once: true });
 else renderStatus();
