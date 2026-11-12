@@ -740,6 +740,20 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
     body.dashboard-page .dashboard-topbar { height:68px; min-height:68px; }
     body.dashboard-page .main { min-width:0; }
   </style>
+<style id="job-card-board-layout">
+#list{display:block!important;min-width:0}
+.job-board-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(270px,340px);gap:14px;align-items:start;overflow-x:auto;padding:2px 2px 14px;scroll-snap-type:x proximity}
+.job-board-column{min-width:0;min-height:150px;padding:12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--panel) 88%,transparent);scroll-snap-align:start}
+.job-board-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:2px 2px 10px;border-bottom:1px solid var(--line);font-size:.88rem;font-weight:800}
+.job-board-heading b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:8px;background:rgba(31,196,103,.14);color:var(--green-bright);font-size:.75rem}
+.job-board-cards{display:grid;gap:9px;min-height:70px}
+.job-board-cards .rc-row{margin:0;min-width:0;padding:12px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:10px;background:var(--panel);cursor:pointer}
+.job-board-cards .rc-row:hover{border-color:var(--green-bright);transform:translateY(-1px)}
+.job-board-empty{margin:0;padding:18px 8px;color:var(--muted);font-size:.8rem;text-align:center}
+.job-board-column--checklists{margin-top:14px;border-style:dashed;border-color:var(--orange)}
+.job-board-column--checklists .job-board-heading{color:var(--orange)}
+@media(max-width:640px){.job-board-grid{grid-auto-columns:minmax(260px,86vw)}.job-board-column{padding:10px}}
+</style>
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -1330,7 +1344,7 @@ async function load(){
  const [j,t,cl]=await Promise.all([
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email,is_company,company_name), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
   supabase.from("technician_directory").select("id,full_name").limit(300),
-  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at").is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(200)]);
+  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,status,updated_at").is("job_id",null).order("updated_at",{ascending:false}).limit(200)]);
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
  techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
  if(cl.error){console.error("Couldn't load checklists waiting for job cards:",cl.error);pendingChecklists=[]}else pendingChecklists=cl.data||[];
@@ -1343,14 +1357,31 @@ function render(){
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- $("list").innerHTML=L.map((j,i)=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]));
+ const boardStatuses=filter==="all"?sts:[filter];
+ const boardHtml=boardStatuses.map(status=>{
+  const rows=L.map((j,i)=>({j,i})).filter(({j})=>(j.status||"Draft")===status);
+  const cards=rows.map(({j,i})=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("");
+  return `<section class="job-board-column"><header class="job-board-heading"><span>${esc(status)}</span><b>${rows.length}</b></header><div class="job-board-cards">${cards||'<p class="job-board-empty">No cards in this stage.</p>'}</div></section>`;
+ }).join("");
+ $("list").innerHTML=`<div class="job-board-grid">${boardHtml}</div>`;
+ $("list").querySelectorAll('.rc-row[data-i]').forEach(el=>el.onclick=()=>open(L[Number(el.dataset.i)]));
  const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
- if(CL.length){
-  if(!L.length)$("list").innerHTML="";
-  $("list").insertAdjacentHTML("afterbegin",CL.map((c,i)=>`<div class="rc-row rc-checklist" data-cl="${i}" role="button" tabindex="0"><div><b>Checklist #${esc(c.checklist_number)}</b> <span class="pill">Ready for job card</span><small>${esc(c.customer_name||"Customer not recorded")} · ${esc(c.vehicle_registration||"Registration not recorded")}</small><small>Tap to open a job card for this vehicle</small></div><div class="rc-amt"><small>${dt(c.confirmed_at)}</small></div></div>`).join(""));
-  $("list").querySelectorAll(".rc-checklist").forEach(el=>{const go=()=>openBuilder(CL[el.dataset.cl]);el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
- }
+ const draftCL=CL.filter(c=>c.status==="draft");
+ const readyCL=CL.filter(c=>c.status!=="draft");
+ const appendChecklistBoard=(items,kind,title,emptyText)=>{
+  if(!items.length)return;
+  const rows=items.map((c,i)=>`<div class="rc-row rc-checklist" data-cl="${i}" data-kind="${kind}" role="button" tabindex="0"><div><b>Checklist #${esc(c.checklist_number)}</b> <span class="pill">${kind==="draft"?"Draft · needs details":"Ready for job card"}</span><small>${esc(c.customer_name||"Customer not recorded")} · ${esc(c.vehicle_registration||"Registration not recorded")}</small><small>${kind==="draft"?"Open to complete the checklist or create its job card":"Open to create a job card from this checklist"}</small></div><div class="rc-amt"><small>${dt(c.updated_at||c.confirmed_at)}</small></div></div>`).join("");
+  $("list").insertAdjacentHTML("beforeend",`<section class="job-board-column job-board-column--checklists"><header class="job-board-heading"><span>${title}</span><b>${items.length}</b></header><div class="job-board-cards">${rows||`<p class="job-board-empty">${emptyText}</p>`}</div></section>`);
+ };
+ appendChecklistBoard(draftCL,"draft","Draft checklists","No draft checklists.");
+ appendChecklistBoard(readyCL,"ready","Ready for job card","No completed checklists waiting for a job card.");
+ $("list").querySelectorAll(".rc-checklist").forEach(el=>{
+  const rows=el.dataset.kind==="draft"?draftCL:readyCL;
+  const go=()=>openBuilder(rows[Number(el.dataset.cl)]);
+  el.onclick=go;
+  el.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();go();}};
+ });
+
 }
 
 /* ---------- job card document ---------- */
