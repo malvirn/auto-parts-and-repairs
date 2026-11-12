@@ -2026,6 +2026,19 @@ async function openBuilder(fromChecklist=null){
    new Option("Assign technician (optional)",""),
    ...(techniciansResult.data||[]).map(technician=>new Option(technician.full_name,technician.id)),
   );
+  const requestedCustomerId=params.get("customer");
+  const requestedVehicleId=params.get("vehicle");
+  if(requestedCustomerId&&builderCustomers.some(customer=>String(customer.id)===String(requestedCustomerId))){
+   $("f-cust").value=requestedCustomerId;
+   await $("f-cust").onchange({target:$("f-cust")});
+   if(requestedVehicleId&&vehicles.some(vehicle=>String(vehicle.id)===String(requestedVehicleId))){
+    $("f-veh").value=requestedVehicleId;
+    $("f-veh").onchange({target:$("f-veh")});
+   }else if(vehicles.length){
+    $("f-veh").value=vehicles[0].id;
+    $("f-veh").onchange({target:$("f-veh")});
+   }
+  }
   const quotationId=params.get("quote");
   if(quotationId){
    const {data:quotation,error:quotationError}=await supabase
