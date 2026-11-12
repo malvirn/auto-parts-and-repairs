@@ -114,6 +114,18 @@ async function writeCached(url, headers, response) {
 }
 
 function renderStatus() {
+  if (!document.getElementById("apr-connection-status-style")) {
+    const style = document.createElement("style");
+    style.id = "apr-connection-status-style";
+    style.textContent = `
+      #apr-connection-status{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:100000;display:flex;align-items:center;gap:9px;max-width:calc(100vw - 24px);padding:9px 15px;border:1px solid rgba(255,122,18,.4);border-radius:999px;background:rgba(32,24,18,.96);color:#ffe0c5;box-shadow:0 8px 28px rgba(0,0,0,.28);font:700 12px/1.2 Inter,system-ui,sans-serif;white-space:nowrap;pointer-events:none}
+      #apr-connection-status[hidden]{display:none!important}
+      .apr-connection-status__dot{width:8px;height:8px;flex:none;border-radius:50%;background:#ff8a3d;box-shadow:0 0 9px #ff8a3d}
+      html[data-apr-connection="half-open"] #apr-connection-status__dot{background:#f3c35b;box-shadow:0 0 9px #f3c35b}
+      @media(max-width:420px){#apr-connection-status{top:calc(env(safe-area-inset-top,0px) + 6px);font-size:11px;padding:8px 12px}}
+    `;
+    document.head.appendChild(style);
+  }
   document.documentElement.dataset.aprConnection = state;
   if (!document.body) return;
   document.body.dataset.aprConnection = state;
