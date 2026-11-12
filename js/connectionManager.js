@@ -7,7 +7,12 @@ const MAX_RETRIES = 6;
 const BASE_DELAY_MS = 2000;
 const MAX_DELAY_MS = 60000;
 const FAILURE_THRESHOLD = 3;
-const OPEN_INTERVAL_MS = 30000;\nconst READ_ONLY_RPC = new Set([\n  "get_unpriced_job_parts",\n  "get_shop_job_part_purchase_requests",\n  "get_accounting_job_part_purchase_requests",\n  "get_technicians_admin",\n  "job_card_part_catalog",\n]);
+const OPEN_INTERVAL_MS = 30000;\nconst READ_ONLY_RPC = new Set([
+  "get_unpriced_job_parts",
+  "get_shop_job_part_purchase_requests",
+  "get_accounting_job_part_purchase_requests",
+  "get_technicians_admin",
+  "job_card_part_catalog",\n]);
 
 let state = "closed";
 let consecutiveFailures = 0;
@@ -84,16 +89,16 @@ async function readCached(url, headers, method = "GET", body = "") {
   } catch (_) { return null; }
 }
 
-async function writeCached(url, headers, response, method = "GET", body = "") {
+async function writeCached(url, headers, response, method = "GET", requestBody = "") {
   if (!response.ok || response.status === 206) return;
   try {
-    const body = await response.clone().arrayBuffer();
+    const responseBody = await response.clone().arrayBuffer();
     const record = {
-      key: cacheKey(url, headers, method, body),
+      key: cacheKey(url, headers, method, requestBody),
       status: response.status,
       statusText: response.statusText,
       headers: [...response.headers.entries()],
-      body,
+      body: responseBody,
       savedAt: Date.now(),
       lastUsedAt: Date.now(),
     };
@@ -226,7 +231,9 @@ async function connectionFetch(input, init = {}) {
   const url = request ? request.url : String(input);
   const method = String(init.method || request?.method || "GET").toUpperCase();
   const headers = new Headers(init.headers || request?.headers || {});
-  const userKey = currentUserKey(headers);\n  const requestBody = method === "POST" ? (typeof init.body === "string" ? init.body : request ? await request.clone().text().catch(() => "") : "") : "";\n  const cacheable = isCacheableRead(url, method, userKey);
+  const userKey = currentUserKey(headers);
+  const requestBody = method === "POST" ? (typeof init.body === "string" ? init.body : request ? await request.clone().text().catch(() => "") : "") : "";
+  const cacheable = isCacheableRead(url, method, userKey);
   const canRetry = method === "GET" || method === "HEAD";
   if (state === "open" || state === "half-open") {
     await maybeProbe();
@@ -254,7 +261,7 @@ async function connectionFetch(input, init = {}) {
           attempt += 1;
           await sleep(delay);
           if (state !== "closed") {
-            const cached = cacheable ? await readCached(url, headers) : null;
+            const cached = cacheable ? await readCached(url, headers, method, requestBody) : null;
             if (cached) return cached;
             throw new TypeError("Supabase is unavailable. The app is in read-only mode.");
           }
