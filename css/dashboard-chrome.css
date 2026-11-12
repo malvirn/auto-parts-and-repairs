@@ -181,7 +181,6 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 body.dashboard-page.dashboard-workshop .sidebar-footer{padding:9px 3px 0 !important;border-top:1px solid #edf0f4 !important;margin-top:8px !important;color:#7b8798 !important;font-size:9px !important}
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{position:fixed!important;z-index:1301!important;top:16px!important;left:254px!important;width:34px!important;height:34px!important;border:1px solid #e0e6ef!important;border-radius:9px!important;background:white!important;color:#183568!important;box-shadow:0 2px 7px rgba(24,42,75,.06)!important}
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-backdrop{display:none !important}
-body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:84px!important}
 @media(max-width:768px){body.dashboard-page.dashboard-workshop .sidebar{width:min(300px,86vw)!important;transform:translateX(-105%)!important;visibility:hidden!important;transition:transform .24s,visibility .24s!important}
 body.dashboard-page.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important;visibility:visible!important}
 body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{display:block !important;position:fixed !important;inset:0 !important;z-index:1290 !important;background:rgba(15,28,50,.35) !important}
@@ -225,7 +224,6 @@ body.dashboard-page.dashboard-workshop .sidebar-workspace-note p{margin:3px 0 0 
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:254px!important;top:14px!important;width:38px!important;height:38px!important;border:1px solid #e4e9f0!important;border-radius:50%!important;background:#fff!important;color:#183568!important;box-shadow:0 2px 9px rgba(20,35,60,.09)!important}
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle:hover{border-color:#12a150!important;background:#f6fbf8!important}
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle .sidebar-toggle-mark{width:19px !important;height:19px !important;fill:none !important;stroke:currentColor !important;stroke-width:1.8 !important;stroke-linecap:round !important}
-body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:84px!important;transform:none!important;width:34px!important;height:34px!important}
 @media(max-width:768px){body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:9px!important;top:12px!important;width:34px!important;height:34px!important}
 body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(258px,calc(86vw - 42px))!important}
 }
