@@ -16,11 +16,11 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
-  <script src="../js/theme.js?v=chrome-buttons-1"></script>
-  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
-  <!-- Kept only so the line items / tables that js/quotations.js?v=chrome-buttons-1 generates keep their own layout. Everything below overrides colours. -->
-  <link rel="stylesheet" href="../css/quotations.css?v=quotation-modal-redesign-1&v=chrome-buttons-1">
+  <script src="../js/pwa.js" defer></script>
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <!-- Kept only so the line items / tables that js/quotations.js generates keep their own layout. Everything below overrides colours. -->
+  <link rel="stylesheet" href="../css/quotations.css?v=quotation-modal-redesign-1">
 
   <style id="quotations-design">
     html{background:#0b1012;color-scheme:dark}
@@ -290,10 +290,10 @@
     @media(max-width:390px){.quote-action{flex-basis:100%}}
 
   </style>
-  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
+  <link rel="stylesheet" href="../css/ui-consistency.css">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -301,7 +301,6 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
-  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page dashboard-workshop">
   <div class="app-shell">
@@ -310,7 +309,7 @@ body.dashboard-page .main{min-width:0}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -318,7 +317,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp chrome" aria-expanded="true"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link active" href="quotations.html" data-level="2" aria-current="page"><i data-lucide="file-text"></i> Quotations</a>
@@ -327,7 +326,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -340,13 +339,13 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -381,7 +380,7 @@ body.dashboard-page .main{min-width:0}
           <div class="hdr-hello"><span id="dashboard-greeting">Welcome back</span></div>
         </div>
         <div class="hdr-menu-wrap">
-          <button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
@@ -423,7 +422,7 @@ body.dashboard-page .main{min-width:0}
           <div class="field" id="quote-fault-field"><label for="quote-fault">Work to be done</label><textarea id="quote-fault" rows="2" placeholder="Describe the requested work"></textarea></div>
 
           <div class="quotation-add-row">
-            <label class="sr-only" for="quote-part">Part description</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Part</button>
+            <label class="sr-only" for="quote-part">Part description</label><select id="quote-part"></select><label class="sr-only" for="quote-qty">Quantity</label><input id="quote-qty" type="number" min="1" value="1" /><button id="quote-add-part" type="button" class="btn"><i data-lucide="plus"></i> Add Part</button>
           </div>
           <div class="quotation-category-label">Part not in the system</div>
           <div class="quotation-add-row">
@@ -433,12 +432,12 @@ body.dashboard-page .main{min-width:0}
             <label class="sr-only" for="quote-custom-selling">Selling price</label><input id="quote-custom-selling" type="number" min="0" step="0.01" placeholder="Selling price ($)" />
             <label class="sr-only" for="quote-custom-markup">Markup percentage</label><input id="quote-custom-markup" type="number" min="-100" max="999.99" step="0.01" placeholder="Markup %" />
             <label class="sr-only" for="quote-custom-profit">Profit per unit</label><input id="quote-custom-profit" type="number" step="0.01" placeholder="Profit ($)" />
-            <button id="quote-add-custom" type="button" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Typed Part</button>
+            <button id="quote-add-custom" type="button" class="btn"><i data-lucide="plus"></i> Add Typed Part</button>
           </div>
           <div class="quotation-category-label">Sundries</div>
           <div id="quote-sundries-fields" class="quotation-add-row">
             <label class="sr-only" for="quote-sundry-price">Sundry price</label><input id="quote-sundry-price" type="number" min="0" step="0.01" placeholder="Sundry price ($)" />
-            <button id="quote-add-sundry" type="button" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Sundry</button>
+            <button id="quote-add-sundry" type="button" class="btn"><i data-lucide="plus"></i> Add Sundry</button>
           </div>
 
           <div id="quote-draft-items" class="quotation-lines"><div class="empty-state"><i data-lucide="package-open"></i><span>Add parts to build the quotation.</span></div></div>
@@ -457,14 +456,14 @@ body.dashboard-page .main{min-width:0}
             <label class="sr-only" for="quote-custom-labour-hours">Labour hours</label><input id="quote-custom-labour-hours" type="number" min="0.01" step="any" value="1" placeholder="Hours" />
             <label class="sr-only" for="quote-custom-labour-rate">Rate per hour</label><input id="quote-custom-labour-rate" type="number" min="0" step="0.01" placeholder="Rate per hour ($)" />
           </div>
-          <div><button id="quote-add-labour" type="button" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Labour</button></div>
+          <div><button id="quote-add-labour" type="button" class="btn"><i data-lucide="plus"></i> Add Labour</button></div>
 
           <div class="quotation-personal-grid">
             <label for="quote-prepared-by">Quotation created by<input id="quote-prepared-by" maxlength="120" autocomplete="name" placeholder="Name of staff member"></label>
             <label class="field" for="quote-vat-enabled"><span>VAT</span><span><input id="quote-vat-enabled" type="checkbox" checked> Apply 5% VAT to parts</span></label>
           </div>
           <div class="quotation-total"><span>Quotation Total</span><strong id="quote-total">$0.00 / ZiG 0.00</strong></div>
-          <button type="submit" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="file-check-2"></i> Save Quotation</button>
+          <button type="submit" class="btn btn--primary"><i data-lucide="file-check-2"></i> Save Quotation</button>
         </form>
         </div>
       </section>
@@ -477,7 +476,7 @@ body.dashboard-page .main{min-width:0}
           <label>From date<input id="quote-filter-from" type="date"></label>
           <label>To date<input id="quote-filter-to" type="date"></label>
           <label>Status<select id="quote-filter-status"><option value="">All statuses</option><option>Draft</option><option>Approved</option><option>Amended</option></select></label>
-          <button type="button" class="btn chrome gun" id="quote-filter-clear"><i data-lucide="x"></i> Clear</button>
+          <button type="button" class="btn" id="quote-filter-clear"><i data-lucide="x"></i> Clear</button>
         </div>
         <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Created by</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table" data-no-progressive><tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
@@ -515,38 +514,38 @@ body.dashboard-page .main{min-width:0}
   <!-- Quotation amend modal -->
   <div id="quote-edit-modal" class="modal-overlay quotation-modal-overlay hidden" aria-hidden="true">
     <div class="modal quotation-modal" role="dialog" aria-modal="true" aria-labelledby="quote-edit-heading">
-      <header class="quotation-modal-header"><div class="quotation-modal-heading"><div class="quotation-modal-title-line"><h3 id="quote-edit-heading">Quotation #<span id="edit-quote-number"></span></h3><span id="edit-quote-status" class="quotation-status-pill">Draft</span></div><div class="quotation-customer-heading"><span id="edit-quote-cid">CID —</span><strong id="edit-quote-customer">Customer</strong></div></div><button id="quote-edit-close" class="quotation-icon-close chrome rd" type="button" aria-label="Close quotation editor"><i data-lucide="x"></i></button></header>
+      <header class="quotation-modal-header"><div class="quotation-modal-heading"><div class="quotation-modal-title-line"><h3 id="quote-edit-heading">Quotation #<span id="edit-quote-number"></span></h3><span id="edit-quote-status" class="quotation-status-pill">Draft</span></div><div class="quotation-customer-heading"><span id="edit-quote-cid">CID —</span><strong id="edit-quote-customer">Customer</strong></div></div><button id="quote-edit-close" class="quotation-icon-close" type="button" aria-label="Close quotation editor"><i data-lucide="x"></i></button></header>
       <div class="modal-scroll quotation-modal-body">
         <section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">01</span><div><h4>Items</h4><p>Adjust quantities and unit prices</p></div></div><div id="edit-quote-lines" class="quotation-lines quotation-line-list"></div></section>
         <section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">02</span><div><h4>Totals</h4><p>Updated automatically as you amend items</p></div></div><div class="quotation-summary-box"><div><span>Subtotal</span><strong id="edit-quote-subtotal">—</strong></div><div><span>VAT</span><strong id="edit-quote-vat">—</strong></div><div class="quotation-summary-total"><span>Revised Total</span><strong id="edit-quote-summary-total">—</strong></div></div><span id="edit-quote-total" hidden></span></section>
-        <details class="quote-detail-block quotation-preview-section"><summary><span><strong>Preview</strong><small>What the customer sees</small></span><i data-lucide="chevron-down"></i></summary><div id="quote-detail-text" class="receipt-document"></div><div class="detail-actions quotation-share-grid"><button id="quote-detail-copy" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="copy"></i> Copy Message</button><button id="quote-detail-print" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="printer"></i> Print</button><button id="quote-detail-pdf" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="file-down"></i> Download PDF</button><button id="quote-detail-email" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="mail"></i> Email</button><button id="quote-detail-whatsapp" type="button" class="btn quotation-btn--whatsapp chrome chrome-whatsapp"><span class="led green" aria-hidden="true"></span><i data-lucide="message-circle"></i> WhatsApp</button><span id="quote-detail-copy-status" aria-live="polite"></span></div></details>
+        <details class="quote-detail-block quotation-preview-section"><summary><span><strong>Preview</strong><small>What the customer sees</small></span><i data-lucide="chevron-down"></i></summary><div id="quote-detail-text" class="receipt-document"></div><div class="detail-actions quotation-share-grid"><button id="quote-detail-copy" type="button" class="btn quotation-btn--secondary"><i data-lucide="copy"></i> Copy Message</button><button id="quote-detail-print" type="button" class="btn quotation-btn--secondary"><i data-lucide="printer"></i> Print</button><button id="quote-detail-pdf" type="button" class="btn quotation-btn--secondary"><i data-lucide="file-down"></i> Download PDF</button><button id="quote-detail-email" type="button" class="btn quotation-btn--secondary"><i data-lucide="mail"></i> Email</button><button id="quote-detail-whatsapp" type="button" class="btn quotation-btn--whatsapp"><i data-lucide="message-circle"></i> WhatsApp</button><span id="quote-detail-copy-status" aria-live="polite"></span></div></details>
       </div>
-      <footer class="quotation-modal-footer"><div class="quotation-footer-total"><span>Revised Total</span><strong id="edit-quote-footer-total">—</strong></div><div class="quotation-footer-actions"><button id="edit-quote-save" class="btn quotation-btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="save"></i> Save Amendment</button><button id="edit-quote-order" class="btn quotation-btn--success chrome" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="shopping-cart"></i> Confirm Sales Order</button><button id="edit-quote-cancel" class="btn quotation-btn--ghost chrome gun" type="button">Cancel</button></div></footer>
+      <footer class="quotation-modal-footer"><div class="quotation-footer-total"><span>Revised Total</span><strong id="edit-quote-footer-total">—</strong></div><div class="quotation-footer-actions"><button id="edit-quote-save" class="btn quotation-btn--primary" type="button"><i data-lucide="save"></i> Save Amendment</button><button id="edit-quote-order" class="btn quotation-btn--success" type="button"><i data-lucide="shopping-cart"></i> Confirm Sales Order</button><button id="edit-quote-cancel" class="btn quotation-btn--ghost" type="button">Cancel</button></div></footer>
     </div>
   </div>
   <!-- Confirm opening a job card from an approved quotation -->
   <div id="quote-job-approval-modal" class="modal-overlay quotation-modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="quote-job-approval-title">
-    <div class="modal quotation-modal quotation-approval-modal"><header class="quotation-modal-header"><div class="quotation-modal-heading"><span class="quotation-section-kicker">QUOTATION APPROVAL</span><h2 id="quote-job-approval-title">Customer approval required</h2></div><button id="quote-job-approval-close" class="quotation-icon-close chrome rd" type="button" aria-label="Close approval"><i data-lucide="x"></i></button></header><div class="modal-scroll quotation-modal-body"><p>Confirm the customer has approved this quotation before opening a job card.</p></div><footer class="quotation-modal-footer"><div class="quotation-footer-actions"><button id="quote-job-approval-confirm" class="btn quotation-btn--success chrome" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Customer approved</button><button id="quote-job-approval-cancel" class="btn quotation-btn--ghost chrome gun" type="button"><i data-lucide="x"></i> Cancel</button></div></footer></div>
+    <div class="modal quotation-modal quotation-approval-modal"><header class="quotation-modal-header"><div class="quotation-modal-heading"><span class="quotation-section-kicker">QUOTATION APPROVAL</span><h2 id="quote-job-approval-title">Customer approval required</h2></div><button id="quote-job-approval-close" class="quotation-icon-close" type="button" aria-label="Close approval"><i data-lucide="x"></i></button></header><div class="modal-scroll quotation-modal-body"><p>Confirm the customer has approved this quotation before opening a job card.</p></div><footer class="quotation-modal-footer"><div class="quotation-footer-actions"><button id="quote-job-approval-confirm" class="btn quotation-btn--success" type="button"><i data-lucide="check"></i> Customer approved</button><button id="quote-job-approval-cancel" class="btn quotation-btn--ghost" type="button"><i data-lucide="x"></i> Cancel</button></div></footer></div>
   </div>
   <!-- Sales order edit modal -->
   <div id="order-edit-modal" class="modal-overlay quotation-modal-overlay hidden" aria-hidden="true">
-    <div class="modal quotation-modal" role="dialog" aria-modal="true" aria-labelledby="order-edit-heading"><header class="quotation-modal-header"><div class="quotation-modal-heading"><div class="quotation-modal-title-line"><h3 id="order-edit-heading">Sales Order #<span id="edit-order-number"></span></h3><span id="edit-order-status" class="quotation-status-pill">Draft</span></div><div class="quotation-customer-heading"><span id="edit-order-cid">CID —</span><strong id="edit-order-customer">Customer</strong></div></div><button id="order-edit-close" class="quotation-icon-close chrome rd" type="button" aria-label="Close sales order editor"><i data-lucide="x"></i></button></header>
-      <div class="modal-scroll quotation-modal-body"><section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">01</span><div><h4>Items</h4><p>Review quantities and unit prices</p></div></div><div id="edit-order-lines" class="quotation-lines quotation-line-list"></div></section><section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">02</span><div><h4>Totals</h4><p>Sales order summary</p></div></div><div class="quotation-summary-box"><div><span>Subtotal</span><strong id="edit-order-subtotal">—</strong></div><div><span>VAT</span><strong id="edit-order-vat">—</strong></div><div class="quotation-summary-total"><span>Order Total</span><strong id="edit-order-summary-total">—</strong></div></div><span id="edit-order-total" hidden></span></section><details class="quote-detail-block quotation-preview-section"><summary><span><strong>Preview</strong><small>What the customer sees</small></span><i data-lucide="chevron-down"></i></summary><div id="order-detail-text" class="receipt-document"></div><div class="detail-actions quotation-share-grid"><button id="order-detail-copy" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="copy"></i> Copy Message</button><button id="order-detail-print" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="printer"></i> Print</button><button id="order-detail-email" type="button" class="btn quotation-btn--secondary chrome gun"><i data-lucide="mail"></i> Email</button><button id="order-detail-whatsapp" type="button" class="btn quotation-btn--whatsapp chrome chrome-whatsapp"><span class="led green" aria-hidden="true"></span><i data-lucide="message-circle"></i> WhatsApp</button><span id="order-detail-copy-status" aria-live="polite"></span></div></details><div class="field"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson — no commission</option></select></div></div>
-      <footer class="quotation-modal-footer"><div class="quotation-footer-total"><span>Order Total</span><strong id="edit-order-footer-total">—</strong></div><div class="quotation-footer-actions"><button id="edit-order-save" class="btn quotation-btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="save"></i> Save Order &amp; Issue Receipt</button><button id="edit-order-cancel" class="btn quotation-btn--ghost chrome gun" type="button">Cancel</button></div></footer>
+    <div class="modal quotation-modal" role="dialog" aria-modal="true" aria-labelledby="order-edit-heading"><header class="quotation-modal-header"><div class="quotation-modal-heading"><div class="quotation-modal-title-line"><h3 id="order-edit-heading">Sales Order #<span id="edit-order-number"></span></h3><span id="edit-order-status" class="quotation-status-pill">Draft</span></div><div class="quotation-customer-heading"><span id="edit-order-cid">CID —</span><strong id="edit-order-customer">Customer</strong></div></div><button id="order-edit-close" class="quotation-icon-close" type="button" aria-label="Close sales order editor"><i data-lucide="x"></i></button></header>
+      <div class="modal-scroll quotation-modal-body"><section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">01</span><div><h4>Items</h4><p>Review quantities and unit prices</p></div></div><div id="edit-order-lines" class="quotation-lines quotation-line-list"></div></section><section class="quotation-editor-section"><div class="quotation-section-heading"><span class="quotation-section-index">02</span><div><h4>Totals</h4><p>Sales order summary</p></div></div><div class="quotation-summary-box"><div><span>Subtotal</span><strong id="edit-order-subtotal">—</strong></div><div><span>VAT</span><strong id="edit-order-vat">—</strong></div><div class="quotation-summary-total"><span>Order Total</span><strong id="edit-order-summary-total">—</strong></div></div><span id="edit-order-total" hidden></span></section><details class="quote-detail-block quotation-preview-section"><summary><span><strong>Preview</strong><small>What the customer sees</small></span><i data-lucide="chevron-down"></i></summary><div id="order-detail-text" class="receipt-document"></div><div class="detail-actions quotation-share-grid"><button id="order-detail-copy" type="button" class="btn quotation-btn--secondary"><i data-lucide="copy"></i> Copy Message</button><button id="order-detail-print" type="button" class="btn quotation-btn--secondary"><i data-lucide="printer"></i> Print</button><button id="order-detail-email" type="button" class="btn quotation-btn--secondary"><i data-lucide="mail"></i> Email</button><button id="order-detail-whatsapp" type="button" class="btn quotation-btn--whatsapp"><i data-lucide="message-circle"></i> WhatsApp</button><span id="order-detail-copy-status" aria-live="polite"></span></div></details><div class="field"><label for="edit-order-salesperson">Salesperson (for commission)</label><select id="edit-order-salesperson"><option value="">No salesperson — no commission</option></select></div></div>
+      <footer class="quotation-modal-footer"><div class="quotation-footer-total"><span>Order Total</span><strong id="edit-order-footer-total">—</strong></div><div class="quotation-footer-actions"><button id="edit-order-save" class="btn quotation-btn--primary" type="button"><i data-lucide="save"></i> Save Order &amp; Issue Receipt</button><button id="edit-order-cancel" class="btn quotation-btn--ghost" type="button">Cancel</button></div></footer>
     </div>
   </div>
 
   <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
-   <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
-      <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/quotations.js?v=quote-deposit-linked-2&v=chrome-buttons-1"></script>
-      <script type="module" src="../js/quotation-deposits.js?v=quote-deposit-linked-2&v=chrome-buttons-1"></script>
+  <script type="module" src="../js/auth.js"></script>
+   <script type="module" src="../js/app.js"></script>
+      <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/quotations.js?v=quote-deposit-linked-2"></script>
+      <script type="module" src="../js/quotation-deposits.js?v=quote-deposit-linked-2"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
-   <script type="module" src="../js/quotation-extras.js?v=quotation-modal-redesign-1&v=chrome-buttons-1"></script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+   <script type="module" src="../js/quotation-extras.js?v=quotation-modal-redesign-1"></script>
 <script>
 /* Typed part pricing: Profit is now editable too. Editing it re-prices the part (selling = cost + profit) and updates the markup %. */
 (()=>{
@@ -562,7 +561,7 @@ body.dashboard-page .main{min-width:0}
   });
 })();
 </script>
-<script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
-<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/phone-inputs.js"></script>
+<script defer src="../js/progressive-lists.js"></script>
 </body>
 </html>

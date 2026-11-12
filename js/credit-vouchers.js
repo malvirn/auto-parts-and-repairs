@@ -27,12 +27,12 @@ if (!host) {
   host.id = "credit-voucher-panel";
   host.hidden = true;
   host.className = "credit-voucher-overlay";
-  host.innerHTML = '<header><div><small>CENTRIC AUTO MOBILE</small><h2>Customer Credit Vouchers</h2></div><button type="button" id="credit-voucher-close" aria-label="Close vouchers" class="chrome">×</button></header>' +
-    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-settings" type="button" class="chrome">Settings</button><button id="credit-voucher-refresh" type="button" class="chrome gun">Refresh</button></div>' +
+  host.innerHTML = '<header><div><small>CENTRIC AUTO MOBILE</small><h2>Customer Credit Vouchers</h2></div><button type="button" id="credit-voucher-close" aria-label="Close vouchers">×</button></header>' +
+    '<div class="credit-voucher-overlay-tools"><input id="credit-voucher-search" type="search" placeholder="Search voucher code or customer"><select id="credit-voucher-status"><option value="">All statuses</option><option value="active">Active</option><option value="redeemed">Redeemed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option></select><button id="credit-voucher-settings" type="button">Settings</button><button id="credit-voucher-refresh" type="button">Refresh</button></div>' +
     '<section class="credit-voucher-redeem"><h3>Redeem a voucher</h3><p>Enter the code or scan its QR. Vouchers can be used against eligible outstanding balances.</p>' +
-    '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button" class="chrome">Check code</button><button id="voucher-redeem-scan" type="button" class="chrome">Scan QR</button></div>' +
+    '<div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX"><button id="voucher-redeem-check" type="button">Check code</button><button id="voucher-redeem-scan" type="button">Scan QR</button></div>' +
     '<div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div><label for="voucher-redeem-source">Customer credit available for this balance</label><select id="voucher-redeem-source"><option value="">Choose a credit note or voucher…</option></select><label for="voucher-redeem-target">Apply to outstanding balance</label><select id="voucher-redeem-target" disabled><option value="">Check a voucher first</option></select>' +
-    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled class="chrome"><span class="led" aria-hidden="true"></span>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
+    '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
     '<div id="credit-voucher-list" aria-live="polite"></div>';
   document.body.append(host);
   const isJobCardsPage = window.location.pathname.toLowerCase().endsWith("/repairs.html");
@@ -169,7 +169,7 @@ function renderLegacyCustomerRegistration(sourceNote, voucher) {
     '<input id="legacy-credit-company-name" type="text" value="" autocomplete="organization" hidden>' +
     '<label for="legacy-credit-phone">Phone number</label>' +
     '<input id="legacy-credit-phone" type="tel" value="' + esc(sourcePhone) + '" autocomplete="tel">' +
-    '<button id="legacy-credit-register-link" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span>Register customer and link credit</button>' +
+    '<button id="legacy-credit-register-link" type="button" class="btn btn--primary">Register customer and link credit</button>' +
     '<small>For a company, enter the authorised contact person and keep the company name exactly as it appears on the original credit note. The original credit amount and accounting entries will not be changed.</small>';
 
   const companyToggle = redeemPreview.querySelector("#legacy-credit-is-company");
@@ -464,12 +464,12 @@ function render() {
         '</strong></span><span><small>Expires</small><strong>' + dateLabel(v.expires_at) + '</strong></span></div>' +
         (v.holder_note ? '<p class="credit-voucher-note">' + esc(v.holder_note) + '</p>' : '') +
         (v.status === "expired" && Number(v.available_amount) > 0.005 ? '<p class="credit-voucher-expired-note">Unused credit remains a liability. A manager decision is required.</p>' : '') +
-        '<div class="credit-voucher-actions"><button class="btn chrome gun" type="button" data-voucher-print="' + esc(v.voucher_id) + '">Print voucher</button>' +
-        '<button class="btn chrome chrome-whatsapp" type="button" data-voucher-whatsapp="' + esc(v.voucher_id) + '"><span class="led green" aria-hidden="true"></span>WhatsApp</button>' +
-        '<button class="btn chrome" type="button" data-voucher-expiry="' + esc(v.voucher_id) + '">Change expiry</button>' +
-        (canResolve ? '<button class="btn chrome" type="button" data-voucher-resolve="' + esc(v.voucher_id) + '"><span class="led" aria-hidden="true"></span>Resolve expired credit</button>' : '') +
-        (canCancel ? '<button class="btn chrome gun chrome-destructive" type="button" data-voucher-cancel="' + esc(v.voucher_id) + '"><span class="led red" aria-hidden="true"></span>Cancel</button>' : '') +
-        (last ? '<button class="btn chrome gun chrome-destructive" type="button" data-voucher-reverse="' + esc(last.id) + '" data-voucher-id="' + esc(v.voucher_id) + '"><span class="led red" aria-hidden="true"></span>Reverse last redemption</button>' : '') +
+        '<div class="credit-voucher-actions"><button class="btn" type="button" data-voucher-print="' + esc(v.voucher_id) + '">Print voucher</button>' +
+        '<button class="btn" type="button" data-voucher-whatsapp="' + esc(v.voucher_id) + '">WhatsApp</button>' +
+        '<button class="btn" type="button" data-voucher-expiry="' + esc(v.voucher_id) + '">Change expiry</button>' +
+        (canResolve ? '<button class="btn" type="button" data-voucher-resolve="' + esc(v.voucher_id) + '">Resolve expired credit</button>' : '') +
+        (canCancel ? '<button class="btn" type="button" data-voucher-cancel="' + esc(v.voucher_id) + '">Cancel</button>' : '') +
+        (last ? '<button class="btn" type="button" data-voucher-reverse="' + esc(last.id) + '" data-voucher-id="' + esc(v.voucher_id) + '">Reverse last redemption</button>' : '') +
         '</div>' +
         (history.length || resolutionHistory.length ? '<details class="credit-voucher-history"><summary>Voucher activity · ' + (history.length + resolutionHistory.length) + '</summary>' +
           history.map(r => '<div><span>' + dateLabel(r.redeemed_at) + ' · ' + esc(r.target_type.replace("_"," ")) +

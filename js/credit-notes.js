@@ -143,8 +143,8 @@ function showModal(receipt, built, lines) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap">
         <strong id="cn-total">Total: $0.00</strong>
         <span style="display:flex;gap:8px">
-          <button type="button" class="btn chrome gun" id="cn-cancel">Cancel</button>
-          <button type="button" class="btn btn--primary chrome" id="cn-save"><span class="led" aria-hidden="true"></span>Issue credit note</button>
+          <button type="button" class="btn" id="cn-cancel">Cancel</button>
+          <button type="button" class="btn btn--primary" id="cn-save">Issue credit note</button>
         </span>
       </div>
     </div>`;

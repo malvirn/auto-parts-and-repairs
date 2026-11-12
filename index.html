@@ -30,8 +30,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="js/pwa.js?v=chrome-buttons-1" defer></script>
-  <script src="js/theme.js?v=chrome-buttons-1"></script>
+  <script src="js/pwa.js" defer></script>
+  <script src="js/theme.js"></script>
 
   <!-- Dashboard styles stay local so shared application themes cannot alter its layout. -->
   <style id="dashboard-design">
@@ -914,26 +914,25 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle{background:#f2b84b!important;color:#172033!important}
 
 </style>
-  <link rel="stylesheet" href="css/dashboard-shell.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="css/ui-consistency.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1">
-  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
-  <link rel="stylesheet" href="css/chrome-buttons.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="css/dashboard-shell.css">
+  <link rel="stylesheet" href="css/ui-consistency.css">
+  <link rel="stylesheet" href="css/dashboard-chrome.css?v=collapsed-layout-fix-1">
+  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1">
 </head>
 <body class="dashboard-page dashboard-workshop dashboard-home">
   <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard header">
 <div class="dashboard-header-date"><i data-lucide="calendar-days"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span></div>
-<div class="dashboard-topbar-actions"><button class="dashboard-toolbar-button dashboard-refresh chrome rd" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw"></i></button></div>
+<div class="dashboard-topbar-actions"><button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw"></i></button></div>
 </header>
 <div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
-    <button class="dashboard-sidebar-backdrop chrome rd" type="button" aria-label="Close navigation"></button>
+    <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
       <div class="hs sidebar-search" id="hs"><div class="hs-bar" role="search"><i data-lucide="search"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div></div>
       <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
-        <button type="button" class="nav-grp chrome" aria-expanded="true" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="pages/checklist.html" title="Vehicle Checklist"><i data-lucide="clipboard-check"></i> Vehicle Checklist</a>
@@ -942,7 +941,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
         </div>
       </div>
       <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp chrome" aria-expanded="true" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/shop.html" data-level="2" title="Parts &amp; Stock"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="pages/quotations.html" data-level="2" title="Quotations"><i data-lucide="file-text"></i> Quotations</a>
@@ -951,7 +950,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
         </div>
       </div>
       <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp chrome" aria-expanded="true" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/accounting.html" title="Overview"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="pages/ledger.html" title="Ledger"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -965,7 +964,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
         </div>
       </div>
       <div class="nav-group open" data-group="system">
-        <button type="button" class="nav-grp chrome" aria-expanded="true" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="pages/settings.html" title="Settings"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -978,9 +977,9 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 </div>
 <div class="sidebar-workspace-note"><span class="workspace-note-icon"><i data-lucide="lightbulb"></i></span><div><strong>Keep work moving</strong><p>Jobs, parts and payments, all in one workspace.</p></div></div>
 <div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div>
-<div class="sidebar-theme-row"><span class="sidebar-theme-label"><i data-lucide="sun"></i><span id="sidebar-theme-label">Light mode</span></span><button class="theme-toggle chrome rd" id="sidebar-theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><i data-lucide="moon"></i></button></div>
+<div class="sidebar-theme-row"><span class="sidebar-theme-label"><i data-lucide="sun"></i><span id="sidebar-theme-label">Light mode</span></span><button class="theme-toggle" id="sidebar-theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><i data-lucide="moon"></i></button></div>
 <div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
-    <button class="dashboard-sidebar-toggle chrome rd" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg></button>
+    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg></button>
 
     <main class="main">
       <!-- HERO -->
@@ -994,7 +993,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
         </div>
       </section>
 
-      <!-- EXISTING CONTENT: same ids / classes so js/app.js?v=chrome-buttons-1 keeps filling it in -->
+      <!-- EXISTING CONTENT: same ids / classes so js/app.js keeps filling it in -->
       <div class="dash-content">
         <section class="dashboard-section" id="system-overview">
           <div class="section-heading">
@@ -1014,7 +1013,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
               <p class="section-kicker">Act on these</p>
               <h2>Needs Attention</h2>
             </div>
-            <a class="btn chrome gun" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
+            <a class="btn" href="pages/analytics.html"><i data-lucide="bar-chart-3"></i> Full Reports</a>
           </div>
           <div class="panel" style="padding:6px 20px;" id="attention-panel">
             <div class="attention-empty">Loading…</div>
@@ -1068,9 +1067,9 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
           <div class="cs-tools">
             <input type="search" id="cs-search" placeholder="Search customer, phone or invoice..." autocomplete="off">
             <div class="cs-chips" id="cs-chips">
-              <button type="button" class="cs-chip chrome" data-f="all" aria-pressed="true">All</button>
-              <button type="button" class="cs-chip chrome" data-f="owing" aria-pressed="false">Owing</button>
-              <button type="button" class="cs-chip chrome" data-f="clear" aria-pressed="false">Paid up</button>
+              <button type="button" class="cs-chip" data-f="all" aria-pressed="true">All</button>
+              <button type="button" class="cs-chip" data-f="owing" aria-pressed="false">Owing</button>
+              <button type="button" class="cs-chip" data-f="clear" aria-pressed="false">Paid up</button>
             </div>
           </div>
           <div class="cs-list" id="cs-list"><div class="cs-msg">Loading customer accounts…</div></div>
@@ -1082,7 +1081,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
               <p class="section-kicker">Latest activity</p>
               <h2>Recent Job Cards</h2>
             </div>
-            <a class="btn chrome gun" href="pages/repairs.html">Open Jobs</a>
+            <a class="btn" href="pages/repairs.html">Open Jobs</a>
           </div>
           <table>
             <thead>
@@ -1095,7 +1094,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
               </tr>
             </thead>
             <tbody id="recent-jobs">
-              <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js?v=chrome-buttons-1</td></tr>
+              <tr><td colspan="5" style="color:var(--text-muted)">No jobs loaded yet — connect Supabase in js/app.js</td></tr>
             </tbody>
           </table>
         </section>
@@ -1127,10 +1126,10 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 
   <!-- supabase-js from jsDelivr; must stay before the module scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script type="module" src="js/auth.js?v=chrome-buttons-1"></script>
-  <script type="module" src="js/app.js?v=chrome-buttons-1"></script>
-  <script type="module" src="js/notifications.js?v=chrome-buttons-1"></script>
-  <script type="module" src="js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/notifications.js"></script>
+  <script type="module" src="js/repair-pages-navigation.js"></script>
 
   <!-- Visual-only helpers: clock, online dot, slide-out menu, search shortcut, parallax. No data, no auth. -->
   <script>
@@ -1219,7 +1218,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 
   <!-- Customer statements: reads the existing customer_account_statement view (+ credit notes). -->
   <script type="module">
-    import supabase from "./js/supabaseClient.js?v=chrome-buttons-1";
+    import supabase from "./js/supabaseClient.js";
     const $ = id => document.getElementById(id);
     const usd = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
     const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
@@ -1295,14 +1294,14 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
           const s = bal <= 0.01 ? ["paid", "Paid"] : paid > 0 ? ["part", "Part-paid"] : ["unpaid", "Unpaid"];
           return `<tr><td>${day(r.entry_date)}</td><td>${esc(r.reference)}</td><td>${esc(r.source_type)}</td><td>${usd(r.total_amount)}</td><td>${usd(paid)}</td><td>${usd(bal)}</td><td><span class="cs-st ${s[0]}">${s[1]}</span></td></tr>`;
         }).join("");
-        const remind = owe && c.phone ? `<a class="btn chrome gun" style="margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}?text=${encodeURIComponent("Hi " + c.name + ", this is a reminder from Centric Auto Mobile: your outstanding balance is " + usd(c.balance) + ". Thank you.")}">WhatsApp reminder</a>` : "";
+        const remind = owe && c.phone ? `<a class="btn" style="margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}?text=${encodeURIComponent("Hi " + c.name + ", this is a reminder from Centric Auto Mobile: your outstanding balance is " + usd(c.balance) + ". Thank you.")}">WhatsApp reminder</a>` : "";
         return `<details class="cs-cust" data-id="${esc(c.id)}"${openIds.has(c.id) ? " open" : ""}>
           <summary><div><div class="cs-name">${esc(c.name)}</div><div class="cs-sub">${esc(c.phone || "No phone")} · ${c.rows.length} invoice${c.rows.length === 1 ? "" : "s"}</div></div><div class="cs-bal ${owe ? "owe" : "ok"}">${label}</div></summary>
           <div class="cs-body">
             <div class="cs-facts"><div>Invoiced<b>${usd(c.total)}</b></div><div>Paid<b>${usd(c.paid)}</b></div><div>Balance<b>${usd(c.balance)}</b></div><div>Credit notes<b>${usd(c.credits)}</b></div><div>Available credit<b>${usd(c.availableCredit + Math.max(0, -c.balance))}</b></div><div>Last activity<b>${day(c.last)}</b></div><div>Email<b style="font-size:.8rem;overflow-wrap:anywhere">${esc(c.email || "—")}</b></div></div>
             <div class="cs-wrap"><table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Invoiced</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>${remind}
           </div></details>`;
-      }).join("") + (!showAll && !q && list.length > 15 ? `<button type="button" class="btn chrome" id="cs-all">Show all ${list.length} customers</button>` : "");
+      }).join("") + (!showAll && !q && list.length > 15 ? `<button type="button" class="btn" id="cs-all">Show all ${list.length} customers</button>` : "");
     }
 
     $("cs-list").addEventListener("toggle", e => { const id = e.target.dataset?.id; if (id) e.target.open ? openIds.add(id) : openIds.delete(id); }, true);
@@ -1316,11 +1315,11 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
     });
     load();
   </script>
-  <script type="module" src="js/dashboard-search.js?v=chrome-buttons-1"></script>
+  <script type="module" src="js/dashboard-search.js"></script>
   <!-- System overview: KPI cards + key lists across the whole system. Each query fails on its own. -->
   <script type="module">
-    import supabase from "./js/supabaseClient.js?v=chrome-buttons-1";
-    import { hydrate } from "./js/data-cache.js?v=chrome-buttons-1";
+    import supabase from "./js/supabaseClient.js";
+    import { hydrate } from "./js/data-cache.js";
     const $ = id => document.getElementById(id);
     const enc = encodeURIComponent;
     const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
@@ -1431,8 +1430,8 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
       $("ov-updated").textContent = "Couldn't load";
     });
   </script>
-<script type="module" src="js/phone-inputs.js?v=chrome-buttons-1"></script>
-<script defer src="js/progressive-lists.js?v=chrome-buttons-1"></script>
+<script type="module" src="js/phone-inputs.js"></script>
+<script defer src="js/progressive-lists.js"></script>
 <script>
 (() => {
   const syncAccount = () => {

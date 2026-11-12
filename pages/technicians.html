@@ -3,14 +3,14 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js?v=chrome-buttons-1"></script>
+  <script src="../js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centric Auto Mobile | Technicians and Staff</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .modal-overlay { position: fixed; inset: 0; background: rgba(20,18,15,0.45); display: flex; align-items: center; justify-content: center; z-index: 50; }
@@ -53,20 +53,20 @@
       .payroll-lock,.payroll-payslip { padding:16px; }
     }
   </style>
-  <link rel="stylesheet" href="../css/mh-theme.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
+  <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <link rel="stylesheet" href="../css/dashboard-shell.css">
+  <link rel="stylesheet" href="../css/ui-consistency.css">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
   <style id="dashboard-chrome-prepaint">
     body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
     body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -74,7 +74,6 @@
     body.dashboard-page .dashboard-topbar { height:68px; min-height:68px; }
     body.dashboard-page .main { min-width:0; }
   </style>
-  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
@@ -82,7 +81,7 @@
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
-        <button type="button" class="nav-grp chrome" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="true"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -90,7 +89,7 @@
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -99,7 +98,7 @@
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -112,13 +111,13 @@
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -126,7 +125,7 @@
     </aside>
 
     <main class="main">
-      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Technicians &amp; Staff</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
+      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Technicians &amp; Staff</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">New hire</p><h2><i class="section-heading-icon" data-lucide="user-plus"></i>Add Employee</h2></div><span class="section-note">Full staff record</span></div>
@@ -155,7 +154,7 @@
             <div class="field"><label>Monthly Deductions (USD)</label><input type="number" step="0.01" min="0" id="emp-deductions" value="0" /></div>
             <div class="field" style="grid-column: span 3;"><label>Deduction Notes</label><input type="text" id="emp-deductions-notes" placeholder="e.g. NSSA $10, Uniform $5" /></div>
           </div>
-          <button type="submit" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Employee</button>
+          <button type="submit" class="btn btn--primary"><i data-lucide="plus"></i> Add Employee</button>
           <p id="employee-form-message" class="form-message" role="alert"></p>
         </form>
       </section>
@@ -182,7 +181,7 @@
             <div class="field"><label for="payroll-admin-email">Super Admin email</label><input id="payroll-admin-email" type="email" autocomplete="username" required /></div>
             <div class="field"><label for="payroll-admin-password">Password</label><input id="payroll-admin-password" type="password" autocomplete="current-password" required /></div>
           </div>
-          <button type="submit" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="lock-keyhole"></i> Unlock Payroll</button>
+          <button type="submit" class="btn btn--primary"><i data-lucide="lock-keyhole"></i> Unlock Payroll</button>
           <p id="payroll-unlock-message" class="form-message" role="alert"></p>
         </form>
 
@@ -204,10 +203,10 @@
               </table>
             </div>
             <p id="payroll-run-message" class="form-message" role="status" aria-live="polite"></p>
-            <div class="payroll-actions"><button type="submit" class="btn btn--primary chrome" id="payroll-run-submit"><span class="led" aria-hidden="true"></span><i data-lucide="banknote"></i> Process Payroll &amp; Create Payslips</button></div>
+            <div class="payroll-actions"><button type="submit" class="btn btn--primary" id="payroll-run-submit"><i data-lucide="banknote"></i> Process Payroll &amp; Create Payslips</button></div>
           </form>
           <section class="panel" style="padding:20px;">
-            <div class="section-heading"><div><p class="section-kicker">Payroll history</p><h3>Previous payslips</h3></div><button type="button" class="btn chrome gun" id="payroll-refresh"><i data-lucide="refresh-cw"></i> Refresh</button></div>
+            <div class="section-heading"><div><p class="section-kicker">Payroll history</p><h3>Previous payslips</h3></div><button type="button" class="btn" id="payroll-refresh"><i data-lucide="refresh-cw"></i> Refresh</button></div>
             <div id="payroll-history"><p class="section-note">Loading payroll history…</p></div>
           </section>
           <section class="panel payroll-payslip" id="payroll-payslip" hidden aria-live="polite"></section>
@@ -217,7 +216,7 @@
       <section class="page-section">
         <div class="section-heading">
           <div><p class="section-kicker">Org structure</p><h2><i class="section-heading-icon" data-lucide="git-branch"></i>Departments &amp; Hierarchy</h2></div>
-          <button id="generate-all-off-days" type="button" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="shuffle"></i> Generate This Month's Off Days</button>
+          <button id="generate-all-off-days" type="button" class="btn"><i data-lucide="shuffle"></i> Generate This Month's Off Days</button>
         </div>
         <div id="departments-grid" class="dept-grid"></div>
       </section>
@@ -253,28 +252,28 @@
       <div class="field">
         <label>This Month's Off Days</label>
         <div id="edit-emp-off-days" class="off-days-list"></div>
-        <button id="edit-emp-generate-off-days" type="button" class="btn chrome" style="margin-top:8px;"><span class="led" aria-hidden="true"></span><i data-lucide="shuffle"></i> Generate/Reshuffle Off Days</button>
+        <button id="edit-emp-generate-off-days" type="button" class="btn" style="margin-top:8px;"><i data-lucide="shuffle"></i> Generate/Reshuffle Off Days</button>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
-        <button id="edit-emp-save" class="btn btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Save</button>
-        <button id="edit-emp-renew" class="btn chrome" type="button"><i data-lucide="refresh-cw"></i> Renew Contract</button>
-        <button id="edit-emp-terminate" class="btn btn--danger chrome gun chrome-destructive" type="button"><span class="led red" aria-hidden="true"></span><i data-lucide="user-x"></i> Terminate</button>
-        <button id="edit-emp-cancel" class="btn chrome gun" type="button"><i data-lucide="x"></i> Cancel</button>
+        <button id="edit-emp-save" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save</button>
+        <button id="edit-emp-renew" class="btn" type="button"><i data-lucide="refresh-cw"></i> Renew Contract</button>
+        <button id="edit-emp-terminate" class="btn btn--danger" type="button"><i data-lucide="user-x"></i> Terminate</button>
+        <button id="edit-emp-cancel" class="btn" type="button"><i data-lucide="x"></i> Cancel</button>
       </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
-    <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/technicians.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/staff-payroll.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+    <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/phone-inputs.js"></script>
+  <script type="module" src="../js/technicians.js"></script>
+  <script type="module" src="../js/staff-payroll.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
-  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
-<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/repair-pages-navigation.js"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+<script defer src="../js/progressive-lists.js"></script>
 </body>
 </html>

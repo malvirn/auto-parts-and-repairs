@@ -10,10 +10,10 @@
 <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b1012">
-<script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
-<script src="../js/theme.js?v=chrome-buttons-1"></script>
-<link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
-<link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+<script src="../js/pwa.js" defer></script>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/dashboard-header.css">
+<link rel="stylesheet" href="../css/dashboard-shell.css">
 <style id="dashboard-design">
     html{background:#0b1012;color-scheme:dark}
     body.dashboard-page{
@@ -622,7 +622,7 @@ select.st option{background:#10181a;color:#eef3ef}
 }
 
 </style>
-  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css">
 
 
 
@@ -732,8 +732,8 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 :root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-unclaimed{background:rgba(239,68,68,.15)!important;border-color:rgba(239,68,68,.28)!important;color:#ffaaa3!important}
 </style>
 
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
   <style id="dashboard-chrome-prepaint">
     body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
     body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -755,7 +755,6 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 .job-board-column--checklists .job-board-heading{color:var(--orange)}
 @media(max-width:640px){.job-board-grid{grid-auto-columns:minmax(260px,86vw)}.job-board-column{padding:10px}}
 </style>
-  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -763,7 +762,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link active" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -771,7 +770,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -780,7 +779,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -793,13 +792,13 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -838,7 +837,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         </div>
         <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
         <div class="hdr-menu-wrap">
-          <button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
@@ -850,14 +849,14 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       </header>
 <div class="dash-content rc">
   <section class="panel" id="v-list" data-no-progressive>
-    <div class="rc-tabs"><h2>Job Cards</h2><span class="grow"></span><button class="btn btn--primary chrome" id="new-job"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> New job card</button></div>
+    <div class="rc-tabs"><h2>Job Cards</h2><span class="grow"></span><button class="btn btn--primary" id="new-job"><i data-lucide="plus"></i> New job card</button></div>
     <div class="rc-stats" style="margin-top:16px" id="stats"></div>
     <div class="chips" id="chips"></div>
     <div id="list" data-no-progressive><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Fetching vehicle, customer, and workshop status details…</p></div></div></div>
   </section>
 
   <section class="panel" id="v-build" hidden>
-    <div class="rc-tabs"><button class="btn chrome gun" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New job card</h2></div>
+    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 style="margin-left:6px">New job card</h2></div>
     <div class="rc-build">
     <div class="rc-form">
       <h3>1 · Customer</h3>
@@ -866,7 +865,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <div class="two"><input id="f-phone" type="tel" placeholder="WhatsApp / phone" /><input id="f-email" type="email" placeholder="Email (optional)" /></div>
       <label class="job-vat-option" for="f-is-company"><input id="f-is-company" type="checkbox"> This is a company</label>
       <input id="f-company-name" placeholder="Company name (required)" hidden>
-      <div class="customer-cid-actions" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small id="f-customer-cid" class="section-note" aria-live="polite"></small><button type="button" class="btn chrome gun" id="f-customer-cid-copy" hidden>Copy ID</button><button type="button" class="btn chrome chrome-whatsapp" id="f-customer-cid-whatsapp" hidden><span class="led green" aria-hidden="true"></span>WhatsApp</button></div>
+      <div class="customer-cid-actions" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><small id="f-customer-cid" class="section-note" aria-live="polite"></small><button type="button" class="btn" id="f-customer-cid-copy" hidden>Copy ID</button><button type="button" class="btn" id="f-customer-cid-whatsapp" hidden>WhatsApp</button></div>
       <h3>2 · Vehicle</h3>
       <select id="f-veh"><option value="">+ New vehicle</option></select>
       <div class="two"><input id="f-make" placeholder="Make (e.g. Toyota)" /><input id="f-model" placeholder="Model (e.g. Hilux)" /></div>
@@ -892,10 +891,10 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <h3>4 · Parts</h3>
       <label for="f-part">Inventory part</label>
       <select id="f-part"><option value="">Select a stocked part</option></select>
-      <div class="two"><label for="f-part-qty">Quantity<input id="f-part-qty" type="number" min="1" step="1" value="1"></label><button class="btn chrome" id="add-stock-part" type="button"><span class="led" aria-hidden="true"></span>Add stocked part</button></div>
+      <div class="two"><label for="f-part-qty">Quantity<input id="f-part-qty" type="number" min="1" step="1" value="1"></label><button class="btn" id="add-stock-part" type="button">Add stocked part</button></div>
       <label for="f-custom-part">Typed-in part (priced by Accounting)</label>
       <input id="f-custom-part" placeholder="Part name or description">
-      <div class="two"><label for="f-custom-qty">Quantity<input id="f-custom-qty" type="number" min="1" step="1" value="1"></label><button class="btn chrome" id="add-custom-part" type="button"><span class="led" aria-hidden="true"></span>Add typed-in part</button></div>
+      <div class="two"><label for="f-custom-qty">Quantity<input id="f-custom-qty" type="number" min="1" step="1" value="1"></label><button class="btn" id="add-custom-part" type="button">Add typed-in part</button></div>
       <p class="section-note">Typed-in parts are added to the Accounting queue and must be priced there before being billed.</p>
       <div id="build-parts-list" aria-live="polite"></div>
       <label class="job-vat-option" for="job-vat-enabled"><input id="job-vat-enabled" type="checkbox"> Apply 5% VAT to parts</label>
@@ -904,7 +903,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
       <select id="f-tech"><option value="">Assign technician (optional)</option></select>
       <p style="margin:10px 0;color:var(--muted);font-size:.85rem">Saved as a <b>Draft</b> unless you opened it from a checklist. Draft job cards are linked under Vehicle Checklist → Drafts.</p>
-      <button class="btn btn--primary chrome" id="save" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Save job card</button>
+      <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save job card</button>
     </div>
     <aside class="build-inspection" aria-labelledby="build-inspection-title" hidden>
       <h3 id="build-inspection-title">Vehicle condition checklist — drop-off</h3>
@@ -922,15 +921,15 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
   </section>
 
   <section class="panel" id="v-doc" hidden>
-    <div class="rc-tabs"><button class="btn chrome gun" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span>
+    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span>
       <label for="d-status" class="sr-only">Status</label><select class="st" id="d-status"></select></div>
     <section class="panel draft-gate" id="draft-gate" hidden aria-labelledby="draft-title">
       <h2 id="draft-title">Draft job card</h2>
-      <p class="section-note">This job card stays a draft until it is linked to a confirmed vehicle checklist. Enter the checklist number. The customer name and vehicle registration on the checklist must match this job card.</p><p><a id="draft-create-inspection" class="btn chrome gun" href="#">Create vehicle inspection</a></p>
-      <div class="draft-row"><input id="draft-checklist-no" type="number" inputmode="numeric" min="1" step="1" placeholder="Checklist number" aria-label="Checklist number"><button class="btn btn--primary chrome" id="draft-confirm" type="button"><span class="led" aria-hidden="true"></span>Confirm checklist</button></div>
+      <p class="section-note">This job card stays a draft until it is linked to a confirmed vehicle checklist. Enter the checklist number. The customer name and vehicle registration on the checklist must match this job card.</p><p><a id="draft-create-inspection" class="btn" href="#">Create vehicle inspection</a></p>
+      <div class="draft-row"><input id="draft-checklist-no" type="number" inputmode="numeric" min="1" step="1" placeholder="Checklist number" aria-label="Checklist number"><button class="btn btn--primary" id="draft-confirm" type="button">Confirm checklist</button></div>
       <p id="draft-msg" class="section-note" role="status"></p>
     </section>
-    <section class="panel" id="job-inspection-panel" hidden style="margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><b>Vehicle inspection</b><p id="job-inspection-meta" class="section-note" style="margin:4px 0 0">No linked inspection</p></div><a id="job-inspection-link" class="btn chrome gun" href="#" hidden>View inspection</a></div></section>
+    <section class="panel" id="job-inspection-panel" hidden style="margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><b>Vehicle inspection</b><p id="job-inspection-meta" class="section-note" style="margin:4px 0 0">No linked inspection</p></div><a id="job-inspection-link" class="btn" href="#" hidden>View inspection</a></div></section>
     <section class="panel job-money" id="job-money" hidden aria-label="Job payments and credit">
       <div class="jm-grid">
         <div><small>Job total</small><b id="jm-total">—</b></div>
@@ -943,17 +942,17 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
     </section>
     <p id="daily-update-warning" class="section-note" role="status"></p>
     <div class="rc-bar" style="margin:16px 0">
-      <button class="btn chrome" id="s-edit" type="button"><i data-lucide="pencil"></i> Edit job details</button>
-      <button class="btn wa chrome chrome-whatsapp" id="s-wa"><span class="led green" aria-hidden="true"></span><i data-lucide="message-circle"></i> WhatsApp update</button>
-      <button class="btn chrome gun" id="s-mail"><i data-lucide="mail"></i> Email</button>
-      <button class="btn chrome gun" id="s-print"><i data-lucide="printer"></i> Print</button>
-      <button class="btn chrome" id="s-pdf"><i data-lucide="download"></i> PDF</button>
-      <button class="btn btn--primary chrome" id="s-inv"><span class="led" aria-hidden="true"></span><i data-lucide="receipt"></i> Create invoice</button>
-      <button class="btn btn--primary chrome gun" id="close-job-card" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="circle-check"></i> Close job card</button>
-      <button class="btn btn--primary chrome" id="mark-job-collected" type="button" hidden><span class="led" aria-hidden="true"></span><i data-lucide="car-front"></i> Mark as Collected</button>
+      <button class="btn" id="s-edit" type="button"><i data-lucide="pencil"></i> Edit job details</button>
+      <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp update</button>
+      <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
+      <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
+      <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+      <button class="btn btn--primary" id="s-inv"><i data-lucide="receipt"></i> Create invoice</button>
+      <button class="btn btn--primary" id="close-job-card" type="button"><i data-lucide="circle-check"></i> Close job card</button>
+      <button class="btn btn--primary" id="mark-job-collected" type="button" hidden><i data-lucide="car-front"></i> Mark as Collected</button>
     </div>
     <div class="jc-wrap">
-    <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn chrome" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn chrome" data-pane="card" aria-pressed="false">Job card</button></div>
+    <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="card" aria-pressed="false">Job card</button></div>
     <div class="jc-split" id="jc-split" data-pane="details">
       <div class="jc-left">
     <section class="panel" aria-labelledby="job-update-title">
@@ -962,7 +961,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label for="d-work-done">Work done</label><textarea id="d-work-done" rows="3"></textarea>
       <label for="d-work-missing">Work still missing</label><textarea id="d-work-missing" rows="3"></textarea>
       <label for="d-update-note">Daily update note (optional)</label><textarea id="d-update-note" rows="2" placeholder="What changed or was checked today?"></textarea>
-      <button class="btn btn--primary chrome" id="save-daily-update" type="button"><span class="led" aria-hidden="true"></span>Save daily update</button>
+      <button class="btn btn--primary" id="save-daily-update" type="button">Save daily update</button>
     </section>
     <section class="panel" aria-labelledby="job-parts-title">
       <h2 id="job-parts-title">Parts used</h2>
@@ -995,7 +994,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <h3 class="job-edit-section">Vehicle checklist</h3>
       <div class="job-edit-damage">
         <p class="section-note">Drop-off fuel, mileage, damage marks, photos and inspection notes are maintained on the vehicle checklist, not on the job card.</p>
-        <a id="edit-checklist-link" class="btn chrome gun" href="checklist.html">Open vehicle checklist</a>
+        <a id="edit-checklist-link" class="btn" href="checklist.html">Open vehicle checklist</a>
       </div>
       <h3 class="job-edit-section">Work and labour</h3>
       <label>Fault reported<textarea id="edit-fault" required></textarea></label>
@@ -1011,23 +1010,23 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <div class="two" style="grid-column:1/-1">
         <label for="edit-add-stock-part">Add stocked part<select id="edit-add-stock-part"><option value="">Choose a stocked part</option></select></label>
         <label for="edit-add-stock-qty">Quantity<input id="edit-add-stock-qty" type="number" min="1" step="1" value="1"></label>
-        <button class="btn chrome" id="edit-add-stock" type="button"><span class="led" aria-hidden="true"></span>Add stocked part</button>
+        <button class="btn" id="edit-add-stock" type="button">Add stocked part</button>
       </div>
       <div class="two" style="grid-column:1/-1">
         <label for="edit-add-custom-name">Add typed-in part<input id="edit-add-custom-name"></label>
         <label for="edit-add-custom-qty">Quantity<input id="edit-add-custom-qty" type="number" min="1" step="1" value="1"></label>
-        <button class="btn chrome" id="edit-add-custom" type="button"><span class="led" aria-hidden="true"></span>Add typed-in part</button>
+        <button class="btn" id="edit-add-custom" type="button">Add typed-in part</button>
       </div>
       <p class="job-edit-note">Stock adjustments are applied when you save. Typed-in parts remain in the Accounting pricing queue.</p>
     </div>
     <p id="edit-job-message" class="form-message" role="status" aria-live="polite"></p>
-    <div class="rc-bar"><button class="btn btn--primary chrome" id="edit-job-save" type="submit"><span class="led" aria-hidden="true"></span>Save changes</button><button class="btn chrome gun" id="edit-job-cancel" type="button">Cancel</button><button class="btn btn--danger requires-super-admin-delete chrome gun chrome-destructive" id="edit-job-delete" type="button"><span class="led red" aria-hidden="true"></span><i data-lucide="trash-2"></i> Delete job card</button></div>
+    <div class="rc-bar"><button class="btn btn--primary" id="edit-job-save" type="submit">Save changes</button><button class="btn" id="edit-job-cancel" type="button">Cancel</button><button class="btn btn--danger requires-super-admin-delete" id="edit-job-delete" type="button"><i data-lucide="trash-2"></i> Delete job card</button></div>
   </form>
 </div>
 <div class="modal-overlay hidden" id="close-job-modal" role="dialog" aria-modal="true" aria-labelledby="close-job-title">
   <div class="modal">
     <h2 id="close-job-title">Close job card</h2>
-    <div class="pane-switch" role="group" aria-label="Show closing details or job card"><button type="button" class="pane-btn chrome" data-cpane="form" aria-pressed="true">Closing details</button><button type="button" class="pane-btn chrome" data-cpane="card" aria-pressed="false">Job card</button></div>
+    <div class="pane-switch" role="group" aria-label="Show closing details or job card"><button type="button" class="pane-btn" data-cpane="form" aria-pressed="true">Closing details</button><button type="button" class="pane-btn" data-cpane="card" aria-pressed="false">Job card</button></div>
     <div class="close-job-layout" id="close-job-layout" data-pane="form">
       <section class="close-job-context" aria-labelledby="close-job-context-title">
         <h3 id="close-job-context-title">Selected job card</h3>
@@ -1043,7 +1042,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
           <input id="close-next-service" name="next_service_mileage" type="number" min="0" step="1" required>
         </label>
         <p id="close-job-message" class="form-message" role="status" aria-live="polite"></p>
-        <div class="rc-bar"><button class="btn btn--primary chrome gun" id="confirm-close-job" type="submit"><span class="led" aria-hidden="true"></span>Confirm close</button><button class="btn chrome gun" id="cancel-close-job" type="button">Cancel</button></div>
+        <div class="rc-bar"><button class="btn btn--primary" id="confirm-close-job" type="submit">Confirm close</button><button class="btn" id="cancel-close-job" type="button">Cancel</button></div>
       </form>
     </div>
   </div>
@@ -1061,7 +1060,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
     </select>
     <label for="job-whatsapp-text">Message (you can edit this before opening WhatsApp)</label>
     <textarea id="job-whatsapp-text" rows="6" required></textarea>
-    <div class="rc-bar"><button class="btn btn--primary chrome chrome-whatsapp" id="job-whatsapp-send" type="button"><span class="led green" aria-hidden="true"></span>Open WhatsApp</button><button class="btn chrome gun" id="job-whatsapp-cancel" type="button">Cancel</button></div>
+    <div class="rc-bar"><button class="btn btn--primary" id="job-whatsapp-send" type="button">Open WhatsApp</button><button class="btn" id="job-whatsapp-cancel" type="button">Cancel</button></div>
   </div>
 </div>
 <!-- FOOTER: 4 buttons -->
@@ -1089,10 +1088,10 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
-<script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
-<script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
-<script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/auth.js"></script>
+<script type="module" src="../js/app.js"></script>
+<script type="module" src="../js/notifications.js"></script>
+<script type="module" src="../js/repair-pages-navigation.js"></script>
 <script>
 (()=>{const zone="Africa/Harare",timeOpts={timeZone:zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false},dateOpts={timeZone:zone,weekday:"long",day:"numeric",month:"long",year:"numeric"};const t=()=>{const n=new Date(),c=document.getElementById("hdr-clock"),d=document.getElementById("dashboard-date");if(c)c.textContent=new Intl.DateTimeFormat("en-GB",timeOpts).format(n);if(d)d.textContent=new Intl.DateTimeFormat("en-GB",dateOpts).format(n)};const o=()=>{const l=document.getElementById("hdr-live");if(l){l.dataset.state=navigator.onLine?"online":"offline";const label=l.querySelector("span");if(label)label.textContent=navigator.onLine?"Live":"Offline"}};t();o();setInterval(t,1000);addEventListener("online",o);addEventListener("offline",o)})();
 </script>
@@ -1116,7 +1115,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         const links=[...el.querySelectorAll("a.nav-link")];
         if(!links.length)return;
         const open=links.some(a=>file(a.getAttribute("href"))===here),id=`hdr-grp-${n++}`;
-        html+=`<div class="m-group"><button type="button" class="m-grp chrome rd" data-q="1" aria-expanded="${open}" aria-controls="${id}" aria-label="${esc(icon(el.querySelector("><i data-lucide="${esc(icon(el.querySelector(".nav-grp")||el))}"></i><span>${esc(el.querySelector(".nav-grp span")?.textContent.trim())}</span><span class="m-chev" aria-hidden="true"></span></button><div class="m-items" id="${id}"${open?"":" hidden"}>${links.map(link).join("")}</div></div>`;
+        html+=`<div class="m-group"><button type="button" class="m-grp" data-q="1" aria-expanded="${open}" aria-controls="${id}"><i data-lucide="${esc(icon(el.querySelector(".nav-grp")||el))}"></i><span>${esc(el.querySelector(".nav-grp span")?.textContent.trim())}</span><span class="m-chev" aria-hidden="true"></span></button><div class="m-items" id="${id}"${open?"":" hidden"}>${links.map(link).join("")}</div></div>`;
       }
     });
     menu.innerHTML=html||'<div class="hs-empty">No modules available.</div>';
@@ -1156,8 +1155,8 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 })();
 </script>
 <script type="module">
-import supabase from "../js/supabaseClient.js?v=chrome-buttons-1";
-import { mountVehicleInspectionDiagram, vehicleDiagramSnapshot, openVehiclePartEditor } from "../js/vehicle-inspection-diagram.js?v=chrome-buttons-1";
+import supabase from "../js/supabaseClient.js";
+import { mountVehicleInspectionDiagram, vehicleDiagramSnapshot, openVehiclePartEditor } from "../js/vehicle-inspection-diagram.js";
 const $=id=>document.getElementById(id);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
@@ -1203,7 +1202,7 @@ const reportOf=id=>{const r=inspectionState.get(String(id));return r&&r.parts?r:
 let buildInspection=emptyReport();
 function partTileHTML(p,entry={}){
  const dmg=entry.dmg||[],state=dmg.length?dmg.join(", "):"No damage";
- return `<button type="button" class="dmg-tile${dmg.length? chrome rd" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip,p.key)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
+ return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip,p.key)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
 }
 function compressImage(file,max=720,quality=.66){
  return new Promise((ok,no)=>{
@@ -1222,9 +1221,9 @@ function openPartSheet(key,getReport,onDone){
  const box=document.createElement("div");box.className="dmg-sheet";
  const draw=()=>{box.innerHTML=`<div class="dmg-panel" role="dialog" aria-modal="true" aria-label="${esc(p.name)}">
   <div class="dmg-head">${partIcon(p.icon,p.flip,p.key)}<div><b>${esc(p.name)}</b><small>Condition at drop-off</small></div></div>
-  <div class="dmg-opts"><button type="button" class="dmg-chip ok chrome" data-none aria-pressed="${!entry.dmg.length}">No damage</button>${DAMAGE_TYPES.map(t=>`<button type="button" class="dmg-chip chrome rd" data-dmg-type="${t}" aria-pressed="${entry.dmg.includes(t)}" aria-label="Action">${t}</button>`).join("")}</div>
-  <label class="dmg-photo" title="Add photo of ${esc(p.name)}">${entry.photo?`<img src="${entry.photo}" alt="${esc(p.name)}"><button type="button" class="dmg-x chrome" data-dmg-remove aria-label="Remove photo">×</button>`:`<div><svg viewBox="0 0 44 30"><path d="M6 8h8l3-4h10l3 4h8v18H6z"/><circle cx="22" cy="16" r="5"/></svg><span>Add photo (optional)</span></div>`}<input type="file" accept="image/*" data-dmg-file></label>
-  <button type="button" class="btn btn--primary chrome" data-done><span class="led" aria-hidden="true"></span>Done</button></div>`};
+  <div class="dmg-opts"><button type="button" class="dmg-chip ok" data-none aria-pressed="${!entry.dmg.length}">No damage</button>${DAMAGE_TYPES.map(t=>`<button type="button" class="dmg-chip" data-dmg-type="${t}" aria-pressed="${entry.dmg.includes(t)}">${t}</button>`).join("")}</div>
+  <label class="dmg-photo" title="Add photo of ${esc(p.name)}">${entry.photo?`<img src="${entry.photo}" alt="${esc(p.name)}"><button type="button" class="dmg-x" data-dmg-remove aria-label="Remove photo">×</button>`:`<div><svg viewBox="0 0 44 30"><path d="M6 8h8l3-4h10l3 4h8v18H6z"/><circle cx="22" cy="16" r="5"/></svg><span>Add photo (optional)</span></div>`}<input type="file" accept="image/*" data-dmg-file></label>
+  <button type="button" class="btn btn--primary" data-done>Done</button></div>`};
  const onKey=event=>{if(event.key==="Escape")close()};
  const close=()=>{box.remove();document.removeEventListener("keydown",onKey);onDone(key)};
  box.onclick=event=>{
@@ -1292,7 +1291,7 @@ function syncBuildReadings(){
  $("build-odometer-value").textContent=odometer?`${Number(odometer).toLocaleString()} km`:"Not recorded";
 }
 function renderBuildParts(){
- $("build-parts-list").innerHTML=selectedJobParts.length?selectedJobParts.map((item,index)=>`<div class="rc-row"><div><b>${esc(item.description||item.name)}</b><small>${item.kind==="typed"&&!item.pricedFromQuotation?"Awaiting Accounting price":`${money(item.price)} each`}${item.kind==="typed"&&item.pricedFromQuotation?` · Cost ${money(item.costPrice)} · Markup ${Number(item.markupPct||0).toFixed(2)}% · Profit ${money((item.price-item.costPrice)*item.quantity)}`:""} · Qty ${item.quantity}</small></div><button class="btn chrome gun chrome-destructive" type="button" data-remove-build-part="${index}"><span class="led red" aria-hidden="true"></span>Remove</button></div>`).join(""):'<p class="section-note">No parts selected.</p>';
+ $("build-parts-list").innerHTML=selectedJobParts.length?selectedJobParts.map((item,index)=>`<div class="rc-row"><div><b>${esc(item.description||item.name)}</b><small>${item.kind==="typed"&&!item.pricedFromQuotation?"Awaiting Accounting price":`${money(item.price)} each`}${item.kind==="typed"&&item.pricedFromQuotation?` · Cost ${money(item.costPrice)} · Markup ${Number(item.markupPct||0).toFixed(2)}% · Profit ${money((item.price-item.costPrice)*item.quantity)}`:""} · Qty ${item.quantity}</small></div><button class="btn" type="button" data-remove-build-part="${index}">Remove</button></div>`).join(""):'<p class="section-note">No parts selected.</p>';
  $("build-parts-list").querySelectorAll("[data-remove-build-part]").forEach(button=>button.onclick=()=>{selectedJobParts.splice(Number(button.dataset.removeBuildPart),1);renderBuildParts()});
 }
 async function loadInventoryParts(){
@@ -1334,7 +1333,7 @@ async function load(){
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email,is_company,company_name), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
   supabase.from("technician_directory").select("id,full_name").limit(300),
   supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,status,updated_at").is("job_id",null).order("updated_at",{ascending:false}).limit(200)]);
- if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action chrome" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
+ if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
  techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
  if(cl.error){console.error("Couldn't load checklists waiting for job cards:",cl.error);pendingChecklists=[]}else pendingChecklists=cl.data||[];
  const h=new URLSearchParams(location.search).get("highlight");render();
@@ -1344,7 +1343,7 @@ function render(){
  const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
  const active=jobs.filter(j=>!stClass(j.status)).length;
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
- $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg chrome rd" aria-pressed="${s===filter}" data-s="${esc(s)}" aria-label="Action">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
+ $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
  const boardStatuses=filter==="all"?sts:[filter];
  const boardHtml=boardStatuses.map(status=>{
@@ -1584,7 +1583,7 @@ function renderEditParts(){
   <div class="job-edit-part">
    <div>${part.part_id?`<b>${esc(part.parts?.description||part.part_name)}</b><small class="section-note">Stock item · ${money(part.price_at_time)} each</small>`:`<label>Typed-in part<input data-edit-part-name="${index}" value="${esc(part.part_name)}" maxlength="160" ${closed?"disabled":""}></label>`}</div>
    <label>Quantity<input data-edit-part-quantity="${index}" type="number" min="1" step="1" value="${esc(part.quantity)}" ${closed?"disabled":""}></label>
-   <button class="btn chrome gun chrome-destructive" type="button" data-edit-part-remove="${index}" ${closed?"disabled":""}><span class="led red" aria-hidden="true"></span>Remove</button>
+   <button class="btn" type="button" data-edit-part-remove="${index}" ${closed?"disabled":""}>Remove</button>
   </div>`).join(""):'<p class="section-note">No parts recorded.</p>';
  $("edit-job-parts").querySelectorAll("[data-edit-part-name]").forEach(input=>input.oninput=()=>{editPartsDraft[Number(input.dataset.editPartName)].part_name=input.value});
  $("edit-job-parts").querySelectorAll("[data-edit-part-quantity]").forEach(input=>input.oninput=()=>{editPartsDraft[Number(input.dataset.editPartQuantity)].quantity=input.value});
@@ -2464,9 +2463,9 @@ load().then(()=>{
  else if(params.get("edit")){const target=jobs.find(x=>String(x.id)===params.get("edit"));if(target)open(target);else toast("That job card could not be found")}
 });
 </script>
-<script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
-<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-4&v=chrome-buttons-1"></script>
+<script type="module" src="../js/phone-inputs.js"></script>
+<script defer src="../js/progressive-lists.js"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-4"></script>
 </body>
 </html>
 
