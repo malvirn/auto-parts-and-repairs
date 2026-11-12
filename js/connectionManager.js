@@ -41,7 +41,7 @@ function isCacheableRead(url, method, userKey) {
   try {
     const parsed = new URL(url, location.href);
     if (parsed.origin !== SUPABASE_ORIGIN || !parsed.pathname.startsWith("/rest/v1/")) return false;
-    if method === "GET" return true;
+    if (method === "GET") return true;
     const rpcName = parsed.pathname.split("/rpc/")[1]?.split("/")[0];
     return method === "POST" && userKey !== "anonymous" && READ_ONLY_RPC.has(rpcName);
   } catch (_) { return false; }
