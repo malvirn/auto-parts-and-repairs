@@ -278,7 +278,8 @@
       :root[data-theme="light"] body.customer-page .customer-directory td::before { color: #3f4a5e; }
     }
     @media print { body.customer-page .apr-bottom-nav { display: none !important; } }
-  </style>
+  .customer-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.customer-row-actions .btn{white-space:nowrap}
+</style>
   <link rel="stylesheet" href="../css/dashboard-shell.css">
   <link rel="stylesheet" href="../css/ui-consistency.css">
   <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
@@ -444,7 +445,6 @@
           <label class="customer-directory-search" for="customer-directory-search">Search customers
             <input id="customer-directory-search" type="search" placeholder="Name, CID, company or phone">
           </label>
-          <button type="button" class="btn" id="customer-archive-toggle" aria-pressed="false">View archived customers</button>
         </div>
         <div class="panel customer-directory">
         <table>
