@@ -76,7 +76,7 @@ async function requestCreditConfirmation(customer = {}) {
           </div>
         </form>
       </section>`;
-    const finish = value => { overlay.remove(); resolve(value); };
+    const finish = value => { document.removeEventListener("keydown", onKeydown); overlay.remove(); resolve(value); };
     overlay.addEventListener("click", event => { if (event.target === overlay) finish(null); });
     overlay.querySelector(".customer-credit-confirm-cancel").addEventListener("click", () => finish(null));
     overlay.querySelector("form").addEventListener("submit", event => {
