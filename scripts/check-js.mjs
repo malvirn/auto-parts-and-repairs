@@ -17,14 +17,14 @@ let failed = 0;
 
 try {
   for (const file of files) {
-    const relativePath = relative("js", file).replace(/\\.js$/, ".mjs");
+    const relativePath = relative("js", file).replace(/\.js$/, ".mjs");
     const modulePath = join(tempDir, relativePath);
     mkdirSync(dirname(modulePath), { recursive: true });
     copyFileSync(file, modulePath);
     const result = spawnSync(process.execPath, ["--check", modulePath], { encoding: "utf8" });
     if (result.status !== 0) {
       failed += 1;
-      process.stderr.write("\\n" + file + "\\n" + (result.stderr || result.stdout || "Syntax check failed") + "\\n");
+      process.stderr.write("\n" + file + "\n" + (result.stderr || result.stdout || "Syntax check failed") + "\n");
     }
   }
 } finally {
@@ -32,7 +32,7 @@ try {
 }
 
 if (failed) {
-  process.stderr.write("Syntax errors in " + failed + " JavaScript module(s).\\n");
+  process.stderr.write("Syntax errors in " + failed + " JavaScript module(s).\n");
   process.exitCode = 1;
 } else {
   console.log("Syntax OK: " + files.length + " JavaScript modules checked as ES modules.");
