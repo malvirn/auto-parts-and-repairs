@@ -1438,7 +1438,7 @@ async function ensureReceiptForOrder(orderId, amount) {
 }
 
 let activeQuotationModal = null;
-let quotationModalReturnFocus = null;
+let quotationModalReturnFocus = null;\nlet quotationPageScrollY = 0;\nlet quotationBodyStyleSnapshot = null;
 function modalSnapshot(modal) {
   return [...modal.querySelectorAll("input,select,textarea")].map(input => input.value).join("|");
 }
@@ -1497,10 +1497,10 @@ document.addEventListener("keydown", event => {
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 });
-on("edit-quote-save", event => withBusy(event.currentTarget, "Saving…", saveQuoteChanges));
-on("edit-quote-order", event => withBusy(event.currentTarget, "Creating order…", createOrderFromQuote));
+on("edit-quote-save", event => withBusy(event.currentTarget, "Saving...", saveQuoteChanges));
+on("edit-quote-order", event => withBusy(event.currentTarget, "Saving...", createOrderFromQuote));
 on("edit-quote-cancel", () => closeModal(quoteModal));
-on("edit-order-save", event => withBusy(event.currentTarget, "Saving order…", saveOrderChanges));
+on("edit-order-save", event => withBusy(event.currentTarget, "Saving...", saveOrderChanges));
 on("edit-order-cancel", () => closeModal(orderModal));
 
 on("quote-detail-copy", () => copyDetailText(editingQuoteDetailText, document.getElementById("quote-detail-copy-status")));
