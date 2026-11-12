@@ -1,6 +1,7 @@
 import supabase from "./supabaseClient.js";
 import { fingerprintSupported, registerFingerprint, listFingerprints, removeFingerprint, MAX_FINGERPRINTS } from "./passkey.js";
 import { confirmTypedDelete } from "./bulk-delete.js";
+import { getRateDetails } from "./currency.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -384,22 +385,20 @@ $("save-goals-btn")?.addEventListener("click", async (e) => {
 });
 
 async function loadRate() {
-  const rateInput = $("exchange-rate");
-  if (!rateInput) return;
-  const { data } = await supabase.from("settings").select("usd_to_zwg_rate, rate_updated_at").maybeSingle();
-  if (!data) return;
-  rateInput.value = data.usd_to_zwg_rate;
-  if (data.rate_updated_at) $("rate-updated").textContent = `Last updated ${new Date(data.rate_updated_at).toLocaleString()}.`;
+  const rateDisplay = $("exchange-rate");
+  if (!rateDisplay) return;
+  rateDisplay.textContent = "Loading…";
+  try {
+    const result = await getRateDetails({ forceRefresh: true });
+    rateDisplay.textContent = Number(result.rate).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    $("rate-updated").textContent = result.stale
+      ? `ZimRate unavailable. Showing the last saved rate (${result.updatedAt ? new Date(result.updatedAt).toLocaleString() : "date unavailable"}).`
+      : `ZimRate Black Market Max · Updated ${result.updatedAt ? new Date(result.updatedAt).toLocaleString() : "just now"}.`;
+  } catch (error) {
+    rateDisplay.textContent = "Unavailable";
+    $("rate-updated").textContent = error.message || "Couldn't load the current ZimRate rate.";
+  }
 }
-$("save-rate-btn")?.addEventListener("click", async (e) => {
-  const rate = parseFloat($("exchange-rate")?.value);
-  if (!(rate > 0)) { say("m-rate", "Enter a rate above zero.", false); return; }
-  busy(e.currentTarget, true);
-  const { error } = await supabase.from("settings").update({ usd_to_zwg_rate: rate, rate_updated_at: new Date().toISOString() }).eq("id", true);
-  busy(e.currentTarget, false);
-  say("m-rate", error ? "Couldn't save: " + error.message : "Exchange rate saved.", !error);
-  if (!error) loadRate();
-});
 
 // ---- Account ----
 async function loadAccount() {
