@@ -479,3 +479,10 @@ body.dashboard-page .quotation-modal-body,body.dashboard-page .quotation-line-li
 body.dashboard-page .quotation-preview-section>.receipt-document{max-width:calc(100% - 28px);overflow-x:auto}
 body.dashboard-page .quotation-preview-section .quotation-paper-table{width:100%;table-layout:fixed}
 body.dashboard-page .quotation-preview-section .quotation-paper-table th,body.dashboard-page .quotation-preview-section .quotation-paper-table td{overflow-wrap:anywhere;word-break:break-word}
+
+body.dashboard-page #quotation-list .quote-action{font:700 14px/1.2 inherit;border-radius:12px}
+body.dashboard-page #quotation-list .quote-action--primary{background:#f58220!important;border-color:#f58220!important;color:#fff!important}
+body.dashboard-page #quotation-list .quote-action--success{background:#0a8f4a!important;border-color:#0a8f4a!important;color:#fff!important}
+body.dashboard-page #quotation-list .quote-action--secondary{background:transparent!important;border:1.5px solid var(--mh-ac,#f58220)!important;color:var(--mh-tx,var(--text,#f5f7fa))!important;box-shadow:none!important}
+body.dashboard-page #quotation-list .quote-action--whatsapp{background:#25d366!important;border-color:#25d366!important;color:#073b1c!important}
+body.dashboard-page #quotation-list .quote-action:disabled{opacity:.5;cursor:not-allowed}
