@@ -1438,13 +1438,20 @@ async function ensureReceiptForOrder(orderId, amount) {
 }
 
 let activeQuotationModal = null;
-let quotationModalReturnFocus = null;\nlet quotationPageScrollY = 0;\nlet quotationBodyStyleSnapshot = null;
+let quotationModalReturnFocus = null;
+let quotationPageScrollY = 0;
+let quotationBodyStyleSnapshot = null;
 function modalSnapshot(modal) {
   return [...modal.querySelectorAll("input,select,textarea")].map(input => input.value).join("|");
 }
 function openQuotationModal(modal) {
   quotationModalReturnFocus = document.activeElement;
   activeQuotationModal = modal;
+  quotationPageScrollY = window.scrollY || 0;
+  quotationBodyStyleSnapshot = { position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
+  document.body.style.position = "fixed";
+  document.body.style.top = "-" + quotationPageScrollY + "px";
+  document.body.style.width = "100%";
   modal.dataset.initialSnapshot = modalSnapshot(modal);
   modal.classList.remove("hidden");
   modal.style.display = "flex";
@@ -1463,6 +1470,13 @@ function closeModal(modal, force = false) {
   if (activeQuotationModal === modal) {
     activeQuotationModal = null;
     document.body.classList.remove("quotation-modal-open");
+    if (quotationBodyStyleSnapshot) {
+      document.body.style.position = quotationBodyStyleSnapshot.position;
+      document.body.style.top = quotationBodyStyleSnapshot.top;
+      document.body.style.width = quotationBodyStyleSnapshot.width;
+      quotationBodyStyleSnapshot = null;
+    }
+    window.scrollTo(0, quotationPageScrollY);
     quotationModalReturnFocus?.focus?.();
     quotationModalReturnFocus = null;
   }
