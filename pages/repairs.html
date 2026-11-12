@@ -990,11 +990,11 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label>Model<input id="edit-vehicle-model"></label>
       <label>Year<input id="edit-vehicle-year" type="number" min="1900" max="2100"></label>
       <label>Registration plate<input id="edit-vehicle-plate"></label>
-      <label>Fuel at drop-off<select id="edit-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label>
-      <label>Odometer at drop-off<input id="edit-odometer-in" type="number" min="0" step="1"></label>
-      <h3 class="job-edit-section">Vehicle condition at drop-off</h3>
-      <div class="job-edit-damage"><div class="dmg-grid" id="edit-inspection-grid"></div>
-      <label style="display:grid;gap:6px;color:var(--muted);font-size:.82rem;font-weight:700">Existing damage / additional notes<textarea id="edit-inspection-notes" style="min-height:70px"></textarea></label></div>
+      <h3 class="job-edit-section">Vehicle checklist</h3>
+      <div class="job-edit-damage">
+        <p class="section-note">Drop-off fuel, mileage, damage marks, photos and inspection notes are maintained on the vehicle checklist, not on the job card.</p>
+        <a id="edit-checklist-link" class="btn" href="checklist.html">Open vehicle checklist</a>
+      </div>
       <h3 class="job-edit-section">Work and labour</h3>
       <label>Fault reported<textarea id="edit-fault" required></textarea></label>
       <label>Technician<select id="edit-technician"><option value="">Unassigned</option></select></label>
@@ -1199,7 +1199,6 @@ const CAR_PARTS=[
 const emptyReport=()=>({parts:{},notes:""});
 const reportOf=id=>{const r=inspectionState.get(String(id));return r&&r.parts?r:emptyReport()};
 let buildInspection=emptyReport();
-let editInspection=emptyReport();
 function partTileHTML(p,entry={}){
  const dmg=entry.dmg||[],state=dmg.length?dmg.join(", "):"No damage";
  return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip,p.key)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
@@ -1261,18 +1260,6 @@ async function loadReport(jobId){
  }catch(error){console.error("Condition report load failed:",error)}
  try{const local=JSON.parse(localStorage.getItem(`jcr-${jobId}`)||"null");if(local?.parts)return local}catch{}
  return null;
-}
-async function saveReport(jobId,report){
- inspectionState.set(String(jobId),report);
- let failed=false;
- try{
-  const{error}=await supabase.from("job_condition_reports").upsert({job_id:String(jobId),report,updated_at:new Date().toISOString()});
-  failed=Boolean(error);if(error)console.error("Condition report save failed:",error);
- }catch(error){failed=true;console.error(error)}
- if(failed){
-  try{localStorage.setItem(`jcr-${jobId}`,JSON.stringify(report))}catch{toast("Checklist photos too large to keep on this device.");return}
-  toast("Checklist saved on this device only. Run the job_condition_reports SQL to save it online.");
- }
 }
 function damageSummaryHTML(j){
  const r=reportOf(j.id);
@@ -1625,8 +1612,17 @@ async function showEditJobModal(){
  $("edit-vehicle-model").value=vehicle.model||"";
  $("edit-vehicle-year").value=vehicle.year||"";
  $("edit-vehicle-plate").value=vehicle.license_plate||"";
- $("edit-fuel-in").value=cur.fuel_level_in||"";
- $("edit-odometer-in").value=cur.odometer_in??"";
+ const editChecklistLink=$("edit-checklist-link");
+ if(editChecklistLink){
+  const{data:linkedChecklist,error:linkedChecklistError}=await supabase.from("job_condition_reports").select("id,checklist_number,inspection_no").eq("job_id",cur.id).is("voided_at",null).maybeSingle();
+  if(linkedChecklistError)console.warn("Couldn't load the linked checklist:",linkedChecklistError);
+  editChecklistLink.href=linkedChecklist
+   ? "checklist.html?id="+encodeURIComponent(linkedChecklist.id)
+   : "checklist.html?job="+encodeURIComponent(cur.id);
+  editChecklistLink.textContent=linkedChecklist
+   ? "Open checklist "+(linkedChecklist.inspection_no||"CL-"+String(linkedChecklist.checklist_number).padStart(6,"0"))
+   : "Create vehicle checklist";
+ }
  $("edit-fault").value=cur.fault_reported||"";
  $("edit-work-done").value=cur.work_done||"";
  $("edit-work-missing").value=cur.work_missing||"";
@@ -1639,9 +1635,6 @@ async function showEditJobModal(){
  if(cur.technician_id&&!techs[cur.technician_id])$("edit-technician").add(new Option("Current technician",cur.technician_id));
  $("edit-technician").value=cur.technician_id||"";
  $("edit-add-stock-part").innerHTML='<option value="">Choose a stocked part</option>'+partsCatalog.map(part=>`<option value="${esc(part.id)}" ${Number(part.quantity_in_stock)<1?"disabled":""}>${esc(part.description||part.name)} — ${money(part.selling_price)} (${Number(part.quantity_in_stock)||0} in stock)</option>`).join("");
- editInspection=JSON.parse(JSON.stringify(reportOf(cur.id)));
- mountDamageGrid($("edit-inspection-grid"),()=>editInspection);
- $("edit-inspection-notes").value=editInspection.notes||"";
  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
  renderEditParts();
  const closed=isClosed(cur);
@@ -1653,7 +1646,6 @@ async function showEditJobModal(){
  $("edit-customer-name").focus();
 }
 $("s-edit").onclick=showEditJobModal;
-$("edit-inspection-notes").addEventListener("input",event=>{editInspection.notes=event.target.value});
 $("edit-labour-mode").onchange=updateEditLabourFields;
 $("edit-job-cancel").onclick=()=>$("edit-job-modal").classList.add("hidden");
 $("edit-job-delete").onclick=async()=>{
@@ -1782,10 +1774,8 @@ $("edit-job-form").onsubmit=async event=>{
  const button=$("edit-job-save"),message=$("edit-job-message");
  message.textContent="";
  const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim(),isCompany=$("edit-customer-is-company").checked,companyName=$("edit-company-name").value.trim();
- const odometerValue=$("edit-odometer-in").value.trim(),odometer=odometerValue?Number(odometerValue):null;
  if(!customerName||!fault){message.textContent="Customer name and reported fault are required.";return}
  if(isCompany&&!companyName){message.textContent="Company name is required."; $("edit-company-name").focus(); return}
- if(odometerValue&&(!Number.isSafeInteger(odometer)||odometer<0)){message.textContent="Enter a valid whole-number odometer reading.";return}
  const mode=$("edit-labour-mode").value,timeBased=mode==="time_based",hours=Number($("edit-labour-hours").value);
  const tier=labourTiers.find(item=>item.id===$("edit-rate-tier").value);
  const labourCost=timeBased?Number((Number(tier?.hourly_rate||0)*hours).toFixed(2)):Number($("edit-labour-estimate").value);
@@ -1821,7 +1811,7 @@ $("edit-job-form").onsubmit=async event=>{
   }
   cur.vehicle_id=vehicleId;
   cur.vehicles=vehicleFields;
-  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_done:$("edit-work-done").value.trim()||null,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,fuel_level_in:$("edit-fuel-in").value||null,odometer_in:odometer,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
+  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_done:$("edit-work-done").value.trim()||null,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
   if($("edit-technician").value)updates.technician_id=$("edit-technician").value;
   else updates.technician_id=null;
   let{error}=await supabase.from("repair_jobs").update(updates).eq("id",cur.id);
@@ -1832,7 +1822,6 @@ $("edit-job-form").onsubmit=async event=>{
    error=retry.error;technicianNotSaved=!error&&Boolean(updates.technician_id);
   }
   if(error)throw new Error(`Parts and contact details were saved, but job details could not be updated: ${error.message}`);
-  await saveReport(cur.id,editInspection);
   $("edit-job-modal").classList.add("hidden");
   await load();
   const refreshed=jobs.find(job=>job.id===cur.id);
