@@ -448,3 +448,15 @@ body.dashboard-page .quotation-approval-modal .quotation-modal-body p{margin:0;c
  body.dashboard-page .quotation-footer-actions .btn{width:100%;min-height:46px}
 }
 @keyframes quotation-sheet-in{from{opacity:.7;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* Shared button defaults and modal page lock */
+body.dashboard-page button.btn:not([class*="quotation-btn--"]){background:transparent;border-color:var(--mh-ac,#f58220);color:var(--mh-tx,var(--text,#f5f7fa));box-shadow:none}
+body.dashboard-page button.btn--primary:not(.quotation-btn--primary){background:#f58220!important;border-color:#f58220!important;color:#fff!important}
+body.dashboard-page button.btn--success{background:#0a8f4a!important;border-color:#0a8f4a!important;color:#fff!important}
+body.dashboard-page button.btn--danger{background:#d4332b!important;border-color:#d4332b!important;color:#fff!important}
+body.dashboard-page .quotation-qty-step{width:44px;height:44px;min-height:44px!important}
+body.dashboard-page .quotation-qty-step svg{width:18px;height:18px}
+body.dashboard-page.quotation-modal-open{overflow:hidden}
+body.dashboard-page .quotation-modal .field{margin-top:10px}
+body.dashboard-page .quotation-load-more-row td{padding:16px;text-align:center}
+body.dashboard-page #quotation-list .quotation-load-more{background:#f58220;color:#fff;border-color:#f58220}
