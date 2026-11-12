@@ -24,7 +24,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // financial writes and duplicate submissions during connection recovery.
 const originalRpc = supabase.rpc.bind(supabase);
 supabase.rpc = (fn, args, options) => {
-  assertWritable();
+  if (isReadOnly() && !isReadOnlyRpc(fn)) ensureWritable();
   return originalRpc(fn, args, options);
 };
 
@@ -38,7 +38,12 @@ window.addEventListener("apr:connection-change", event => {
 
 // Every successful insert / update / delete shows a short confirmation
 // message (see toast.js). Reads are untouched.
-function ensureWritable() {\n  try { assertWritable(); }\n  catch (error) { showToast("Read-only mode", "error", error.message); throw error; }\n}\n\nconst originalFrom = supabase.from.bind(supabase);
+function ensureWritable() {
+  try { assertWritable(); }
+  catch (error) { showToast("Read-only mode", "error", error.message); throw error; }
+}
+
+const originalFrom = supabase.from.bind(supabase);
 supabase.from = (table) => {
   const builder = originalFrom(table);
   for (const op of ["insert", "update", "upsert", "delete"]) {
