@@ -1,0 +1,296 @@
+// Central connection health, circuit breaker, safe retries and offline read cache.
+const SUPABASE_ORIGIN = "https://pztwmmkmkyotszylbhsr.supabase.co";
+const DB_NAME = "apr-offline-cache";
+const STORE_NAME = "rest-reads";
+const MAX_CACHE_ENTRIES = 1200;
+const MAX_RETRIES = 6;
+const BASE_DELAY_MS = 2000;
+const MAX_DELAY_MS = 60000;
+const FAILURE_THRESHOLD = 3;
+const OPEN_INTERVAL_MS = 30000;
+
+let state = "closed";
+let consecutiveFailures = 0;
+let retryAttempt = 0;
+let nextProbeAt = 0;
+let probePromise = null;
+let dbPromise = null;
+let banner = null;
+let lastOnline = navigator.onLine !== false;
+
+const nativeFetch = window.fetch.bind(window);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const jitter = ms => Math.round(ms * (0.8 + Math.random() * 0.4));
+
+function currentUserKey(headers) {
+  try {
+    const auth = new Headers(headers).get("authorization") || "";
+    const token = auth.replace(/^Bearer\s+/i, "").split(".");
+    if (token.length < 2) return "anonymous";
+    const payload = JSON.parse(atob(token[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return String(payload.sub || "anonymous");
+  } catch (_) { return "anonymous"; }
+}
+
+function isRestRead(url, method) {
+  try {
+    const parsed = new URL(url, location.href);
+    return parsed.origin === SUPABASE_ORIGIN && parsed.pathname.startsWith("/rest/v1/") && (method === "GET" || method === "HEAD");
+  } catch (_) { return false; }
+}
+
+function cacheKey(url, headers) {
+  return currentUserKey(headers) + ":" + url;
+}
+
+function openDb() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) return reject(new Error("IndexedDB unavailable"));
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: "key" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Offline cache could not open"));
+  }).catch(error => { dbPromise = null; throw error; });
+  return dbPromise;
+}
+
+async function readCached(url, headers) {
+  try {
+    const db = await openDb();
+    const key = cacheKey(url, headers);
+    const record = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+    if (!record) return null;
+    record.lastUsedAt = Date.now();
+    db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).put(record);
+    return new Response(record.body, {
+      status: record.status,
+      statusText: record.statusText,
+      headers: record.headers,
+    });
+  } catch (_) { return null; }
+}
+
+async function writeCached(url, headers, response) {
+  if (!response.ok || response.status === 206) return;
+  try {
+    const body = await response.clone().arrayBuffer();
+    const record = {
+      key: cacheKey(url, headers),
+      status: response.status,
+      statusText: response.statusText,
+      headers: [...response.headers.entries()],
+      body,
+      savedAt: Date.now(),
+      lastUsedAt: Date.now(),
+    };
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(record);
+      const all = store.getAll();
+      all.onsuccess = () => {
+        const records = all.result || [];
+        if (records.length > MAX_CACHE_ENTRIES) {
+          records.sort((a, b) => (a.lastUsedAt || 0) - (b.lastUsedAt || 0));
+          records.slice(0, records.length - MAX_CACHE_ENTRIES).forEach(item => store.delete(item.key));
+        }
+      };
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (error) {
+    console.warn("[connection] Could not update offline read cache:", error);
+  }
+}
+
+function renderStatus() {
+  document.documentElement.dataset.aprConnection = state;
+  if (!document.body) return;
+  document.body.dataset.aprConnection = state;
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "apr-connection-status";
+    banner.setAttribute("role", "status");
+    banner.setAttribute("aria-live", "polite");
+    banner.innerHTML = '<span class="apr-connection-status__dot"></span><span class="apr-connection-status__text"></span>';
+    document.body.appendChild(banner);
+  }
+  const text = banner.querySelector(".apr-connection-status__text");
+  if (state === "closed") {
+    banner.hidden = true;
+    return;
+  }
+  banner.hidden = false;
+  text.textContent = state === "half-open"
+    ? "Checking connection · Read only"
+    : "Offline · Read only · Viewing saved data";
+}
+
+function setState(next) {
+  if (state === next) return;
+  state = next;
+  renderStatus();
+  window.dispatchEvent(new CustomEvent("apr:connection-change", {
+    detail: { state, readOnly: state !== "closed" },
+  }));
+  if (state !== "closed") {
+    console.warn("[connection] Circuit breaker:", state);
+  } else {
+    consecutiveFailures = 0;
+    retryAttempt = 0;
+    nextProbeAt = 0;
+    console.info("[connection] Supabase connection restored.");
+  }
+}
+
+function markSuccess() {
+  consecutiveFailures = 0;
+  retryAttempt = 0;
+  if (state !== "closed") setState("closed");
+  else renderStatus();
+}
+
+function markFailure(error) {
+  consecutiveFailures += 1;
+  retryAttempt += 1;
+  if (consecutiveFailures >= FAILURE_THRESHOLD) {
+    nextProbeAt = Date.now() + OPEN_INTERVAL_MS;
+    setState("open");
+  }
+  return error;
+}
+
+async function probeConnection() {
+  if (probePromise) return probePromise;
+  probePromise = (async () => {
+    if (navigator.onLine === false) return false;
+    setState("half-open");
+    try {
+      const response = await nativeFetch(SUPABASE_ORIGIN + "/rest/v1/", {
+        method: "GET",
+        headers: { apikey: window.__APR_SUPABASE_ANON_KEY || "" },
+        cache: "no-store",
+        signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined,
+      });
+      if (response.ok || response.status === 401 || response.status === 403) {
+        markSuccess();
+        return true;
+      }
+      throw new Error("Supabase health check returned " + response.status);
+    } catch (error) {
+      consecutiveFailures = FAILURE_THRESHOLD;
+      retryAttempt += 1;
+      const wait = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * (2 ** Math.max(0, retryAttempt - 1)));
+      nextProbeAt = Date.now() + jitter(wait);
+      setState("open");
+      return false;
+    } finally { probePromise = null; }
+  })();
+  return probePromise;
+}
+
+async function maybeProbe() {
+  if (state === "closed" || navigator.onLine === false || Date.now() < nextProbeAt) return;
+  await probeConnection();
+}
+
+async function connectionFetch(input, init = {}) {
+  const request = input instanceof Request ? input : null;
+  const url = request ? request.url : String(input);
+  const method = String(init.method || request?.method || "GET").toUpperCase();
+  const headers = new Headers(init.headers || request?.headers || {});
+  const cacheable = isRestRead(url, method);
+  const canRetry = method === "GET" || method === "HEAD";
+  if (state === "open" || state === "half-open") {
+    await maybeProbe();
+    if (state !== "closed") {
+      const cached = cacheable ? await readCached(url, headers) : null;
+      if (cached) return cached;
+      throw new TypeError("Supabase is temporarily unavailable. The app is in read-only mode.");
+    }
+  }
+  if (navigator.onLine === false) {
+    setState("open");
+    const cached = cacheable ? await readCached(url, headers) : null;
+    if (cached) return cached;
+    throw new TypeError("You are offline. This record is not available in the saved cache.");
+  }
+
+  let attempt = 0;
+  while (true) {
+    try {
+      const response = await nativeFetch(input, init);
+      if (response.status >= 500 || response.status === 429) {
+        if (response.status >= 500) markFailure(new Error("Supabase server error " + response.status));
+        if (canRetry && attempt < MAX_RETRIES) {
+          const delay = jitter(Math.min(MAX_DELAY_MS, BASE_DELAY_MS * (2 ** attempt)));
+          attempt += 1;
+          await sleep(delay);
+          if (state !== "closed") {
+            const cached = cacheable ? await readCached(url, headers) : null;
+            if (cached) return cached;
+            throw new TypeError("Supabase is unavailable. The app is in read-only mode.");
+          }
+          continue;
+        }
+      } else if (response.ok) {
+        markSuccess();
+        if (cacheable) writeCached(url, headers, response).catch(() => {});
+      }
+      return response;
+    } catch (error) {
+      if (error?.name === "AbortError" || error?.name === "TimeoutError") throw error;
+      markFailure(error);
+      if (!canRetry || attempt >= MAX_RETRIES || state !== "closed") {
+        const cached = cacheable ? await readCached(url, headers) : null;
+        if (cached) return cached;
+        throw error;
+      }
+      const delay = jitter(Math.min(MAX_DELAY_MS, BASE_DELAY_MS * (2 ** attempt)));
+      attempt += 1;
+      await sleep(delay);
+    }
+  }
+}
+
+export function isReadOnly() {
+  return state !== "closed" || navigator.onLine === false;
+}
+
+export function assertWritable() {
+  if (isReadOnly()) {
+    const error = new Error("This system is in read-only mode. Reconnect to the internet before making changes.");
+    error.code = "APR_READ_ONLY";
+    throw error;
+  }
+}
+
+export function getConnectionState() { return state; }
+export { connectionFetch };
+
+window.addEventListener("offline", () => {
+  lastOnline = false;
+  nextProbeAt = Date.now() + OPEN_INTERVAL_MS;
+  setState("open");
+});
+window.addEventListener("online", () => {
+  if (!lastOnline || state !== "closed") {
+    lastOnline = true;
+    nextProbeAt = 0;
+    probeConnection();
+  }
+});
+window.addEventListener("pageshow", renderStatus);
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderStatus, { once: true });
+else renderStatus();
+setInterval(() => { if (state === "open") maybeProbe(); }, 5000);
