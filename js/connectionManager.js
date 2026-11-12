@@ -7,7 +7,7 @@ const MAX_RETRIES = 6;
 const BASE_DELAY_MS = 2000;
 const MAX_DELAY_MS = 60000;
 const FAILURE_THRESHOLD = 3;
-const OPEN_INTERVAL_MS = 30000;
+const OPEN_INTERVAL_MS = 30000;\nconst READ_ONLY_RPC = new Set([\n  "get_unpriced_job_parts",\n  "get_shop_job_part_purchase_requests",\n  "get_accounting_job_part_purchase_requests",\n  "get_technicians_admin",\n  "job_card_part_catalog",\n]);
 
 let state = "closed";
 let consecutiveFailures = 0;
@@ -32,15 +32,20 @@ function currentUserKey(headers) {
   } catch (_) { return "anonymous"; }
 }
 
-function isRestRead(url, method) {
+function isCacheableRead(url, method, userKey) {
   try {
     const parsed = new URL(url, location.href);
-    return parsed.origin === SUPABASE_ORIGIN && parsed.pathname.startsWith("/rest/v1/") && (method === "GET" || method === "HEAD");
+    if (parsed.origin !== SUPABASE_ORIGIN || !parsed.pathname.startsWith("/rest/v1/")) return false;
+    if (method === "GET" || method === "HEAD") return true;
+    const rpcName = parsed.pathname.split("/rpc/")[1]?.split("/")[0];
+    return method === "POST" && userKey !== "anonymous" && READ_ONLY_RPC.has(rpcName);
   } catch (_) { return false; }
 }
 
-function cacheKey(url, headers) {
-  return currentUserKey(headers) + ":" + url;
+export function isReadOnlyRpc(name) { return READ_ONLY_RPC.has(String(name || "")); }
+
+function cacheKey(url, headers, method = "GET", body = "") {
+  return currentUserKey(headers) + ":" + method + ":" + url + (method === "POST" ? ":" + body : "");
 }
 
 function openDb() {
@@ -58,10 +63,10 @@ function openDb() {
   return dbPromise;
 }
 
-async function readCached(url, headers) {
+async function readCached(url, headers, method = "GET", body = "") {
   try {
     const db = await openDb();
-    const key = cacheKey(url, headers);
+    const key = cacheKey(url, headers, method, body);
     const record = await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readonly");
       const req = tx.objectStore(STORE_NAME).get(key);
@@ -79,12 +84,12 @@ async function readCached(url, headers) {
   } catch (_) { return null; }
 }
 
-async function writeCached(url, headers, response) {
+async function writeCached(url, headers, response, method = "GET", body = "") {
   if (!response.ok || response.status === 206) return;
   try {
     const body = await response.clone().arrayBuffer();
     const record = {
-      key: cacheKey(url, headers),
+      key: cacheKey(url, headers, method, body),
       status: response.status,
       statusText: response.statusText,
       headers: [...response.headers.entries()],
@@ -221,12 +226,12 @@ async function connectionFetch(input, init = {}) {
   const url = request ? request.url : String(input);
   const method = String(init.method || request?.method || "GET").toUpperCase();
   const headers = new Headers(init.headers || request?.headers || {});
-  const cacheable = isRestRead(url, method);
+  const userKey = currentUserKey(headers);\n  const requestBody = method === "POST" ? (typeof init.body === "string" ? init.body : request ? await request.clone().text().catch(() => "") : "") : "";\n  const cacheable = isCacheableRead(url, method, userKey);
   const canRetry = method === "GET" || method === "HEAD";
   if (state === "open" || state === "half-open") {
     await maybeProbe();
     if (state !== "closed") {
-      const cached = cacheable ? await readCached(url, headers) : null;
+      const cached = cacheable ? await readCached(url, headers, method, requestBody) : null;
       if (cached) return cached;
       throw new TypeError("Supabase is temporarily unavailable. The app is in read-only mode.");
     }
@@ -257,7 +262,7 @@ async function connectionFetch(input, init = {}) {
         }
       } else if (response.ok) {
         markSuccess();
-        if (cacheable) writeCached(url, headers, response).catch(() => {});
+        if (cacheable) writeCached(url, headers, response, method, requestBody).catch(() => {});
       }
       return response;
     } catch (error) {
