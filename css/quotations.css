@@ -460,3 +460,15 @@ body.dashboard-page.quotation-modal-open{overflow:hidden}
 body.dashboard-page .quotation-modal .field{margin-top:10px}
 body.dashboard-page .quotation-load-more-row td{padding:16px;text-align:center}
 body.dashboard-page #quotation-list .quotation-load-more{background:#f58220;color:#fff;border-color:#f58220}
+
+/* Keep the same 12px button geometry across list actions and modal controls */
+body.dashboard-page .main button.btn:not(.quotation-btn--primary):not(.quotation-btn--success):not(.quotation-btn--danger):not(.quotation-btn--whatsapp):not(.quotation-btn--ghost){background:transparent;border-color:var(--mh-ac,#f58220);color:var(--mh-tx,var(--text,#f5f7fa));box-shadow:none}
+body.dashboard-page .main button.btn--primary{background:#f58220!important;border-color:#f58220!important;color:#fff!important}
+body.dashboard-page .main button.btn--success{background:#0a8f4a!important;border-color:#0a8f4a!important;color:#fff!important}
+body.dashboard-page .main button.btn--danger{background:#d4332b!important;border-color:#d4332b!important;color:#fff!important}
+body.dashboard-page #quotation-list .quote-action{min-height:44px;border-radius:12px;padding:10px 14px}
+body.dashboard-page #quotation-list .quote-action--green{background:#0a8f4a!important;border-color:#0a8f4a!important;color:#fff!important}
+body.dashboard-page #quotation-list .quote-action--orange{background:#f58220!important;border-color:#f58220!important;color:#fff!important}
+body.dashboard-page .quotation-line-list .quotation-line{grid-template-columns:minmax(0,1fr) 140px 128px 94px}
+body.dashboard-page .quotation-line-total{font-size:13px;font-weight:800;color:var(--mh-tx,var(--text,#f5f7fa));text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:720px){body.dashboard-page .quotation-line-list .quotation-line{grid-template-columns:minmax(0,1fr)}body.dashboard-page .quotation-line-total{text-align:left}}
