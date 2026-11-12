@@ -336,9 +336,7 @@ function renderCustomerOptions(selectId = null, selectVehicleId = null) {
     `<option value="__new_customer__">Register a new customer…</option>`;
   if (selectId && customersList.some(c => c.id === selectId)) {
     customerSelect.value = selectId;
-    const customer = selectedCustomer();
-    const preferredVehicle = selectVehicleId || customer?.vehicles?.[0]?.id || (customer?.vehicles?.length ? null : "__new_vehicle__");
-    onCustomerChange(preferredVehicle);
+    onCustomerChange(selectVehicleId);
   } else {
     onCustomerChange();
   }
@@ -374,8 +372,7 @@ function onCustomerChange(selectVehicleId = null) {
       return `<option value="${v.id}">${escapeHtml(v.license_plate || "No plate")}${label ? ` — ${escapeHtml(label)}` : ""}</option>`;
     }).join("") +
     `<option value="__new_vehicle__">Register a new vehicle…</option>`;
-  if (selectVehicleId && selectVehicleId !== "__new_vehicle__" && vehicles.some(v => v.id === selectVehicleId)) jobPlateSelect.value = selectVehicleId;
-  else if (selectVehicleId === "__new_vehicle__" || !vehicles.length) jobPlateSelect.value = "__new_vehicle__";
+  if (selectVehicleId && vehicles.some(v => v.id === selectVehicleId)) jobPlateSelect.value = selectVehicleId;
   else jobPlateSelect.value = "";
   onVehicleChange();
 }
@@ -2294,8 +2291,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const quoteId = params.get("quote");
   const statusFilter = params.get("status");
   const highlightId = params.get("highlight");
-  const requestedCustomerId = params.get("customer");
-  const requestedVehicleId = params.get("vehicle");
   if (quoteId) {
     const { data: quote, error } = await supabase.from("quotations")
       .select("customer_id, vehicle_id, fault_reported")
@@ -2314,10 +2309,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       showFormMessage("Quotation loaded. Confirm the vehicle details, then create the draft job card.");
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  } else if (requestedCustomerId) {
-    renderCustomerOptions(requestedCustomerId, requestedVehicleId);
-    showFormMessage("Customer loaded. Select or confirm the vehicle details, then create the job card.");
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
   } else if (editId && jobsById.has(editId)) openEditModal(jobsById.get(editId));
   else if (statusFilter) filterTableByStatus(statusFilter);
   else if (highlightId) {
