@@ -1,5 +1,5 @@
 import { noteWrite, showToast } from "./toast.js";
-import { assertWritable, connectionFetch, isReadOnly } from "./connectionManager.js";
+import { assertWritable, connectionFetch, isReadOnly, isReadOnlyRpc } from "./connectionManager.js";
 // ========= Supabase Client =========
 // 1. npm install @supabase/supabase-js  (if you move to a bundler later)
 // 2. For plain HTML/JS, we load Supabase from CDN in each page's <script> tag
