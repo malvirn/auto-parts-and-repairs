@@ -35,7 +35,7 @@ if (!host) {
     '<label for="voucher-redeem-amount">Amount to apply ($)</label><input id="voucher-redeem-amount" type="number" min="0.01" step="0.01" disabled placeholder="0.00"><label id="voucher-redeem-confirmation-label" for="voucher-redeem-confirmation">Customer phone last 4 digits or full name</label><input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity"><label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label><input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden><button id="voucher-redeem-apply" type="button" disabled>Apply voucher</button><p id="voucher-redeem-message" role="status"></p><video id="voucher-redeem-video" playsinline muted hidden></video></section>' +
     '<div id="credit-voucher-list" aria-live="polite"></div>';
   document.body.append(host);
-  const isJobCardsPage = /(?:^|\\/)repairs\\.html$/i.test(window.location.pathname);
+  const isJobCardsPage = window.location.pathname.toLowerCase().endsWith("/repairs.html");
   if (!isJobCardsPage) {
     launcher = document.createElement("button");
     launcher.type = "button";
