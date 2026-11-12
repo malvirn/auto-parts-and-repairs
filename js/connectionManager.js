@@ -238,7 +238,7 @@ async function connectionFetch(input, init = {}) {
   }
   if (navigator.onLine === false) {
     setState("open");
-    const cached = cacheable ? await readCached(url, headers) : null;
+    const cached = cacheable ? await readCached(url, headers, method, requestBody) : null;
     if (cached) return cached;
     throw new TypeError("You are offline. This record is not available in the saved cache.");
   }
