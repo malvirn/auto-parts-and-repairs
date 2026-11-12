@@ -472,3 +472,10 @@ body.dashboard-page #quotation-list .quote-action--orange{background:#f58220!imp
 body.dashboard-page .quotation-line-list .quotation-line{grid-template-columns:minmax(0,1fr) 140px 128px 94px}
 body.dashboard-page .quotation-line-total{font-size:13px;font-weight:800;color:var(--mh-tx,var(--text,#f5f7fa));text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:720px){body.dashboard-page .quotation-line-list .quotation-line{grid-template-columns:minmax(0,1fr)}body.dashboard-page .quotation-line-total{text-align:left}}
+
+body.dashboard-page button.btn .lucide-loader-circle{animation:quotation-spin .8s linear infinite}
+body.dashboard-page .quotation-footer-actions #edit-quote-save{min-width:180px}
+body.dashboard-page .quotation-modal-body,body.dashboard-page .quotation-line-list{min-width:0}
+body.dashboard-page .quotation-preview-section>.receipt-document{max-width:calc(100% - 28px);overflow-x:auto}
+body.dashboard-page .quotation-preview-section .quotation-paper-table{width:100%;table-layout:fixed}
+body.dashboard-page .quotation-preview-section .quotation-paper-table th,body.dashboard-page .quotation-preview-section .quotation-paper-table td{overflow-wrap:anywhere;word-break:break-word}
