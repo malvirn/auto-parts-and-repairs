@@ -1007,7 +1007,12 @@ function addQuickSaleLine() {
     }
     event.preventDefault();
     if (event.target.matches('input[type="number"][step="1"]')) {
-      row.querySelector('input[type="number"][step="0.01"]').focus();
+      const quantity = Number(event.target.value);
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        event.target.focus();
+        return;
+      }
+      addQuickSaleLine();
     } else {
       addQuickSaleLine();
     }
