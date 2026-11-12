@@ -408,13 +408,10 @@
           <label id="cust-name-label" for="cust-name">Full Name</label>
           <input type="text" id="cust-name" placeholder="e.g. Tendai Moyo" required />
         </div>
-        <div class="field">
-          <label for="cust-type" class="customer-optional">Account classification</label>
-          <select id="cust-type" aria-label="Customer classification">
-            <option value="individual">Individual</option>
-            <option value="company">Company</option>
-          </select>
-        </div>
+        <select id="cust-type" hidden aria-hidden="true" tabindex="-1">
+          <option value="individual">Individual</option>
+          <option value="company">Company</option>
+        </select>
         <div class="field customer-company-toggle" hidden>
           <input type="checkbox" id="cust-is-company" tabindex="-1" aria-hidden="true">
         </div>
@@ -424,7 +421,7 @@
           <small class="customer-optional">Automatically assigned. Only managers can change it.</small>
         </div>
         <div class="field">
-          <label for="cust-phone">Phone Number</label>
+          <label id="cust-phone-label" for="cust-phone">Phone Number</label>
           <input type="tel" id="cust-phone" placeholder="77 123 4567" title="Choose a country code and enter a valid phone number" required />
         </div>
         <div class="field">
