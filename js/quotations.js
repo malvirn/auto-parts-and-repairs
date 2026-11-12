@@ -755,7 +755,7 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate, is
     put(`edit-${prefix}-subtotal`, money(totals.subtotal));
     put(`edit-${prefix}-vat`, money(totals.vat));
     put(`edit-${prefix}-summary-total`, money(totals.total));
-    put(`edit-${prefix}-footer-total`, money(totals.total));
+    put(`edit-${prefix}-footer-total`, `USD ${money(totals.total)} · ZiG ${Number(totals.total * rate).toFixed(2)}`);
     current.forEach((item, index) => { const line = container.querySelector(`[data-line-total="${index}"]`); if (line) line.textContent = money(lineTotalOf(item)); });
   };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));
