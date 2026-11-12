@@ -3,6 +3,7 @@ import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 import { hydrate } from "./data-cache.js";
 import { confirmTypedDelete } from "./bulk-delete.js";
+import { getRate as getZimRate } from "./currency.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -67,7 +68,6 @@ let currentJobAccountCredit = null;
 let newlyCreatedJobId = null;
 let jobPartSubmissionInProgress = false;
 let incidentalSubmissionInProgress = false;
-let cachedRate = null;
 let customersList = [];          // [{ id, customer_code, full_name, phone, email, is_company, company_name, vehicles: [...] }]
 let pendingCollection = false;
 let countdownInterval = null;
@@ -223,10 +223,7 @@ editRateTier?.addEventListener("change", recalcLabourFromHours);
 editHours?.addEventListener("input", recalcLabourFromHours);
 
 async function getRate() {
-  if (cachedRate) return cachedRate;
-  const { data, error } = await supabase.from("settings").select("usd_to_zwg_rate").single();
-  cachedRate = error || !data ? 26.6908 : Number(data.usd_to_zwg_rate);
-  return cachedRate;
+  return getZimRate();
 }
 
 // Job card totals bar (labour + parts + incidentals) and ZiG equivalent.
