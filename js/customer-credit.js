@@ -41,6 +41,64 @@ function showMessage(message, tone = "info") {
   status.dataset.tone = tone;
 }
 
+async function requestCreditConfirmation(customer = {}) {
+  return new Promise(resolve => {
+    const isCompany = Boolean(customer.is_company);
+    const overlay = document.createElement("div");
+    overlay.className = "customer-credit-confirm-overlay";
+    overlay.innerHTML = `
+      <section class="customer-credit-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="credit-confirm-title">
+        <div class="customer-credit-confirm-icon" aria-hidden="true"><span>✓</span></div>
+        <div class="customer-credit-confirm-heading">
+          <small>CUSTOMER CREDIT SECURITY</small>
+          <h2 id="credit-confirm-title">${isCompany ? "Confirm company authorisation" : "Confirm customer identity"}</h2>
+          <p>${isCompany ? "Verify the company and record the person authorising this credit application." : "Confirm the customer before applying this credit to the selected balance."}</p>
+        </div>
+        <form class="customer-credit-confirm-form">
+          ${isCompany ? `
+            <label>Company name
+              <input name="confirmationValue" type="text" autocomplete="organization" placeholder="Enter the exact registered company name" required>
+              <small>Enter the company name exactly as registered on the customer account.</small>
+            </label>
+            <label>Driver / authorised person
+              <input name="authorisedBy" type="text" autocomplete="name" placeholder="Full name of the driver or accounts person" required>
+              <small>This name will be included in the credit authorisation record.</small>
+            </label>
+          ` : `
+            <label>Customer confirmation
+              <input name="confirmationValue" type="text" autocomplete="off" placeholder="Phone last 4 digits or customer's full name" required>
+              <small>Use the last four digits of the customer's phone number or their full name.</small>
+            </label>
+          `}
+          <div class="customer-credit-confirm-actions">
+            <button type="button" class="customer-credit-confirm-cancel">Cancel</button>
+            <button type="submit" class="customer-credit-confirm-submit">Confirm and apply credit</button>
+          </div>
+        </form>
+      </section>`;
+    const finish = value => { overlay.remove(); resolve(value); };
+    overlay.addEventListener("click", event => { if (event.target === overlay) finish(null); });
+    overlay.querySelector(".customer-credit-confirm-cancel").addEventListener("click", () => finish(null));
+    overlay.querySelector("form").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const confirmationValue = String(form.elements.confirmationValue.value || "").trim();
+      const authorisedBy = isCompany ? String(form.elements.authorisedBy.value || "").trim() : null;
+      if (!confirmationValue || (isCompany && !authorisedBy)) return;
+      finish({ confirmationValue, authorisedBy });
+    });
+    const onKeydown = event => {
+      if (event.key === "Escape" && document.body.contains(overlay)) {
+        document.removeEventListener("keydown", onKeydown);
+        finish(null);
+      }
+    };
+    document.addEventListener("keydown", onKeydown);
+    document.body.append(overlay);
+    requestAnimationFrame(() => overlay.querySelector("input")?.focus());
+  });
+}
+
 async function load() {
   const requestId = ++loadSequence;
   if (!hasLoadedCreditNotes) list.innerHTML = '<div class="customer-credit-empty">Loading credit notes…</div>';
@@ -872,10 +930,9 @@ document.addEventListener("click", async event => {
     const idempotencyKey = action.dataset.idempotencyKey;
     const customerId = creditNotes.find(note => note.id === action.dataset.creditId)?.customer_id;
     const customer = creditNotes.find(note => note.id === action.dataset.creditId)?.customers || {};
-    const confirmationValue = prompt(customer.is_company ? "Type the company name exactly to authorise this credit:" : "Confirm the customer's phone last 4 digits or full name:")?.trim();
-    if (!confirmationValue) throw new Error("Customer confirmation is required before applying credit.");
-    const authorisedBy = customer.is_company ? prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim() : null;
-    if (customer.is_company && !authorisedBy) throw new Error("Authorised by is required for company credit.");
+    const customerConfirmation = await requestCreditConfirmation(customer);
+    if (!customerConfirmation) throw new Error("Customer confirmation was cancelled.");
+    const { confirmationValue, authorisedBy } = customerConfirmation;
     const result = await supabase.rpc("apply_customer_credit_verified", {
       p_deposit_receipt_id: action.dataset.creditId,
       p_amount: amount,
