@@ -293,6 +293,33 @@
     }
     @media print { body.customer-page .apr-bottom-nav { display: none !important; } }
   .customer-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.customer-row-actions .btn{white-space:nowrap}
+
+    /* Customer directory: engine backdrop and frosted orange actions */
+    body.customer-page {background-color:#081326!important;background-image:linear-gradient(115deg,rgba(5,13,28,.82),rgba(7,17,35,.66)),url("../assets/customer-engine-bg.svg")!important;background-position:center center!important;background-size:cover!important;background-attachment:fixed!important;}
+    body.customer-page .main,body.customer-page .main__content {background:transparent!important;}
+    body.customer-page .customer-directory {background:rgba(12,25,47,.48)!important;border:1px solid rgba(255,255,255,.17)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:22px;box-shadow:0 18px 55px rgba(0,0,0,.28);}
+    body.customer-page .customer-directory table {border-collapse:separate;border-spacing:0;width:100%;}
+    body.customer-page .customer-directory thead th {background:rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.15);}
+    body.customer-page .customer-directory tbody tr {background:rgba(8,19,38,.25);transition:background .2s ease;}
+    body.customer-page .customer-directory tbody tr:hover {background:rgba(255,255,255,.075);}
+    body.customer-page .customer-directory td {border-bottom:1px solid rgba(255,255,255,.09);}
+    body.customer-page .customer-id-chip {display:inline-flex;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.13);font-variant-numeric:tabular-nums;font-weight:650;}
+    body.customer-page .customer-name-cell {display:flex;align-items:center;gap:11px;min-width:170px;}
+    body.customer-page .customer-avatar {width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,rgba(255,145,47,.24),rgba(255,112,20,.08));border:1px solid rgba(255,145,47,.34);color:#ff9b43;flex:0 0 auto;}
+    body.customer-page .customer-name-cell strong {display:block;font-weight:650;}
+    body.customer-page .customer-name-cell small {display:block;margin-top:3px;color:var(--muted);font-size:11px;}
+    body.customer-page .customer-date {display:inline-flex;align-items:center;gap:8px;white-space:nowrap;color:var(--muted);}
+    body.customer-page .customer-date svg {width:15px;height:15px;color:#ff9b43;}
+    body.customer-page .customer-row-actions {display:flex;align-items:center;gap:9px;flex-wrap:nowrap;}
+    body.customer-page .customer-row-actions .btn {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:39px;padding:8px 14px;border-radius:13px!important;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.055))!important;color:#f4f7fc!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 5px 14px rgba(0,0,0,.14)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-weight:650;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
+    body.customer-page .customer-row-actions .btn:hover {transform:translateY(-1px);border-color:rgba(255,150,62,.62)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 18px rgba(255,132,35,.13)!important;}
+    body.customer-page .customer-row-actions .btn svg {width:16px;height:16px;}
+    body.customer-page .customer-row-actions .customer-job-card {border-color:rgba(255,143,48,.46)!important;background:linear-gradient(135deg,rgba(255,143,48,.22),rgba(255,255,255,.065))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 16px rgba(255,126,26,.09)!important;}
+    body.customer-page .customer-row-actions .customer-job-card svg {color:#ff9b43;}
+    :root[data-theme="light"] body.customer-page .customer-directory {background:rgba(255,255,255,.76)!important;}
+    :root[data-theme="light"] body.customer-page .customer-directory tbody tr {background:rgba(255,255,255,.42);}
+    :root[data-theme="light"] body.customer-page .customer-row-actions .btn {color:#f7f8fb!important;}
+    @media(max-width:760px){body.customer-page .customer-row-actions{flex-wrap:wrap}body.customer-page .customer-row-actions .btn{min-height:36px;padding:7px 10px;font-size:12px}}
 </style>
   <link rel="stylesheet" href="../css/dashboard-shell.css">
   <link rel="stylesheet" href="../css/ui-consistency.css">
@@ -466,10 +493,10 @@
         <div class="panel customer-directory">
         <table>
           <thead>
-            <tr><th>Name</th><th>Type</th><th>Phone</th><th>Vehicles</th><th>Repeat Customer</th><th>Action</th></tr>
+            <tr><th>Customer ID</th><th>Name / Company</th><th>Date</th><th>Actions</th></tr>
           </thead>
           <tbody id="customers-table">
-            <tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading customers</strong><p>Fetching the latest customer directory…</p></div></div></td></tr>
+            <tr><td colspan="4" class="customer-empty"><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading customers</strong><p>Fetching the latest customer directory…</p></div></div></td></tr>
           </tbody>
         </table>
         </div>
@@ -487,7 +514,7 @@
   <script type="module" src="../js/app.js"></script>
   <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/phone-inputs.js"></script>
-  <script type="module" src="../js/customers.js?v=company-individual-selector-1"></script>
+  <script type="module" src="../js/customers.js?v=customer-glass-actions-date-1"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (window.lucide) lucide.createIcons();

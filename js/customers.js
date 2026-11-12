@@ -63,7 +63,7 @@ function resetCustomerFormMode() {
 
 async function fetchCustomersList() {
   const { data, error } = await supabase.from("customers")
-    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, is_repeat_customer, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, created_at, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -74,20 +74,22 @@ function renderCustomersList(data) {
   const term = document.getElementById("customer-directory-search")?.value.trim().toLocaleLowerCase() || "";
   data = data.filter(c => [c.full_name,c.customer_code,c.company_name,c.phone,c.email].filter(Boolean).join(" ").toLocaleLowerCase().includes(term));
   if (!data.length) {
-    tableBody.innerHTML = '<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="user-plus"></i></div><div class="apr-state__copy"><strong>No customers yet</strong><p>Add a customer above to build your directory.</p></div></div></td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="4" class="customer-empty"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="user-plus"></i></div><div class="apr-state__copy"><strong>No customers yet</strong><p>Add a customer above to build your directory.</p></div></div></td></tr>';
     if (window.lucide) lucide.createIcons();
     return;
   }
-  tableBody.innerHTML = data.map(c => `
+  tableBody.innerHTML = data.map(c => {
+    const customerLabel = c.is_company && c.company_name ? c.company_name : c.full_name;
+    const created = c.created_at ? new Date(c.created_at) : null;
+    const dateLabel = created && !Number.isNaN(created.getTime()) ? created.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"}) : "—";
+    return `
     <tr data-customer-id="${escapeHtml(c.id)}">
-      <td data-label="Customer">${escapeHtml(c.full_name)}<small>Customer ID: ${escapeHtml(c.customer_code || "—")}</small>${c.is_company && c.company_name ? `<small>Company: ${escapeHtml(c.company_name)}</small>` : ""}</td>
-      <td data-label="Type"><span class="customer-type" data-type="${c.is_company ? "company" : "individual"}">${c.is_company ? "Company" : "Individual"}</span></td>
-      <td data-label="Phone">${escapeHtml(c.phone || "—")}</td>
-      <td data-label="Vehicles">${vehiclePlates(c.vehicles)}</td>
-      <td data-label="Customer status"><span class="customer-repeat${c.is_repeat_customer ? "" : " is-new"}">${c.is_repeat_customer ? "Repeat customer" : "New customer"}</span></td>
-      <td data-label="Action"><div class="customer-row-actions"><button type="button" class="btn customer-edit" data-edit-customer="${escapeHtml(c.id)}"><i data-lucide="pencil"></i> Edit</button><button type="button" class="btn btn--primary" data-open-job-card="${escapeHtml(c.id)}" data-vehicle-id="${escapeHtml(c.vehicles?.[0]?.id || "")}"><i data-lucide="clipboard-plus"></i> Job card</button></div></td>
-    </tr>
-  `).join("");
+      <td data-label="Customer ID"><span class="customer-id-chip">${escapeHtml(c.customer_code || "—")}</span></td>
+      <td data-label="Name / Company"><div class="customer-name-cell"><span class="customer-avatar"><i data-lucide="${c.is_company ? "building-2" : "user-round"}"></i></span><span><strong>${escapeHtml(customerLabel || "—")}</strong>${c.is_company ? `<small>Driver: ${escapeHtml(c.full_name || "—")}</small>` : ""}</span></div></td>
+      <td data-label="Date"><span class="customer-date"><i data-lucide="calendar-days"></i>${escapeHtml(dateLabel)}</span></td>
+      <td data-label="Actions"><div class="customer-row-actions"><button type="button" class="btn customer-edit" data-edit-customer="${escapeHtml(c.id)}"><i data-lucide="pencil"></i><span>Edit</span></button><button type="button" class="btn btn--primary customer-job-card" data-open-job-card="${escapeHtml(c.id)}" data-vehicle-id="${escapeHtml(c.vehicles?.[0]?.id || "")}"><i data-lucide="car-front"></i><span>Open Job Card</span></button></div></td>
+    </tr>`;
+  }).join("");
   if (window.lucide) lucide.createIcons();
 }
 
@@ -96,7 +98,7 @@ async function loadCustomers() {
     await hydrate("customers:active-list", fetchCustomersList, renderCustomersList);
   } catch (error) {
     console.error("Error loading customers:", error);
-    tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Customers could not be loaded</strong><p>${escapeHtml(error.message)} This is usually a connection, server, or account-permission problem. Check your connection and retry.</p></div></div></td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="4" class="customer-empty"><div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Customers could not be loaded</strong><p>${escapeHtml(error.message)} This is usually a connection, server, or account-permission problem. Check your connection and retry.</p></div></div></td></tr>`;
   }
 }
 
