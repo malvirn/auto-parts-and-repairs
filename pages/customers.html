@@ -87,19 +87,10 @@
     body.customer-page .btn--primary:hover { filter: brightness(1.08); background: linear-gradient(180deg,#2f78e8,#1c58c7); }
     body.customer-page table th { color: var(--muted); border-bottom: 1px solid var(--line); }
 
-    body.customer-page { position:relative; isolation:isolate; }
-    body.customer-page::before {
-      content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
-      background:
-        linear-gradient(110deg,rgba(7,14,29,.91),rgba(7,14,29,.78)),
-        url("../assets/customer-engine-bg.svg") center center / cover no-repeat;
-      opacity:.48;
-    }
     body.customer-page .customer-kind-field { grid-column:1 / -1 !important; }
     body.customer-page .customer-kind-field select { min-height:48px; border:1.5px solid rgba(255,122,18,.72); }
     body.customer-page .customer-form { background:linear-gradient(145deg,rgba(12,24,45,.88),rgba(9,17,33,.91)) !important; backdrop-filter:blur(5px); }
     body.customer-page .customer-form .field[hidden] { display:none !important; }
-    :root[data-theme="light"] body.customer-page::before { opacity:.13; }
     :root[data-theme="light"] body.customer-page .customer-form { background:rgba(255,255,255,.91) !important; }
     /* ===== customers page ===== */
     body.customer-page .customer-form {
