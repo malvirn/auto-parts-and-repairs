@@ -17,4 +17,4 @@ document.addEventListener("submit", e => {
   if (m) { m.hidden = true; m.textContent = ""; }
 }, true);
 
-/* Quotation and sales-order tables are rendered in full by quotations.js. */\n
+/* Quotation and sales-order tables are rendered in full by quotations.js. */
