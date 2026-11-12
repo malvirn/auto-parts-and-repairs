@@ -2172,7 +2172,9 @@ async function openBuilder(fromChecklist=null){
     $("f-name").value=activeChecklist.customer_name||"";
     $("f-plate").value=wantedPlate;
    }
-   toast(`Checklist #${activeChecklist.checklist_number}: customer and vehicle filled in. Add the fault and save.`);
+   toast(activeChecklist.customer_name||activeChecklist.vehicle_registration
+    ? `Checklist #${activeChecklist.checklist_number}: customer and vehicle details filled in. Add the fault and save.`
+    : `Checklist #${activeChecklist.checklist_number} opened. Enter the customer and vehicle details, then add the fault and save.`);
   }else{
    const customerId=params.get("customer"),vehicleId=params.get("vehicle");
   if(customerId&&builderCustomers.some(customer=>customer.id===customerId)){
