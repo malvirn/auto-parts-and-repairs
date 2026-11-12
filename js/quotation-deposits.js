@@ -54,6 +54,27 @@ function openDepositDialog(button) {
     const idempotencyKey = form.dataset.idempotencyKey || crypto.randomUUID();
     form.dataset.idempotencyKey = idempotencyKey;
     try {
+      const { data: linkedQuote, error: linkedQuoteError } = await supabase
+        .from("quotations")
+        .select("repair_job_id, customer_id, customers(full_name, phone, is_company, company_name)")
+        .eq("id", button.dataset.id)
+        .single();
+      if (linkedQuoteError) throw linkedQuoteError;
+
+      let confirmationValue = null;
+      let authorisedBy = null;
+      if (linkedQuote.repair_job_id) {
+        const customer = linkedQuote.customers || {};
+        confirmationValue = prompt(customer.is_company
+          ? "Type the company name exactly to authorise applying this deposit:"
+          : "Confirm the customer's phone last 4 digits or full name:")?.trim();
+        if (!confirmationValue) throw new Error("Customer confirmation was not provided. No deposit was recorded.");
+        if (customer.is_company) {
+          authorisedBy = prompt("Who is authorising this payment? Enter the driver or accounts person's name:")?.trim();
+          if (!authorisedBy) throw new Error("Authorised by is required for company credit. No deposit was recorded.");
+        }
+      }
+
       const { data, error } = await supabase.rpc("record_quotation_deposit", {
         p_quotation_id: button.dataset.id,
         p_amount: value,
@@ -63,15 +84,27 @@ function openDepositDialog(button) {
         p_idempotency_key: idempotencyKey,
       });
       if (error) throw error;
-      const appliedAmount = Number(data.applied_amount || 0);
+
+      let appliedAmount = 0;
       let linkedSyncWarning = "";
-      if (button.dataset.jobId) {
-        const { error: syncError } = await supabase.rpc("sync_repair_job_invoice", {
-          p_repair_job_id: button.dataset.jobId,
+      if (linkedQuote.repair_job_id) {
+        const { data: application, error: applicationError } = await supabase.rpc("apply_quotation_deposits_to_repair_job_verified", {
+          p_quotation_id: button.dataset.id,
+          p_repair_job_id: linkedQuote.repair_job_id,
+          p_confirmation_value: confirmationValue,
+          p_authorised_by: authorisedBy,
         });
-        if (syncError) {
-          linkedSyncWarning = " The linked job invoice could not be refreshed: " + syncError.message;
-          console.error("Quotation deposit saved but linked invoice synchronization failed:", syncError);
+        if (applicationError) throw applicationError;
+        if (application?.error) throw new Error(application.error);
+        appliedAmount = Number(application?.applied_amount || 0);
+        if (appliedAmount > 0.005) {
+          const { error: syncError } = await supabase.rpc("sync_repair_job_invoice", {
+            p_repair_job_id: linkedQuote.repair_job_id,
+          });
+          if (syncError) {
+            linkedSyncWarning = " The linked job invoice could not be refreshed: " + syncError.message;
+            console.error("Quotation deposit applied but linked invoice synchronization failed:", syncError);
+          }
         }
       }
       message.textContent = `Quotation Credit Note QCN-${String(data.credit_note_number).padStart(6, "0")} recorded.${appliedAmount > 0.005 ? ` ${appliedAmount.toFixed(2)} was automatically applied to the linked job card.` : ""}${linkedSyncWarning} Opening its receipt…`;
