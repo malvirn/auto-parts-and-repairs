@@ -682,6 +682,9 @@ function initializeNavigation() {
 
   const sidebar = document.querySelector("body.dashboard-page .sidebar");
   if (!sidebar) return;
+  ensureSidebarAccount(sidebar);
+  document.querySelectorAll("body.dashboard-workshop .dashboard-topbar .hs, body.dashboard-workshop .app-header .hs, body.dashboard-workshop .main__header .hs")
+    .forEach(search => { if (!search.closest(".sidebar")) search.remove(); });
   document.querySelectorAll(".tabbar, .bottom-nav, .ftbar, .sidebar-toggle, .sidebar-backdrop, .dots-btn, .apr-header-menu, .menu-scrim").forEach(element => element.remove());
   document.querySelector(".apr-bottom-nav")?.remove();
   document.body.classList.remove("sidebar-open", "menu-open");
@@ -696,10 +699,10 @@ function initializeNavigation() {
     // Tablets (769 to 1100px) start with the menu collapsed, like the dashboard, so the
     // page gets the full width. Laptops start expanded. Each size remembers its own choice.
     const collapseKey = "apr-sidebar-collapsed";
+    const lockKey = "apr-sidebar-locked";
+    const isLocked = () => { try { return localStorage.getItem(lockKey) === "true"; } catch (_) { return false; } };
     const applySavedCollapse = () => {
-      // Keep navigation closed by default on every screen. It opens only when
-      // the user taps the menu control, then closes as soon as a destination is chosen.
-      document.body.classList.toggle("sidebar-collapsed", !isMobile());
+      document.body.classList.toggle("sidebar-collapsed", !isMobile() && !isLocked());
       document.body.classList.remove("sidebar-open");
     };
     applySavedCollapse();
@@ -713,6 +716,10 @@ function initializeNavigation() {
       const currentSidebar = document.querySelector("body.dashboard-page .sidebar");
       if (currentSidebar) currentSidebar.inert = !open;
     };
+    document.addEventListener("apr:sidebar-lock-changed", event => {
+      if (!isMobile()) document.body.classList.toggle("sidebar-collapsed", !event.detail?.locked);
+      syncSidebar();
+    });
     if (toggle && !toggle.dataset.navigationBound) {
       toggle.dataset.navigationBound = "true";
       toggle.addEventListener("click", () => {
@@ -748,7 +755,7 @@ function initializeNavigation() {
         if (event.target.closest(".sidebar a.nav-link")) {
           if (isMobile()) {
             document.body.classList.remove("sidebar-open");
-          } else {
+          } else if (!isLocked()) {
             document.body.classList.add("sidebar-collapsed");
             try { localStorage.setItem(collapseKey, "true"); } catch (error) {
               console.warn("Could not save collapsed navigation state:", error);
@@ -807,6 +814,32 @@ function ensureSidebarAccount(sidebar) {
     details.append(name, role, online);
     account.append(avatar, details);
   }
+  let lock = sidebar.querySelector(".sidebar-account__lock");
+  if (!lock) {
+    lock = document.createElement("button");
+    lock.type = "button";
+    lock.className = "sidebar-account__lock";
+    lock.setAttribute("aria-pressed", "false");
+  }
+  const paintLock = () => {
+    let locked = false;
+    try { locked = localStorage.getItem("apr-sidebar-locked") === "true"; } catch (_) {}
+    lock.innerHTML = locked
+      ? '<i data-lucide="lock" aria-hidden="true"></i><span>Sidebar locked open</span>'
+      : '<i data-lucide="unlock" aria-hidden="true"></i><span>Lock sidebar open</span>';
+    lock.setAttribute("aria-pressed", String(locked));
+    lock.title = locked ? "Unlock sidebar auto-collapse" : "Keep sidebar open when changing modules";
+  };
+  paintLock();
+  if (!lock.dataset.bound) {
+    lock.dataset.bound = "true";
+    lock.addEventListener("click", () => {
+      const next = lock.getAttribute("aria-pressed") !== "true";
+      try { localStorage.setItem("apr-sidebar-locked", String(next)); } catch (_) {}
+      paintLock();
+      document.dispatchEvent(new CustomEvent("apr:sidebar-lock-changed", { detail: { locked: next } }));
+    });
+  }
   let signOut = sidebar.querySelector(".sidebar-account__signout");
   if (!signOut) {
     signOut = document.createElement("button");
@@ -836,7 +869,7 @@ function ensureSidebarAccount(sidebar) {
     footer.className = "sidebar-account__footer";
     footer.setAttribute("aria-label", "Account actions");
   }
-  footer.append(signOut);
+  footer.append(lock, signOut);
 
   let scrollArea = sidebar.querySelector(":scope > .sidebar-scroll");
   if (!scrollArea) {
@@ -871,6 +904,7 @@ function ensureSidebarAccount(sidebar) {
   updateOnline();
   window.addEventListener("online", updateOnline);
   window.addEventListener("offline", updateOnline);
+  window.lucide?.createIcons();
 }
 
 async function initializeAfterAccess() {

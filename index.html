@@ -1148,7 +1148,9 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
          try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
            console.warn("Could not read saved sidebar state:", error);
          }
-         body.classList.toggle("sidebar-collapsed", saved && !isMobile());
+         let locked = false;
+          try { locked = localStorage.getItem("apr-sidebar-locked") === "true"; } catch (_) {}
+          body.classList.toggle("sidebar-collapsed", !locked && saved && !isMobile());
        };
        applySavedCollapse();
        const syncSidebar = () => {

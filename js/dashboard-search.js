@@ -94,8 +94,12 @@ import supabase from "./supabaseClient.js";
     const BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
 
     // ---------- search UI ----------
-    const input = $("hs-input"), panel = $("hs-panel"), chips = $("hs-chips"), out = $("hs-results");
-    if (input && panel && chips && out) {
+    const input = document.querySelector(".sidebar-search #hs-input") || $("hs-input");
+    const panel = input?.closest(".hs")?.querySelector("#hs-panel") || $("hs-panel");
+    const chips = panel?.querySelector("#hs-chips") || $("hs-chips");
+    const out = panel?.querySelector("#hs-results") || $("hs-results");
+    if (input && panel && chips && out && !input.dataset.searchBound) {
+      input.dataset.searchBound = "true";
       let filter = "all", seq = 0, warmed = false;
       chips.innerHTML = [{ key: "all", label: "All" }, ...SOURCES].map(s => `<button type="button" class="hs-chip" data-f="${s.key}" aria-pressed="${s.key === "all"}">${esc(s.label)}</button>`).join("");
 
@@ -123,7 +127,7 @@ import supabase from "./supabaseClient.js";
         out.innerHTML = results.filter(r => r.hits.length).map(r => {
           const shown = r.hits.slice(0, cap), more = r.hits.length - shown.length;
           return `<div class="hs-group"><span>${esc(r.s.label)} · ${r.hits.length}</span>${more > 0 ? `<button type="button" class="hs-more" data-f="${r.s.key}">Show all</button>` : ""}</div>`
-            + shown.map(i => `<a class="hs-item" href="${esc(resolveHref(i.href))}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
+            + shown.map(i => `<a class="hs-item" href="${esc((() => { const target = new URL(resolveHref(i.href)); target.searchParams.set("search", term); return target.href; })())}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
         }).join("");
         icons();
       }
@@ -173,6 +177,12 @@ import supabase from "./supabaseClient.js";
         if (e.key === "Escape" && !panel.hidden) { closePanel(); input.blur(); }
         else if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "") && !document.activeElement?.isContentEditable) { e.preventDefault(); input.focus(); }
       });
+      const carriedSearch = new URLSearchParams(location.search).get("search");
+      if (carriedSearch && carriedSearch.trim().length >= 2) {
+        input.value = carriedSearch.trim();
+        openPanel();
+        run();
+      }
     }
 
     // ---------- top-right More menu ----------

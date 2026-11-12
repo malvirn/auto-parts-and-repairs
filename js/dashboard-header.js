@@ -4,7 +4,6 @@ const date = $("dashboard-date");
 const live = $("hdr-live");
 const menuButton = $("hdr-menu-btn");
 const menu = $("hdr-menu");
-const search = $("hs-input");
 // Keep a source copy before access-control removes links that a role cannot
 // use. The More menu can therefore still be built when the visual sidebar has
 // been converted into the compact mobile navigation.
@@ -29,9 +28,6 @@ if (header) {
   if (searchArea && !searchArea.querySelector("#hs-panel")) {
     searchArea.insertAdjacentHTML("beforeend", '<div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div>');
   }
-  search?.setAttribute("aria-controls", "hs-panel");
-  search?.setAttribute("autocapitalize", "off");
-  search?.setAttribute("spellcheck", "false");
 }
 
 function updateHeader() {
@@ -134,10 +130,3 @@ if (menuButton && menu) {
   });
 }
 
-search?.addEventListener("keydown", event => {
-  if (event.key === "Enter" && search.value.trim()) {
-    const dashboard = new URL("../index.html", window.location.href);
-    dashboard.searchParams.set("search", search.value.trim());
-    window.location.href = dashboard.href;
-  }
-});

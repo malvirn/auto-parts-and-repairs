@@ -698,3 +698,17 @@ body.dashboard-page .dashboard-topbar .dashboard-connection-status[data-state="o
     transform:none!important;
   }
 }
+
+/* Sidebar pin and account actions */
+body.dashboard-page.dashboard-workshop .sidebar-account__footer{display:flex!important;align-items:center;gap:8px;padding:10px 2px 2px!important;border-top:1px solid #e3e9f0;margin-top:8px;flex:none}
+body.dashboard-page.dashboard-workshop .sidebar-account__lock,body.dashboard-page.dashboard-workshop .sidebar-account__signout{display:flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 11px;border:1px solid #dce3eb;border-radius:10px;background:#f7f9fc;color:#263750;font:600 11px/1.2 Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+body.dashboard-page.dashboard-workshop .sidebar-account__lock{flex:1}
+body.dashboard-page.dashboard-workshop .sidebar-account__lock[aria-pressed="true"]{border-color:rgba(18,161,80,.4);background:#edf8f1;color:#087c40}
+body.dashboard-page.dashboard-workshop .sidebar-account__signout{border-color:rgba(220,70,70,.22);background:#fff5f5;color:#b42323}
+body.dashboard-page.dashboard-workshop .sidebar-account__footer svg{width:15px;height:15px;flex:none}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__footer{border-color:#46556a}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__lock,:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__signout{border-color:#46556a;background:#202a38;color:#edf2f8}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__lock[aria-pressed="true"]{border-color:#168b50;background:#123b2a;color:#79e5a4}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__signout{border-color:#74434a;background:#39252b;color:#ffb4b4}
+@media(max-width:768px){body.dashboard-page.dashboard-workshop .sidebar-account__lock{display:none!important}}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs,body.dashboard-page.dashboard-workshop .app-header .hs,body.dashboard-page.dashboard-workshop .main__header .hs{display:none!important}
