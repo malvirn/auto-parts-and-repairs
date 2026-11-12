@@ -26,7 +26,8 @@ let editingOrder = null;
 let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
-let quotationRows = [];\nlet quotationVisibleCount = 50;
+let quotationRows = [];
+let quotationVisibleCount = 50;
 let quoteSubmissionInProgress = false;
 const busyActions = new WeakSet();
 const lib = src => new Promise((resolve, reject) => {
@@ -653,10 +654,13 @@ function renderQuotationRows() {
       && (!from || createdDate >= from) && (!to || createdDate <= to)
       && (!status || quote.status === status);
   });
-  const visibleQuotes = filtered.slice(0, quotationVisibleCount);\n  quoteTable.innerHTML = visibleQuotes.length ? visibleQuotes.map(quote => {
+  const visibleQuotes = filtered.slice(0, quotationVisibleCount);
+  quoteTable.innerHTML = visibleQuotes.length ? visibleQuotes.map(quote => {
     const depositExpired = quote.created_at && Date.now() > Date.parse(quote.created_at) + 7 * 86400000;
     return `<tr class="quotation-row" data-quote-id="${quote.id}" tabindex="0" aria-expanded="false" aria-label="Expand quotation ${quote.quotation_number}"><td><span class="quote-expand-mark" aria-hidden="true">＋</span> #${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "—") + `<small>${escapeHtml(quote.customers?.customer_code || "")}</small>`}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td></tr><tr class="quotation-actions-row" data-actions-for="${quote.id}" hidden><td colspan="9"><div class="quotation-action-bar"><span class="quotation-action-label">Quotation actions</span><div class="quotation-action-buttons"><button type="button" class="quote-action quote-action--green open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button><button type="button" class="quote-action quote-action--orange record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Deposit expired" : "Record Deposit"}</button><button type="button" class="quote-action quote-action--orange edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend / Edit</button><button type="button" class="quote-action quote-action--green print-quote" data-id="${quote.id}"><i data-lucide="printer"></i> Print</button><button type="button" class="quote-action quote-action--green whatsapp-quote" data-id="${quote.id}"><i data-lucide="message-circle"></i> WhatsApp</button><button type="button" class="quote-action quote-action--orange email-quote" data-id="${quote.id}"><i data-lucide="mail"></i> Email</button></div></div></td></tr>`;
-  }).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;\n  if (filtered.length > quotationVisibleCount) quoteTable.insertAdjacentHTML("beforeend", `<tr class="quotation-load-more-row"><td colspan="9"><button type="button" class="quotation-load-more">Load more (${filtered.length - quotationVisibleCount} remaining)</button></td></tr>`);\n  quoteTable.querySelector(".quotation-load-more")?.addEventListener("click", () => { quotationVisibleCount += 50; renderQuotationRows(); });
+  }).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;
+  if (filtered.length > quotationVisibleCount) quoteTable.insertAdjacentHTML("beforeend", `<tr class="quotation-load-more-row"><td colspan="9"><button type="button" class="quotation-load-more">Load more (${filtered.length - quotationVisibleCount} remaining)</button></td></tr>`);
+  quoteTable.querySelector(".quotation-load-more")?.addEventListener("click", () => { quotationVisibleCount += 50; renderQuotationRows(); });
   quoteTable.querySelectorAll(".quotation-row").forEach(row => {
     const toggle = () => {
       const expanded = row.getAttribute("aria-expanded") === "true";
@@ -740,7 +744,7 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate, is
     const flatEstimate = isLabour && /provider estimate/i.test(item.part_name || "");
     const min = isLabour && !flatEstimate ? "0.01" : "1";
     const step = isLabour && !flatEstimate ? "any" : "1";
-    return `<article class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${flatEstimate ? "flat estimate USD" : isLabour ? "price per hour USD" : "unit price USD"}</small></span><div class="quotation-qty-control"><button type="button" class="quotation-qty-step" data-qty-action="minus" aria-label="Decrease quantity" ${flatEstimate ? "disabled" : ""}><i data-lucide="minus"></i></button><input class="amend-qty" data-index="${index}" type="number" min="${min}" step="${step}" value="${item.quantity}" ${flatEstimate ? "disabled" : ""} aria-label="Quantity" /><button type="button" class="quotation-qty-step" data-qty-action="plus" aria-label="Increase quantity" ${flatEstimate ? "disabled" : ""}><i data-lucide="plus"></i></button></div><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" aria-label="Unit price USD" /></article>`;
+    return `<article class="quotation-line"><span><strong>${escapeHtml(itemDisplayName(item))}</strong><small>${itemTypeLabel(item)} · ${flatEstimate ? "flat estimate USD" : isLabour ? "price per hour USD" : "unit price USD"}</small></span><div class="quotation-qty-control"><button type="button" class="quotation-qty-step" data-qty-action="minus" aria-label="Decrease quantity" ${flatEstimate ? "disabled" : ""}><i data-lucide="minus"></i></button><input class="amend-qty" data-index="${index}" type="number" min="${min}" step="${step}" value="${item.quantity}" ${flatEstimate ? "disabled" : ""} aria-label="Quantity" /><button type="button" class="quotation-qty-step" data-qty-action="plus" aria-label="Increase quantity" ${flatEstimate ? "disabled" : ""}><i data-lucide="plus"></i></button></div><input class="amend-price" data-index="${index}" type="number" min="0" step="0.01" value="${Number(item.unit_price_usd).toFixed(2)}" aria-label="Unit price USD" /><strong class="quotation-line-total" data-line-total="${index}">${money(Number(item.quantity) * Number(item.unit_price_usd))}</strong></article>`;
   }).join("");
   const recalc = () => {
     const qtyInputs = [...container.querySelectorAll(".amend-qty")], priceInputs = [...container.querySelectorAll(".amend-price")];
@@ -752,6 +756,7 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate, is
     put(`edit-${prefix}-vat`, money(totals.vat));
     put(`edit-${prefix}-summary-total`, money(totals.total));
     put(`edit-${prefix}-footer-total`, money(totals.total));
+    current.forEach((item, index) => { const line = container.querySelector(`[data-line-total="${index}"]`); if (line) line.textContent = money(lineTotalOf(item)); });
   };
   container.querySelectorAll("input").forEach(input => input.addEventListener("input", recalc));
   container.querySelectorAll(".quotation-qty-step").forEach(button => button.addEventListener("click", () => {
@@ -1194,9 +1199,13 @@ async function openQuoteEditor(id) {
   const { data, error } = await fetchQuote(id);
   if (!data) { alert("Couldn't load that quotation" + (error ? `: ${error.message}` : ".")); return; }
   editingQuote = data;
-  setText("edit-quote-number", editingQuote.quotation_number);\n  setText("edit-quote-status", editingQuote.status || "Draft");\n  setText("edit-quote-cid", `CID ${resolveCustomer(editingQuote).customer_code || "—"}`);\n  setText("edit-quote-customer", resolveCustomer(editingQuote).full_name);
+  setText("edit-quote-number", editingQuote.quotation_number);
+  setText("edit-quote-status", editingQuote.status || "Draft");
+  setText("edit-quote-cid", `CID ${resolveCustomer(editingQuote).customer_code || "—"}`);
+  setText("edit-quote-customer", resolveCustomer(editingQuote).full_name);
   editingQuoteDetailText = buildDetailText(editingQuote, "Quotation", editingQuote.quotation_items);
-  document.getElementById("quote-detail-text").innerHTML = buildDetailHtml(editingQuote, "Quotation", editingQuote.quotation_items);\n  quoteModal.querySelector(".quotation-preview-section")?.removeAttribute("open");
+  document.getElementById("quote-detail-text").innerHTML = buildDetailHtml(editingQuote, "Quotation", editingQuote.quotation_items);
+  quoteModal.querySelector(".quotation-preview-section")?.removeAttribute("open");
   await renderEditor(document.getElementById("edit-quote-lines"), document.getElementById("edit-quote-total"), editingQuote.quotation_items, editingQuote.usd_to_zig_rate, true, Number(editingQuote.vat_rate ?? 5));
   openQuotationModal(quoteModal);
   if (window.lucide) lucide.createIcons();
@@ -1241,7 +1250,7 @@ async function createOrderFromQuote() {
     return;
   }
   if (existingOrder) {
-    closeModal(quoteModal);
+    closeModal(quoteModal, true);
     await openOrderEditor(existingOrder.id);
     return;
   }
@@ -1258,7 +1267,7 @@ async function createOrderFromQuote() {
         .limit(1)
         .maybeSingle();
       if (duplicate) {
-        closeModal(quoteModal);
+        closeModal(quoteModal, true);
         await openOrderEditor(duplicate.id);
         return;
       }
@@ -1308,7 +1317,7 @@ async function createOrderFromQuote() {
     }
     return;
   }
-  closeModal(quoteModal);
+  closeModal(quoteModal, true);
   await loadDocuments();
 }
 
@@ -1329,9 +1338,13 @@ async function openOrderEditor(id) {
   const { data, error } = await fetchOrder(id);
   if (!data) { alert("Couldn't load that sales order" + (error ? `: ${error.message}` : ".")); return; }
   editingOrder = data;
-  setText("edit-order-number", editingOrder.order_number);\n  setText("edit-order-status", editingOrder.status || "Draft");\n  setText("edit-order-cid", `CID ${resolveCustomer(editingOrder).customer_code || "—"}`);\n  setText("edit-order-customer", resolveCustomer(editingOrder).full_name);
+  setText("edit-order-number", editingOrder.order_number);
+  setText("edit-order-status", editingOrder.status || "Draft");
+  setText("edit-order-cid", `CID ${resolveCustomer(editingOrder).customer_code || "—"}`);
+  setText("edit-order-customer", resolveCustomer(editingOrder).full_name);
   editingOrderDetailText = buildDetailText(editingOrder, "Sales Order", editingOrder.sales_order_items);
-  document.getElementById("order-detail-text").innerHTML = buildDetailHtml(editingOrder, "Sales Order", editingOrder.sales_order_items);\n  orderModal.querySelector(".quotation-preview-section")?.removeAttribute("open");
+  document.getElementById("order-detail-text").innerHTML = buildDetailHtml(editingOrder, "Sales Order", editingOrder.sales_order_items);
+  orderModal.querySelector(".quotation-preview-section")?.removeAttribute("open");
   await renderEditor(document.getElementById("edit-order-lines"), document.getElementById("edit-order-total"), editingOrder.sales_order_items, editingOrder.usd_to_zig_rate);
   if (!salespeople.length) await loadSalespeople();
   const salespersonSelect = document.getElementById("edit-order-salesperson");
@@ -1370,7 +1383,7 @@ async function saveOrderChanges() {
 
   const total = items.reduce((sum, item) => sum + Math.round(item.quantity * item.unit_price_usd * 100) / 100, 0);
   const receiptOk = await ensureReceiptForOrder(editingOrder.id, total);
-  closeModal(orderModal);
+  closeModal(orderModal, true);
   await loadDocuments();
 
   if (receiptOk === "deposit") {
