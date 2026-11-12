@@ -1,6 +1,6 @@
 import supabase from "./supabaseClient.js";
 
-const PROFILE_TIMEOUT_MS = 8000;
+const PROFILE_TIMEOUT_MS = 8000;\nconst PROFILE_CACHE_PREFIX = "apr-profile-cache:";
 
 function withTimeout(promise, label) {
   let timeoutId;
@@ -50,7 +50,7 @@ export async function loadUserProfile(userId) {
 
   const profile = roleResult.value.data;
   const profileRole = normalizeRole(profile?.role);
-  return {
+  const resolved = {
     ...profile,
     role: profileRole === "accounting"
       ? "accounting"
@@ -61,4 +61,6 @@ export async function loadUserProfile(userId) {
       ? activeResult.value.data?.is_active !== false
       : true,
   };
+  try { localStorage.setItem(PROFILE_CACHE_PREFIX + userId, JSON.stringify(resolved)); } catch (_) {}
+  return resolved;
 }
