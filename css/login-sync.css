@@ -1,7 +1,7 @@
 /* Sign-in sync screen (js/boot.js). Self-contained: login.html does not load the app theme. */
 .sync{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
-  background:radial-gradient(circle at 15% 85%,rgba(0,168,132,.16),transparent 45%),radial-gradient(circle at 85% 15%,rgba(255,122,18,.16),transparent 40%),#0d1217;
+  background:rgba(5,8,10,.72);
   color:#e6edf3;font-family:"Inter","Segoe UI",system-ui,sans-serif;overflow-y:auto;animation:syncIn .3s ease-out both}
 .sync[hidden],.sync [hidden]{display:none!important}
 .sync-card{width:min(100%,420px);padding:28px 24px;border-radius:20px;text-align:center;

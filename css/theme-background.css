@@ -1,0 +1,60 @@
+/* Shared engine-bay background. Keep page content above the fixed image and tint layers. */
+html {
+  min-height: 100%;
+  background: #0b1220;
+}
+body {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: #0b1220 !important;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+body::before {
+  background: url("../img/engine-bay-bg.webp") center / cover no-repeat;
+}
+body::after {
+  background: rgba(5, 8, 10, .72);
+}
+/* The customer page previously supplied its own SVG backdrop. Reuse this
+   same shared image in that layer instead of stacking a second backdrop. */
+body.customer-page::before {
+  background: url("../img/engine-bay-bg.webp") center / cover no-repeat !important;
+  opacity: 1 !important;
+}
+body.dashboard-page::after {
+  display: block !important;
+}
+:root[data-theme="light"] body::after {
+  background: rgba(255, 255, 255, .88);
+}
+/* Keep working surfaces readable above the photo in both themes. */
+body.dashboard-page :is(
+  .card, .stat-card, .panel, .panel-card, .content-card, .section-card,
+  .form-card, .table-container, .table-wrap, .table-responsive,
+  .modal-content, .modal-card, .customer-form, .quote-modal,
+  .repair-card, .report-card, .kpi-card
+) {
+  background-color: color-mix(in srgb, var(--cam-surface, var(--mh-card, #17202c)) 92%, transparent) !important;
+}
+body.dashboard-page :is(.table-container, .table-wrap, .table-responsive) table {
+  background-color: color-mix(in srgb, var(--cam-surface, var(--mh-card, #17202c)) 92%, transparent);
+}
+body.login-page .sync {
+  background: rgba(5, 8, 10, .72);
+}
+@media print {
+  html, body {
+    background: #fff !important;
+  }
+  body::before, body::after {
+    display: none !important;
+  }
+}
