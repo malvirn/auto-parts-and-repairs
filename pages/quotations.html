@@ -269,6 +269,26 @@
     .hdr-menu .m-items{margin:2px 0 8px 19px;padding-left:8px;border-left:1px solid var(--line)}
     .hdr-menu .m-items[hidden]{display:none!important}
     .hdr-menu .m-items a{min-height:40px;font-size:.88rem}
+  
+    /* Expandable quotation action bar */
+    #quotation-list #quotations-table .quotation-row{cursor:pointer;transition:background .18s ease}
+    #quotation-list #quotations-table .quotation-row:hover,#quotation-list #quotations-table .quotation-row.is-expanded{background:rgba(31,196,103,.09)}
+    #quotation-list #quotations-table .quotation-row:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
+    .quote-expand-mark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:8px;border-radius:8px;background:rgba(255,122,18,.16);color:var(--orange);font-weight:800}
+    .quotation-actions-row[hidden]{display:none!important}
+    #quotation-list #quotations-table .quotation-actions-row>td{padding:0 12px 14px;border-bottom:1px solid var(--line);background:rgba(7,13,10,.5)}
+    .quotation-action-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 16px;border:1px solid rgba(31,196,103,.28);border-left:4px solid var(--orange);border-radius:14px;background:linear-gradient(110deg,rgba(255,122,18,.09),rgba(18,161,80,.13))}
+    .quotation-action-label{flex:none;color:var(--muted);font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+    .quotation-action-buttons{display:flex;align-items:center;gap:9px;flex:1 1 auto;flex-wrap:wrap;justify-content:flex-end}
+    .quote-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 15px;border:1px solid transparent;border-radius:10px;font:600 .82rem var(--font);white-space:nowrap;cursor:pointer;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+    .quote-action svg{width:17px;height:17px;flex:none}
+    .quote-action:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 6px 16px rgba(0,0,0,.22)}
+    .quote-action:disabled{opacity:.48;cursor:not-allowed}
+    .quote-action--green{background:linear-gradient(135deg,#1fc467,#128747);color:#fff;border-color:rgba(31,196,103,.55)}
+    .quote-action--orange{background:linear-gradient(135deg,#ff922e,#e76508);color:#fff;border-color:rgba(255,146,46,.6)}
+    @media(max-width:760px){.quotation-action-bar{align-items:flex-start;flex-direction:column;padding:13px}.quotation-action-buttons{justify-content:flex-start;width:100%}.quote-action{flex:1 1 calc(50% - 8px);min-width:135px}}
+    @media(max-width:390px){.quote-action{flex-basis:100%}}
+
   </style>
   <link rel="stylesheet" href="../css/dashboard-shell.css">
   <link rel="stylesheet" href="../css/ui-consistency.css">
