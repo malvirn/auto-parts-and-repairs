@@ -239,13 +239,12 @@ body.dashboard-page .main{min-width:0}
         <section class="sg" id="currency" aria-labelledby="h-cur">
           <header><i data-lucide="banknote"></i><div><h3 id="h-cur">Currency &amp; exchange rate</h3><p>Used to show ZiG amounts next to US dollar totals.</p></div></header>
           <div class="sr">
-            <div class="t"><b>USD to ZiG rate</b><span id="rate-updated">How many ZiG one US dollar buys.</span></div>
+            <div class="t"><b>USD to ZiG rate</b><span id="rate-updated">Fetching the current ZimRate Black Market Max rate…</span></div>
             <div style="display:flex; gap:8px; align-items:center;">
-              <input type="number" step="0.0001" min="0" id="exchange-rate" style="width:140px" aria-label="USD to ZiG rate" />
-              <button id="save-rate-btn" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save</button>
+              <strong id="exchange-rate" aria-live="polite">Loading…</strong><span>ZiG per USD</span>
             </div>
           </div>
-          <p class="smsg" id="m-rate" role="status" aria-live="polite" style="padding:0 16px 14px"></p>
+          <p class="smsg" role="note" style="padding:0 16px 14px">Source: <a href="https://zimrate.com/" target="_blank" rel="noopener noreferrer">ZimRate</a>. The rate refreshes automatically and is used for USD-to-ZiG estimates.</p>
         </section>
 
         <!-- Notifications -->
