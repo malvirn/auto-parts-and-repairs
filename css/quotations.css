@@ -489,3 +489,6 @@ body.dashboard-page #quotation-list .quote-action:disabled{opacity:.5;cursor:not
 
 body.dashboard-page .quotation-modal-body{overflow-x:hidden}
 @media(max-width:720px){body.dashboard-page .quotation-line-list .quotation-line{grid-template-columns:minmax(0,1fr)}}
+
+body.dashboard-page .quotation-footer-total strong{font-size:16px}
+@media(max-width:720px){body.dashboard-page .quotation-footer-total strong{font-size:14px}}
