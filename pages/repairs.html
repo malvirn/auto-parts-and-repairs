@@ -926,7 +926,16 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       
     </section>
     <p id="daily-update-warning" class="section-note" role="status"></p>
-
+    <div class="rc-bar" style="margin:16px 0">
+      <button class="btn" id="s-edit" type="button"><i data-lucide="pencil"></i> Edit job details</button>
+      <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp update</button>
+      <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
+      <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
+      <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+      <button class="btn btn--primary" id="s-inv"><i data-lucide="receipt"></i> Create invoice</button>
+      <button class="btn btn--primary" id="close-job-card" type="button"><i data-lucide="circle-check"></i> Close job card</button>
+      <button class="btn btn--primary" id="mark-job-collected" type="button" hidden><i data-lucide="car-front"></i> Mark as Collected</button>
+    </div>
     <div class="jc-wrap">
     <div class="pane-switch" role="group" aria-label="Show details or job card"><button type="button" class="pane-btn" data-pane="details" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="card" aria-pressed="false">Job card</button></div>
     <div class="jc-split" id="jc-split" data-pane="details">
@@ -2433,7 +2442,7 @@ load().then(()=>{
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-2"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-3"></script>
 </body>
 </html>
 
