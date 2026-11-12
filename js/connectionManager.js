@@ -186,7 +186,8 @@ function markFailure(error) {
   consecutiveFailures += 1;
   retryAttempt += 1;
   if (consecutiveFailures >= FAILURE_THRESHOLD) {
-    nextProbeAt = Date.now() + OPEN_INTERVAL_MS;
+    const backoff = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * (2 ** Math.max(0, retryAttempt - 1)));
+    nextProbeAt = Date.now() + jitter(backoff);
     setState("open");
   }
   return error;
