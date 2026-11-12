@@ -951,6 +951,7 @@ if (document.readyState === "loading") {
   const shouldLowercase = field => {
     if (!field || field.disabled || field.readOnly) return false;
     if (field.matches('input[type="email"], input[type="password"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"], input[type="color"], input[type="file"], input[type="checkbox"], input[type="radio"], input[type="range"], input[type="hidden"]')) return false;
+    if (String(field.name || "").toLowerCase() === "email" || String(field.id || "").toLowerCase().includes("email") || String(field.autocomplete || "").toLowerCase() === "email") return false;
     if (field.closest("[data-case-sensitive]") || field.hasAttribute("data-case-sensitive")) return false;
     return field.matches('textarea, input[type="text"], input[type="search"], input:not([type])');
   };
