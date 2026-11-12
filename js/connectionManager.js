@@ -280,6 +280,16 @@ async function connectionFetch(input, init = {}) {
   }
 }
 
+// Route direct Supabase fetches (including Edge Functions and Storage) through
+// the same breaker. Leave unrelated APIs and static assets untouched.
+window.fetch = (input, init) => {
+  try {
+    const url = input instanceof Request ? input.url : String(input);
+    if (new URL(url, location.href).origin === SUPABASE_ORIGIN) return connectionFetch(input, init);
+  } catch (_) {}
+  return nativeFetch(input, init);
+};
+
 export function isReadOnly() {
   return state !== "closed" || navigator.onLine === false;
 }
