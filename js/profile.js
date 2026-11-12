@@ -1,6 +1,7 @@
 import supabase from "./supabaseClient.js";
 
-const PROFILE_TIMEOUT_MS = 8000;\nconst PROFILE_CACHE_PREFIX = "apr-profile-cache:";
+const PROFILE_TIMEOUT_MS = 8000;
+const PROFILE_CACHE_PREFIX = "apr-profile-cache:";
 
 function withTimeout(promise, label) {
   let timeoutId;
@@ -32,15 +33,11 @@ export async function loadUserProfile(userId) {
 
   if (roleResult.status === "rejected" || roleResult.value.error) {
     const error = roleResult.status === "rejected" ? roleResult.reason : roleResult.value.error;
-    console.error("Unable to load account role; continuing with the most restrictive staff access:", error);
-    return {
-      role: "staff",
-      lookup_failed: true,
-      full_name: null,
-      is_active: activeResult.status === "fulfilled" && !activeResult.value.error
-        ? activeResult.value.data?.is_active !== false
-        : true,
-    };
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(PROFILE_CACHE_PREFIX + userId) || "null"); } catch (_) {}
+    if (cached) return { ...cached, offline_cached: true, lookup_failed: true };
+    console.error("Unable to load account role; using restricted staff access because no cached profile exists:", error);
+    return { role: "staff", lookup_failed: true, full_name: null, is_active: true };
   }
 
   if (activeResult.status === "rejected" || activeResult.value.error) {
