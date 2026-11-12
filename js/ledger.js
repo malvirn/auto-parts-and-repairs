@@ -233,7 +233,7 @@ journalForm.addEventListener("submit", async (e) => {
 async function loadEntries() {
   const { data, error } = await supabase
     .from("journal_entries")
-    .select("id, entry_date, reference, description, journal_lines(debit, credit)")
+    .select("id, entry_date, reference, description, source_type, source_id, journal_lines(debit, credit)")
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);
@@ -243,13 +243,30 @@ async function loadEntries() {
     return;
   }
 
+  const creditApplicationIds = (data || [])
+    .filter(entry => entry.source_type === "customer_overpayment_credit_application" && entry.source_id)
+    .map(entry => entry.source_id);
+  const creditNoteNumbers = new Map();
+  if (creditApplicationIds.length) {
+    const { data: creditNotes, error: creditNotesError } = await supabase
+      .from("customer_overpayment_credit_notes")
+      .select("id, note_number")
+      .in("id", creditApplicationIds);
+    if (creditNotesError) console.warn("Could not load credit-note references for ledger entries:", creditNotesError);
+    (creditNotes || []).forEach(note => creditNoteNumbers.set(String(note.id), "CN-" + String(note.note_number).padStart(5, "0")));
+  }
+
   entriesTable.innerHTML = data?.length ? data.map(entry => {
     const total = (entry.journal_lines || []).reduce((sum, l) => sum + Number(l.debit || 0), 0);
+    const creditNoteReference = creditNoteNumbers.get(String(entry.source_id));
+    const description = creditNoteReference
+      ? `${entry.description} · Credit note ${creditNoteReference}`
+      : entry.description;
     return `
       <tr data-journal-entry-id="${entry.id}">
         <td>${entry.entry_date}</td>
         <td>${escapeHtml(entry.reference || "—")}</td>
-        <td>${escapeHtml(entry.description)}</td>
+        <td>${escapeHtml(description)}</td>
         <td>${money(total)}</td>
         <td><button type="button" class="btn view-entry-btn" data-id="${entry.id}"><i data-lucide="eye"></i> View</button></td>
       </tr>
@@ -265,14 +282,24 @@ async function loadEntries() {
 async function openEntryModal(id) {
   const { data, error } = await supabase
     .from("journal_entries")
-    .select("id, entry_date, reference, description, source_type, journal_lines(debit, credit, memo, accounts(code, name))")
+    .select("id, entry_date, reference, description, source_type, source_id, journal_lines(debit, credit, memo, accounts(code, name))")
     .eq("id", id)
     .single();
   if (error || !data) { alert("Couldn't load that entry."); return; }
 
   entryModalRef.textContent = data.reference || data.entry_date;
+  let creditNoteLabel = "";
+  if (data.source_type === "customer_overpayment_credit_application" && data.source_id) {
+    const { data: creditNote, error: creditNoteError } = await supabase
+      .from("customer_overpayment_credit_notes")
+      .select("note_number")
+      .eq("id", data.source_id)
+      .maybeSingle();
+    if (creditNoteError) console.warn("Could not load the applied credit-note reference:", creditNoteError);
+    if (creditNote) creditNoteLabel = " · Credit note CN-" + String(creditNote.note_number).padStart(5, "0");
+  }
   entryModalLines.innerHTML = `
-    <p style="margin-bottom:12px; color:var(--text-muted);">${escapeHtml(data.description)} · ${data.entry_date}</p>
+    <p style="margin-bottom:12px; color:var(--text-muted);">${escapeHtml(data.description)}${escapeHtml(creditNoteLabel)} · ${data.entry_date}</p>
     <table>
       <thead><tr><th>Account</th><th>Debit</th><th>Credit</th></tr></thead>
       <tbody>
