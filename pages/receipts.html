@@ -1203,6 +1203,15 @@ async function load(){
    applied_amount:Number(previous?.applied_amount||0)+Number(link.applied_amount||0),
   });
  });
+ const creditApplicationsByJob=new Map();
+ (creditLinksResult.data||[]).forEach(link=>{
+  const key=String(link.repair_job_id);
+  if(!creditApplicationsByJob.has(key))creditApplicationsByJob.set(key,[]);
+  creditApplicationsByJob.get(key).push({
+   amount:Number(link.applied_amount)||0,
+   reference:"CN-"+String(link.customer_overpayment_credit_notes?.note_number||"").padStart(5,"0")
+  });
+ });
  rows.creditNotes=(creditNotesResult.data||[]).map(note=>{
   const invoice=note.invoices||{},amount=Number(note.amount)||0,items=normalizeInvoiceItems(invoice.items),link=creditLinksByNote.get(String(note.id));
   return{kind:"credit_note",id:note.id,creditId:note.overpayment_credit_id,customerId:note.customer_id,customerEmail:invoice.customer_email||"",number:"CN-"+String(note.note_number).padStart(5,"0"),date:note.issued_at,customer:{name:note.customers?.company_name||note.customer_name,phone:note.customer_phone||"",email:invoice.customer_email||"",customer_code:note.customers?.customer_code||"",company_name:note.customers?.company_name||"",is_company:Boolean(note.customers?.is_company)},ref:invoice.invoice_number?"INV-"+String(invoice.invoice_number).padStart(5,"0"):"Invoice overpayment",items,subtotal:Number(invoice.subtotal)||amount,total:Number(invoice.total)||amount,discount:Number(invoice.discount)||0,vat:Number(invoice.vat_rate??5),vatBase:Number(invoice.vat_base??invoice.subtotal)||0,carriedForward:Number(note.customer_overpayment_credits?.available_amount??amount)||0,originalCreditAmount:amount,availableAmount:Number(note.customer_overpayment_credits?.available_amount??amount)||0,invoiceTotal:Number(invoice.total)||amount,amountReceived:amount,linkedJobId:link?.repair_job_id||null,linkedChecklist:link?.repair_jobs?.checklist_number||null,linkedJobNumber:link?.repair_jobs?.job_number||null,linkedAppliedAmount:Number(link?.applied_amount)||0};
