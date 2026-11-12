@@ -7,12 +7,14 @@ const MAX_RETRIES = 6;
 const BASE_DELAY_MS = 2000;
 const MAX_DELAY_MS = 60000;
 const FAILURE_THRESHOLD = 3;
-const OPEN_INTERVAL_MS = 30000;\nconst READ_ONLY_RPC = new Set([
+const OPEN_INTERVAL_MS = 30000;
+const READ_ONLY_RPC = new Set([
   "get_unpriced_job_parts",
   "get_shop_job_part_purchase_requests",
   "get_accounting_job_part_purchase_requests",
   "get_technicians_admin",
-  "job_card_part_catalog",\n]);
+  "job_card_part_catalog",
+]);
 
 let state = "closed";
 let consecutiveFailures = 0;
