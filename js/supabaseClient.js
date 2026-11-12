@@ -17,11 +17,11 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     autoRefreshToken: true,
   },
+  global: { fetch: connectionFetch },
 });
 
-// RPC calls are blocked while offline because the client cannot safely know
-// whether a procedure is read-only or mutating. This prevents accidental
-// financial writes and duplicate submissions during connection recovery.
+// Only explicitly allowlisted read-only RPCs can run from the offline cache.
+// All other RPC procedures are blocked while the circuit breaker is open.
 const originalRpc = supabase.rpc.bind(supabase);
 supabase.rpc = (fn, args, options) => {
   if (isReadOnly() && !isReadOnlyRpc(fn)) ensureWritable();
@@ -50,6 +50,7 @@ supabase.from = (table) => {
     const original = builder[op];
     if (typeof original !== "function") continue;
     builder[op] = function (...args) {
+      ensureWritable();
       const query = original.apply(this, args);
       const payload = args[0];
       const kind = op === "upsert" ? "update" : op;
