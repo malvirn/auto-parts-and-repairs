@@ -2438,6 +2438,65 @@ html.phone-layout body.dashboard-page .site-foot{width:100%!important;flex-wrap:
 :root[data-theme="light"] .customer-credit-panel-scope .customer-credit-history{color:#17212b!important}
 :root[data-theme="light"] .customer-credit-panel-scope .credit-note-validity{color:#526174!important}
 :root[data-theme="light"] .customer-credit-panel-scope .credit-voucher-modal-qr{background:#fff!important;color:#17212b!important;border-color:#d9e0e8!important}
+
+.customer-credit-confirm-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,14,22,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.customer-credit-confirm-modal{width:min(100%,480px);max-height:min(90vh,760px);overflow:auto;padding:26px;border:1px solid #3d4b5d;border-radius:20px;background:#202a36;color:#edf2f7;box-shadow:0 28px 90px rgba(0,0,0,.42);font-family:Inter,"Segoe UI",Arial,sans-serif}
+.customer-credit-confirm-icon{display:grid;place-items:center;width:46px;height:46px;margin-bottom:16px;border:1px solid rgba(31,196,103,.35);border-radius:14px;background:rgba(31,196,103,.13);color:#39d47d;font-size:23px;font-weight:800}
+.customer-credit-confirm-heading>small{color:#39c979;font-size:10px;font-weight:800;letter-spacing:.15em}
+.customer-credit-confirm-heading h2{margin:7px 0 8px;color:inherit;font-size:21px;line-height:1.25;font-weight:800}
+.customer-credit-confirm-heading p{margin:0;color:#aebaca;font-size:13px;line-height:1.55}
+.customer-credit-confirm-form{display:grid;gap:15px;margin-top:22px}
+.customer-credit-confirm-form label{display:grid;gap:7px;color:inherit;font-size:13px;font-weight:750}
+.customer-credit-confirm-form label small{color:#aebaca;font-size:11px;font-weight:450;line-height:1.45}
+.customer-credit-confirm-form input{box-sizing:border-box;width:100%;min-height:48px;padding:12px 13px;border:1px solid #526174;border-radius:10px;background:#151e29;color:#f1f5f9;font:inherit;font-size:15px;outline:none}
+.customer-credit-confirm-form input:focus{border-color:#20b86a;box-shadow:0 0 0 3px rgba(32,184,106,.16)}
+.customer-credit-confirm-actions{display:flex;gap:10px;margin-top:5px}
+.customer-credit-confirm-actions button{flex:1;min-height:46px;padding:10px 13px;border:1px solid #526174;border-radius:10px;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.customer-credit-confirm-cancel{background:transparent;color:inherit}
+.customer-credit-confirm-submit{border-color:#159653!important;background:#159653;color:#fff}
+.customer-credit-confirm-submit:hover{background:#117d45}
+@media(max-width:480px){.customer-credit-confirm-modal{padding:21px;border-radius:17px}.customer-credit-confirm-actions{flex-direction:column-reverse}.customer-credit-confirm-actions button{width:100%}}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{background:#fff!important;color:#17212b!important;border-color:#d5dee8!important;box-shadow:0 7px 20px rgba(20,38,58,.07)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record)>.customer-credit-record__summary,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record>.overpayment-credit-record__summary{background:linear-gradient(110deg,#f0f7ff,#fff 72%)!important;color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child strong,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child small,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong small{color:#5b6878!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-id{background:#e1f5e9!important;color:#126b3e!important;border-color:#b5e4c9!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-status,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record .credit-note-status{background:#e8eef5!important;color:#34465b!important;border-color:#d2dce7!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body{background:#fff!important;color:#17212b!important;border-color:#dce3eb!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body h3,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body h4,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body strong,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body p{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body small,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-detail-row>span{color:#5b6878!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-details-card,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-available-card,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-apply-section,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .overpayment-job-link,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-doc-facts>div,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-doc-totals{background:#f5f7fa!important;color:#17212b!important;border-color:#dce3eb!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-doc-facts strong,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-doc-totals strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body .credit-doc-facts small{color:#5b6878!important}
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body input,
+:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body select{background:#fff!important;color:#17212b!important;border-color:#cbd5e1!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary>div{background:#f5f7fa!important;color:#17212b!important;border-color:#dce3eb!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary span,
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary small{color:#5b6878!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary strong{color:#17212b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-empty{background:#f5f7fa!important;color:#46566a!important;border-color:#dce3eb!important}
+:root[data-theme="light"] .customer-credit-confirm-modal{background:#fff;color:#17212b;border-color:#d7e0e9;box-shadow:0 28px 90px rgba(20,38,58,.24)}
+:root[data-theme="light"] .customer-credit-confirm-heading p,
+:root[data-theme="light"] .customer-credit-confirm-form label small{color:#617084}
+:root[data-theme="light"] .customer-credit-confirm-form input{background:#f8fafc;color:#17212b;border-color:#cbd5e1}
+:root[data-theme="light"] .customer-credit-confirm-cancel{color:#344256;border-color:#cbd5e1}
 </style>
 </head><body><div id="doc">${docHTML(cur)}</div><scr${"ipt"}>
 window.addEventListener("load",async()=>{await Promise.all([...document.images].map(image=>image.decode().catch(()=>undefined)));if(document.fonts?.ready)await document.fonts.ready;window.addEventListener("afterprint",()=>window.close(),{once:true});window.focus();window.print()},{once:true});
