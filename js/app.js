@@ -71,7 +71,9 @@ addEventListener("storage", event => {
 function renderGreeting() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  setText(document.getElementById("dashboard-greeting"), greeting);
+  const role = String(document.body.dataset.role || "staff").trim().toLowerCase().replace(/[\\s-]+/g, "_");
+  const roleLabel = role.includes("admin") ? "Admin" : "Staff";
+  setText(document.getElementById("dashboard-greeting"), `${greeting} ${roleLabel}`);
   const dateEl = document.getElementById("dashboard-date");
   if (dateEl) {
     dateEl.textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });

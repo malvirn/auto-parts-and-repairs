@@ -712,3 +712,38 @@ body.dashboard-page.dashboard-workshop .sidebar-account__footer svg{width:15px;h
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-account__signout{border-color:#74434a;background:#39252b;color:#ffb4b4}
 @media(max-width:768px){body.dashboard-page.dashboard-workshop .sidebar-account__lock{display:none!important}}
 body.dashboard-page.dashboard-workshop .dashboard-topbar .hs,body.dashboard-page.dashboard-workshop .app-header .hs,body.dashboard-page.dashboard-workshop .main__header .hs{display:none!important}
+
+
+/* Recent job cards: high-contrast dark-mode text and status accents */
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs td,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs td *{
+  color:#ffffff!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dash-content table thead th{
+  color:#ffffff!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .job-status-badge{
+  display:inline-flex;align-items:center;gap:6px;font-weight:750!important;
+  background:rgba(255,255,255,.055)!important;border:1px solid currentColor!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-processed,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-collected{
+  color:#38e69a!important;border-color:rgba(56,230,154,.48)!important;background:rgba(28,180,112,.12)!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-processing,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-diagnosing,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-waiting,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-unclaimed{
+  color:#ff9b35!important;border-color:rgba(255,155,53,.5)!important;background:rgba(255,130,28,.12)!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-draft,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-received,
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .status-other{
+  color:#8ecbff!important;border-color:rgba(142,203,255,.45)!important;background:rgba(65,151,226,.12)!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .recent-job-action a{
+  color:#ff9b35!important;font-weight:750!important;
+}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop #recent-jobs .recent-job-action a:hover{
+  color:#38e69a!important;
+}
