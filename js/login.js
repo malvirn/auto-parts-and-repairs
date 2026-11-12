@@ -10,6 +10,81 @@ const submitBtn = document.getElementById("login-submit");
 const forgotPasswordBtn = document.getElementById("forgot-password");
 const openedFromFile = window.location.protocol === "file:";
 const ADMIN_LOGIN_EMAIL = "malvirngomo8@gmail.com";
+
+const LOGIN_GUARD_KEY = "centric-login-guard-v1";
+const LOGIN_GUARD_WINDOW_MS = 24 * 60 * 60 * 1000;
+const LOGIN_GUARD_LIMITS = [
+  { attempts: 5, delay: 60 * 1000 },
+  { attempts: 10, delay: 5 * 60 * 1000 },
+  { attempts: 15, delay: 15 * 60 * 1000 },
+];
+let loginGuardTimer = null;
+
+function loginGuardIdentity() {
+  const identity = resolveLoginEmail(document.getElementById("login-email")?.value || "").trim().toLowerCase();
+  return identity || "empty";
+}
+
+function readLoginGuard() {
+  try {
+    const all = JSON.parse(localStorage.getItem(LOGIN_GUARD_KEY) || "{}");
+    const record = all[loginGuardIdentity()];
+    if (!record || Date.now() - Number(record.firstFailedAt || 0) > LOGIN_GUARD_WINDOW_MS) return { all, record: null };
+    return { all, record };
+  } catch (_) { return { all: {}, record: null }; }
+}
+
+function getLoginLock() {
+  const { record } = readLoginGuard();
+  const until = Number(record?.lockedUntil || 0);
+  return until > Date.now() ? until : 0;
+}
+
+function updateLoginGuardAfterFailure() {
+  const { all, record } = readLoginGuard();
+  const now = Date.now();
+  const count = Number(record?.count || 0) + 1;
+  const threshold = [...LOGIN_GUARD_LIMITS].reverse().find(item => count >= item.attempts);
+  all[loginGuardIdentity()] = {
+    count,
+    firstFailedAt: record?.firstFailedAt || now,
+    lockedUntil: threshold ? now + threshold.delay : 0,
+  };
+  try { localStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(all)); } catch (_) {}
+  return all[loginGuardIdentity()];
+}
+
+function clearLoginGuard() {
+  const { all } = readLoginGuard();
+  delete all[loginGuardIdentity()];
+  try { localStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(all)); } catch (_) {}
+}
+
+function showLoginLock(until) {
+  if (loginGuardTimer) clearInterval(loginGuardTimer);
+  const update = () => {
+    const remaining = Math.max(0, until - Date.now());
+    if (!remaining) {
+      clearInterval(loginGuardTimer);
+      loginGuardTimer = null;
+      resetButton();
+      showMessage("You can try signing in again.", "info");
+      return;
+    }
+    submitBtn.disabled = true;
+    const seconds = Math.ceil(remaining / 1000);
+    showMessage(`Too many unsuccessful attempts. Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}.`, "error");
+  };
+  update();
+  loginGuardTimer = setInterval(update, 1000);
+}
+
+function isInvalidCredentials(error) {
+  const code = String(error?.code || "").toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+  return code === "invalid_credentials" || /invalid login credentials|invalid email or password|email or password is incorrect/.test(message);
+}
+
 function resolveLoginEmail(value) {
   const input = String(value || "").trim();
   return input.toLowerCase() === "admin" ? ADMIN_LOGIN_EMAIL : input;
@@ -105,6 +180,7 @@ async function runPipeline(state) {
       // Confirm with the server that the session is genuine (not just stored locally).
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) throw Object.assign(new Error("Session didn't save properly — please try again."), { network: isNetworkError(error) });
+      clearLoginGuard();
       state.user = user;
       state.password = null; // never keep the password around after it's been used
     });
@@ -155,7 +231,14 @@ async function signIn(state, { quietIfNoSession = false } = {}) {
       return true;
     } catch (error) {
       console.error(`Sign-in failed at step ${state.step}:`, error);
-      const reason = error?.message || "Something went wrong. Please try again.";
+      let reason = error?.message || "Something went wrong. Please try again.";
+      if (state.step === 0 && state.email && state.password && isInvalidCredentials(error)) {
+        const guard = updateLoginGuardAfterFailure();
+        reason = "Sign-in failed. Check your username and password.";
+        if (guard.lockedUntil > Date.now()) reason = "Too many unsuccessful attempts. Please wait before trying again.";
+      } else if (state.step === 0 && Number(error?.status) === 429) {
+        reason = "Too many sign-in requests. Wait a few minutes before trying again.";
+      }
       if (quietIfNoSession && state.step === 0) { bootCancel(); return false; } // stale bookmark session: just show the form
       const canRetry = !error?.fatal && !!error?.network;
       const choice = await bootError(reason, { canRetry });
@@ -190,13 +273,19 @@ async function signIn(state, { quietIfNoSession = false } = {}) {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (openedFromFile || busy) return;
+  const lockedUntil = getLoginLock();
+  if (lockedUntil) { showLoginLock(lockedUntil); return; }
   showMessage("", "");
   busy = true;
   setLoading();
   const email = resolveLoginEmail(document.getElementById("login-email").value);
   const password = document.getElementById("login-password").value;
   const ok = await signIn({ step: 0, email, password });
-  if (!ok) { busy = false; }
+  if (!ok) {
+    busy = false;
+    const lockedUntil = getLoginLock();
+    if (lockedUntil) showLoginLock(lockedUntil);
+  }
 });
 
 // ---- Device passkey sign-in ----
@@ -207,6 +296,8 @@ const fpMsg = document.getElementById("fp-message");
 
 async function doFingerprint() {
   if (!fpBtn || fpBtn.disabled || busy || document.body.classList.contains("booting")) return;
+  const lockedUntil = getLoginLock();
+  if (lockedUntil) { showLoginLock(lockedUntil); return; }
   fpBtn.disabled = true;
   fpMsg.textContent = "Verify with your device…";
   fpMsg.dataset.tone = "info";
