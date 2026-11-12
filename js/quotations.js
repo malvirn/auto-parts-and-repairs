@@ -655,15 +655,38 @@ function renderQuotationRows() {
   });
   quoteTable.innerHTML = filtered.length ? filtered.map(quote => {
     const depositExpired = quote.created_at && Date.now() > Date.parse(quote.created_at) + 7 * 86400000;
-    return `<tr><td>#${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "—") + `<small>${escapeHtml(quote.customers?.customer_code || "")}</small>`}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td><td><button type="button" class="btn open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button> <button type="button" class="btn record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Expired" : "Deposit"}</button> <button type="button" class="btn edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend</button></td></tr>`;
+    return `<tr class="quotation-row" data-quote-id="${quote.id}" tabindex="0" aria-expanded="false" aria-label="Expand quotation ${quote.quotation_number}"><td><span class="quote-expand-mark" aria-hidden="true">＋</span> #${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "—") + `<small>${escapeHtml(quote.customers?.customer_code || "")}</small>`}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td></tr><tr class="quotation-actions-row" data-actions-for="${quote.id}" hidden><td colspan="9"><div class="quotation-action-bar"><span class="quotation-action-label">Quotation actions</span><div class="quotation-action-buttons"><button type="button" class="quote-action quote-action--green open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button><button type="button" class="quote-action quote-action--orange record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Deposit expired" : "Record Deposit"}</button><button type="button" class="quote-action quote-action--orange edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend / Edit</button><button type="button" class="quote-action quote-action--green print-quote" data-id="${quote.id}"><i data-lucide="printer"></i> Print</button><button type="button" class="quote-action quote-action--green whatsapp-quote" data-id="${quote.id}"><i data-lucide="message-circle"></i> WhatsApp</button><button type="button" class="quote-action quote-action--orange email-quote" data-id="${quote.id}"><i data-lucide="mail"></i> Email</button></div></div></td></tr>`;
   }).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;
-  document.querySelectorAll(".edit-quote").forEach(button => button.addEventListener("click", () => openQuoteEditor(button.dataset.id)));
-  document.querySelectorAll(".open-quote-job").forEach(button => button.addEventListener("click", () => {
-    if (button.dataset.jobId) {
-      window.location.href = `repairs.html?edit=${encodeURIComponent(button.dataset.jobId)}`;
-      return;
+  quoteTable.querySelectorAll(".quotation-row").forEach(row => {
+    const toggle = () => {
+      const expanded = row.getAttribute("aria-expanded") === "true";
+      const detail = quoteTable.querySelector(`[data-actions-for="${CSS.escape(row.dataset.quoteId)}"]`);
+      row.setAttribute("aria-expanded", String(!expanded));
+      row.classList.toggle("is-expanded", !expanded);
+      if (detail) detail.hidden = expanded;
+      const mark = row.querySelector(".quote-expand-mark");
+      if (mark) mark.textContent = expanded ? "＋" : "−";
+    };
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", event => {
+      if (event.target === row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); }
+    });
+  });
+  quoteTable.querySelectorAll(".quotation-action-bar button").forEach(button => button.addEventListener("click", async event => {
+    event.stopPropagation();
+    const id = button.dataset.id;
+    if (button.classList.contains("edit-quote")) return openQuoteEditor(id);
+    if (button.classList.contains("open-quote-job")) {
+      if (button.dataset.jobId) { window.location.href = `repairs.html?edit=${encodeURIComponent(button.dataset.jobId)}`; return; }
+      return openQuotationJobApproval(id);
     }
-    openQuotationJobApproval(button.dataset.id);
+    if (button.classList.contains("print-quote") || button.classList.contains("whatsapp-quote") || button.classList.contains("email-quote")) {
+      const { data, error } = await fetchQuote(id);
+      if (!data) { window.aprToast?.("Couldn't load quotation", "error", error?.message || "Please try again."); return; }
+      if (button.classList.contains("print-quote")) return printDocument(data, "Quotation");
+      if (button.classList.contains("whatsapp-quote")) return sendByWhatsApp("Quotation", data, button);
+      if (button.classList.contains("email-quote")) return sendByEmail("Quotation", data, button);
+    }
   }));
   if (window.lucide) lucide.createIcons();
 }
