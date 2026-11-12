@@ -189,7 +189,6 @@ function startNewChecklist(prefillJob=null){
  $("detail-status").textContent=prefillJob?"Complete the required drop-off details and confirm this checklist.":"Enter the customer and vehicle details, then complete the checklist.";
  $("save-checklist").textContent="Save and confirm checklist";
  setDetailMessage("");setEditable(true);renderInspectionSummary();syncInspectionStrip();
- ensureChecklistRecord().then(()=>scheduleChecklistAutosave()).catch(()=>{});
 }
 function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
@@ -293,7 +292,8 @@ async function saveDraft(){
   const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:record?.customer_id||selectedJob?.customer_id||null,vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
   let checklistId=record?.id;
   if(checklistId){
-   const {error}=await supabase.from("job_condition_reports").update(payload).eq("id",checklistId);
+   const updatePayload={customer_name:payload.customer_name,vehicle_registration:payload.vehicle_registration,checked_by:payload.checked_by,report:payload.report,fuel_level_in:payload.fuel_level_in,odometer_in:payload.odometer_in,updated_at:payload.updated_at};
+   const {error}=await supabase.from("job_condition_reports").update(updatePayload).eq("id",checklistId);
    if(error)throw new Error("Couldn't save this draft: "+error.message);
   }else{
    const {data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number,inspection_no").single();
@@ -432,12 +432,34 @@ async function saveAndConfirm(){
  }
 }
 
-function printBlankInspectionSheet(){
+async function printBlankInspectionSheet(){
  const printWindow=window.open("","_blank");
  if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
+ try {
+  if(!record?.id){
+   const payload={report:{parts:{},notes:""},status:"draft",updated_at:new Date().toISOString()};
+   const{data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number,inspection_no").single();
+   if(error)throw new Error("Couldn't create the numbered checklist draft: "+error.message);
+   record={...data,...payload};
+  }
+  const checklistRef=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
+  $("checklist-number-display").textContent=checklistRef;
+  $("checklist-number-display").hidden=false;
+  $("print-checklist-number").textContent=checklistRef;
+  $("open-job").classList.toggle("hidden",Boolean(record.voided_at));
+  $("open-job").textContent=record.job_id?"Open linked job card":"Create job card from this checklist";
+  $("open-job").href=record.job_id?"repairs.html?edit="+encodeURIComponent(record.job_id):"repairs.html?checklist="+encodeURIComponent(record.id);
+  syncInspectionStrip();
+  setDetailMessage("Blank checklist "+checklistRef+" saved to Drafts. You can create its job card now or complete the details later.");
+ } catch(error) {
+  printWindow.close();
+  setDetailMessage(error.message||String(error),true);
+  return;
+ }
+ const checklistRef=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
  const logo=new URL("../assets/logo.png",location.href).href;
  const sketch=new URL("../assets/vehicle-inspection-sketch.svg",location.href).href;
- printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Blank Vehicle Inspection Form</title>
+ printWindow.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Blank Vehicle Inspection Form ${esc(checklistRef)}</title>
  <style>
  *{box-sizing:border-box}
  @page{size:A4 portrait;margin:0}
@@ -464,7 +486,7 @@ function printBlankInspectionSheet(){
  footer{margin-top:2mm;font-size:5.5pt;text-align:center;color:#555}
  @media print{body{width:auto}.diagram{break-inside:avoid}}
  </style></head><body>
- <header><img src="${esc(logo)}" alt="Centric Auto Mobile"><div><h1>VEHICLE INSPECTION FORM</h1><p>CENTRIC AUTO MOBILE · VEHICLE CONDITION REPORT</p></div><div class="ref">INSPECTION REF<span></span></div></header>
+ <header><img src="${esc(logo)}" alt="Centric Auto Mobile"><div><h1>VEHICLE INSPECTION FORM</h1><p>CENTRIC AUTO MOBILE · VEHICLE CONDITION REPORT</p></div><div class="ref">INSPECTION REF<span>${esc(checklistRef)}</span></div></header>
  <section class="details">
   <div class="field"><b>Customer:</b><span></span></div><div class="field"><b>Phone:</b><span></span></div><div class="field"><b>Date / Time:</b><span></span></div>
   <div class="field"><b>Make / Model:</b><span></span></div><div class="field"><b>Registration:</b><span></span></div><div class="field"><b>Mileage (km):</b><span></span></div>
