@@ -38,7 +38,7 @@ window.addEventListener("apr:connection-change", event => {
 
 // Every successful insert / update / delete shows a short confirmation
 // message (see toast.js). Reads are untouched.
-const originalFrom = supabase.from.bind(supabase);
+function ensureWritable() {\n  try { assertWritable(); }\n  catch (error) { showToast("Read-only mode", "error", error.message); throw error; }\n}\n\nconst originalFrom = supabase.from.bind(supabase);
 supabase.from = (table) => {
   const builder = originalFrom(table);
   for (const op of ["insert", "update", "upsert", "delete"]) {
