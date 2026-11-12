@@ -92,14 +92,14 @@ body.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(250px,ca
 body.dashboard-workshop.sidebar-collapsed:not(.sidebar-open) .dashboard-sidebar-toggle{left:14px !important;transform:none !important}
 body.dashboard-workshop .dashboard-sidebar-backdrop{position:fixed !important;z-index:1250 !important;inset:0 !important;display:block !important;width:100% !important;height:100% !important;padding:0 !important;border:0 !important;background:rgba(4,8,7,.68) !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important;transition:opacity .2s,visibility 0s linear .2s !important}
 body.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{opacity:1 !important;visibility:visible !important;pointer-events:auto !important;transition:opacity .2s !important}
-body.dashboard-workshop.sidebar-collapsed .sidebar{width:min(280px,86vw)!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .sidebar__brand{min-height:76px !important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .brand-logo{width:124px!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{justify-content:flex-start !important;padding-inline:10px !important;font-size:11px !important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span{display:inline !important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-chev{display:block !important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-group.open .nav-grpwrap{display:grid!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:flex-start !important;padding-inline:10px!important;font-size:12px!important}
+body.dashboard-workshop.sidebar-open .sidebar{width:min(280px,86vw)!important}
+body.dashboard-workshop.sidebar-open .sidebar .sidebar__brand{min-height:76px !important}
+body.dashboard-workshop.sidebar-open .sidebar .brand-logo{width:124px!important}
+body.dashboard-workshop.sidebar-open .sidebar .nav-grp{justify-content:flex-start !important;padding-inline:10px !important;font-size:11px !important}
+body.dashboard-workshop.sidebar-open .sidebar .nav-grp>span{display:inline !important}
+body.dashboard-workshop.sidebar-open .sidebar .nav-chev{display:block !important}
+body.dashboard-workshop.sidebar-open .sidebar .nav-group.open .nav-grpwrap{display:grid!important}
+body.dashboard-workshop.sidebar-open .sidebar .nav-link{justify-content:flex-start !important;padding-inline:10px!important;font-size:12px!important}
 }
 @media(max-width:576px){body.dashboard-workshop .dashboard-topbar{right:10px !important;left:58px !important;gap:7px !important}
 body.dashboard-workshop .dashboard-topbar .hs{min-width:0 !important}
