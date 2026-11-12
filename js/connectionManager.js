@@ -41,7 +41,7 @@ function isCacheableRead(url, method, userKey) {
   try {
     const parsed = new URL(url, location.href);
     if (parsed.origin !== SUPABASE_ORIGIN || !parsed.pathname.startsWith("/rest/v1/")) return false;
-    if (method === "GET" || method === "HEAD") return true;
+    if method === "GET" return true;
     const rpcName = parsed.pathname.split("/rpc/")[1]?.split("/")[0];
     return method === "POST" && userKey !== "anonymous" && READ_ONLY_RPC.has(rpcName);
   } catch (_) { return false; }
@@ -276,7 +276,7 @@ async function connectionFetch(input, init = {}) {
       if (error?.name === "AbortError" || error?.name === "TimeoutError") throw error;
       markFailure(error);
       if (!canRetry || attempt >= MAX_RETRIES || state !== "closed") {
-        const cached = cacheable ? await readCached(url, headers) : null;
+        const cached = cacheable ? await readCached(url, headers, method, requestBody) : null;
         if (cached) return cached;
         throw error;
       }
