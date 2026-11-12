@@ -740,6 +740,20 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
     body.dashboard-page .dashboard-topbar { height:68px; min-height:68px; }
     body.dashboard-page .main { min-width:0; }
   </style>
+<style id="job-card-board-layout">
+#list{display:block!important;min-width:0}
+.job-board-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(270px,340px);gap:14px;align-items:start;overflow-x:auto;padding:2px 2px 14px;scroll-snap-type:x proximity}
+.job-board-column{min-width:0;min-height:150px;padding:12px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--panel) 88%,transparent);scroll-snap-align:start}
+.job-board-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:2px 2px 10px;border-bottom:1px solid var(--line);font-size:.88rem;font-weight:800}
+.job-board-heading b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:8px;background:rgba(31,196,103,.14);color:var(--green-bright);font-size:.75rem}
+.job-board-cards{display:grid;gap:9px;min-height:70px}
+.job-board-cards .rc-row{margin:0;min-width:0;padding:12px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:10px;background:var(--panel);cursor:pointer}
+.job-board-cards .rc-row:hover{border-color:var(--green-bright);transform:translateY(-1px)}
+.job-board-empty{margin:0;padding:18px 8px;color:var(--muted);font-size:.8rem;text-align:center}
+.job-board-column--checklists{margin-top:14px;border-style:dashed;border-color:var(--orange)}
+.job-board-column--checklists .job-board-heading{color:var(--orange)}
+@media(max-width:640px){.job-board-grid{grid-auto-columns:minmax(260px,86vw)}.job-board-column{padding:10px}}
+</style>
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -976,11 +990,11 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <label>Model<input id="edit-vehicle-model"></label>
       <label>Year<input id="edit-vehicle-year" type="number" min="1900" max="2100"></label>
       <label>Registration plate<input id="edit-vehicle-plate"></label>
-      <label>Fuel at drop-off<select id="edit-fuel-in"><option value="">Not recorded</option><option>Empty</option><option>1/4</option><option>1/2</option><option>3/4</option><option>Full</option></select></label>
-      <label>Odometer at drop-off<input id="edit-odometer-in" type="number" min="0" step="1"></label>
-      <h3 class="job-edit-section">Vehicle condition at drop-off</h3>
-      <div class="job-edit-damage"><div class="dmg-grid" id="edit-inspection-grid"></div>
-      <label style="display:grid;gap:6px;color:var(--muted);font-size:.82rem;font-weight:700">Existing damage / additional notes<textarea id="edit-inspection-notes" style="min-height:70px"></textarea></label></div>
+      <h3 class="job-edit-section">Vehicle checklist</h3>
+      <div class="job-edit-damage">
+        <p class="section-note">Drop-off fuel, mileage, damage marks, photos and inspection notes are maintained on the vehicle checklist, not on the job card.</p>
+        <a id="edit-checklist-link" class="btn" href="checklist.html">Open vehicle checklist</a>
+      </div>
       <h3 class="job-edit-section">Work and labour</h3>
       <label>Fault reported<textarea id="edit-fault" required></textarea></label>
       <label>Technician<select id="edit-technician"><option value="">Unassigned</option></select></label>
@@ -1185,7 +1199,6 @@ const CAR_PARTS=[
 const emptyReport=()=>({parts:{},notes:""});
 const reportOf=id=>{const r=inspectionState.get(String(id));return r&&r.parts?r:emptyReport()};
 let buildInspection=emptyReport();
-let editInspection=emptyReport();
 function partTileHTML(p,entry={}){
  const dmg=entry.dmg||[],state=dmg.length?dmg.join(", "):"No damage";
  return `<button type="button" class="dmg-tile${dmg.length?" has-dmg":""}" data-part="${p.key}" aria-label="${esc(p.name)}: ${esc(state)}">${entry.photo?'<i class="dmg-cam" aria-hidden="true"></i>':""}${partIcon(p.icon,p.flip,p.key)}<span class="dmg-name">${esc(p.name)}</span><span class="dmg-state">${esc(state)}</span></button>`;
@@ -1247,18 +1260,6 @@ async function loadReport(jobId){
  }catch(error){console.error("Condition report load failed:",error)}
  try{const local=JSON.parse(localStorage.getItem(`jcr-${jobId}`)||"null");if(local?.parts)return local}catch{}
  return null;
-}
-async function saveReport(jobId,report){
- inspectionState.set(String(jobId),report);
- let failed=false;
- try{
-  const{error}=await supabase.from("job_condition_reports").upsert({job_id:String(jobId),report,updated_at:new Date().toISOString()});
-  failed=Boolean(error);if(error)console.error("Condition report save failed:",error);
- }catch(error){failed=true;console.error(error)}
- if(failed){
-  try{localStorage.setItem(`jcr-${jobId}`,JSON.stringify(report))}catch{toast("Checklist photos too large to keep on this device.");return}
-  toast("Checklist saved on this device only. Run the job_condition_reports SQL to save it online.");
- }
 }
 function damageSummaryHTML(j){
  const r=reportOf(j.id);
@@ -1330,7 +1331,7 @@ async function load(){
  const [j,t,cl]=await Promise.all([
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email,is_company,company_name), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
   supabase.from("technician_directory").select("id,full_name").limit(300),
-  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at").is("job_id",null).not("confirmed_at","is",null).order("confirmed_at",{ascending:false}).limit(200)]);
+  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,status,updated_at").is("job_id",null).order("updated_at",{ascending:false}).limit(200)]);
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
  techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
  if(cl.error){console.error("Couldn't load checklists waiting for job cards:",cl.error);pendingChecklists=[]}else pendingChecklists=cl.data||[];
@@ -1343,14 +1344,31 @@ function render(){
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- $("list").innerHTML=L.map((j,i)=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("")||(q||filter!=="all"?'<div class="apr-state apr-state--search"><div class="apr-state__icon"><i data-lucide="search-x"></i></div><div class="apr-state__copy"><strong>No job cards match</strong><p>Try another registration, customer name, job number, or status.</p></div><button type="button" class="btn apr-state__action" onclick="filter=\'all\';$(\'hs-input\').value=\'\';render()">Clear search</button></div>':'<div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="clipboard-plus"></i></div><div class="apr-state__copy"><strong>No job cards yet</strong><p>Create your first job card to begin tracking repairs.</p></div><button type="button" class="btn apr-state__action" onclick="$(\'new-job\').click()">New job card</button></div>');
- $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=()=>open(L[el.dataset.i]));
+ const boardStatuses=filter==="all"?sts:[filter];
+ const boardHtml=boardStatuses.map(status=>{
+  const rows=L.map((j,i)=>({j,i})).filter(({j})=>(j.status||"Draft")===status);
+  const cards=rows.map(({j,i})=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("");
+  return `<section class="job-board-column"><header class="job-board-heading"><span>${esc(status)}</span><b>${rows.length}</b></header><div class="job-board-cards">${cards||'<p class="job-board-empty">No cards in this stage.</p>'}</div></section>`;
+ }).join("");
+ $("list").innerHTML=`<div class="job-board-grid">${boardHtml}</div>`;
+ $("list").querySelectorAll('.rc-row[data-i]').forEach(el=>el.onclick=()=>open(L[Number(el.dataset.i)]));
  const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
- if(CL.length){
-  if(!L.length)$("list").innerHTML="";
-  $("list").insertAdjacentHTML("afterbegin",CL.map((c,i)=>`<div class="rc-row rc-checklist" data-cl="${i}" role="button" tabindex="0"><div><b>Checklist #${esc(c.checklist_number)}</b> <span class="pill">Ready for job card</span><small>${esc(c.customer_name||"Customer not recorded")} · ${esc(c.vehicle_registration||"Registration not recorded")}</small><small>Tap to open a job card for this vehicle</small></div><div class="rc-amt"><small>${dt(c.confirmed_at)}</small></div></div>`).join(""));
-  $("list").querySelectorAll(".rc-checklist").forEach(el=>{const go=()=>openBuilder(CL[el.dataset.cl]);el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
- }
+ const draftCL=CL.filter(c=>c.status==="draft");
+ const readyCL=CL.filter(c=>c.status!=="draft");
+ const appendChecklistBoard=(items,kind,title,emptyText)=>{
+  if(!items.length)return;
+  const rows=items.map((c,i)=>`<div class="rc-row rc-checklist" data-cl="${i}" data-kind="${kind}" role="button" tabindex="0"><div><b>Checklist #${esc(c.checklist_number)}</b> <span class="pill">${kind==="draft"?"Draft · needs details":"Ready for job card"}</span><small>${esc(c.customer_name||"Customer not recorded")} · ${esc(c.vehicle_registration||"Registration not recorded")}</small><small>${kind==="draft"?"Open to complete the checklist or create its job card":"Open to create a job card from this checklist"}</small></div><div class="rc-amt"><small>${dt(c.updated_at||c.confirmed_at)}</small></div></div>`).join("");
+  $("list").insertAdjacentHTML("beforeend",`<section class="job-board-column job-board-column--checklists"><header class="job-board-heading"><span>${title}</span><b>${items.length}</b></header><div class="job-board-cards">${rows||`<p class="job-board-empty">${emptyText}</p>`}</div></section>`);
+ };
+ appendChecklistBoard(draftCL,"draft","Draft checklists","No draft checklists.");
+ appendChecklistBoard(readyCL,"ready","Ready for job card","No completed checklists waiting for a job card.");
+ $("list").querySelectorAll(".rc-checklist").forEach(el=>{
+  const rows=el.dataset.kind==="draft"?draftCL:readyCL;
+  const go=()=>openBuilder(rows[Number(el.dataset.cl)]);
+  el.onclick=go;
+  el.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();go();}};
+ });
+
 }
 
 /* ---------- job card document ---------- */
@@ -1594,8 +1612,17 @@ async function showEditJobModal(){
  $("edit-vehicle-model").value=vehicle.model||"";
  $("edit-vehicle-year").value=vehicle.year||"";
  $("edit-vehicle-plate").value=vehicle.license_plate||"";
- $("edit-fuel-in").value=cur.fuel_level_in||"";
- $("edit-odometer-in").value=cur.odometer_in??"";
+ const editChecklistLink=$("edit-checklist-link");
+ if(editChecklistLink){
+  const{data:linkedChecklist,error:linkedChecklistError}=await supabase.from("job_condition_reports").select("id,checklist_number,inspection_no").eq("job_id",cur.id).is("voided_at",null).maybeSingle();
+  if(linkedChecklistError)console.warn("Couldn't load the linked checklist:",linkedChecklistError);
+  editChecklistLink.href=linkedChecklist
+   ? "checklist.html?id="+encodeURIComponent(linkedChecklist.id)
+   : "checklist.html?job="+encodeURIComponent(cur.id);
+  editChecklistLink.textContent=linkedChecklist
+   ? "Open checklist "+(linkedChecklist.inspection_no||"CL-"+String(linkedChecklist.checklist_number).padStart(6,"0"))
+   : "Create vehicle checklist";
+ }
  $("edit-fault").value=cur.fault_reported||"";
  $("edit-work-done").value=cur.work_done||"";
  $("edit-work-missing").value=cur.work_missing||"";
@@ -1608,9 +1635,6 @@ async function showEditJobModal(){
  if(cur.technician_id&&!techs[cur.technician_id])$("edit-technician").add(new Option("Current technician",cur.technician_id));
  $("edit-technician").value=cur.technician_id||"";
  $("edit-add-stock-part").innerHTML='<option value="">Choose a stocked part</option>'+partsCatalog.map(part=>`<option value="${esc(part.id)}" ${Number(part.quantity_in_stock)<1?"disabled":""}>${esc(part.description||part.name)} — ${money(part.selling_price)} (${Number(part.quantity_in_stock)||0} in stock)</option>`).join("");
- editInspection=JSON.parse(JSON.stringify(reportOf(cur.id)));
- mountDamageGrid($("edit-inspection-grid"),()=>editInspection);
- $("edit-inspection-notes").value=editInspection.notes||"";
  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
  renderEditParts();
  const closed=isClosed(cur);
@@ -1622,7 +1646,6 @@ async function showEditJobModal(){
  $("edit-customer-name").focus();
 }
 $("s-edit").onclick=showEditJobModal;
-$("edit-inspection-notes").addEventListener("input",event=>{editInspection.notes=event.target.value});
 $("edit-labour-mode").onchange=updateEditLabourFields;
 $("edit-job-cancel").onclick=()=>$("edit-job-modal").classList.add("hidden");
 $("edit-job-delete").onclick=async()=>{
@@ -1751,10 +1774,8 @@ $("edit-job-form").onsubmit=async event=>{
  const button=$("edit-job-save"),message=$("edit-job-message");
  message.textContent="";
  const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim(),isCompany=$("edit-customer-is-company").checked,companyName=$("edit-company-name").value.trim();
- const odometerValue=$("edit-odometer-in").value.trim(),odometer=odometerValue?Number(odometerValue):null;
  if(!customerName||!fault){message.textContent="Customer name and reported fault are required.";return}
  if(isCompany&&!companyName){message.textContent="Company name is required."; $("edit-company-name").focus(); return}
- if(odometerValue&&(!Number.isSafeInteger(odometer)||odometer<0)){message.textContent="Enter a valid whole-number odometer reading.";return}
  const mode=$("edit-labour-mode").value,timeBased=mode==="time_based",hours=Number($("edit-labour-hours").value);
  const tier=labourTiers.find(item=>item.id===$("edit-rate-tier").value);
  const labourCost=timeBased?Number((Number(tier?.hourly_rate||0)*hours).toFixed(2)):Number($("edit-labour-estimate").value);
@@ -1790,7 +1811,7 @@ $("edit-job-form").onsubmit=async event=>{
   }
   cur.vehicle_id=vehicleId;
   cur.vehicles=vehicleFields;
-  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_done:$("edit-work-done").value.trim()||null,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,fuel_level_in:$("edit-fuel-in").value||null,odometer_in:odometer,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
+  const updates={customer_id:customerId,vehicle_id:vehicleId,fault_reported:fault,work_done:$("edit-work-done").value.trim()||null,work_missing:$("edit-work-missing").value.trim()||null,labour_mode:mode,labour_cost:labourCost,labour_hours:timeBased?hours:null,rate_tier_id:timeBased?tier.id:null,parts_cost:editPartsDraft.filter(part=>!part.awaiting_accounting_price).reduce((sum,part)=>sum+Number(part.price_at_time||0)*Number(part.quantity),0)};
   if($("edit-technician").value)updates.technician_id=$("edit-technician").value;
   else updates.technician_id=null;
   let{error}=await supabase.from("repair_jobs").update(updates).eq("id",cur.id);
@@ -1801,7 +1822,6 @@ $("edit-job-form").onsubmit=async event=>{
    error=retry.error;technicianNotSaved=!error&&Boolean(updates.technician_id);
   }
   if(error)throw new Error(`Parts and contact details were saved, but job details could not be updated: ${error.message}`);
-  await saveReport(cur.id,editInspection);
   $("edit-job-modal").classList.add("hidden");
   await load();
   const refreshed=jobs.find(job=>job.id===cur.id);
@@ -2152,7 +2172,9 @@ async function openBuilder(fromChecklist=null){
     $("f-name").value=activeChecklist.customer_name||"";
     $("f-plate").value=wantedPlate;
    }
-   toast(`Checklist #${activeChecklist.checklist_number}: customer and vehicle filled in. Add the fault and save.`);
+   toast(activeChecklist.customer_name||activeChecklist.vehicle_registration
+    ? `Checklist #${activeChecklist.checklist_number}: customer and vehicle details filled in. Add the fault and save.`
+    : `Checklist #${activeChecklist.checklist_number} opened. Enter the customer and vehicle details, then add the fault and save.`);
   }else{
    const customerId=params.get("customer"),vehicleId=params.get("vehicle");
   if(customerId&&builderCustomers.some(customer=>customer.id===customerId)){
