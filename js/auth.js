@@ -1,6 +1,7 @@
 import "./dialogs.js";
 import supabase from "./supabaseClient.js";
 import { loadUserProfile } from "./profile.js";
+import { isReadOnly } from "./connectionManager.js";
 
 const path = window.location.pathname.replace(/\\/g, "/");
 const isLoginPage = path.endsWith("/login.html") || path.endsWith("login.html");
@@ -249,21 +250,44 @@ async function protectPage() {
   // is still actually valid server-side. This matters specifically after
   // an account gets deleted (e.g. a database reset) — a stale local
   // session would otherwise still "look" logged in and load the page.
-  authStage = "verifying login with Supabase (auth.getUser)";
-  const authRequest = supabase.auth.getUser();
-  const authTimeout = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error("Login verification timed out after 12 seconds")), 12000);
-  });
-  const { data: { user }, error } = await Promise.race([authRequest, authTimeout]);
-  if (error || !user) {
+  authStage = "restoring your saved login session";
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.user) {
     window.location.replace(loginPath);
     return;
+  }
+  let user = session.user;
+
+  // Verify with Supabase when the connection is healthy. During an outage,
+  // keep the persisted session and use the locally cached profile instead
+  // of redirecting the user to the login screen.
+  if (!isReadOnly() && navigator.onLine !== false) {
+    authStage = "verifying login with Supabase (auth.getUser)";
+    let timeoutId;
+    try {
+      const verified = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error("Login verification timed out")), 8000);
+        }),
+      ]);
+      clearTimeout(timeoutId);
+      if (!verified.error && verified.data?.user) user = verified.data.user;
+      else if (verified.error && (verified.error.status === 401 || verified.error.status === 403)) {
+        await supabase.auth.signOut();
+        window.location.replace(loginPath);
+        return;
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.warn("[auth] Online verification unavailable; continuing with the saved session in read-only mode:", error);
+    }
   }
 
   authStage = "loading your profile and role (profiles table)";
   const profile = await loadUserProfile(user.id);
 
-  if (!profile.is_active) {
+  if (!profile.is_active && !profile.offline_cached) {
     await supabase.auth.signOut();
     window.location.replace(loginPath + (loginPath.includes("?") ? "&" : "?") + "terminated=1");
     return;
