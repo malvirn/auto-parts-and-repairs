@@ -437,7 +437,7 @@ async function printBlankInspectionSheet(){
  if(!printWindow){setDetailMessage("Your browser blocked the print window. Allow pop-ups for this site and try again.",true);return}
  try {
   if(!record?.id){
-   const payload={report:{parts:{},notes:""},status:"draft",updated_at:new Date().toISOString()};
+   const payload={job_id:selectedJob?.id||null,customer_id:selectedJob?.customer_id||null,vehicle_id:selectedJob?.vehicle_id||null,report:{parts:{},notes:""},status:"draft",updated_at:new Date().toISOString()};
    const{data,error}=await supabase.from("job_condition_reports").insert(payload).select("id,checklist_number,inspection_no").single();
    if(error)throw new Error("Couldn't create the numbered checklist draft: "+error.message);
    record={...data,...payload};
