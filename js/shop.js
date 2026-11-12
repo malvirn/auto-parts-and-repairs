@@ -1008,7 +1008,12 @@ function addQuickSaleLine() {
     event.preventDefault();
     if (event.target.matches('input[type="number"][step="1"]')) {
       const quantity = Number(event.target.value);
-      if (!Number.isInteger(quantity) || quantity < 1) {
+      const part = quickSaleParts.find(item => item.id === row.dataset.partId);
+      if (!part) {
+        row.querySelector(".quick-sale-product-search").focus();
+        return;
+      }
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > Number(part.quantity_in_stock || 0)) {
         event.target.focus();
         return;
       }
