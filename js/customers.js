@@ -1,15 +1,10 @@
 // ========= Customers module =========
 import supabase from "./supabaseClient.js";
 import { hydrate } from "./data-cache.js";
-import { installBulkDelete } from "./bulk-delete.js";
 
 const tableBody = document.getElementById("customers-table");
 const form = document.getElementById("customer-form");
 const formMessage = document.getElementById("customer-form-message");
-const archiveToggle = document.getElementById("customer-archive-toggle");
-const directoryTitle = document.getElementById("customer-directory-title");
-const directoryDescription = document.getElementById("customer-directory-description");
-let showingArchived = false;
 let editingCustomerId = null;
 let editingVehicleId = null;
 let savedCustomerId = null;
@@ -20,15 +15,6 @@ let savedCustomerCode = "";
 const VEHICLE_BODY_TYPES = ["Sedan", "SUV", "Hatchback", "Pickup", "Van", "Other"];
 const vehicleBodyTypeValue = value =>
   VEHICLE_BODY_TYPES.find(type => type.toLowerCase() === String(value || "").trim().toLowerCase()) || "Other";
-
-installBulkDelete({
-  tbody: tableBody,
-  table: "customers",
-  label: "customer",
-  getId: row => row.dataset.customerId,
-  softDeleteColumn: "deleted_at",
-  isSelectable: row => row.dataset.archived !== "true",
-});
 
 function showCustomerMessage(text, tone = "success") {
   if (!formMessage) return;
@@ -75,14 +61,11 @@ function resetCustomerFormMode() {
   if (window.lucide) lucide.createIcons();
 }
 
-// ---- Load and render all customers ----
 async function fetchCustomersList() {
-  let query = supabase
-    .from("customers")
+  const { data, error } = await supabase.from("customers")
     .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, is_repeat_customer, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
-  query = showingArchived ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
-  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }
@@ -90,70 +73,43 @@ async function fetchCustomersList() {
 function renderCustomersList(data) {
   const term = document.getElementById("customer-directory-search")?.value.trim().toLocaleLowerCase() || "";
   data = data.filter(c => [c.full_name,c.customer_code,c.company_name,c.phone,c.email].filter(Boolean).join(" ").toLocaleLowerCase().includes(term));
-  if (data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="${showingArchived ? "archive" : "user-plus"}"></i></div><div class="apr-state__copy"><strong>${showingArchived ? "No archived customers" : "No customers yet"}</strong><p>${showingArchived ? "There are no archived records to restore." : "Add a customer above to build your directory."}</p></div></div></td></tr>`;
+  if (!data.length) {
+    tableBody.innerHTML = '<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--empty"><div class="apr-state__icon"><i data-lucide="user-plus"></i></div><div class="apr-state__copy"><strong>No customers yet</strong><p>Add a customer above to build your directory.</p></div></div></td></tr>';
     if (window.lucide) lucide.createIcons();
     return;
   }
   tableBody.innerHTML = data.map(c => `
-    <tr data-customer-id="${c.id}" data-archived="${showingArchived}">
+    <tr data-customer-id="${escapeHtml(c.id)}">
       <td data-label="Customer">${escapeHtml(c.full_name)}<small>Customer ID: ${escapeHtml(c.customer_code || "—")}</small>${c.is_company && c.company_name ? `<small>Company: ${escapeHtml(c.company_name)}</small>` : ""}</td>
       <td data-label="Type"><span class="customer-type" data-type="${c.is_company ? "company" : "individual"}">${c.is_company ? "Company" : "Individual"}</span></td>
       <td data-label="Phone">${escapeHtml(c.phone || "—")}</td>
       <td data-label="Vehicles">${vehiclePlates(c.vehicles)}</td>
       <td data-label="Customer status"><span class="customer-repeat${c.is_repeat_customer ? "" : " is-new"}">${c.is_repeat_customer ? "Repeat customer" : "New customer"}</span></td>
-      <td data-label="Action">${showingArchived ? `<button type="button" class="btn customer-restore" data-restore-customer="${escapeHtml(c.id)}"><i data-lucide="rotate-ccw"></i> Restore</button>` : `<button type="button" class="btn customer-edit" data-edit-customer="${escapeHtml(c.id)}"><i data-lucide="pencil"></i> Edit</button>`}</td>
+      <td data-label="Action"><div class="customer-row-actions"><button type="button" class="btn customer-edit" data-edit-customer="${escapeHtml(c.id)}"><i data-lucide="pencil"></i> Edit</button><button type="button" class="btn btn--primary" data-open-job-card="${escapeHtml(c.id)}" data-vehicle-id="${escapeHtml(c.vehicles?.[0]?.id || "")}"><i data-lucide="clipboard-plus"></i> Job card</button></div></td>
     </tr>
   `).join("");
   if (window.lucide) lucide.createIcons();
 }
 
-// Renders instantly from cache (set at sign-in or on an earlier visit this
-// session) and refreshes in the background, so arriving on this page never
-// shows a blank table while the network replies.
 async function loadCustomers() {
   try {
-    if (showingArchived) {
-      renderCustomersList(await fetchCustomersList());
-    } else {
-      await hydrate("customers:active-list", fetchCustomersList, renderCustomersList);
-    }
+    await hydrate("customers:active-list", fetchCustomersList, renderCustomersList);
   } catch (error) {
     console.error("Error loading customers:", error);
     tableBody.innerHTML = `<tr><td colspan="7" class="customer-empty"><div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Customers could not be loaded</strong><p>${escapeHtml(error.message)} This is usually a connection, server, or account-permission problem. Check your connection and retry.</p></div></div></td></tr>`;
   }
 }
 
-archiveToggle?.addEventListener("click", async () => {
-  showingArchived = !showingArchived;
-  archiveToggle.setAttribute("aria-pressed", String(showingArchived));
-  archiveToggle.textContent = showingArchived ? "View active customers" : "View archived customers";
-  if (directoryTitle) directoryTitle.textContent = showingArchived ? "Archived Customers" : "Registered Customers";
-  if (directoryDescription) directoryDescription.textContent = showingArchived
-    ? "Archived records are retained for review and can be restored."
-    : "Active customer records";
-  await loadCustomers();
-});
-
 tableBody?.addEventListener("click", async event => {
+  const jobButton = event.target.closest("[data-open-job-card]");
+  if (jobButton) {
+    const params = new URLSearchParams({ new: "1", customer: jobButton.dataset.openJobCard });
+    if (jobButton.dataset.vehicleId) params.set("vehicle", jobButton.dataset.vehicleId);
+    window.location.href = "repairs.html?" + params.toString();
+    return;
+  }
   const editButton = event.target.closest("[data-edit-customer]");
-  if (editButton) {
-    await startEditingCustomer(editButton.dataset.editCustomer);
-    return;
-  }
-  const button = event.target.closest("[data-restore-customer]");
-  if (!button) return;
-  button.disabled = true;
-  const { error } = await supabase.from("customers")
-    .update({ deleted_at: null })
-    .eq("id", button.dataset.restoreCustomer);
-  if (error) {
-    button.disabled = false;
-    showCustomerMessage(`Couldn't restore customer: ${error.message}`, "error");
-    return;
-  }
-  showCustomerMessage("Customer restored.");
-  await loadCustomers();
+  if (editButton) await startEditingCustomer(editButton.dataset.editCustomer);
 });
 
 // ---- Find an existing customer by phone or email ----
