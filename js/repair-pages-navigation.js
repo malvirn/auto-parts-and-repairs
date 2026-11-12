@@ -906,3 +906,68 @@ if (document.readyState === "loading") {
 } else {
   initializeAfterAccess();
 }
+
+
+// Global keyboard shortcuts and lowercase text-entry standard.
+(() => {
+  if (window.__centricGlobalShortcutsBound) return;
+  window.__centricGlobalShortcutsBound = true;
+
+  const pageUrl = file => new URL("../pages/" + file, import.meta.url).href;
+  const isTextEntry = target => Boolean(target?.closest?.(
+    'input, textarea, select, [contenteditable="true"], [role="textbox"]'
+  ));
+
+  document.addEventListener("keydown", event => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    const key = String(event.key || "").toLowerCase();
+    const target = event.target;
+    const searchTarget = target?.matches?.("#hs-input, #global-search-input");
+    if (isTextEntry(target) && !(key === "s" && searchTarget)) return;
+
+    let destination = null;
+    if (key === "s" && !event.shiftKey) {
+      event.preventDefault();
+      const search = document.querySelector("#hs-input, #global-search-input");
+      if (search) {
+        const panel = document.getElementById("hs-panel");
+        if (panel) panel.hidden = false;
+        search.focus({ preventScroll: true });
+        search.select?.();
+      } else {
+        document.getElementById("dashboard-sidebar-toggle")?.click();
+      }
+      return;
+    }
+    if (key === "q" && !event.shiftKey) destination = "quotations.html";
+    else if (key === "j" && !event.shiftKey) destination = "repairs.html";
+    else if (key === "r" && !event.shiftKey) destination = "receipts.html";
+    else if (key === "c" && event.shiftKey) destination = "checklist.html";
+    if (!destination) return;
+    event.preventDefault();
+    window.location.assign(pageUrl(destination));
+  });
+
+  const shouldLowercase = field => {
+    if (!field || field.disabled || field.readOnly) return false;
+    if (field.matches('input[type="email"], input[type="password"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"], input[type="color"], input[type="file"], input[type="checkbox"], input[type="radio"], input[type="range"], input[type="hidden"]')) return false;
+    if (String(field.name || "").toLowerCase() === "email" || String(field.id || "").toLowerCase().includes("email") || String(field.autocomplete || "").toLowerCase() === "email") return false;
+    if (field.closest("[data-case-sensitive]") || field.hasAttribute("data-case-sensitive")) return false;
+    return field.matches('textarea, input[type="text"], input[type="search"], input:not([type])');
+  };
+  const normalizeField = field => {
+    if (!shouldLowercase(field)) return;
+    const oldValue = field.value;
+    const newValue = oldValue.toLocaleLowerCase();
+    if (oldValue === newValue) return;
+    const start = typeof field.selectionStart === "number" ? field.selectionStart : null;
+    const end = typeof field.selectionEnd === "number" ? field.selectionEnd : null;
+    field.value = newValue;
+    if (start !== null && end !== null) {
+      try { field.setSelectionRange(start, end); } catch (_) {}
+    }
+  };
+  document.addEventListener("input", event => normalizeField(event.target), true);
+  document.addEventListener("change", event => normalizeField(event.target), true);
+  document.addEventListener("focusout", event => normalizeField(event.target), true);
+})();
