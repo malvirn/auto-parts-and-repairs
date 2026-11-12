@@ -676,7 +676,7 @@ function renderQuotationRows() {
       if (event.target === row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggle(); }
     });
   });
-  quoteTable.querySelectorAll(".quotation-action-bar button").forEach(button => button.addEventListener("click", async event => {
+  quoteTable.querySelectorAll(".quotation-action-bar button:not(.record-quote-deposit)").forEach(button => button.addEventListener("click", async event => {
     event.stopPropagation();
     const id = button.dataset.id;
     if (button.classList.contains("edit-quote")) return openQuoteEditor(id);
