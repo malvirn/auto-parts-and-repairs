@@ -181,9 +181,9 @@ async function startEditingCustomer(customerId) {
   editingVehicleId = customer.vehicles?.[0]?.id || null;
   document.getElementById("cust-name").value = customer.full_name || "";
   document.getElementById("cust-is-company").checked = Boolean(customer.is_company);
+  document.getElementById("cust-account-kind").value = customer.is_company ? "company" : "individual";
+  syncCustomerAccountKind(customer.is_company ? "company" : "individual");
   document.getElementById("cust-company-name").value = customer.company_name || "";
-  document.getElementById("cust-company-name-field").hidden = !customer.is_company;
-  document.getElementById("cust-company-name").required = Boolean(customer.is_company);
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-customer-code").readOnly = !canManageCustomerCode;
   document.getElementById("cust-type").value = customer.customer_type || "individual";
@@ -242,9 +242,9 @@ plateField?.addEventListener("change", async () => {
   document.getElementById("cust-phone").value = data.customers.phone || "";
   document.getElementById("customer-email").value = data.customers.email || "";
   document.getElementById("cust-is-company").checked = Boolean(data.customers.is_company);
+  document.getElementById("cust-account-kind").value = data.customers.is_company ? "company" : "individual";
+  syncCustomerAccountKind(data.customers.is_company ? "company" : "individual");
   document.getElementById("cust-company-name").value = data.customers.company_name || "";
-  document.getElementById("cust-company-name-field").hidden = !data.customers.is_company;
-  document.getElementById("cust-company-name").required = Boolean(data.customers.is_company);
   document.getElementById("cust-customer-code").value = data.customers.customer_code || "";
   document.getElementById("cust-body-type").value = vehicleBodyTypeValue(data.body_type);
   document.getElementById("cust-make").value = data.make || "";
@@ -274,7 +274,7 @@ if (form) {
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
     const requestedCustomerCode = document.getElementById("cust-customer-code")?.value.trim() || "";
-    const is_company = document.getElementById("cust-is-company")?.checked || false;
+    const is_company = document.getElementById("cust-account-kind")?.value === "company";
     const company_name = document.getElementById("cust-company-name")?.value.trim() || "";
     if (is_company && !company_name) { showCustomerMessage("Company name is required.", "error"); document.getElementById("cust-company-name")?.focus(); return; }
     const vehicle = {
@@ -500,13 +500,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-document.getElementById("cust-is-company")?.addEventListener("change", event => {
-  const enabled = event.currentTarget.checked;
-  const wrap = document.getElementById("cust-company-name-field");
-  const input = document.getElementById("cust-company-name");
-  if (wrap) wrap.hidden = !enabled;
-  if (input) { input.required = enabled; if (!enabled) input.value = ""; }
+function syncCustomerAccountKind(kind = document.getElementById("cust-account-kind")?.value || "individual") {
+  const isCompany = kind === "company";
+  const legacyToggle = document.getElementById("cust-is-company");
+  const companyWrap = document.getElementById("cust-company-name-field");
+  const companyInput = document.getElementById("cust-company-name");
+  const nameLabel = document.getElementById("cust-name-label");
+  const phoneLabel = document.getElementById("cust-phone-label");
+  const typeSelect = document.getElementById("cust-type");
+  if (legacyToggle) legacyToggle.checked = isCompany;
+  if (typeSelect) typeSelect.value = kind;
+  if (companyWrap) companyWrap.hidden = !isCompany;
+  if (companyInput) companyInput.required = isCompany;
+  if (nameLabel) nameLabel.textContent = isCompany ? "Driver Name" : "Full Name";
+  if (phoneLabel) phoneLabel.textContent = isCompany ? "Driver Phone Number" : "Phone Number";
+}
+document.getElementById("cust-account-kind")?.addEventListener("change", event => {
+  syncCustomerAccountKind(event.currentTarget.value);
 });
+document.getElementById("cust-is-company")?.addEventListener("change", event => {
+  const kind = event.currentTarget.checked ? "company" : "individual";
+  const selector = document.getElementById("cust-account-kind");
+  if (selector) selector.value = kind;
+  syncCustomerAccountKind(kind);
+});
+document.getElementById("customer-form")?.addEventListener("reset", () => {
+  queueMicrotask(() => syncCustomerAccountKind("individual"));
+});
+syncCustomerAccountKind();
 
 document.getElementById("customer-directory-search")?.addEventListener("input", () => loadCustomers());
 
