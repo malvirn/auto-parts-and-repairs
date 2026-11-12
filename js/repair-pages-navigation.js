@@ -948,26 +948,5 @@ if (document.readyState === "loading") {
     window.location.assign(pageUrl(destination));
   });
 
-  const shouldLowercase = field => {
-    if (!field || field.disabled || field.readOnly) return false;
-    if (field.matches('input[type="email"], input[type="password"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"], input[type="color"], input[type="file"], input[type="checkbox"], input[type="radio"], input[type="range"], input[type="hidden"]')) return false;
-    if (String(field.name || "").toLowerCase() === "email" || String(field.id || "").toLowerCase().includes("email") || String(field.autocomplete || "").toLowerCase() === "email") return false;
-    if (field.closest("[data-case-sensitive]") || field.hasAttribute("data-case-sensitive")) return false;
-    return field.matches('textarea, input[type="text"], input[type="search"], input:not([type])');
-  };
-  const normalizeField = field => {
-    if (!shouldLowercase(field)) return;
-    const oldValue = field.value;
-    const newValue = oldValue.toLocaleLowerCase();
-    if (oldValue === newValue) return;
-    const start = typeof field.selectionStart === "number" ? field.selectionStart : null;
-    const end = typeof field.selectionEnd === "number" ? field.selectionEnd : null;
-    field.value = newValue;
-    if (start !== null && end !== null) {
-      try { field.setSelectionRange(start, end); } catch (_) {}
-    }
-  };
-  document.addEventListener("input", event => normalizeField(event.target), true);
-  document.addEventListener("change", event => normalizeField(event.target), true);
-  document.addEventListener("focusout", event => normalizeField(event.target), true);
+
 })();
