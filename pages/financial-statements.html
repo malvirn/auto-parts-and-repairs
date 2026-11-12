@@ -3,14 +3,14 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js"></script>
+  <script src="../js/theme.js?v=chrome-buttons-1"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centric Auto Mobile | Financial Statements</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .statement-table td:last-child, .statement-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
@@ -23,20 +23,20 @@
     .balance-status.ok { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
     .balance-status.off { background: rgba(178,59,59,0.12); color: var(--danger, #b23b3b); }
   </style>
-  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/mh-theme.css?v=chrome-buttons-1">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css">
-  <link rel="stylesheet" href="../css/dashboard-header.css">
-  <link rel="stylesheet" href="../css/dashboard-shell.css">
-  <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-  <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+  <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -44,6 +44,7 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
@@ -51,7 +52,7 @@ body.dashboard-page .main{min-width:0}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -59,7 +60,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -68,7 +69,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -81,13 +82,13 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -96,20 +97,20 @@ body.dashboard-page .main{min-width:0}
 
     <main class="main">
       <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
-      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
-      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
-      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
-      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
-      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
-      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
-      <a href="financial-statements.html" class="btn btn--primary"><i data-lucide="file-bar-chart"></i> Statements</a>
+      <a href="accounting.html" class="btn chrome gun"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn chrome gun"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn chrome gun"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn chrome gun"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn chrome gun"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn chrome gun"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn chrome gun"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn btn--primary chrome gun"><i data-lucide="file-bar-chart"></i> Statements</a>
       </div>
 
-      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Financial Statements</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
+      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Financial Statements</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
 
       <section class="page-section">
-        <div class="section-heading"><div><p class="section-kicker">In plain English</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Monthly Summary</h2></div><button id="generate-summary-btn" type="button" class="btn btn--primary"><i data-lucide="sparkles"></i> Generate Summary</button></div>
+        <div class="section-heading"><div><p class="section-kicker">In plain English</p><h2><i class="section-heading-icon" data-lucide="sparkles"></i>Monthly Summary</h2></div><button id="generate-summary-btn" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="sparkles"></i> Generate Summary</button></div>
         <div class="panel" style="padding:20px;">
           <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:0;">Choose a period for Profit &amp; Loss and a date for the Balance Sheet, then refresh both reports before generating this plain-language overview. It uses only the figures shown below.</p>
           <div id="ai-summary-result" style="display:none; margin-top:12px; padding:14px 16px; background:var(--surface-2, #f6f5f2); border-radius:var(--radius); font-size:.9rem; white-space:pre-wrap; line-height:1.6;"></div>
@@ -120,14 +121,14 @@ body.dashboard-page .main{min-width:0}
         <div class="section-heading"><div><p class="section-kicker">Period report</p><h2><i class="section-heading-icon" data-lucide="trending-up"></i>Profit &amp; Loss</h2></div></div>
         <div class="panel" style="padding:20px;">
           <div class="preset-btns">
-            <button type="button" class="btn" data-pl-preset="month">This Month</button>
-            <button type="button" class="btn" data-pl-preset="year">This Year</button>
-            <button type="button" class="btn" data-pl-preset="all">All Time</button>
+            <button type="button" class="btn chrome" data-pl-preset="month">This Month</button>
+            <button type="button" class="btn chrome" data-pl-preset="year">This Year</button>
+            <button type="button" class="btn chrome" data-pl-preset="all">All Time</button>
           </div>
           <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr); align-items:end;">
             <div class="field"><label>Report period starts</label><input type="date" id="pl-start" /></div>
             <div class="field"><label>Report period ends</label><input type="date" id="pl-end" /></div>
-            <button id="pl-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
+            <button id="pl-refresh-btn" type="button" class="btn btn--primary chrome gun"><span class="led" aria-hidden="true"></span><i data-lucide="refresh-cw"></i> Refresh</button>
           </div>
           <table class="statement-table" style="margin-top:16px;">
             <tbody id="pl-body"><tr><td colspan="2" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
@@ -139,13 +140,13 @@ body.dashboard-page .main{min-width:0}
         <div class="section-heading"><div><p class="section-kicker">Point in time</p><h2><i class="section-heading-icon" data-lucide="scale"></i>Balance Sheet</h2></div></div>
         <div class="panel" style="padding:20px;">
           <div class="preset-btns">
-            <button type="button" class="btn" data-bs-preset="today">Today</button>
-            <button type="button" class="btn" data-bs-preset="month-end">End of This Month</button>
-            <button type="button" class="btn" data-bs-preset="year-end">End of This Year</button>
+            <button type="button" class="btn chrome" data-bs-preset="today">Today</button>
+            <button type="button" class="btn chrome" data-bs-preset="month-end">End of This Month</button>
+            <button type="button" class="btn chrome" data-bs-preset="year-end">End of This Year</button>
           </div>
           <div class="form-grid" style="max-width:none; grid-template-columns: 1fr auto; align-items:end;">
             <div class="field"><label>Balance Sheet date</label><input type="date" id="bs-asof" /></div>
-            <button id="bs-refresh-btn" type="button" class="btn btn--primary"><i data-lucide="refresh-cw"></i> Refresh</button>
+            <button id="bs-refresh-btn" type="button" class="btn btn--primary chrome gun"><span class="led" aria-hidden="true"></span><i data-lucide="refresh-cw"></i> Refresh</button>
           </div>
           <table class="statement-table" style="margin-top:16px;">
             <tbody id="bs-body"><tr><td colspan="2" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
@@ -157,13 +158,13 @@ body.dashboard-page .main{min-width:0}
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-  <script type="module" src="../js/financial-statements.js"></script>
+  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/financial-statements.js?v=chrome-buttons-1"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script type="module" src="../js/dashboard-search.js"></script>
-  <script defer src="../js/progressive-lists.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
+  <script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

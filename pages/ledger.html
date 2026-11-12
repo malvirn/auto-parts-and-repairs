@@ -3,14 +3,14 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js"></script>
+  <script src="../js/theme.js?v=chrome-buttons-1"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centric Auto Mobile | General Ledger</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     /* Modal fix — same root cause as Suppliers/Quotations/Shop: the shared
@@ -292,20 +292,20 @@
  .customer-inline-payment-actions>*{flex:1 1 130px}
 }
 </style>
-  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/mh-theme.css?v=chrome-buttons-1">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css">
-  <link rel="stylesheet" href="../css/dashboard-header.css">
-  <link rel="stylesheet" href="../css/dashboard-shell.css">
-  <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -313,6 +313,7 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
@@ -320,7 +321,7 @@ body.dashboard-page .main{min-width:0}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -328,7 +329,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -337,7 +338,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link active" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -350,13 +351,13 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -365,14 +366,14 @@ body.dashboard-page .main{min-width:0}
 
     <main class="main">
       <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
-      <a href="ledger.html" class="btn btn--primary"><i data-lucide="book-open-check"></i> Ledger</a>
-      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
-      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
-      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
-      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
-      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
-      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      <a href="accounting.html" class="btn chrome gun"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn btn--primary chrome gun"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn chrome gun"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn chrome gun"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn chrome gun"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn chrome gun"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn chrome gun"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn chrome gun"><i data-lucide="file-bar-chart"></i> Statements</a>
       </div>
 
       <header class="main__header app-header">
@@ -391,7 +392,7 @@ body.dashboard-page .main{min-width:0}
           <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">General Ledger</span></div>
         </div>
         <div class="hdr-menu-wrap">
-          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
       </header>
@@ -399,7 +400,7 @@ body.dashboard-page .main{min-width:0}
       <section class="page-section" id="job-billing" aria-labelledby="job-billing-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Billing</p><h2 id="job-billing-heading"><i class="section-heading-icon" data-lucide="receipt"></i>Closed Job Cards — Ready to Bill</h2></div>
-          <button id="jb-refresh" type="button" class="btn" aria-label="Refresh billing list"><i data-lucide="refresh-cw"></i></button>
+          <button id="jb-refresh" type="button" class="btn chrome rd" aria-label="Refresh billing list"><i data-lucide="refresh-cw"></i></button>
         </div>
         <p class="page-intro">Every job card you close lands here with its parts and services. Tap a job to see the charges, then send the invoice or notify the customer.</p>
         <div class="customer-account-summary">
@@ -413,12 +414,12 @@ body.dashboard-page .main{min-width:0}
         </div>
         <p id="jb-message" class="form-message" role="status" aria-live="polite"></p>
         <div id="jb-list" class="jb-list"><p class="empty-state">Loading closed jobs…</p></div>
-        <div id="jb-load-more-wrap" hidden><button id="jb-load-more" type="button" class="btn">Load more jobs</button></div>
+        <div id="jb-load-more-wrap" hidden><button id="jb-load-more" type="button" class="btn chrome">Load more jobs</button></div>
       </section>
       <section class="page-section" id="unpriced-job-parts" aria-labelledby="unpriced-job-parts-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Action required</p><h2 id="unpriced-job-parts-heading"><i class="section-heading-icon" data-lucide="triangle-alert"></i>Typed-in Job Parts Awaiting Price</h2></div>
-          <button id="refresh-unpriced-job-parts" type="button" class="btn" aria-label="Refresh unpriced job parts"><i data-lucide="refresh-cw"></i></button>
+          <button id="refresh-unpriced-job-parts" type="button" class="btn chrome rd" aria-label="Refresh unpriced job parts"><i data-lucide="refresh-cw"></i></button>
         </div>
         <p class="page-intro">These job-card parts were entered without an inventory item. Add the accounting price here before invoicing the customer.</p>
         <p id="unpriced-job-parts-message" class="form-message" role="status" aria-live="polite"></p>
@@ -464,8 +465,8 @@ body.dashboard-page .main{min-width:0}
           </div>
           <p id="jb-payment-message" class="form-message" role="status" aria-live="polite"></p>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-            <button id="jb-payment-cancel" type="button" class="btn">Cancel</button>
-            <button id="jb-payment-save" type="button" class="btn btn--primary">Confirm payment &amp; issue receipt</button>
+            <button id="jb-payment-cancel" type="button" class="btn chrome gun">Cancel</button>
+            <button id="jb-payment-save" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span>Confirm payment &amp; issue receipt</button>
           </div>
         </div>
       </div>
@@ -498,8 +499,8 @@ body.dashboard-page .main{min-width:0}
           <p class="section-note">*The job's parts cost is saved to the job card. Your existing database logic remains responsible for the final job total and accounting postings. Existing stocked-part prices are shown and are not changed here.</p>
           <p id="job-part-pricing-message" class="form-message" role="status" aria-live="polite"></p>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-            <button id="job-part-pricing-cancel" type="button" class="btn">Cancel</button>
-            <button id="job-part-pricing-save" type="button" class="btn btn--primary">Save prices</button>
+            <button id="job-part-pricing-cancel" type="button" class="btn chrome gun">Cancel</button>
+            <button id="job-part-pricing-save" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span>Save prices</button>
           </div>
         </div>
       </div>
@@ -507,7 +508,7 @@ body.dashboard-page .main{min-width:0}
       <section class="page-section" id="customer-directory" aria-labelledby="customer-directory-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Customer records</p><h2 id="customer-directory-heading"><i class="section-heading-icon" data-lucide="users-round"></i>Customer Details &amp; History</h2></div>
-          <button id="refresh-customer-directory" type="button" class="btn" title="Refresh customer directory" aria-label="Refresh customer directory"><i data-lucide="refresh-cw"></i></button>
+          <button id="refresh-customer-directory" type="button" class="btn chrome rd" title="Refresh customer directory" aria-label="Refresh customer directory"><i data-lucide="refresh-cw"></i></button>
         </div>
         <p class="page-intro">Search every registered customer, select a name, and review their contact and vehicle details, quotations, job cards, parts sales, invoices, receipts, payments, and outstanding balances in date order.</p>
         <div class="customer-account-controls">
@@ -530,7 +531,7 @@ body.dashboard-page .main{min-width:0}
       <section class="page-section" id="customer-accounts" aria-labelledby="customer-accounts-heading">
         <div class="section-heading">
           <div><p class="section-kicker">Accounts receivable</p><h2 id="customer-accounts-heading"><i class="section-heading-icon" data-lucide="contact-round"></i>Customer Accounts</h2></div>
-          <button id="refresh-customer-accounts" type="button" class="btn" title="Refresh customer balances" aria-label="Refresh customer balances"><i data-lucide="refresh-cw"></i></button>
+          <button id="refresh-customer-accounts" type="button" class="btn chrome rd" title="Refresh customer balances" aria-label="Refresh customer balances"><i data-lucide="refresh-cw"></i></button>
         </div>
         <p class="page-intro">Outstanding repair and confirmed sales balances, with customer credits shown separately. Quotation deposits are held in Customer Deposits (2300). Credit applications, partial refunds and reversals post balanced journal entries here.</p>
         <div class="customer-account-summary" aria-live="polite">
@@ -577,7 +578,7 @@ body.dashboard-page .main{min-width:0}
               </select>
             </div>
           </div>
-          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Account</button>
+          <button type="submit" class="btn btn--primary chrome" style="margin-top:10px;"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Account</button>
           <p id="account-form-message" class="form-message"></p>
         </form>
         <div class="panel">
@@ -600,7 +601,7 @@ body.dashboard-page .main{min-width:0}
           <div style="margin-top:16px;">
             <label style="font-size:.82rem; color:var(--text-muted); display:block; margin-bottom:6px;">Lines</label>
             <div id="journal-lines"></div>
-            <button type="button" id="add-line-btn" class="btn"><i data-lucide="plus"></i> Add Line</button>
+            <button type="button" id="add-line-btn" class="btn chrome"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Line</button>
           </div>
 
           <div id="balance-check" class="balance-check unbalanced">
@@ -609,7 +610,7 @@ body.dashboard-page .main{min-width:0}
             <span id="balance-status">Not balanced yet</span>
           </div>
 
-          <button type="submit" id="post-entry-btn" class="btn btn--primary" disabled><i data-lucide="check"></i> Post Entry</button>
+          <button type="submit" id="post-entry-btn" class="btn btn--primary chrome" disabled><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Post Entry</button>
           <p id="journal-form-message" class="form-message"></p>
         </form>
       </section>
@@ -627,7 +628,7 @@ body.dashboard-page .main{min-width:0}
       <section class="page-section">
         <div class="section-heading">
           <div><p class="section-kicker">Report</p><h2><i class="section-heading-icon" data-lucide="scale"></i>Trial Balance</h2></div>
-          <button id="refresh-tb-btn" type="button" class="btn"><i data-lucide="refresh-cw"></i> Refresh</button>
+          <button id="refresh-tb-btn" type="button" class="btn chrome gun"><i data-lucide="refresh-cw"></i> Refresh</button>
         </div>
         <div class="panel">
           <table id="trial-balance-table">
@@ -645,7 +646,7 @@ body.dashboard-page .main{min-width:0}
       <h3>Journal Entry <span id="entry-modal-ref"></span></h3>
       <div id="entry-modal-lines"></div>
       <div style="display:flex; gap:8px; margin-top:14px;">
-        <button id="entry-modal-close" type="button" class="btn"><i data-lucide="x"></i> Close</button>
+        <button id="entry-modal-close" type="button" class="btn chrome gun"><i data-lucide="x"></i> Close</button>
       </div>
     </div>
   </div>
@@ -658,22 +659,22 @@ body.dashboard-page .main{min-width:0}
       <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option></select></div>
       <div class="field"><label for="quick-sale-payment-date">Payment date</label><input id="quick-sale-payment-date" type="date" required></div>
       <div style="display:flex;gap:8px;margin-top:14px;">
-        <button id="quick-sale-payment-save" type="button" class="btn btn--primary">Record payment</button>
-        <button id="quick-sale-payment-cancel" type="button" class="btn">Cancel</button>
+        <button id="quick-sale-payment-save" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span>Record payment</button>
+        <button id="quick-sale-payment-cancel" type="button" class="btn chrome gun">Cancel</button>
       </div>
       <p id="quick-sale-payment-message" class="form-message" role="status" aria-live="polite"></p>
     </div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-  <script type="module" src="../js/ledger.js"></script>
-  <script type="module" src="../js/customer-accounts.js"></script>
-  <script type="module" src="../js/customer-directory.js"></script>
+  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/ledger.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/customer-accounts.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/customer-directory.js?v=chrome-buttons-1"></script>
   <script type="module">
-    import supabase from "../js/supabaseClient.js";
+    import supabase from "../js/supabaseClient.js?v=chrome-buttons-1";
     const $ = id => document.getElementById(id);
     const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     const money = v => "$" + Number(v || 0).toFixed(2);
@@ -774,11 +775,11 @@ body.dashboard-page .main{min-width:0}
               <tr class="tot"><td colspan="2">Balance due</td><td>${money(r.balance)}</td></tr>
             </table>
             <div class="jb-actions">
-              <a class="btn btn--primary" href="receipts.html?new=1&job=${encodeURIComponent(j.id)}&from=ledger"><i data-lucide="receipt"></i> Invoice</a>
-              <a class="btn" href="repairs.html?edit=${encodeURIComponent(j.id)}"><i data-lucide="pencil"></i> Edit job card</a>
-              <button class="btn btn--primary" type="button" data-collect="${esc(j.id)}"><i data-lucide="wallet"></i> Bill &amp; collect payment</button>
-              <button class="btn" type="button" data-wa="${esc(j.id)}"><i data-lucide="message-circle"></i> Notify on WhatsApp</button>
-              <button class="btn" type="button" data-mail="${esc(j.id)}"><i data-lucide="mail"></i> Email</button>
+              <a class="btn btn--primary chrome gun" href="receipts.html?new=1&job=${encodeURIComponent(j.id)}&from=ledger"><i data-lucide="receipt"></i> Invoice</a>
+              <a class="btn chrome gun" href="repairs.html?edit=${encodeURIComponent(j.id)}"><i data-lucide="pencil"></i> Edit job card</a>
+              <button class="btn btn--primary chrome" type="button" data-collect="${esc(j.id)}"><span class="led" aria-hidden="true"></span><i data-lucide="wallet"></i> Bill &amp; collect payment</button>
+              <button class="btn chrome chrome-whatsapp" type="button" data-wa="${esc(j.id)}"><span class="led green" aria-hidden="true"></span><i data-lucide="message-circle"></i> Notify on WhatsApp</button>
+              <button class="btn chrome gun" type="button" data-mail="${esc(j.id)}"><i data-lucide="mail"></i> Email</button>
             </div>
           </div>
         </div>`;
@@ -1024,11 +1025,11 @@ body.dashboard-page .main{min-width:0}
     load();
   </script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script type="module" src="../js/dashboard-search.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
   
 <script type="module">
-import supabase from "../js/supabaseClient.js";
+import supabase from "../js/supabaseClient.js?v=chrome-buttons-1";
 (()=>{
  const $=id=>document.getElementById(id);
  const money=n=>"$"+Number(n||0).toFixed(2);
@@ -1071,7 +1072,7 @@ import supabase from "../js/supabaseClient.js";
     <td>${esc(labels.join(", "))}${group.lines.length>2?` <small>+${group.lines.length-2} more</small>`:""}</td>
     <td>${group.lines.length} unpriced line(s)</td>
     <td><span class="pill">Price required</span></td>
-    <td><button type="button" class="btn btn--primary" data-open-job-pricing="${esc(group.jobId)}">Open job / price parts</button></td>
+    <td><button type="button" class="btn btn--primary chrome" data-open-job-pricing="${esc(group.jobId)}"><span class="led" aria-hidden="true"></span>Open job / price parts</button></td>
    </tr>`;
   }).join("");
   message.textContent=`${grouped.size} job card(s) have ${activeParts.length} part line(s) awaiting Accounting prices.`;
@@ -1231,7 +1232,7 @@ import supabase from "../js/supabaseClient.js";
   sync();
 })();
 </script>
-<script type="module" src="../js/phone-inputs.js"></script>
-<script defer src="../js/progressive-lists.js"></script>
+<script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
+<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

@@ -3,14 +3,14 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js"></script>
+  <script src="../js/theme.js?v=chrome-buttons-1"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centric Auto Mobile | Fixed Assets</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .modal-overlay {
@@ -31,20 +31,20 @@
     .status-badge.active { background: rgba(46,125,79,0.12); color: var(--success, #2e7d4f); }
     .status-badge.disposed { background: rgba(0,0,0,0.06); color: var(--text-muted); }
   </style>
-  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/mh-theme.css?v=chrome-buttons-1">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css">
-  <link rel="stylesheet" href="../css/dashboard-header.css">
-  <link rel="stylesheet" href="../css/dashboard-shell.css">
-  <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -52,6 +52,7 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
@@ -59,7 +60,7 @@ body.dashboard-page .main{min-width:0}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -67,7 +68,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -76,7 +77,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -89,13 +90,13 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -104,17 +105,17 @@ body.dashboard-page .main{min-width:0}
 
     <main class="main">
       <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
-      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
-      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
-      <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
-      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
-      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
-      <a href="fixed-assets.html" class="btn btn--primary"><i data-lucide="wrench"></i> Fixed Assets</a>
-      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      <a href="accounting.html" class="btn chrome gun"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn chrome gun"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn chrome gun"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn chrome gun"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn chrome gun"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn chrome gun"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn btn--primary chrome gun"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn chrome gun"><i data-lucide="file-bar-chart"></i> Statements</a>
       </div>
 
-      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Fixed Assets</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
+      <header class="main__header app-header"><div class="hdr-brand dashboard-hero__brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo"><span class="hdr-divider" aria-hidden="true"></span><div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div></div><div class="hs" id="hs"><div class="hs-bar" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><span class="hs-kbd" aria-hidden="true">/</span></div></div><div class="hdr-right"><div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live"><i aria-hidden="true"></i><span>Live</span></div></div><span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Fixed Assets</span></div></div><div class="hdr-menu-wrap"><button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div></div></header>
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Register an asset</p><h2><i class="section-heading-icon" data-lucide="plus"></i>Add Fixed Asset</h2></div></div>
@@ -138,7 +139,7 @@ body.dashboard-page .main{min-width:0}
             </div>
             <div class="field" id="asset-payment-account-field"><label>Paid From</label><select id="asset-payment-account"></select></div>
           </div>
-          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Asset</button>
+          <button type="submit" class="btn btn--primary chrome" style="margin-top:10px;"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Asset</button>
           <p id="asset-form-message" class="form-message"></p>
         </form>
       </section>
@@ -146,7 +147,7 @@ body.dashboard-page .main{min-width:0}
       <section class="page-section">
         <div class="section-heading">
           <div><p class="section-kicker">Monthly</p><h2><i class="section-heading-icon" data-lucide="trending-down"></i>Depreciation</h2></div>
-          <button id="run-depreciation-btn" type="button" class="btn btn--primary"><i data-lucide="trending-down"></i> Run This Month's Depreciation</button>
+          <button id="run-depreciation-btn" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="trending-down"></i> Run This Month's Depreciation</button>
         </div>
       </section>
 
@@ -171,22 +172,22 @@ body.dashboard-page .main{min-width:0}
       <div class="field"><label>Deposit Proceeds Into</label><select id="dispose-account"></select></div>
       <p id="dispose-preview" style="font-size:.85rem; color:var(--text-muted);"></p>
       <div style="display:flex; gap:8px; margin-top:10px;">
-        <button id="dispose-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Confirm Disposal</button>
-        <button id="dispose-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+        <button id="dispose-save" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Confirm Disposal</button>
+        <button id="dispose-cancel" type="button" class="btn chrome gun"><i data-lucide="x"></i> Cancel</button>
       </div>
       <p id="dispose-form-message" class="form-message"></p>
     </div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-  <script type="module" src="../js/fixed-assets.js"></script>
+  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/fixed-assets.js?v=chrome-buttons-1"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script type="module" src="../js/dashboard-search.js"></script>
-  <script type="module" src="../js/phone-inputs.js"></script>
-<script defer src="../js/progressive-lists.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
+<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

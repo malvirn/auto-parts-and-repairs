@@ -20,10 +20,10 @@
 <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b1012">
-<script src="../js/pwa.js" defer></script>
-<script src="../js/theme.js"></script>
-<link rel="stylesheet" href="../css/dashboard-header.css">
-<link rel="stylesheet" href="../css/dashboard-shell.css">
+<script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
+<script src="../js/theme.js?v=chrome-buttons-1"></script>
+<link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
+<link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
 <style id="dashboard-design">
     html{background:#0b1012;color-scheme:dark}
     body.dashboard-page{
@@ -718,7 +718,7 @@ select.st option{background:#10181a;color:#eef3ef}
   #doc th, #doc td { padding: 6px 3px; font-size: 9px; }
 }
 </style>
-  <link rel="stylesheet" href="../css/ui-consistency.css">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
 <style id="credit-note-neutral-palette">
 /* Neutral credit-note palette: remove green/orange accents consistently. */
 .customer-credit-panel-scope .customer-credit-summary>div,
@@ -755,8 +755,8 @@ select.st option{background:#10181a;color:#eef3ef}
 .credit-modal-sheet .customer-credit-actions input,
 .credit-modal-sheet .customer-credit-actions select{background:#111820!important;border-color:#596575!important;color:#f1f4f7!important}
 </style>
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
   <style id="dashboard-chrome-prepaint">
     body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
     body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -764,6 +764,7 @@ select.st option{background:#10181a;color:#eef3ef}
     body.dashboard-page .dashboard-topbar { height:68px; min-height:68px; }
     body.dashboard-page .main { min-width:0; }
   </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -771,7 +772,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -779,7 +780,7 @@ select.st option{background:#10181a;color:#eef3ef}
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Parts &amp; Stock</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -788,7 +789,7 @@ select.st option{background:#10181a;color:#eef3ef}
         </div>
       </div>
       <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -801,13 +802,13 @@ select.st option{background:#10181a;color:#eef3ef}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -846,7 +847,7 @@ select.st option{background:#10181a;color:#eef3ef}
         </div>
         <!-- Three-dots menu, top right of the header (modules come from the role-filtered sidebar) -->
         <div class="hdr-menu-wrap">
-          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
+          <button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
           </button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
@@ -859,10 +860,10 @@ select.st option{background:#10181a;color:#eef3ef}
 <div class="dash-content rc">
   <section class="panel" id="v-list" data-no-progressive>
     <div class="rc-tabs">
-      <button class="seg" data-tab="receipts" aria-pressed="true">Receipts</button>
-      <button class="seg" data-tab="invoices" aria-pressed="false">Invoices</button>
+      <button class="seg chrome" data-tab="receipts" aria-pressed="true">Receipts</button>
+      <button class="seg chrome" data-tab="invoices" aria-pressed="false">Invoices</button>
       <span class="grow"></span>
-      <button class="btn btn--primary" id="new-inv"><i data-lucide="plus"></i> Create customer invoice</button>
+      <button class="btn btn--primary chrome" id="new-inv"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Create customer invoice</button>
     </div>
     <p class="invoice-billing-note">Create a bill for a customer here. Open an unpaid invoice to record a full or partial payment and see the remaining balance.</p>
     <div class="rc-stats" style="margin:18px 0" id="stats"></div>
@@ -874,14 +875,14 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="receipt-filter-method">Payment method<select id="receipt-filter-method"><option value="">All methods</option><option>Cash</option><option>Card</option><option>Card / POS</option><option>EcoCash</option><option>Bank</option><option>Bank transfer</option><option>Swipe</option><option>Other</option></select></label>
       <label for="receipt-filter-min">Minimum amount ($)<input id="receipt-filter-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
       <label for="receipt-filter-max">Maximum amount ($)<input id="receipt-filter-max" type="number" min="0" step="0.01" placeholder="Any"></label>
-      <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
+      <button class="btn chrome gun" id="receipt-filter-clear" type="button">Clear filters</button>
     </div>
     <div id="list" data-no-progressive><div class="ov-empty">Loading…</div></div>
   </section>
 
-  <div class="rc-tabs credit-voucher-tabs" role="group" aria-label="Customer credit views"><button class="btn" id="credit-notes-tab" type="button" aria-pressed="true">Credit Notes</button><button class="btn" id="credit-voucher-tab" type="button" aria-pressed="false">Vouchers</button></div>
+  <div class="rc-tabs credit-voucher-tabs" role="group" aria-label="Customer credit views"><button class="btn chrome" id="credit-notes-tab" type="button" aria-pressed="true">Credit Notes</button><button class="btn chrome" id="credit-voucher-tab" type="button" aria-pressed="false">Vouchers</button></div>
   <section class="panel" id="customer-credit-panel">
-    <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits &amp; invoice overpayments</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn" id="customer-credit-refresh" type="button" title="Refresh customer credit"><i data-lucide="refresh-cw"></i></button></div>
+    <div class="rc-tabs"><div><p class="section-kicker">Quotation deposits &amp; invoice overpayments</p><h2>Customer Credit Notes</h2></div><span class="grow"></span><button class="btn chrome rd" id="customer-credit-refresh" type="button" title="Refresh customer credit" aria-label="refresh cw"><i data-lucide="refresh-cw"></i></button></div>
     <p class="invoice-billing-note">Includes quotation deposits and invoice overpayments. Overpayments appear here with their credit note number, original invoice and amount carried forward. Customer credit remains a liability, not new income. Quotation deposit applications, refunds and reversals are audited in the ledger.</p>
     <div class="receipt-list-filters credit-note-filters" role="search" aria-label="Filter credit notes">
       <label for="customer-credit-search">Search customer, credit note, invoice, phone or reference<input id="customer-credit-search" type="search" placeholder="Search credit notes…" autocomplete="off"></label>
@@ -891,7 +892,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <label for="customer-credit-method">Payment method<select id="customer-credit-method"><option value="">All methods</option><option>Cash</option><option>EcoCash</option><option>Bank</option><option>Swipe</option><option>Card</option><option>Other</option></select></label>
       <label for="customer-credit-min">Minimum amount ($)<input id="customer-credit-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
       <label for="customer-credit-max">Maximum amount ($)<input id="customer-credit-max" type="number" min="0" step="0.01" placeholder="Any"></label>
-      <button class="btn" id="customer-credit-clear" type="button">Clear filters</button>
+      <button class="btn chrome gun" id="customer-credit-clear" type="button">Clear filters</button>
     </div>
     <div class="rc-doc-wrap"><div id="customer-credit-list" data-no-progressive aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
   </section>
@@ -899,8 +900,8 @@ select.st option{background:#10181a;color:#eef3ef}
     <div class="rc-tabs">
       <div><p class="section-kicker">Portable customer credit</p><h2>Credit Vouchers</h2></div>
       <span class="grow"></span>
-      <button class="btn" id="credit-voucher-settings" type="button">Voucher settings</button>
-      <button class="btn" id="credit-voucher-refresh" type="button" title="Refresh vouchers"><i data-lucide="refresh-cw"></i></button>
+      <button class="btn chrome" id="credit-voucher-settings" type="button">Voucher settings</button>
+      <button class="btn chrome rd" id="credit-voucher-refresh" type="button" title="Refresh vouchers" aria-label="refresh cw"><i data-lucide="refresh-cw"></i></button>
     </div>
     <p class="invoice-billing-note">Share a voucher code or QR with a customer. Vouchers can be redeemed against eligible job cards, invoices and confirmed sales orders. Partial redemption is supported.</p>
     <div class="receipt-list-filters" role="search" aria-label="Filter vouchers">
@@ -910,7 +911,7 @@ select.st option{background:#10181a;color:#eef3ef}
     <section class="credit-voucher-redeem" aria-labelledby="credit-voucher-redeem-title">
       <h3 id="credit-voucher-redeem-title">Redeem a voucher</h3>
       <p>Enter the voucher code or scan its QR. You can use it against another customer's outstanding balance.</p>
-      <div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" aria-label="Voucher code"><button class="btn" id="voucher-redeem-check" type="button">Check code</button><button class="btn" id="voucher-redeem-scan" type="button">Scan QR</button></div>
+      <div class="credit-voucher-code-entry"><input id="voucher-redeem-code" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" aria-label="Voucher code"><button class="btn chrome" id="voucher-redeem-check" type="button">Check code</button><button class="btn chrome" id="voucher-redeem-scan" type="button">Scan QR</button></div>
       <div id="voucher-redeem-preview" class="credit-voucher-preview" aria-live="polite"></div>
       <label for="voucher-redeem-source">Customer credit available for this balance</label>
       <select id="voucher-redeem-source"><option value="">Choose a credit note or voucher…</option></select>
@@ -922,15 +923,15 @@ select.st option{background:#10181a;color:#eef3ef}
       <input id="voucher-redeem-confirmation" type="text" autocomplete="off" placeholder="Confirm customer identity">
       <label id="voucher-redeem-authorised-label" for="voucher-redeem-authorised-by" hidden>Authorised by</label>
       <input id="voucher-redeem-authorised-by" type="text" autocomplete="off" placeholder="Driver or accounts person" hidden>
-      <button class="btn btn--primary" id="voucher-redeem-apply" type="button" disabled>Apply voucher</button>
+      <button class="btn btn--primary chrome" id="voucher-redeem-apply" type="button" disabled><span class="led" aria-hidden="true"></span>Apply voucher</button>
       <p id="voucher-redeem-message" role="status"></p>
       <video id="voucher-redeem-video" playsinline muted hidden></video>
     </section>
     <div class="rc-doc-wrap"><div id="credit-voucher-list" data-no-progressive aria-live="polite"><div class="customer-credit-empty">Open Vouchers to load customer credit vouchers.</div></div></div>
   </section>
   <section class="panel" id="v-build" hidden>
-    <div class="rc-tabs"><button class="btn" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 id="build-title" style="margin-left:6px">New invoice</h2></div>
-    <div class="pane-switch" role="group" aria-label="Show details or invoice"><button type="button" class="pane-btn" data-pane="form" aria-pressed="true">Details</button><button type="button" class="pane-btn" data-pane="doc" aria-pressed="false">Invoice</button></div>
+    <div class="rc-tabs"><button class="btn chrome gun" id="b-back"><i data-lucide="arrow-left"></i> Back</button><h2 id="build-title" style="margin-left:6px">New invoice</h2></div>
+    <div class="pane-switch" role="group" aria-label="Show details or invoice"><button type="button" class="pane-btn chrome" data-pane="form" aria-pressed="true">Details</button><button type="button" class="pane-btn chrome" data-pane="doc" aria-pressed="false">Invoice</button></div>
     <div class="rc-build" id="rc-build" data-pane="form" style="margin-top:18px">
       <div class="rc-form">
         <h3>1 · Customer</h3>
@@ -940,27 +941,27 @@ select.st option{background:#10181a;color:#eef3ef}
         <h3>2 · Items</h3>
         <div id="items" style="display:grid;gap:8px"></div>
         <datalist id="parts-dl"></datalist>
-        <button class="btn" id="add-li" type="button"><i data-lucide="plus"></i> Add line</button>
+        <button class="btn chrome" id="add-li" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add line</button>
         <div class="two"><input id="f-vat" type="hidden" value="5" aria-hidden="true" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
         <div class="two"><input id="f-due" type="date" title="Due date" /><input id="f-ref" placeholder="Job card / vehicle reg (optional)" /></div>
         <textarea id="f-notes" rows="2" placeholder="Notes / payment instructions (EcoCash, bank, cash)"></textarea>
         <h3>3 · Save &amp; send</h3>
-        <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save invoice &amp; share</button>
+        <button class="btn btn--primary chrome" id="save" type="button"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Save invoice &amp; share</button>
       </div>
       <div class="rc-doc-wrap"><div id="doc-new"></div></div>
     </div>
   </section>
 
   <section class="panel" id="v-doc" hidden>
-    <div class="rc-tabs"><button class="btn" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete" id="d-delete" type="button" hidden><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary" id="d-paid" hidden><i data-lucide="banknote"></i> Record payment</button><button class="btn" id="d-link-credit" hidden type="button"><i data-lucide="link"></i> Link to job card</button></div>
+    <div class="rc-tabs"><button class="btn chrome gun" id="d-back"><i data-lucide="arrow-left"></i> Back</button><span class="grow"></span><button class="btn chrome" id="d-edit" type="button" hidden><i data-lucide="pencil"></i> Edit</button><button class="btn btn--danger rc-delete chrome gun chrome-destructive" id="d-delete" type="button" hidden><span class="led red" aria-hidden="true"></span><i data-lucide="trash-2"></i> Delete</button><button class="btn btn--primary chrome" id="d-paid" hidden><span class="led" aria-hidden="true"></span><i data-lucide="banknote"></i> Record payment</button><button class="btn chrome" id="d-link-credit" hidden type="button"><i data-lucide="link"></i> Link to job card</button></div>
     <div class="rc-bar" style="margin:16px 0">
-      <button class="btn wa" id="s-wa"><i data-lucide="message-circle"></i> WhatsApp</button>
-      <button class="btn" id="s-mail"><i data-lucide="mail"></i> Email</button>
+      <button class="btn wa chrome chrome-whatsapp" id="s-wa"><span class="led green" aria-hidden="true"></span><i data-lucide="message-circle"></i> WhatsApp</button>
+      <button class="btn chrome gun" id="s-mail"><i data-lucide="mail"></i> Email</button>
       <label class="sr-only" for="receipt-printer-type">Receipt printer format</label>
       <select class="st" id="receipt-printer-type"><option value="standard">Standard printer · A4</option><option value="thermal">Thermal printer · 80 mm</option></select>
-      <button class="btn" id="s-print"><i data-lucide="printer"></i> Print</button>
-      <button class="btn" id="s-pdf"><i data-lucide="download"></i> PDF</button>
-      <button class="btn btn--danger rc-void-action" id="d-void" type="button" hidden><i data-lucide="ban"></i> Void receipt</button>
+      <button class="btn chrome gun" id="s-print"><i data-lucide="printer"></i> Print</button>
+      <button class="btn chrome" id="s-pdf"><i data-lucide="download"></i> PDF</button>
+      <button class="btn btn--danger rc-void-action chrome gun chrome-destructive" id="d-void" type="button" hidden><span class="led red" aria-hidden="true"></span><i data-lucide="ban"></i> Void receipt</button>
     </div>
     <div class="rc-doc-wrap"><div id="doc"></div></div>
   </section>
@@ -976,7 +977,7 @@ select.st option{background:#10181a;color:#eef3ef}
     <div class="field"><label for="invoice-payment-method">Payment method</label><select id="invoice-payment-method" required><option value="">Choose Cash, Card, EcoCash or Bank…</option><option value="Cash">Cash</option><option value="Card">Card / POS</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank transfer</option></select></div>
     <div class="field"><label for="invoice-payment-account">Post payment to account</label><select id="invoice-payment-account" required><option value="">Choose a payment method first…</option></select></div>
     <p class="section-note">The payment is added to the customer invoice and recorded in the ledger as money received.</p>
-    <div class="invoice-payment-actions"><button type="button" class="btn" id="invoice-use-credit">Use customer credit</button><button type="button" class="btn btn--primary" id="invoice-payment-save">Save payment</button><button type="button" class="btn" id="invoice-payment-cancel">Cancel</button></div>
+    <div class="invoice-payment-actions"><button type="button" class="btn chrome" id="invoice-use-credit">Use customer credit</button><button type="button" class="btn btn--primary chrome" id="invoice-payment-save"><span class="led" aria-hidden="true"></span>Save payment</button><button type="button" class="btn chrome gun" id="invoice-payment-cancel">Cancel</button></div>
     <p id="invoice-payment-message" class="form-message" role="status" aria-live="polite"></p>
   </div>
 </div>
@@ -986,7 +987,7 @@ select.st option{background:#10181a;color:#eef3ef}
       <p id="receipt-edit-summary" class="section-note"></p>
       <div class="field"><label for="receipt-edit-amount">Correct total paid ($)</label><input id="receipt-edit-amount" type="number" min="0.01" step="0.01" required></div>
       <p class="section-note">The linked job-card payment history or sales-order receipt total will be updated too.</p>
-      <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="receipt-edit-save">Save correction</button><button type="button" class="btn" id="receipt-edit-cancel">Cancel</button></div>
+      <div class="invoice-payment-actions"><button type="button" class="btn btn--primary chrome" id="receipt-edit-save"><span class="led" aria-hidden="true"></span>Save correction</button><button type="button" class="btn chrome gun" id="receipt-edit-cancel">Cancel</button></div>
       <p id="receipt-edit-message" class="form-message" role="status" aria-live="polite"></p>
     </div>
   </div>
@@ -997,8 +998,8 @@ select.st option{background:#10181a;color:#eef3ef}
       <div class="field"><label for="receipt-void-reason">Reason for voiding</label><textarea id="receipt-void-reason" rows="3" required></textarea></div>
       <p class="form-message" id="receipt-void-message" role="alert" aria-live="assertive"></p>
       <div class="invoice-payment-actions">
-        <button type="button" class="btn btn--danger" id="receipt-void-confirm">Void receipt</button>
-        <button type="button" class="btn" id="receipt-void-cancel">Cancel</button>
+        <button type="button" class="btn btn--danger chrome gun chrome-destructive" id="receipt-void-confirm"><span class="led red" aria-hidden="true"></span>Void receipt</button>
+        <button type="button" class="btn chrome gun" id="receipt-void-cancel">Cancel</button>
       </div>
     </div>
   </div>
@@ -1027,13 +1028,13 @@ select.st option{background:#10181a;color:#eef3ef}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script type="module" src="../js/auth.js"></script>
-<script type="module" src="../js/app.js"></script>
-<script type="module" src="../js/notifications.js"></script>
-<script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script type="module" src="../js/dashboard-search.js"></script>
-<script type="module" src="../js/customer-credit.js?v=customer-cid-8"></script>
-<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-2"></script>
+<script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/customer-credit.js?v=customer-cid-8&v=chrome-buttons-1"></script>
+<script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-2&v=chrome-buttons-1"></script>
 <script>
 /* Surface script failures instead of leaving the receipt list on its initial Loading state. */
 window.__centricReceiptBooted = false;
@@ -1093,20 +1094,20 @@ window.addEventListener("error",event=>{
    <div class="field"><label for="credit-refund-method">Payment method</label><select id="credit-refund-method"><option value="">Choose method…</option><option>Cash</option><option>Card / POS</option><option>EcoCash</option><option>Bank transfer</option></select></div>
    <div class="field"><label for="credit-refund-account">Pay from account</label><select id="credit-refund-account"><option value="">Choose cash / bank account…</option></select></div>
   </div>
-  <div class="invoice-payment-actions"><button type="button" class="btn btn--primary" id="credit-action-save">Save</button><button type="button" class="btn" id="credit-action-cancel">Cancel</button></div>
+  <div class="invoice-payment-actions"><button type="button" class="btn btn--primary chrome" id="credit-action-save"><span class="led" aria-hidden="true"></span>Save</button><button type="button" class="btn chrome gun" id="credit-action-cancel">Cancel</button></div>
   <p id="credit-action-message" class="form-message" role="status" aria-live="polite"></p>
  </div>
 </div>
 <script type="module">
 let supabase;
-try{supabase=(await import("../js/supabaseClient.js")).default}
-catch(error){console.error("Couldn't load ../js/supabaseClient.js:",error);document.getElementById("list").innerHTML=`<div class="ov-empty">Couldn't load ../js/supabaseClient.js: ${String(error?.message||error)}</div>`;throw error}
+try{supabase=(await import("../js/supabaseClient.js?v=chrome-buttons-1")).default}
+catch(error){console.error("Couldn't load ../js/supabaseClient.js?v=chrome-buttons-1:",error);document.getElementById("list").innerHTML=`<div class="ov-empty">Couldn't load ../js/supabaseClient.js?v=chrome-buttons-1: ${String(error?.message||error)}</div>`;throw error}
 let confirmTypedDelete=async()=>false,isSuperAdmin=()=>false;
-import("../js/bulk-delete.js").then(bulk=>{
+import("../js/bulk-delete.js?v=chrome-buttons-1").then(bulk=>{
  if(typeof bulk.confirmTypedDelete==="function")confirmTypedDelete=bulk.confirmTypedDelete;
  if(typeof bulk.isSuperAdmin==="function")isSuperAdmin=bulk.isSuperAdmin;
  render();
-}).catch(error=>console.warn("../js/bulk-delete.js unavailable; delete buttons disabled:",error));
+}).catch(error=>console.warn("../js/bulk-delete.js?v=chrome-buttons-1 unavailable; delete buttons disabled:",error));
 const $=id=>document.getElementById(id);
 const usd=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0);
 const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
@@ -1397,7 +1398,7 @@ function render(){
  const inv=rows.invoices,out=inv.reduce((sum,o)=>sum+Math.max(0,calc(o).total-Number(o.amountPaid||0)),0),paid=inv.filter(o=>o.status==="paid").reduce((sum,o)=>sum+calc(o).total,0),rec=rows.receipts.filter(o=>!o.voidedAt&&!o.creditRefundReceipt).reduce((sum,o)=>sum+totalPaid(o),0);
  $("stats").innerHTML=[["Outstanding",out],["Invoices paid",paid],["Receipts total",rec]].map(([label,value])=>`<div class="stat-card"><div class="stat-card__label">${label}</div><div class="stat-card__value">${usd(value)}</div></div>`).join("");
  const visible=L;
- $("list").innerHTML=(visible.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer?.company_name||o.customer?.name||"Walk-in")}${o.customer?.customer_code?" · "+esc(o.customer.customer_code):""} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}${o.customer?.phone?" · "+esc(o.customer.phone):""}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!o.invoicePaymentReceipt&&!o.creditRefundReceipt&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to||min!==null||max!==null||statusFilter||methodFilter)?"No records match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
+ $("list").innerHTML=(visible.map((o,i)=>{const balance=Math.max(0,calc(o).total-Number(o.amountPaid||0)),table=o.kind==="invoice"?"invoices":"receipts",receiptDetails=o.kind==="receipt"?` · ${esc(o.paymentMethod||"Not recorded")}${o.discount?` · Discount ${usd(o.discount)}`:""}`:"";return `<div class="rc-row" data-i="${i}"><div><b>${esc(o.number)}</b> ${o.kind==="invoice"?`<span class="pill ${o.status==="paid"?"paid":""}">${o.status.replace("_"," ")}</span>`:o.voidedAt?'<span class="pill void">VOID</span>':""}<small>${esc(o.customer?.company_name||o.customer?.name||"Walk-in")}${o.customer?.customer_code?" · "+esc(o.customer.customer_code):""} · ${dt(o.date)}${o.ref?" · "+esc(o.ref):""}${receiptDetails}${o.customer?.phone?" · "+esc(o.customer.phone):""}</small></div><div class="rc-row__actions"><div class="rc-amt">${o.kind==="invoice"?`<small>Balance due</small>${usd(balance)}`:o.voidedAt?`<small class="pill void">VOID · excluded from totals</small>${usd(totalPaid(o))}`:usd(totalPaid(o))}</div>${isSuperAdmin()&&!o.invoicePaymentReceipt&&!o.creditRefundReceipt&&!(o.kind==="receipt"&&o.voidedAt)?`<button class="btn btn--danger rc-delete chrome gun chrome-destructive" type="button" data-delete-document="${table}" data-document-id="${esc(o.id)}" data-document-number="${esc(o.number)}" aria-label="Delete ${esc(o.number)}"><span class="led red" aria-hidden="true"></span><i data-lucide="trash-2"></i> Delete</button>`:""}</div></div>`}).join(""))||`<div class="ov-empty">${(queries.length||from||to||min!==null||max!==null||statusFilter||methodFilter)?"No records match these filters.":tab==="invoices"?$("list").dataset.err||"Nothing here yet.":$("list").dataset.receiptsErr||"Nothing here yet."}</div>`;
  $("list").querySelectorAll(".rc-row").forEach(el=>el.onclick=event=>{if(event.target.closest("[data-delete-document]"))return;open(L[Number(el.dataset.i)])});
  if(tab==="receipts"&&receiptHistoryLimited)$("list").insertAdjacentHTML("beforeend",'<div class="ov-empty">Showing the latest 1,000 receipts. Older records remain saved.</div>');
  window.lucide?.createIcons();
@@ -1752,7 +1753,7 @@ $("invoice-payment-percent").addEventListener("change",()=>{
 $("invoice-payment-amount").addEventListener("input",()=>{if($("invoice-payment-percent").value)$("invoice-payment-percent").value="";});
 
 /* ---------- builder ---------- */
-function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="0.01" step="any" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove">×</button>`;
+function addLine(d="",q=1,p=""){const r=document.createElement("div");r.className="li";r.innerHTML=`<input list="parts-dl" placeholder="Part or service" value="${esc(d)}"><input type="number" min="0.01" step="any" value="${q}"><input type="number" min="0" step="0.01" placeholder="0.00" value="${p}"><button type="button" aria-label="Remove" class="chrome">×</button>`;
  r.querySelector("button").onclick=()=>{r.remove();prev()};r.oninput=e=>{if(e.target===r.children[0]){const m=parts.find(x=>x.name===e.target.value);if(m)r.children[2].value=m.price}prev()};$("items").append(r)}
 function collect(){return{kind:"invoice",number:"INV-NEW",date:new Date().toISOString(),due:$("f-due").value,status:"unpaid",ref:$("f-ref").value,notes:$("f-notes").value,discount:$("f-disc").value,vat:5,
  vatBase:invoiceVatBase,customer:{name:$("f-name").value,phone:$("f-phone").value,email:$("f-email").value,customer_code:$("f-cust").selectedOptions[0]?._c?.customer_code||"",company_name:$("f-cust").selectedOptions[0]?._c?.company_name||"",is_company:Boolean($("f-cust").selectedOptions[0]?._c?.is_company)},
@@ -2751,13 +2752,13 @@ async function loadReceiptsSafely(){
  }catch(error){
   if(attempt!==receiptLoadAttempt)return;
   console.error("Receipts page failed to load:",error);
-  $("list").innerHTML='<div class="ov-empty">Could not load receipts: '+esc(error?.message||String(error))+'<br><button type="button" class="btn" id="receipt-load-retry" style="margin-top:12px">Try again</button></div>';
+  $("list").innerHTML='<div class="ov-empty">Could not load receipts: '+esc(error?.message||String(error))+'<br><button type="button" class="btn chrome" id="receipt-load-retry" style="margin-top:12px">Try again</button></div>';
   $("receipt-load-retry")?.addEventListener("click",loadReceiptsSafely);
  }finally{timers.forEach(clearTimeout)}
 }
 loadReceiptsSafely();
 </script>
-<script type="module" src="../js/phone-inputs.js"></script>
-<script defer src="../js/progressive-lists.js"></script>
+<script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
+<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

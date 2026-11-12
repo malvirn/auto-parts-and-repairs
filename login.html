@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="css/login-sync.css">
-  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1">
+  <link rel="stylesheet" href="css/login-sync.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0d1217">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Centric Auto Mobile">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="js/pwa.js" defer></script>
+  <script src="js/pwa.js?v=chrome-buttons-1" defer></script>
   <script>window.__ACLOGO="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 110"><ellipse cx="86" cy="55" rx="80" ry="48" fill="#ff7a12"/><ellipse cx="82" cy="55" rx="64" ry="35" fill="#00a884"/><path d="M180 20a40 38 0 1 0 0 70" fill="none" stroke="#ff7a12" stroke-width="13" stroke-linecap="round"/><path d="M52 86L82 20l30 66M64 64h38" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>');</script>
 
   <style id="login-design">
@@ -166,6 +166,7 @@
       .stage{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
     }
   </style>
+  <link rel="stylesheet" href="css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="login-page">
   <main class="stage">
@@ -202,7 +203,7 @@
           <p class="login-subtitle">Sign in to access your workshop dashboard</p>
 
           <div id="fp-box" class="fp-box" hidden>
-            <button type="button" id="fp-signin" class="fp-btn">
+            <button type="button" id="fp-signin" class="fp-btn chrome gun">
               <span class="fp-ic" aria-hidden="true"><i data-lucide="fingerprint"></i></span>
               <span class="fp-tx"><b>Sign in with biometric ID</b><small>Verify with device fingerprint or Face ID</small></span>
             </button>
@@ -224,27 +225,27 @@
               <div class="login-input-wrap">
                 <i data-lucide="lock" class="field-icon"></i>
                 <input type="password" id="login-password" autocomplete="current-password" placeholder="Password" required />
-                <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password">
+                <button type="button" class="toggle-password chrome rd" id="toggle-password" aria-label="Show password">
                   <i data-lucide="eye"></i>
                 </button>
               </div>
             </div>
 
-            <button type="submit" class="login-submit" id="login-submit">
+            <button type="submit" class="login-submit chrome" id="login-submit"><span class="led" aria-hidden="true"></span>
               <i data-lucide="log-in"></i> Sign In
             </button>
 
             <p id="login-message" class="login-message" role="alert"></p>
           </form>
 
-          <p class="forgot">Forgot your password? <button type="button" class="forgot-link" id="forgot-password">Reset it by email</button></p>
+          <p class="forgot">Forgot your password? <button type="button" class="forgot-link chrome gun" id="forgot-password">Reset it by email</button></p>
         </div>
       </div>
     </div>
   </main>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="js/login.js"></script>
+  <script type="module" src="js/login.js?v=chrome-buttons-1"></script>
   <script>
     lucide.createIcons();
     const pwInput = document.getElementById("login-password");

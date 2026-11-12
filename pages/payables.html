@@ -3,14 +3,14 @@
 <head>
   <script>document.documentElement.style.visibility = "hidden";</script>
   
-  <script src="../js/theme.js"></script>
+  <script src="../js/theme.js?v=chrome-buttons-1"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centric Auto Mobile | Supplier Payables</title>
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .modal-overlay {
@@ -71,16 +71,16 @@
     @media(max-width:700px){.payable-payment{align-items:flex-start;flex-direction:column}}
     @media(max-width:480px){.void-payable-summary{grid-template-columns:1fr}.void-payable-modal{padding:18px!important}}
   </style>
-  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/mh-theme.css?v=chrome-buttons-1">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="../js/pwa.js" defer></script>
-  <link rel="stylesheet" href="../css/repair-pages.css">
-  <link rel="stylesheet" href="../css/dashboard-header.css">
+  <script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
   <style>
     .payables-intro{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(31,196,103,.12),rgba(12,18,16,.96))}
     .payables-intro h1{margin:0;color:var(--text);font-size:clamp(25px,3vw,36px)}
@@ -89,10 +89,10 @@
     .payables-help{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:14px 18px;border-left:4px solid var(--green-bright);border-radius:8px;background:rgba(31,196,103,.08);color:var(--text)}
     .payables-help strong{color:var(--green-bright)}
   </style>
-  <link rel="stylesheet" href="../css/dashboard-shell.css">
-  <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+<link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -100,6 +100,7 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop">
   <div class="app-shell">
@@ -107,7 +108,7 @@ body.dashboard-page .main{min-width:0}
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
       <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
       <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
           <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
@@ -115,7 +116,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Sales &amp; Stock</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="shop.html" data-level="2"><i data-lucide="store"></i> Shop</a>
           <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
@@ -124,7 +125,7 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="true"><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
           <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
@@ -137,13 +138,13 @@ body.dashboard-page .main{min-width:0}
         </div>
       </div>
       <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
         </div>
       </div>
       <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
+        <button type="button" class="nav-grp chrome" aria-expanded="false"><span>System</span><span class="nav-chev" aria-hidden="true"></span></button>
         <div class="nav-grpwrap">
           <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
         </div>
@@ -167,20 +168,20 @@ body.dashboard-page .main{min-width:0}
           <span class="hdr-divider" aria-hidden="true"></span><div class="hdr-hello"><span id="dashboard-greeting">Supplier bills</span></div>
         </div>
         <div class="hdr-menu-wrap">
-          <button type="button" class="hdr-more" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+          <button type="button" class="hdr-more chrome rd" id="hdr-menu-btn" aria-label="More modules" aria-haspopup="true" aria-expanded="false" aria-controls="hdr-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
           <div class="hdr-menu" id="hdr-menu" role="menu" aria-label="More modules" hidden></div>
         </div>
       </header>
 
       <nav class="module-tabs" aria-label="Accounting modules" style="display:flex; gap:8px; flex-wrap:wrap; margin:0 auto 20px; width:min(1500px,100% - clamp(28px,8vw,116px));">
-        <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
-        <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
-        <a href="payables.html" class="btn btn--primary"><i data-lucide="banknote"></i> Payables</a>
-        <a href="cashbook.html" class="btn"><i data-lucide="wallet"></i> Cash Book</a>
-        <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
-        <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
-        <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
-        <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+        <a href="accounting.html" class="btn chrome gun"><i data-lucide="arrow-left"></i> All Modules</a>
+        <a href="ledger.html" class="btn chrome gun"><i data-lucide="book-open-check"></i> Ledger</a>
+        <a href="payables.html" class="btn btn--primary chrome gun"><i data-lucide="banknote"></i> Payables</a>
+        <a href="cashbook.html" class="btn chrome gun"><i data-lucide="wallet"></i> Cash Book</a>
+        <a href="commissions.html" class="btn chrome gun"><i data-lucide="percent"></i> Commissions</a>
+        <a href="landed-cost.html" class="btn chrome gun"><i data-lucide="ship"></i> Landed Cost</a>
+        <a href="fixed-assets.html" class="btn chrome gun"><i data-lucide="wrench"></i> Fixed Assets</a>
+        <a href="financial-statements.html" class="btn chrome gun"><i data-lucide="file-bar-chart"></i> Statements</a>
       </nav>
 
       <section class="payables-intro">
@@ -188,10 +189,10 @@ body.dashboard-page .main{min-width:0}
         <h1>Supplier Bills (Payables)</h1>
         <p>Use this page for supplier bills only. “Still owed” is the bill total minus payments you have recorded. Each bill and payment updates the Ledger.</p>
         <div class="payables-intro__actions">
-          <a class="btn btn--primary" href="receipts.html?new=1&amp;from=accounting"><i data-lucide="file-plus-2"></i> Bill a customer</a>
-          <a class="btn" href="receipts.html?tab=invoices&amp;from=accounting"><i data-lucide="users"></i> Customer invoices</a>
-          <a class="btn" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
-          <a class="btn" href="shop.html#shop-restocks"><i data-lucide="store"></i> Shop purchases</a>
+          <a class="btn btn--primary chrome gun" href="receipts.html?new=1&amp;from=accounting"><i data-lucide="file-plus-2"></i> Bill a customer</a>
+          <a class="btn chrome gun" href="receipts.html?tab=invoices&amp;from=accounting"><i data-lucide="users"></i> Customer invoices</a>
+          <a class="btn chrome gun" href="suppliers.html"><i data-lucide="truck"></i> Suppliers</a>
+          <a class="btn chrome gun" href="shop.html#shop-restocks"><i data-lucide="store"></i> Shop purchases</a>
         </div>
       </section>
       <p class="payables-help"><strong>Quick guide:</strong> Type a supplier name or choose a saved supplier; each new bill gets an automatic bill number. Click any bill row to view its full record and payment history. Record payments and print receipts from the expanded bill. Reverse payments before voiding a manual bill; voiding preserves the bill and posts a reversing ledger entry. Stock-linked bills must be reversed with their stock purchase.</p>
@@ -214,7 +215,7 @@ body.dashboard-page .main{min-width:0}
             <div class="field"><label>Expense or purchase category</label><select id="pay-debit-account" required></select></div>
             <div class="field" style="grid-column: span 3;"><label>Bill details</label><input type="text" id="pay-description" placeholder="e.g. Brake pads restock" /></div>
           </div>
-          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Add Payable</button>
+          <button type="submit" class="btn btn--primary chrome" style="margin-top:10px;"><span class="led" aria-hidden="true"></span><i data-lucide="plus"></i> Add Payable</button>
           <p id="payable-form-message" class="form-message"></p>
         </form>
       </section>
@@ -240,8 +241,8 @@ body.dashboard-page .main{min-width:0}
       <div class="field"><label>Payment Date</label><input type="date" id="payment-date" /></div>
       <div class="field"><label>Paid From</label><select id="payment-credit-account"></select></div>
       <div style="display:flex; gap:8px; margin-top:10px;">
-        <button id="payment-save" type="button" class="btn btn--primary"><i data-lucide="check"></i> Save Payment</button>
-        <button id="payment-cancel" type="button" class="btn"><i data-lucide="x"></i> Cancel</button>
+        <button id="payment-save" type="button" class="btn btn--primary chrome"><span class="led" aria-hidden="true"></span><i data-lucide="check"></i> Save Payment</button>
+        <button id="payment-cancel" type="button" class="btn chrome gun"><i data-lucide="x"></i> Cancel</button>
       </div>
       <p id="payment-form-message" class="form-message"></p>
     </div>
@@ -266,21 +267,21 @@ body.dashboard-page .main{min-width:0}
       </div>
       <p id="void-payable-message" class="form-message" role="status" aria-live="polite"></p>
       <div class="void-payable-actions">
-        <button id="void-payable-cancel" type="button" class="btn">Keep bill</button>
-        <button id="void-payable-confirm" type="button" class="btn btn-danger">Void bill</button>
+        <button id="void-payable-cancel" type="button" class="btn chrome">Keep bill</button>
+        <button id="void-payable-confirm" type="button" class="btn btn-danger chrome gun chrome-destructive"><span class="led red" aria-hidden="true"></span>Void bill</button>
       </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="../js/auth.js"></script>
-  <script type="module" src="../js/app.js"></script>
-  <script type="module" src="../js/notifications.js"></script>
-  <script type="module" src="../js/payables.js"></script>
+  <script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/payables.js?v=chrome-buttons-1"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
-  <script type="module" src="../js/repair-pages-navigation.js"></script>
-  <script type="module" src="../js/dashboard-search.js"></script>
-  <script type="module" src="../js/phone-inputs.js"></script>
-<script defer src="../js/progressive-lists.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/dashboard-search.js?v=chrome-buttons-1"></script>
+  <script type="module" src="../js/phone-inputs.js?v=chrome-buttons-1"></script>
+<script defer src="../js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

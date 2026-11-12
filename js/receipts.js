@@ -265,7 +265,7 @@ async function loadPendingReceipts() {
       <td>#${String(job.job_number).padStart(4, "0")}</td>
       <td>${escapeHtml(job.customers?.full_name ?? "—")}</td>
       <td>$${Number(job.total_cost ?? 0).toFixed(2)}</td>
-      <td><button class="btn generate-receipt-btn" data-job-id="${job.id}" data-amount="${job.total_cost ?? 0}"><i data-lucide="receipt"></i> Generate</button></td>
+      <td><button class="btn generate-receipt-btn chrome" data-job-id="${job.id}" data-amount="${job.total_cost ?? 0}"><span class="led" aria-hidden="true"></span><i data-lucide="receipt"></i> Generate</button></td>
     </tr>
   `).join("");
 
@@ -313,7 +313,7 @@ async function loadAllReceipts() {
       <td>$${Number(r.amount ?? 0).toFixed(2)}</td>
       <td>${new Date(r.issued_at).toLocaleDateString()}</td>
       <td>${source
-        ? `<button type="button" class="btn view-receipt-btn" ${viewAttr}><i data-lucide="eye"></i> View</button>`
+        ? `<button type="button" class="btn view-receipt-btn chrome" ${viewAttr}><i data-lucide="eye"></i> View</button>`
         : `<span style="color:var(--text-muted); font-size:.85rem;">Record missing</span>`}</td>
     </tr>
   `;

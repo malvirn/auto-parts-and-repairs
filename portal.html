@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="portal.css">
-  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1">
+  <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0b1220">
@@ -16,7 +16,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <script src="js/pwa.js" defer></script>
+  <script src="js/pwa.js?v=chrome-buttons-1" defer></script>
+  <link rel="stylesheet" href="css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body>
   <main class="portal-shell">
@@ -38,7 +39,7 @@
           <label for="portal-plate">License plate</label>
           <input id="portal-plate" type="text" autocomplete="off" placeholder="e.g. ABC 1234" required />
         </div>
-        <button class="portal-button" type="submit"><i data-lucide="search"></i> Check status</button>
+        <button class="portal-button chrome" type="submit"><span class="led" aria-hidden="true"></span><i data-lucide="search"></i> Check status</button>
       </form>
       <p id="portal-message" class="portal-message" role="alert"></p>
     </section>
@@ -70,8 +71,8 @@
     <p class="portal-footer">For changes to your repair details, please contact the shop directly.</p>
   </main>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script type="module" src="js/phone-inputs.js"></script>
-  <script type="module" src="js/portal.js"></script>
-<script defer src="js/progressive-lists.js"></script>
+  <script type="module" src="js/phone-inputs.js?v=chrome-buttons-1"></script>
+  <script type="module" src="js/portal.js?v=chrome-buttons-1"></script>
+<script defer src="js/progressive-lists.js?v=chrome-buttons-1"></script>
 </body>
 </html>

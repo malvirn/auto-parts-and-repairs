@@ -24,7 +24,7 @@ function openDepositDialog(button) {
       <div class="field"><label for="quotation-deposit-reference">Payment reference (optional)</label><input id="quotation-deposit-reference" maxlength="120" autocomplete="off"></div>
       <p class="section-note">This deposit is recorded as Customer Credit Note # on the Receipts page. The quotation expires seven days after issue; any paid credit remains available until applied or refunded.</p>
       <p class="form-message" data-message role="status" aria-live="polite"></p>
-      <div class="invoice-payment-actions"><button class="btn btn--primary" type="submit">Record deposit</button><button class="btn" type="button" data-cancel>Cancel</button></div>
+      <div class="invoice-payment-actions"><button class="btn btn--primary chrome" type="submit"><span class="led" aria-hidden="true"></span>Record deposit</button><button class="btn chrome gun chrome-destructive" type="button" data-cancel><span class="led red" aria-hidden="true"></span>Cancel</button></div>
     </form>`;
 
   const form = overlay.querySelector("form");

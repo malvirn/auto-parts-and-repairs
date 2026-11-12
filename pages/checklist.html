@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
-<link rel="stylesheet" href="../css/dashboard-header.css">
-<link rel="stylesheet" href="../css/dashboard-shell.css">
-<script src="../js/theme.js"></script>
-<script src="../js/pwa.js" defer></script>
+<link rel="stylesheet" href="../css/style.css?v=chrome-buttons-1">
+<link rel="stylesheet" href="../css/dashboard-header.css?v=chrome-buttons-1">
+<link rel="stylesheet" href="../css/dashboard-shell.css?v=chrome-buttons-1">
+<script src="../js/theme.js?v=chrome-buttons-1"></script>
+<script src="../js/pwa.js?v=chrome-buttons-1" defer></script>
 <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
   body.dashboard-page{--check-bg:#171c24;--check-card:#222a35;--check-card-2:#1c242e;--check-text:#edf1f7;--check-muted:#adb8c7;--check-border:#394554;min-height:100vh;background:var(--check-bg);color:var(--check-text);font-family:Inter,"Segoe UI",system-ui,sans-serif}
@@ -168,9 +168,9 @@
   @media(max-width:420px){#inspection-grid .cond-grid{gap:5px!important}#inspection-grid .cond-card{min-height:82px!important;padding:6px 3px!important;gap:4px!important}#inspection-grid .cond-card .pi{width:30px!important;height:30px!important}#inspection-grid .cond-card .damage-name,#inspection-grid .cond-card .cond-select{font-size:.46rem!important}}
 
 </style>
-  <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
-  <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
+  <link rel="stylesheet" href="../css/ui-consistency.css?v=chrome-buttons-1">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1&v=chrome-buttons-1" data-shared-dashboard-chrome="true">
+  <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1&v=chrome-buttons-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
 body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
@@ -178,22 +178,23 @@ body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hi
 body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
+  <link rel="stylesheet" href="../css/chrome-buttons.css?v=chrome-buttons-1">
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
-  <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
+  <button class="dashboard-sidebar-backdrop chrome rd" type="button" aria-label="Close navigation"></button>
   <aside class="sidebar" id="sidebar"></aside>
   <main class="main">
     <div class="checklist-page">
       <header class="heading">
         <div><h1>Vehicle checklist</h1><p>Record the customer, vehicle, drop-off readings, and vehicle condition.</p></div>
-        <button id="new-checklist" class="btn btn--primary" type="button">New checklist</button>
+        <button id="new-checklist" class="btn btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span>New checklist</button>
       </header>
       <p id="page-message" class="message" role="status" aria-live="polite"></p>
       <section id="list-view" class="card">
         <div class="actions" style="margin:0 0 14px">
-          <button id="tab-checklists" class="btn btn--primary" type="button">Checklists</button>
-          <button id="tab-drafts" class="btn" type="button">Drafts <span id="drafts-count"></span></button>
+          <button id="tab-checklists" class="btn btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span>Checklists</button>
+          <button id="tab-drafts" class="btn chrome" type="button">Drafts <span id="drafts-count"></span></button>
         </div>
         <div id="checklists-pane">
           <h2 style="margin-top:0">Saved checklists</h2>
@@ -209,7 +210,7 @@ body.dashboard-page .main{min-width:0}
         <h1 class="print-only print-title">Vehicle Checklist <span id="print-checklist-number"></span></h1>
         <div class="actions" style="margin-top:0;justify-content:space-between">
           <div><h2 style="margin:0">Vehicle condition at drop-off</h2><p id="detail-status" class="message"></p></div>
-          <button id="back-to-list" class="btn" type="button">Back to checklists</button>
+          <button id="back-to-list" class="btn chrome gun" type="button">Back to checklists</button>
         </div>
         <div class="fields">
           <label>Customer name<input id="customer-name-input" maxlength="160" required autocomplete="name"></label>
@@ -230,27 +231,27 @@ body.dashboard-page .main{min-width:0}
         <div id="voided-notice" class="voided-notice hidden" role="status"></div>
         <div class="fields" id="link-existing-fields" hidden>
           <label>Link this checklist to a matching job card<select id="job-select"><option value="">Select a job card</option></select></label>
-          <button id="link-job" class="btn" type="button" disabled>Link to job card</button>
+          <button id="link-job" class="btn chrome" type="button" disabled>Link to job card</button>
         </div>
         <div class="actions">
-          <button id="reopen-inspection" class="btn btn--danger" type="button" hidden>Reopen inspection</button>
-          <button id="save-draft" class="btn" type="button" hidden>Save draft</button>
-          <button id="save-checklist" class="btn btn--primary" type="button">Complete inspection</button>
-          <button id="void-checklist" class="btn btn--danger" type="button" hidden>Void checklist</button>
-          <button id="delete-checklist" class="btn" type="button" hidden>Delete checklist</button>
-          <div class="print-actions"><button id="print-checklist" class="btn" type="button">Print completed checklist</button><button id="print-blank-checklist" class="btn" type="button">Print blank sheet</button></div>
-          <a id="open-job" class="btn btn--primary hidden">Open linked job card</a>
+          <button id="reopen-inspection" class="btn btn--danger chrome gun chrome-destructive" type="button" hidden><span class="led red" aria-hidden="true"></span>Reopen inspection</button>
+          <button id="save-draft" class="btn chrome" type="button" hidden><span class="led" aria-hidden="true"></span>Save draft</button>
+          <button id="save-checklist" class="btn btn--primary chrome" type="button"><span class="led" aria-hidden="true"></span>Complete inspection</button>
+          <button id="void-checklist" class="btn btn--danger chrome gun chrome-destructive" type="button" hidden><span class="led red" aria-hidden="true"></span>Void checklist</button>
+          <button id="delete-checklist" class="btn chrome gun chrome-destructive" type="button" hidden><span class="led red" aria-hidden="true"></span>Delete checklist</button>
+          <div class="print-actions"><button id="print-checklist" class="btn chrome gun" type="button">Print completed checklist</button><button id="print-blank-checklist" class="btn chrome gun" type="button">Print blank sheet</button></div>
+          <a id="open-job" class="btn btn--primary hidden chrome gun">Open linked job card</a>
         </div>
       </section>
     </div>
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script type="module" src="../js/auth.js"></script>
-<script type="module" src="../js/app.js"></script>
-<script type="module" src="../js/notifications.js"></script>
-<script type="module" src="../js/repair-pages-navigation.js"></script>
-<script type="module" src="../js/checklist.js?v=realistic-part-sprite-2"></script>
+<script type="module" src="../js/auth.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/app.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/notifications.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/repair-pages-navigation.js?v=chrome-buttons-1"></script>
+<script type="module" src="../js/checklist.js?v=realistic-part-sprite-2&v=chrome-buttons-1"></script>
 <!-- progressive-lists.js intentionally omitted: this page uses its own checklist list renderer. -->
 </body>
 </html>
