@@ -239,14 +239,23 @@ body.dashboard-page .main{min-width:0}
 
         <!-- Currency -->
         <section class="sg" id="currency" aria-labelledby="h-cur">
-          <header><i data-lucide="banknote"></i><div><h3 id="h-cur">Currency &amp; exchange rate</h3><p>Used to show ZiG amounts next to US dollar totals.</p></div></header>
+          <header><i data-lucide="banknote"></i><div><h3 id="h-cur">Currency &amp; exchange rate</h3><p>Set the bank rate used for USD and ZiG conversions across Centric.</p></div></header>
           <div class="sr">
-            <div class="t"><b>USD to ZiG rate</b><span id="rate-updated">Fetching the current ZimRate Black Market Max rate…</span></div>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <strong id="exchange-rate" aria-live="polite">Loading…</strong><span>ZiG per USD</span>
+            <div class="t"><b>Current bank rate</b><span id="rate-updated">Loading saved bank rate…</span></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <strong id="exchange-rate" aria-live="polite">Not set</strong><span>ZiG per USD</span>
             </div>
           </div>
-          <p class="smsg" role="note" style="padding:0 16px 14px">Source: <a href="https://zimrate.com/" target="_blank" rel="noopener noreferrer">ZimRate</a>. The rate refreshes automatically and is used for USD-to-ZiG estimates.</p>
+          <div id="bank-rate-editor" class="sx" hidden>
+            <label for="bank-rate-input">USD to ZiG bank rate</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+              <span>1 USD = ZiG</span>
+              <input id="bank-rate-input" type="number" min="0.000001" step="0.000001" inputmode="decimal" placeholder="Enter bank rate" style="max-width:220px">
+              <button id="save-bank-rate" class="btn btn--primary" type="button">Save bank rate</button>
+            </div>
+            <p class="smsg" id="bank-rate-message" role="status" aria-live="polite"></p>
+          </div>
+          <p class="smsg" role="note" style="padding:0 16px 14px">The rate is entered manually by a Super Admin. Existing transactions must keep the rate recorded when they were created.</p>
         </section>
 
         <!-- Notifications -->
