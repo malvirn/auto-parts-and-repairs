@@ -51,6 +51,12 @@ function initialiseSidebarAccessibility() {
     toggle?.focus({ preventScroll: true });
   });
 }
+const sidebarObserver = new MutationObserver(() => {
+  const sidebar = document.querySelector('body.dashboard-page .sidebar[data-dashboard-canonical="true"]') ||
+    document.querySelector('body.dashboard-home .sidebar');
+  if (sidebar && sidebar.dataset.keyboardReady !== "true") initialiseSidebarAccessibility();
+});
+sidebarObserver.observe(document.documentElement, { childList: true, subtree: true });
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initialiseSidebarAccessibility, { once: true });
 } else initialiseSidebarAccessibility();
