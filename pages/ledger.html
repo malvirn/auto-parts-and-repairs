@@ -443,7 +443,8 @@ body.dashboard-page .main{min-width:0}
             <div><span>Balance due</span><strong id="jb-pay-balance">$0.00</strong></div>
           </div>
           <div class="payment-grid">
-            <label for="jb-pay-received">Amount received ($)
+            <label for="jb-pay-currency">Payment currency<select id="jb-pay-currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></label>
+            <label for="jb-pay-received">Amount received
               <input id="jb-pay-received" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Enter amount received">
             </label>
             <label for="jb-pay-method">Payment method
@@ -655,7 +656,8 @@ body.dashboard-page .main{min-width:0}
     <div class="modal">
       <h3 id="quick-sale-payment-title">Record Quick Sale payment</h3>
       <p id="quick-sale-payment-summary" class="section-note"></p>
-      <div class="field"><label for="quick-sale-payment-amount">Amount received ($)</label><input id="quick-sale-payment-amount" type="number" min="0.01" step="0.01" required></div>
+      <div class="field"><label for="quick-sale-payment-currency">Payment currency</label><select id="quick-sale-payment-currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></div>
+       <div class="field"><label for="quick-sale-payment-amount">Amount received</label><input id="quick-sale-payment-amount" type="number" min="0.01" step="0.01" required></div>
       <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option></select></div>
       <div class="field"><label for="quick-sale-payment-date">Payment date</label><input id="quick-sale-payment-date" type="date" required></div>
       <div style="display:flex;gap:8px;margin-top:14px;">
@@ -675,6 +677,7 @@ body.dashboard-page .main{min-width:0}
   <script type="module" src="../js/customer-directory.js"></script>
   <script type="module">
     import supabase from "../js/supabaseClient.js";
+    import { usdEquivalent } from "../js/payment-currency.js";
     const $ = id => document.getElementById(id);
     const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     const money = v => "$" + Number(v || 0).toFixed(2);
@@ -837,13 +840,15 @@ body.dashboard-page .main{min-width:0}
       $("jb-pay-change").textContent = money(customerCredit);
     }
 
-    function derivePaymentAccountId(method) {
+    function derivePaymentAccountId(method, currency = "USD") {
       const wantedCode = method === "Cash" ? "1000"
         : method === "EcoCash" ? "1020"
         : method === "Card/POS" || method === "Bank Transfer" ? "1010"
         : null;
-      const exact = wantedCode && paymentAccounts.find(account => String(account.code).trim() === wantedCode);
-      return exact?.id || paymentAccounts.find(account => String(account.code).startsWith("10"))?.id || null;
+      const matchingCurrency = paymentAccounts.filter(account => (account.currency_code || "USD") === currency);
+      const exact = wantedCode && matchingCurrency.find(account => String(account.code).trim() === wantedCode);
+      const channel = method === "Cash" ? "cash" : method === "EcoCash" ? "ecocash" : method === "Card/POS" ? "card" : "bank";
+      return exact?.id || matchingCurrency.find(account => account.payment_channel === channel)?.id || null;
     }
 
     async function openJobPayment(row) {
@@ -892,7 +897,8 @@ body.dashboard-page .main{min-width:0}
       const received = Number($("jb-pay-received").value);
       const paymentDate = $("jb-pay-date").value;
       const paymentMethod = $("jb-pay-method").value;
-      const accountId = derivePaymentAccountId(paymentMethod);
+      const currency = $("jb-pay-currency").value || "USD";
+      const accountId = derivePaymentAccountId(paymentMethod, currency);
       const balance = Number(activePaymentJob.balance || 0);
       if (!Number.isFinite(received) || received <= 0) {
         message.textContent = "Enter an amount received greater than zero."; return;
@@ -983,11 +989,14 @@ body.dashboard-page .main{min-width:0}
 
         const invoiceBalance = Math.max(0, Number(invoice.total || 0) - Number(invoice.amount_paid || 0));
         if (invoiceBalance <= 0.005) throw new Error("The invoice has no outstanding balance to collect.");
-        const { data: journalEntryId, error: paymentError } = await supabase.rpc("record_customer_invoice_payment", {
+        const converted = await usdEquivalent(received, currency);
+        const { data: journalEntryId, error: paymentError } = await supabase.rpc("record_customer_invoice_payment_multicurrency", {
           p_invoice_id: invoice.id,
-          p_amount: received,
+          p_tender_amount: received,
           p_account_id: accountId,
-          p_payment_date: paymentDate
+          p_payment_date: paymentDate,
+          p_currency_code: currency,
+          p_exchange_rate_to_usd: converted.rate
         });
         if (paymentError) throw new Error(paymentError.message);
         if (job?.id) {
