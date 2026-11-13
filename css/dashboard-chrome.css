@@ -892,3 +892,112 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__signo
 @media(max-width:768px){
   body.dashboard-page.dashboard-workshop .sidebar-account__lock{display:flex!important}
 }
+
+
+/* Shared signed-in account label used by the dashboard topbar. */
+body.dashboard-page.dashboard-workshop .dashboard-login-level{display:flex;align-items:center;gap:8px;min-width:0;color:#17233d}
+body.dashboard-page.dashboard-workshop .dashboard-user-avatar{display:grid;width:38px;height:38px;flex:none;place-items:center;border-radius:50%;background:linear-gradient(145deg,#2457b5,#183568);color:#fff;font-size:13px;font-weight:800}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy strong{display:block;max-width:140px;overflow:hidden;color:#17233d;font-size:12px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy small{display:block;max-width:140px;overflow:hidden;color:#728096;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:519px){body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:none}}
+
+
+/* Phase 2: one shared header layout for the home page and all workshop modules. */
+body.dashboard-page.dashboard-workshop > .dashboard-topbar{
+  position:fixed;top:0;right:0;left:244px;z-index:1400;
+  display:flex;align-items:center;gap:12px;min-height:68px;height:68px;
+  padding:8px 16px;background:var(--panel,#fff);
+  border-bottom:1px solid var(--line,#dce3ec);
+  box-shadow:0 3px 16px rgba(24,42,75,.07);
+}
+body.dashboard-page.dashboard-workshop > .dashboard-topbar > #dashboard-sidebar-toggle{
+  position:static!important;inset:auto!important;transform:none!important;
+  flex:0 0 38px;width:38px!important;height:38px!important;
+  display:grid;place-items:center;margin:0;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-brand{
+  display:flex;align-items:center;gap:9px;flex:0 1 190px;min-width:0;
+  color:var(--text,#17233d);text-decoration:none;
+}
+body.dashboard-page.dashboard-workshop .dashboard-header-logo{width:38px;height:38px;object-fit:contain;flex:none}
+body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:800}
+body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--muted,#718096)}
+body.dashboard-page.dashboard-workshop .dashboard-header-date{display:flex;align-items:center;gap:7px;flex:0 1 auto;min-width:0;white-space:nowrap}
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs{display:block!important;flex:1 1 170px;min-width:110px;max-width:none}
+body.dashboard-page.dashboard-workshop .dashboard-search-toggle{display:none}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto;margin-left:auto}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions>*{flex:none}
+body.dashboard-page.dashboard-workshop .dashboard-analytics-link[hidden]{display:none!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-login-level{margin-left:4px}
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:38px;height:38px;min-width:38px}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop > .dashboard-topbar{background:#111b29;border-color:#2a394c;color:#f3f6fb}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-header-brand{color:#f3f6fb}
+:root[data-theme="dark"] body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy small{color:#a9b7c9}
+
+@media(max-width:1024px){
+  body.dashboard-page.dashboard-workshop > .dashboard-topbar{
+    left:0;right:0;height:94px;min-height:94px;padding:7px 10px;
+    display:grid;grid-template-columns:38px minmax(0,1fr) auto;
+    grid-template-rows:42px 30px;column-gap:9px;row-gap:5px;
+    align-items:center;
+  }
+  body.dashboard-page.dashboard-workshop > .dashboard-topbar > #dashboard-sidebar-toggle{grid-column:1;grid-row:1}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand{grid-column:2;grid-row:1;flex:none}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy strong{font-size:11px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy small{display:none}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{grid-column:3;grid-row:1;gap:5px;margin:0}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:34px;height:34px;min-width:34px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-login-level{display:none}
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{grid-column:1 / -1;grid-row:2;justify-self:start;gap:6px;max-width:100%;font-size:10px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-date #dashboard-date{max-width:160px;overflow:hidden;text-overflow:ellipsis}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs{display:none!important}
+  body.dashboard-page.dashboard-workshop .dashboard-search-toggle{
+    display:grid;grid-column:1;grid-row:2;place-items:center;width:30px;height:30px;
+    border:1px solid var(--line,#dce3ec);border-radius:9px;background:var(--panel,#fff);
+    color:var(--text,#17233d);z-index:3;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{grid-column:2 / -1}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar.search-expanded .hs{
+    display:block!important;position:absolute;top:53px;left:10px;right:10px;
+    z-index:1600;width:auto;max-width:none;min-width:0;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar.search-expanded .hs-bar{height:40px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar.search-expanded .dashboard-search-toggle{
+    background:var(--panel,#fff);border-color:var(--accent,#f58220)
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-panel{max-height:60vh}
+  body.dashboard-page.dashboard-workshop .main{padding-top:108px!important}
+}
+@media(max-width:767px){
+  body.dashboard-page.dashboard-workshop > .dashboard-topbar{padding-top:calc(7px + env(safe-area-inset-top,0px));height:calc(94px + env(safe-area-inset-top,0px));min-height:calc(94px + env(safe-area-inset-top,0px))}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand{gap:6px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-logo{width:32px;height:32px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{font-size:9px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-date #dashboard-date{max-width:125px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:32px;height:32px;min-width:32px}
+  body.dashboard-page.dashboard-workshop .main{padding-top:calc(108px + env(safe-area-inset-top,0px))!important}
+}
+
+@media(max-width:1024px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-search-toggle{
+    display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;
+    border:1px solid var(--line,#dce3ec);border-radius:9px;background:var(--panel,#fff);
+    color:var(--text,#17233d);
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{grid-column:1 / -1;grid-row:2}
+}
+@media(max-width:767px){
+  body.dashboard-page.dashboard-workshop .dashboard-header-logo{width:28px;height:28px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy strong{max-width:88px;font-size:10px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:3px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-search-toggle{
+    width:28px;height:28px;min-width:28px;flex:0 0 28px
+  }
+}

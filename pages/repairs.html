@@ -732,7 +732,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 :root[data-theme="dark"] body.dashboard-workshop .rc .pill.status-unclaimed{background:rgba(239,68,68,.15)!important;border-color:rgba(239,68,68,.28)!important;color:#ffaaa3!important}
 </style>
 
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=collapsed-layout-fix-1" data-shared-dashboard-chrome="true">
+  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=shared-header-phase2" data-shared-dashboard-chrome="true">
 <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
   <style id="dashboard-chrome-prepaint">
     body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
@@ -1092,7 +1092,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 <script type="module" src="../js/auth.js"></script>
 <script type="module" src="../js/app.js"></script>
 <script type="module" src="../js/notifications.js"></script>
-<script type="module" src="../js/repair-pages-navigation.js"></script>
+<script type="module" src="../js/repair-pages-navigation.js?v=shared-header-phase2"></script>
 <script>
 (()=>{const zone="Africa/Harare",timeOpts={timeZone:zone,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false},dateOpts={timeZone:zone,weekday:"long",day:"numeric",month:"long",year:"numeric"};const t=()=>{const n=new Date(),c=document.getElementById("hdr-clock"),d=document.getElementById("dashboard-date");if(c)c.textContent=new Intl.DateTimeFormat("en-GB",timeOpts).format(n);if(d)d.textContent=new Intl.DateTimeFormat("en-GB",dateOpts).format(n)};const o=()=>{const l=document.getElementById("hdr-live");if(l){l.dataset.state=navigator.onLine?"online":"offline";const label=l.querySelector("span");if(label)label.textContent=navigator.onLine?"Live":"Offline"}};t();o();setInterval(t,1000);addEventListener("online",o);addEventListener("offline",o)})();
 </script>
