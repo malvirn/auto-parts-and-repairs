@@ -4,6 +4,7 @@ import { STATUS_META, messageForStatus } from "./portalShared.js";
 import { hydrate } from "./data-cache.js";
 import { confirmTypedDelete } from "./bulk-delete.js";
 import { getRate as getBankRate } from "./currency.js";
+import { usdEquivalent } from "./payment-currency.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -50,6 +51,21 @@ const incidentalAddBtn = $("incidental-add");
 const paymentAmountInput = $("job-payment-amount");
 const paymentMethodSelect = $("job-payment-method");
 const recordPaymentBtn = $("job-record-payment");
+const paymentCurrencySelect = document.createElement("select");
+paymentCurrencySelect.id = "job-payment-currency";
+paymentCurrencySelect.innerHTML = '<option value="USD">USD</option><option value="ZiG">ZiG</option>';
+const paymentCurrencyLabel = document.createElement("label");
+paymentCurrencyLabel.textContent = "Payment currency";
+paymentCurrencyLabel.append(paymentCurrencySelect);
+const paymentAccountSelect = document.createElement("select");
+paymentAccountSelect.id = "job-payment-account";
+const paymentAccountLabel = document.createElement("label");
+paymentAccountLabel.textContent = "Receive into";
+paymentAccountLabel.append(paymentAccountSelect);
+if (paymentMethodSelect?.parentElement) {
+  paymentMethodSelect.parentElement.insertAdjacentElement("afterend", paymentCurrencyLabel);
+  paymentCurrencyLabel.insertAdjacentElement("afterend", paymentAccountLabel);
+}
 
 // ---- New job card (intake) elements ----
 const newRateTier = $("job-rate-tier");
@@ -1504,16 +1520,38 @@ async function repairJobAppliedCredit(jobId) {
   return Math.round((depositCredit + invoiceCredit + overpaymentCredit + Number.EPSILON) * 100) / 100;
 }
 
+async function loadRepairPaymentAccounts() {
+  if (!paymentAccountSelect) return;
+  const currency = paymentCurrencySelect.value || "USD";
+  const channel = String(paymentMethodSelect?.value || "").toLowerCase().includes("cash") ? "cash"
+    : String(paymentMethodSelect?.value || "").toLowerCase().includes("ecocash") ? "ecocash"
+    : String(paymentMethodSelect?.value || "").toLowerCase().includes("bank") ? "bank" : "card";
+  const { data, error } = await supabase.from("accounts").select("id,code,name,currency_code,payment_channel")
+    .eq("is_active", true).eq("type", "asset").eq("currency_code", currency).like("code", "10%").order("code");
+  if (error) { paymentAccountSelect.innerHTML = '<option value="">Could not load accounts</option>'; console.error(error); return; }
+  const matches = (data || []).filter(account => account.payment_channel === channel);
+  paymentAccountSelect.innerHTML = matches.length
+    ? matches.map(account => `<option value="${account.id}">${account.code} · ${account.name}</option>`).join("")
+    : '<option value="">No matching account configured</option>';
+}
+paymentCurrencySelect?.addEventListener("change", loadRepairPaymentAccounts);
+paymentMethodSelect?.addEventListener("change", loadRepairPaymentAccounts);
+loadRepairPaymentAccounts();
+
 if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
   recordPaymentBtn.dataset.paymentHandlerBound = "true";
   recordPaymentBtn.addEventListener("click", async () => {
     if (!currentEditJobId || recordPaymentBtn.disabled) return;
     const jobId = currentEditJobId;
     const amount = Number(paymentAmountInput.value);
+    const currency = paymentCurrencySelect.value || "USD";
     if (!Number.isFinite(amount) || amount <= 0) {
       alert("Enter a payment amount greater than zero.");
       return;
     }
+    const converted = await usdEquivalent(amount, currency);
+    const accountId = paymentAccountSelect.value;
+    if (!accountId) { alert("Choose the matching currency cash, bank, EcoCash or POS account."); return; }
     recordPaymentBtn.disabled = true;
     try {
       const { data: existing, error: lookupError } = await supabase.from("repair_job_payments")
@@ -1527,14 +1565,18 @@ if (recordPaymentBtn && !recordPaymentBtn.dataset.paymentHandlerBound) {
       const totalPaid = (existing || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
       const { error } = await supabase.from("repair_job_payments").insert([{
         repair_job_id: jobId,
-        amount,
+        amount: converted.usdAmount,
+        tender_amount: amount,
+        currency_code: currency,
+        exchange_rate_to_usd: converted.rate,
+        payment_account_id: accountId,
         payment_method: paymentMethodSelect.value,
       }]);
       if (error) {
         alert("Couldn't record payment: " + error.message);
         return;
       }
-      const cumulativePaid = totalPaid + amount;
+      const cumulativePaid = totalPaid + converted.usdAmount;
       let receiptError = null;
       try {
         await syncJobInvoiceAndReceipt(jobId);
