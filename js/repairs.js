@@ -1411,7 +1411,7 @@ async function loadJobPayments(jobId) {
   let invoicePaymentRows = [];
   if (invoiceIds.length) {
     const { data: invoicePayments, error: invoicePaymentsError } = await supabase.from("invoice_payments")
-      .select("id, invoice_id, amount, payment_method, payment_date, voided_at")
+      .select("id, invoice_id, amount, tender_amount, currency_code, payment_method, payment_date, voided_at")
       .in("invoice_id", invoiceIds)
       .order("payment_date");
     if (invoicePaymentsError) {
@@ -1421,6 +1421,8 @@ async function loadJobPayments(jobId) {
     const invoiceNumbers = new Map((linkedInvoices || []).map(invoice => [String(invoice.id), invoice.invoice_number]));
     invoicePaymentRows = (invoicePayments || []).map(payment => ({
       amount: payment.amount,
+      tender_amount: payment.tender_amount,
+      currency_code: payment.currency_code,
       payment_method: payment.payment_method || "Invoice payment",
       paid_at: payment.payment_date,
       voided_at: payment.voided_at,
@@ -1450,7 +1452,7 @@ async function loadJobPayments(jobId) {
     ...invoicePaymentRows,
   ].sort((a, b) => new Date(a.paid_at || 0) - new Date(b.paid_at || 0));
   history.innerHTML = historyRows.length
-    ? historyRows.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#c45b5b;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${escapeHtml(payment.source_label || "Job card")} · ${payment.paid_at ? new Date(payment.paid_at).toLocaleString() : "Date unavailable"}`}</span><strong>${money(payment.amount)}</strong></div>`).join("")
+    ? historyRows.map(payment => `<div class="jc-line" ${payment.voided_at ? 'style="color:#c45b5b;text-decoration:line-through"' : ""}><span>${payment.voided_at ? `VOIDED · ${escapeHtml(payment.void_reason || "")}` : `${escapeHtml(payment.payment_method)} · ${escapeHtml(payment.source_label || "Job card")} · ${payment.paid_at ? new Date(payment.paid_at).toLocaleString() : "Date unavailable"}`}</span><strong>${payment.tender_amount != null ? `${escapeHtml(payment.currency_code || "USD")} ${Number(payment.tender_amount).toFixed(2)} · ${money(payment.amount)} USD` : money(payment.amount)}</strong></div>`).join("")
     : `<div class="empty-state">No payments recorded yet.</div>`;
   if (paymentAmountInput) paymentAmountInput.removeAttribute("max");
 }
