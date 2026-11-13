@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { usdEquivalent, tenderLabel } from "./payment-currency.js";
 
 const payableForm = document.getElementById("payable-form");
 const payableFormMessage = document.getElementById("payable-form-message");
@@ -16,6 +17,7 @@ const paymentSummary = document.getElementById("payment-modal-summary");
 const paymentAmountInput = document.getElementById("payment-amount");
 const paymentDateInput = document.getElementById("payment-date");
 const paymentCreditAccountSelect = document.getElementById("payment-credit-account");
+const paymentCurrencySelect = document.getElementById("payment-currency");
 const paymentSaveBtn = document.getElementById("payment-save");
 const paymentCancelBtn = document.getElementById("payment-cancel");
 const paymentFormMessage = document.getElementById("payment-form-message");
@@ -94,7 +96,7 @@ async function loadSuppliers() {
 }
 
 async function loadAccounts() {
-  const { data, error } = await supabase.from("accounts").select("id, code, name, type").eq("is_active", true).order("code");
+  const { data, error } = await supabase.from("accounts").select("id, code, name, type, currency_code, payment_channel").eq("is_active", true).order("code");
   if (error) {
     console.error("Error loading accounts:", error);
     payableFormMessage.textContent = `Couldn't load Ledger accounts: ${error.message}`;
@@ -105,12 +107,19 @@ async function loadAccounts() {
   const debitOptions = accounts
     .filter(account => ["asset", "expense"].includes(account.type))
     .map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("");
-  const paymentOptions = accounts
-    .filter(account => account.type === "asset")
-    .map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("");
   debitAccountSelect.innerHTML = `<option value="">Select account…</option>${debitOptions}`;
-  paymentCreditAccountSelect.innerHTML = `<option value="">Select cash/bank account…</option>${paymentOptions}`;
+  refreshPaymentAccountOptions();
 }
+
+function refreshPaymentAccountOptions() {
+  if (!paymentCreditAccountSelect) return;
+  const currency = paymentCurrencySelect?.value || "USD";
+  const options = accounts.filter(account => account.type === "asset" && (account.currency_code || "USD") === currency);
+  paymentCreditAccountSelect.innerHTML = options.length
+    ? `<option value="">Select cash/bank account…</option>${options.map(account => `<option value="${escapeHtml(account.id)}">${escapeHtml(account.code)} — ${escapeHtml(account.name)}</option>`).join("")}`
+    : `<option value="">No ${escapeHtml(currency)} payment accounts available</option>`;
+}
+paymentCurrencySelect?.addEventListener("change", refreshPaymentAccountOptions);
 
 function updateDueDateFromSupplier() {
   const supplierName = supplierNameInput.value.trim().toLowerCase();
@@ -212,7 +221,7 @@ async function loadPayables() {
   payables = loadedPayables;
   const [paymentsResult, reversalsResult] = await Promise.all([
     fetchAllPages(() => supabase.from("payable_payments")
-      .select("id, payable_id, payment_date, amount, payment_method, journal_entry_id")
+      .select("id, payable_id, payment_date, amount, payment_method, journal_entry_id, currency_code, tender_amount, exchange_rate_to_usd, payment_account_id")
       .order("payment_date", { ascending: false }), "payable payments")
       .then(data => ({ data, error: null }))
       .catch(error => ({ data: null, error })),
@@ -319,7 +328,7 @@ function renderPayableDetails(payable, payments, activePayments) {
     const reversalLines = reversal ? paymentJournalLines.get(reversal.journal_entry_id) : null;
     return `<article class="payable-payment${reversal ? " is-reversed" : ""}">
       <div>
-        <strong>${money(payment.amount)} · ${escapeHtml(dateLabel(payment.payment_date))}${reversal ? ' <span class="payable-voided-label">REVERSED</span>' : ""}</strong>
+        <strong>${tenderLabel(payment.tender_amount ?? payment.amount, payment.currency_code || "USD")} · ${escapeHtml(dateLabel(payment.payment_date))}${reversal ? ' <span class="payable-voided-label">REVERSED</span>' : ""}</strong>
         <small>${escapeHtml(payment.payment_method || "Payment method not recorded")}</small>
         <span class="payable-payment-details">Ledger: ${escapeHtml(journalSummary(paymentLines))}${reversal ? `<br>Reversal (${escapeHtml(dateLabel(reversal.reversal_date))}): ${escapeHtml(reversal.reason)}: ${escapeHtml(journalSummary(reversalLines))}` : ""}</span>
       </div>
@@ -574,6 +583,8 @@ function openPaymentModal(id) {
   if (!currentPayable) return;
   const balance = Number(currentPayable.amount) - Number(currentPayable.amount_paid);
   paymentSummary.textContent = `${currentPayable.suppliers?.name || "Supplier"} — Bill ${currentPayable.bill_number || "—"} — Balance ${money(balance)}`;
+  paymentCurrencySelect.value = "USD";
+  refreshPaymentAccountOptions();
   paymentAmountInput.value = balance.toFixed(2);
   paymentAmountInput.max = balance;
   paymentDateInput.value = harareDate();
@@ -593,11 +604,11 @@ paymentSaveBtn.addEventListener("click", async () => {
   if (!currentPayable) return;
   const creditAccountId = paymentCreditAccountSelect.value;
   const amount = parseFloat(paymentAmountInput.value);
+  const currency = paymentCurrencySelect.value || "USD";
   const paymentDate = paymentDateInput.value;
   const balance = Number(currentPayable.amount) - Number(currentPayable.amount_paid);
 
   if (!creditAccountId || !amount || amount <= 0 || !paymentDate) { paymentFormMessage.textContent = "Select an account, payment date, and valid amount."; paymentFormMessage.dataset.tone = "error"; return; }
-  if (amount > balance + 0.01) { paymentFormMessage.textContent = `Amount can't exceed the remaining balance of ${money(balance)}.`; paymentFormMessage.dataset.tone = "error"; return; }
 
   paymentFormMessage.textContent = "Saving payment…";
   paymentFormMessage.dataset.tone = "info";
@@ -607,11 +618,15 @@ paymentSaveBtn.addEventListener("click", async () => {
   const receiptWindow = window.open("", "_blank");
   let paymentSaved = false;
   try {
-    const { error } = await supabase.rpc("record_supplier_payable_payment", {
+    const converted = await usdEquivalent(amount, currency);
+    if (converted.usdAmount > balance + 0.01) throw new Error(`Payment exceeds the remaining balance of ${money(balance)} USD.`);
+    const { error } = await supabase.rpc("record_supplier_payable_payment_multicurrency", {
       p_payable_id: payableId,
-      p_amount: amount,
+      p_tender_amount: amount,
       p_payment_date: paymentDate,
-      p_credit_account_id: creditAccountId,
+      p_account_id: creditAccountId,
+      p_currency_code: currency,
+      p_exchange_rate_to_usd: converted.rate,
     });
     if (error) throw new Error(error.message);
     paymentSaved = true;
