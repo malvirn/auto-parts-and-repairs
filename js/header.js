@@ -88,6 +88,8 @@ function ensureActions(header) {
     analytics.hidden = !document.querySelector('.sidebar a[href*="analytics.html"]');
     actions.append(analytics);
   }
+  const searchToggle = header.querySelector(".dashboard-search-toggle");
+  if (searchToggle && !actions.contains(searchToggle)) actions.prepend(searchToggle);
   const account = document.querySelector(".dashboard-login-level");
   if (account && !actions.contains(account)) actions.append(account);
 }
@@ -122,11 +124,11 @@ export function initializeSharedHeader() {
   const search = header.querySelector("#hs");
   const actions = header.querySelector(".dashboard-topbar-actions");
   if (actions) {
-    [actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-analytics-link"),
+    [actions.querySelector(".dashboard-search-toggle"), actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-analytics-link"),
       actions.querySelector(".dashboard-connection-status"), actions.querySelector(".dashboard-refresh"),
       actions.querySelector(".dashboard-new-job"), actions.querySelector(".dashboard-login-level")]
       .filter(Boolean).forEach(node => actions.append(node));
   }
-  [menu, brand, date, searchToggle, search, actions].filter(Boolean).forEach(node => header.append(node));
+  [menu, brand, date, search, actions].filter(Boolean).forEach(node => header.append(node));
   window.lucide?.createIcons();
 }
