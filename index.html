@@ -923,7 +923,10 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 <body class="dashboard-page dashboard-workshop dashboard-home">
   <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard header">
 <div class="dashboard-header-date"><i data-lucide="calendar-days"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span></div>
-<div class="dashboard-topbar-actions">
+
+ <div class="hs dashboard-header-search" id="hs"><div class="hs-bar" role="search"><i data-lucide="search"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div></div>
+ <div class="dashboard-topbar-actions">
+ <div class="dashboard-login-level" aria-label="Signed-in account"><span class="dashboard-user-avatar" id="dashboard-user-avatar" aria-hidden="true">U</span><span class="dashboard-user-copy"><strong id="dashboard-user-name">Account</strong><small id="dashboard-user-role">Access level</small></span></div>
 <a class="dashboard-toolbar-button dashboard-new-job" href="pages/repairs.html?new=1" aria-label="Create a new job card" title="Create a new job card"><i data-lucide="plus" aria-hidden="true"></i></a>
 <button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
 </div>
@@ -933,7 +936,7 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
     <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
-      <div class="hs sidebar-search" id="hs"><div class="hs-bar" role="search"><i data-lucide="search"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div></div>
+      
       <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
         <button type="button" class="nav-grp" aria-expanded="true" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
@@ -1442,13 +1445,13 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 (() => {
   const syncAccount = () => {
     const name = document.body.dataset.accountName || "Account";
-    const role = (document.body.dataset.role || "Signed in").replace(/_/g," ");
-    
+    const role = (document.body.dataset.role || "staff").replace(/_/g," ");
+    const accessLevel = document.body.dataset.accessLevel;
     const nameNode = document.getElementById("dashboard-user-name");
     const roleNode = document.getElementById("dashboard-user-role");
     const avatar = document.getElementById("dashboard-user-avatar");
     if (nameNode) nameNode.textContent = name;
-    if (roleNode) roleNode.textContent = "Centric workspace";
+    if (roleNode) roleNode.textContent = accessLevel ? "Access level " + accessLevel + " · " + role : "Access · " + role;
     if (avatar) avatar.textContent = name.split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase() || "U";
   };
   document.addEventListener("apr:access-ready", syncAccount);
