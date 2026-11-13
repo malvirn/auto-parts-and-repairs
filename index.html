@@ -923,21 +923,42 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
-  <link rel="stylesheet" href="css/dashboard-chrome.css?v=phase4">
+  <link rel="stylesheet" href="css/dashboard-chrome.css?v=mobile-responsive-1">
   <link rel="stylesheet" href="css/theme-background.css?v=engine-bay-bg-1">
   <link rel="stylesheet" href="css/workshop-buttons.css?v=phase5">
 </head>
 <body class="dashboard-page dashboard-workshop dashboard-home">
-  <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard header">
-<div class="dashboard-header-date"><i data-lucide="calendar-days"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span></div>
-
- <div class="hs dashboard-header-search" id="hs"><div class="hs-bar" role="search"><i data-lucide="search"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div></div>
- <div class="dashboard-topbar-actions">
- <div class="dashboard-login-level" aria-label="Signed-in account"><span class="dashboard-user-avatar" id="dashboard-user-avatar" aria-hidden="true">U</span><span class="dashboard-user-copy"><strong id="dashboard-user-name">Account</strong><small id="dashboard-user-role">Access level</small></span></div>
-<a class="dashboard-toolbar-button dashboard-new-job" href="pages/repairs.html?new=1" aria-label="Create a new job card" title="Create a new job card"><i data-lucide="plus" aria-hidden="true"></i></a>
-<button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
-</div>
-</header>
+  <header class="dashboard-topbar" role="toolbar" aria-label="Centric Auto Mobile dashboard header">
+    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button"
+      aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" title="Open navigation">
+      <svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <a class="dashboard-header-brand" href="index.html" aria-label="Centric Auto Mobile home">
+      <img class="dashboard-header-logo" src="assets/logo.png" alt="Centric Auto Mobile">
+      <span class="dashboard-header-brand-copy"><strong>Centric Auto Mobile</strong><small>Auto Parts &amp; Repairs Management System</small></span>
+    </a>
+    <div class="dashboard-header-date">
+      <i data-lucide="calendar-days" aria-hidden="true"></i><span id="dashboard-date">Loading date…</span>
+      <span class="header-separator" aria-hidden="true">|</span>
+      <i data-lucide="clock-3" aria-hidden="true"></i><span id="hdr-clock">--:--</span>
+      <span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span>
+    </div>
+    <div class="hs dashboard-header-search" id="hs">
+      <div class="hs-bar" role="search"><i data-lucide="search" aria-hidden="true"></i>
+        <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel">
+        <span class="hs-kbd" aria-hidden="true">/</span>
+      </div>
+      <div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div>
+    </div>
+    <div class="dashboard-topbar-actions">
+      <div class="dashboard-login-level" aria-label="Signed-in account">
+        <span class="dashboard-user-avatar" id="dashboard-user-avatar" aria-hidden="true">U</span>
+        <span class="dashboard-user-copy"><strong id="dashboard-user-name">Account</strong><small id="dashboard-user-role">Access level</small></span>
+      </div>
+      <a class="dashboard-toolbar-button dashboard-new-job" href="pages/repairs.html?new=1" aria-label="Create a new job card" title="Create a new job card"><i data-lucide="plus" aria-hidden="true"></i></a>
+      <button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
+    </div>
+  </header>
 <div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
     <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
@@ -993,7 +1014,6 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 <div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div>
 <div class="sidebar-theme-row"><span class="sidebar-theme-label"><i data-lucide="sun"></i><span id="sidebar-theme-label">Light mode</span></span><button class="theme-toggle" id="sidebar-theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><i data-lucide="moon"></i></button></div>
 <div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
-    <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg></button>
 
     <main class="main">
       <!-- HERO -->
