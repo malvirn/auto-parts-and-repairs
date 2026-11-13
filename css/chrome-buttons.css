@@ -1,0 +1,256 @@
+/* Centric Auto Mobile | Chrome button system
+   Loaded after dashboard-chrome.css. Styling only; no behaviour changes. */
+:root {
+  --chrome-silver-text:#12171b;
+  --chrome-gunmetal-text:#eef3f6;
+  --chrome-focus:#8ec5ff;
+}
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout),
+html body .btn,
+html body .quotation-action-bar button,
+html body .modal-footer button,
+html body .quotation-footer-actions button,
+html body .quotation-action-buttons button,
+html body .quotation-actions-row button,
+html body .detail-actions button,
+html body .customer-credit-confirm-actions button,
+html body .credit-doc-actions button,
+html body .credit-voucher-actions button {
+  position:relative !important;
+  overflow:hidden !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:10px !important;
+  min-height:48px !important;
+  max-width:100%;
+  min-width:0;
+  padding:0 24px !important;
+  border:0 !important;
+  border-radius:14px !important;
+  font:700 15px/1 inherit !important;
+  font-family:inherit !important;
+  letter-spacing:.3px !important;
+  cursor:pointer !important;
+  color:var(--chrome-gunmetal-text) !important;
+  background:linear-gradient(180deg,#78838c 0%,#4b555c 22%,#2f373d 48%,#1f2529 52%,#2a3238 78%,#3d464d 100%) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.6),0 0 0 1px #0a0d0f,0 0 0 2px rgba(255,255,255,.1),0 2px 0 #000,0 12px 22px rgba(0,0,0,.6) !important;
+  text-shadow:0 -1px 0 rgba(0,0,0,.7) !important;
+  text-decoration:none !important;
+  transition:transform .12s,box-shadow .12s,filter .2s !important;
+  -webkit-tap-highlight-color:transparent;
+}
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout)::before,
+html body .btn::before,
+html body .quotation-action-bar button::before,
+html body .modal-footer button::before {
+  content:"" !important;
+  position:absolute !important;
+  inset:0 !important;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.055) 0 1px,transparent 1px 3px) !important;
+  pointer-events:none !important;
+}
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout)::after,
+html body .btn::after,
+html body .quotation-action-bar button::after,
+html body .modal-footer button::after {
+  content:"" !important;
+  position:absolute !important;
+  top:0 !important;
+  left:-70% !important;
+  width:45% !important;
+  height:100% !important;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent) !important;
+  transform:skewX(-20deg) !important;
+  transition:left .75s !important;
+  pointer-events:none !important;
+}
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout):hover::after,
+html body .btn:hover::after,
+html body .quotation-action-bar button:hover::after,
+html body .modal-footer button:hover::after { left:140% !important; }
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout):hover,
+html body .btn:hover,
+html body .quotation-action-bar button:hover,
+html body .modal-footer button:hover { filter:brightness(1.04) !important; }
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout):active,
+html body .btn:active,
+html body .quotation-action-bar button:active,
+html body .modal-footer button:active {
+  transform:translateY(2px) !important;
+  filter:brightness(.92) !important;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.35),0 0 0 1px #343b41,0 5px 10px rgba(0,0,0,.5) !important;
+}
+html body button:not(.nav-grp):not(.seg):not(.m-grp):not(.theme-toggle):not(.hdr-more):not(.dashboard-sidebar-toggle):not(.dashboard-toolbar-button):not(.dashboard-connection-status):not(#global-notif-bell):not([role="tab"]):not([role="radio"]):not([aria-pressed][data-tab]):not([aria-pressed][data-s]):not(.dmg-tile):not(.dmg-chip):not(.sidebar-account__lock):not(.sidebar-account__signout):focus-visible,
+html body .btn:focus-visible,
+html body .quotation-action-bar button:focus-visible,
+html body .modal-footer button:focus-visible { outline:3px solid var(--chrome-focus) !important; outline-offset:3px !important; }
+html body button:disabled,
+html body .btn:disabled,
+html body button[aria-disabled="true"] { filter:grayscale(1) brightness(.6) !important; cursor:not-allowed !important; transform:none !important; }
+
+/* Silver chrome for primary and commit actions. */
+html body button.btn--primary,
+html body button.btn--primary:hover,
+html body .btn.btn--primary,
+html body button.quotation-btn--primary,
+html body button.quotation-btn--success,
+html body button.pos-submit,
+html body button.quote-action--primary,
+html body button.customer-credit-confirm-submit,
+html body button[data-done],
+html body button[type="submit"]:not(.customer-credit-confirm-submit),
+html body button#reset-submit {
+  color:var(--chrome-silver-text) !important;
+  background:linear-gradient(180deg,#fff 0%,#e4e9ed 16%,#bcc4cb 44%,#8a939b 50%,#a8b1b8 58%,#d8dee3 86%,#f4f6f8 100%) !important;
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(0,0,0,.28),inset 1px 0 0 rgba(255,255,255,.55),inset -1px 0 0 rgba(0,0,0,.14),0 0 0 1px #343b41,0 0 0 2px rgba(255,255,255,.16),0 2px 0 rgba(0,0,0,.65),0 12px 22px rgba(0,0,0,.55) !important;
+  text-shadow:0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(0,0,0,.1) !important;
+}
+html body button.btn--primary::after,
+html body .btn.btn--primary::after,
+html body button.quotation-btn--primary::after,
+html body button.quotation-btn--success::after,
+html body button.pos-submit::after,
+html body button.quote-action--primary::after,
+html body button.customer-credit-confirm-submit::after,
+html body button[type="submit"]::after,
+html body button#reset-submit::after { background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent) !important; }
+
+/* Danger stays gunmetal with a red warning halo. */
+html body button.btn--danger,
+html body .btn.btn--danger,
+html body button.btn-danger,
+html body button.rc-delete,
+html body button.rc-void-action,
+html body button.customer-credit-reverse,
+html body button.btn--button-7-danger {
+  box-shadow:0 0 0 1px rgba(255,106,94,.6),0 0 14px rgba(212,51,43,.5),inset 0 1px 0 rgba(255,255,255,.35),0 2px 0 #000,0 10px 20px rgba(0,0,0,.5) !important;
+}
+
+/* Existing icon-only controls keep a circular 56px hit area. */
+html body button.pane-btn,
+html body button.sync-btn,
+html body button.quotation-icon-close,
+html body button.icon-only,
+html body button.icon-btn,
+html body button.btn-icon,
+html body button.dmg-x {
+  width:56px !important;
+  min-width:56px !important;
+  min-height:56px !important;
+  height:56px !important;
+  padding:0 !important;
+  border-radius:50% !important;
+}
+
+/* Quotation row actions and dynamically rendered template actions. */
+html body .quotation-action-bar,
+html body .quotation-action-buttons,
+html body .quotation-actions-row,
+html body .quotation-footer-actions,
+html body .quotation-share-grid,
+html body .modal-footer,
+html body .modal-actions,
+html body .invoice-payment-actions,
+html body .customer-credit-confirm-actions,
+html body .credit-doc-actions,
+html body .credit-voucher-actions,
+html body .detail-actions,
+html body .rc-row__actions,
+html body .void-payable-actions,
+html body .restock-modal-actions,
+html body .payroll-actions {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  max-width:100%;
+}
+html body .quotation-action-bar button,
+html body button.quote-action,
+html body button.quotation-load-more,
+html body button.quotation-qty-step,
+html body button.customer-credit-confirm-cancel,
+html body button.customer-credit-confirm-submit,
+html body button.credit-voucher-actions button { min-height:48px !important; }
+html body .modal-footer,
+html body .quotation-modal-footer,
+html body .quotation-footer-actions,
+html body .invoice-payment-actions,
+html body .customer-credit-confirm-actions {
+  padding-bottom:env(safe-area-inset-bottom);
+}
+html body .modal-footer,
+html body .quotation-modal-footer {
+  position:sticky;
+  bottom:0;
+  z-index:5;
+  background:inherit;
+}
+html body .quotation-action-bar button,
+html body .quotation-action-buttons button,
+html body .quotation-footer-actions button { flex:0 1 auto; }
+
+/* Avoid page-level overflow from long action labels and fixed-width legacy controls. */
+html body button,
+html body .btn { white-space:normal; overflow-wrap:anywhere; }
+html body .quotation-action-bar,
+html body .quotation-footer-actions,
+html body .modal-footer,
+html body .rc-row__actions { overflow-x:clip; }
+@media (max-width:600px) {
+  html body .quotation-action-bar,
+  html body .quotation-action-buttons,
+  html body .quotation-actions-row,
+  html body .quotation-footer-actions,
+  html body .quotation-share-grid,
+  html body .modal-footer,
+  html body .modal-actions,
+  html body .invoice-payment-actions,
+  html body .customer-credit-confirm-actions,
+  html body .credit-doc-actions,
+  html body .credit-voucher-actions,
+  html body .detail-actions,
+  html body .rc-row__actions,
+  html body .void-payable-actions,
+  html body .restock-modal-actions,
+  html body .payroll-actions {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+    max-width:100%;
+  }
+  html body .quotation-action-bar button,
+  html body .quotation-action-buttons button,
+  html body .quotation-footer-actions button,
+  html body .modal-footer button,
+  html body .modal-actions button,
+  html body .invoice-payment-actions button,
+  html body .detail-actions button,
+  html body .rc-row__actions button { width:100%; min-width:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  html body button,
+  html body .btn,
+  html body button::after,
+  html body .btn::after { transition:none !important; }
+}
+@media print {
+  html body button,
+  html body .btn,
+  html body .quotation-action-bar button,
+  html body .modal-footer button,
+  html body button::before,
+  html body button::after {
+    all:revert !important;
+    box-shadow:none !important;
+    text-shadow:none !important;
+    filter:none !important;
+    transform:none !important;
+    background:none !important;
+    color:inherit !important;
+    outline:none !important;
+  }
+}
