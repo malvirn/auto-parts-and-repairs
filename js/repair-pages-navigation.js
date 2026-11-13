@@ -928,6 +928,7 @@ function ensureSidebarNotifications(sidebar) {
   item.type = "button";
   item.className = "nav-link sidebar-notifications-link";
   item.setAttribute("aria-label", "Open notifications");
+  item.style.cssText = "width:100%;border:0;background:transparent;text-align:left;font:inherit;cursor:pointer";
   item.innerHTML = '<i data-lucide="bell" aria-hidden="true"></i><span>Notifications</span>';
   item.addEventListener("click", () => {
     document.dispatchEvent(new Event("apr:open-notifications"));
