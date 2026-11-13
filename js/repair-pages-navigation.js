@@ -825,8 +825,8 @@ function ensureSidebarAccount(sidebar) {
     let locked = false;
     try { locked = localStorage.getItem("apr-sidebar-locked") === "true"; } catch (_) {}
     lock.innerHTML = locked
-      ? '<i data-lucide="lock" aria-hidden="true"></i>'
-      : '<i data-lucide="unlock" aria-hidden="true"></i>';
+      ? '<i data-lucide="lock" aria-hidden="true"></i><span>Unlock</span>'
+      : '<i data-lucide="unlock" aria-hidden="true"></i><span>Lock</span>';
     lock.setAttribute("aria-pressed", String(locked));
     lock.setAttribute("aria-label", locked ? "Unlock sidebar auto-collapse" : "Lock sidebar open");
     lock.title = locked ? "Unlock sidebar auto-collapse" : "Keep sidebar open when changing modules";
@@ -847,11 +847,11 @@ function ensureSidebarAccount(sidebar) {
     signOut = document.createElement("button");
     signOut.type = "button";
     signOut.className = "sidebar-account__signout";
-    signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i>';
+    signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i><span>Sign Out</span>';
     signOut.setAttribute("aria-label", "Sign out");
     signOut.title = "Sign out";
   }
-  signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i>';
+  signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i><span>Sign Out</span>';
   signOut.setAttribute("aria-label", "Sign out");
   signOut.title = "Sign out";
   if (!signOut.dataset.bound) {
