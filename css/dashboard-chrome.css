@@ -1173,3 +1173,32 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
 
 body.dashboard-page:not(.dashboard-home) .sidebar:not([data-dashboard-canonical="true"]){visibility:hidden!important}
 
+
+
+/* Phase 6: notification attention counts in the shared sidebar. */
+body.dashboard-page .sidebar .nav-link{position:relative!important}
+body.dashboard-page .sidebar .nav-badge,
+body.dashboard-page .sidebar .nav-group-badge{
+  display:inline-flex!important;min-width:18px!important;height:18px!important;flex:0 0 auto!important;
+  align-items:center!important;justify-content:center!important;margin-left:auto!important;padding:0 5px!important;
+  border:1px solid rgba(255,255,255,.22)!important;border-radius:999px!important;
+  color:#fff!important;font:700 11px/1 Inter,"Segoe UI",system-ui,sans-serif!important;
+  box-shadow:0 2px 7px rgba(0,0,0,.28)!important;
+}
+body.dashboard-page .sidebar .nav-badge[data-severity="warning"],
+body.dashboard-page .sidebar .nav-group-badge[data-severity="warning"]{background:#f58220!important}
+body.dashboard-page .sidebar .nav-badge[data-severity="critical"],
+body.dashboard-page .sidebar .nav-group-badge[data-severity="critical"]{background:#d4332b!important}
+body.dashboard-page .sidebar .nav-group>.nav-grp .nav-group-badge{margin-left:auto!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{position:relative!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link>.nav-badge{
+  position:absolute!important;top:3px!important;right:3px!important;min-width:9px!important;width:9px!important;height:9px!important;
+  padding:0!important;border:2px solid #111820!important;font-size:0!important;box-shadow:0 1px 4px rgba(0,0,0,.45)!important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-group>.nav-grp .nav-group-badge{
+  position:absolute!important;top:1px!important;right:5px!important;min-width:8px!important;width:8px!important;height:8px!important;
+  padding:0!important;border:2px solid #111820!important;font-size:0!important;
+}
+@media(max-width:1024px){
+  body.dashboard-page .sidebar .nav-link>.nav-badge{position:absolute!important;top:5px!important;right:6px!important;min-width:18px!important;height:18px!important}
+}
