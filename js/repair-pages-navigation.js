@@ -851,7 +851,7 @@ function ensureSidebarAccount(sidebar) {
     signOut.setAttribute("aria-label", "Sign out");
     signOut.title = "Sign out";
   }
-  signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i>';
+  signOut.innerHTML = '<i data-lucide="log-out" aria-hidden="true"></i><span>Sign Out</span>';
   signOut.setAttribute("aria-label", "Sign out");
   signOut.title = "Sign out";
   if (!signOut.dataset.bound) {
