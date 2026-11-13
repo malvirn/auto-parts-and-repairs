@@ -7,7 +7,8 @@ stylesheet.dataset.sharedSidebarStyles = "true";
 document.head.append(stylesheet);
 
 function initialiseSidebarAccessibility() {
-  const sidebar = document.querySelector("body.dashboard-page .sidebar");
+  const sidebar = document.querySelector('body.dashboard-page .sidebar[data-dashboard-canonical="true"]') ||
+    document.querySelector("body.dashboard-home .sidebar");
   if (!sidebar || sidebar.dataset.keyboardReady === "true") return;
   sidebar.dataset.keyboardReady = "true";
 
