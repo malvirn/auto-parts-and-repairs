@@ -175,29 +175,7 @@
 
     /* ===== hidden navigation source for the shared More menu ===== */
     .menu-scrim{display:none}
-    body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
-      display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
-      background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
-      transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
-    .drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
-    .drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer}
-    .drawer-close:hover{background:rgba(255,255,255,.08)}
-    .sidebar .sidebar__brand{margin:0 0 18px}
-    .sidebar .brand-logo{width:120px;height:auto}
-    .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none;transition:background 200ms,color 200ms}
-    .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
-    .sidebar .nav-link svg{width:20px;height:20px;flex:none}
-    .sidebar .nav-group{margin-top:8px}
-    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
-    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
-    .sidebar .nav-grp{color:var(--muted)}
-    .sidebar .nav-grp:hover,.sidebar .nav-group.open>.nav-grp{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.07)}
-    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright);letter-spacing:normal}
-    .sidebar .nav-grp>span:first-of-type{flex:1}
-    .sidebar .nav-chev{width:8px;height:8px;margin-left:auto;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
-    .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
-    .sidebar .nav-grpwrap{display:none;padding:3px 0 5px 10px}
-    .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
+    
     .sidebar .nav-grpwrap .nav-link{padding:10px 12px;font-size:.9rem}
 
     .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
@@ -764,7 +742,7 @@ select.st option{background:#10181a;color:#eef3ef}
     body.dashboard-page .dashboard-topbar { height:68px; min-height:68px; }
     body.dashboard-page .main { min-width:0; }
   </style>
-  <link rel="stylesheet" href="../css/workshop-buttons.css?v=steel-3d-2">
+  <link rel="stylesheet" href="../css/workshop-buttons.css?v=phase5">
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -2336,7 +2314,6 @@ body.dashboard-page input,body.dashboard-page select,body.dashboard-page button{
 /* Touch phones: force the Receipts content and expanded credit note into normal page flow. */
 @media (pointer:coarse) and (max-width:1000px){
  html,body{width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:hidden!important}
- body.dashboard-page .sidebar{display:none!important}
  body.dashboard-page .app-shell,body.dashboard-page .main,body.dashboard-page .dash-content,
  body.dashboard-page .dash-content.rc,body.dashboard-page #v-list,
  body.dashboard-page #customer-credit-panel,body.dashboard-page #customer-credit-list,
@@ -2365,8 +2342,6 @@ body.dashboard-page input,body.dashboard-page select,body.dashboard-page button{
 /* Physical-phone layout, including Chrome's desktop-site mode */
 html.phone-layout,html.phone-layout body{width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:hidden!important}
 html.phone-layout body.dashboard-page{font-size:16px!important;line-height:1.5!important;padding:0 0 calc(76px + env(safe-area-inset-bottom,0px))!important}
-html.phone-layout body.dashboard-page .sidebar,
-html.phone-layout body.dashboard-page .menu-scrim{display:none!important}
 html.phone-layout body.dashboard-page .app-shell,
 html.phone-layout body.dashboard-page .main,
 html.phone-layout body.dashboard-page .dash-content,

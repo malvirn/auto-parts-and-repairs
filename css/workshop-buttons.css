@@ -28,7 +28,65 @@ body.dashboard-page :is(.btn,button:not(.nav-grp):not(.sidebar-toggle):not(.hdr-
 body.dashboard-page .btn.btn--primary,body.dashboard-page .btn.quotation-btn--primary,body.dashboard-page .btn.pos-submit,body.dashboard-page .btn-primary,body.dashboard-page [data-button-style="primary"]{border:1px solid var(--cam-primary-edge)!important;color:var(--cam-primary-text)!important;background:linear-gradient(180deg,var(--cam-primary-top),var(--cam-primary-mid) 54%,var(--cam-primary-bottom))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -3px 0 rgba(120,52,5,.25),0 4px 0 #9c4b12,0 7px 14px rgba(0,0,0,.22)!important;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.22)}
 body.dashboard-page .btn.btn--primary:hover,body.dashboard-page .btn.quotation-btn--primary:hover,body.dashboard-page .btn.pos-submit:hover,body.dashboard-page .btn-primary:hover,body.dashboard-page [data-button-style="primary"]:hover{filter:brightness(1.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),inset 0 -3px 0 rgba(120,52,5,.22),0 5px 0 #9c4b12,0 9px 17px rgba(0,0,0,.25)!important}
 body.dashboard-page .btn.btn--primary:active,body.dashboard-page .btn.quotation-btn--primary:active,body.dashboard-page .btn.pos-submit:active,body.dashboard-page .btn-primary:active,body.dashboard-page [data-button-style="primary"]:active{transform:translateY(3px);box-shadow:inset 0 2px 5px rgba(100,40,0,.22),0 1px 0 #9c4b12!important}
-/* Keep danger and success actions recognisable. */
-body.dashboard-page :is(.btn--danger,.btn-danger,.rc-delete,.rc-void-action,[data-variant="danger"]){border-color:#e66a65!important;color:#fff!important;background:linear-gradient(180deg,#f47770,#c93636)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(90,0,0,.2),0 3px 0 #8e2525,0 5px 11px var(--cam-metal-shadow)!important}
+/* Primary actions: orange 3D, including generated submit and quotation actions. */
+body.dashboard-page :is(.btn--button-7,.quote-action--primary,.customer-credit-confirm-submit,button[type="submit"]:not(.btn--danger):not(.btn--button-7-danger),[data-button-style="primary"]){
+ border:1px solid var(--cam-primary-edge)!important;color:var(--cam-primary-text)!important;
+ background:linear-gradient(180deg,var(--cam-primary-top),var(--cam-primary-mid) 54%,var(--cam-primary-bottom))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -3px 0 rgba(120,52,5,.25),0 4px 0 #9c4b12,0 7px 14px rgba(0,0,0,.22)!important;
+ font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.22)
+}
+body.dashboard-page :is(.btn--button-7,.quote-action--primary,.customer-credit-confirm-submit,button[type="submit"]:not(.btn--danger):not(.btn--button-7-danger),[data-button-style="primary"]):hover{
+ filter:brightness(1.07);transform:translateY(-1px);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.72),inset 0 -3px 0 rgba(120,52,5,.22),0 5px 0 #9c4b12,0 9px 17px rgba(0,0,0,.25)!important
+}
+/* Destructive actions stay brushed steel, with a restrained red warning ring. */
+body.dashboard-page.dashboard-workshop :is(
+ .btn--danger,.btn-danger,.btn--button-7-danger,.button-danger,.btn--delete,.btn-dangerous,
+ .rc-delete,.rc-void-action,.quote-action--danger,.quote-action--cancel,.quotation-cancel,
+ .cancel-quotation,[data-variant="danger"],[data-action="void"],[data-action="delete"],
+ [data-action="cancel"],[data-quote-action="cancel"],[data-voucher-cancel],
+ [data-void-checklist],[data-delete-checklist],#receipt-void-confirm
+){
+ border:1px solid #d96b68!important;color:var(--cam-metal-text)!important;
+ background:repeating-linear-gradient(102deg,rgba(255,255,255,.055) 0 1px,rgba(0,0,0,.035) 1px 2px,transparent 2px 4px),linear-gradient(180deg,var(--cam-metal-top),var(--cam-metal-mid) 48%,var(--cam-metal-bottom))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.22),0 0 0 2px rgba(217,75,72,.34),0 0 13px rgba(217,75,72,.34),0 3px 0 rgba(0,0,0,.22),0 5px 12px var(--cam-metal-shadow)!important;
+ text-shadow:0 1px 0 rgba(0,0,0,.24)
+}
+body.dashboard-page.dashboard-workshop :is(
+ .btn--danger,.btn-danger,.btn--button-7-danger,.button-danger,.btn--delete,.btn-dangerous,
+ .rc-delete,.rc-void-action,.quote-action--danger,.quote-action--cancel,.quotation-cancel,
+ .cancel-quotation,[data-variant="danger"],[data-action="void"],[data-action="delete"],
+ [data-action="cancel"],[data-quote-action="cancel"],[data-voucher-cancel],
+ [data-void-checklist],[data-delete-checklist],#receipt-void-confirm
+):hover{
+ border-color:#ff9b91!important;filter:brightness(1.08);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.56),0 0 0 2px rgba(239,68,68,.55),0 0 18px rgba(239,68,68,.5),0 4px 0 rgba(0,0,0,.2),0 7px 15px var(--cam-metal-shadow)!important
+}
+/* Tabs, segmented controls and generated secondary actions use the same steel finish. */
+body.dashboard-page :is(.seg,.tab,.tab-button,[role="tab"],.quotation-load-more,.quote-action--secondary,.customer-credit-confirm-cancel){
+ border-radius:9px!important
+}
+body.dashboard-page :is(.rc-tabs .seg,[role="tab"])[aria-pressed="true"],
+body.dashboard-page :is(.rc-tabs .seg,[role="tab"])[aria-selected="true"]{
+ border-color:var(--cam-primary-edge)!important;color:var(--cam-primary-text)!important;
+ background:linear-gradient(180deg,var(--cam-primary-top),var(--cam-primary-mid) 54%,var(--cam-primary-bottom))!important
+}
+/* Receipt/document canvases remain white when printed. */
+@media print{
+ body.dashboard-page #doc :is(button,.btn),
+ body.dashboard-page .print-document :is(button,.btn),
+ body.dashboard-page .receipt-print-area :is(button,.btn){
+  border:1px solid #ddd!important;background:#fff!important;color:#111!important;
+  box-shadow:none!important;text-shadow:none!important;filter:none!important;transform:none!important
+ }
+}
 body.dashboard-page :is(.btn--success,.quotation-btn--success,[data-variant="success"]){border-color:#56c98a!important;color:#fff!important;background:linear-gradient(180deg,#35bd78,#13834c)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,55,25,.2),0 3px 0 #0b6338,0 5px 11px var(--cam-metal-shadow)!important}
 @media(prefers-reduced-motion:reduce){body.dashboard-page :is(.btn,button,input[type="button"],input[type="submit"]){transition:none}}
+
+/* Checklist page has legacy inline button rules. Keep its delete action steel too. */
+body.dashboard-page.dashboard-workshop .checklist-page .btn.btn--button-7-danger,
+body.dashboard-page.dashboard-workshop .checklist-page #delete-checklist{
+ border:1px solid #d96b68!important;color:var(--cam-metal-text)!important;
+ background:repeating-linear-gradient(102deg,rgba(255,255,255,.055) 0 1px,rgba(0,0,0,.035) 1px 2px,transparent 2px 4px),linear-gradient(180deg,var(--cam-metal-top),var(--cam-metal-mid) 48%,var(--cam-metal-bottom))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.22),0 0 0 2px rgba(217,75,72,.34),0 0 13px rgba(217,75,72,.34),0 3px 0 rgba(0,0,0,.22),0 5px 12px var(--cam-metal-shadow)!important;
+}
