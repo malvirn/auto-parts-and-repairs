@@ -200,7 +200,8 @@ function renderPartsTable(data) {
     return;
   }
 
-  tableBody.innerHTML = data.map(p => {
+  const visibleParts = data.slice(0, 4);
+  tableBody.innerHTML = visibleParts.map(p => {
     const margin = p.selling_price - p.cost_price;
     const marginPct = p.cost_price > 0 ? ((margin / p.cost_price) * 100).toFixed(0) : "—";
     const alertLevel = Number(p.minimum_stock || 0) * 0.1;
@@ -262,9 +263,10 @@ function applyPartsFilters() {
   renderPartsTable(filtered);
   const resultCount = document.getElementById("parts-filter-count");
   if (resultCount) {
+    const visibleCount = Math.min(filtered.length, 4);
     resultCount.textContent = term || category
-      ? `Showing ${filtered.length} of ${allPartsData.length} parts`
-      : `${allPartsData.length} parts in catalogue`;
+      ? `Showing ${visibleCount} of ${filtered.length} matching parts`
+      : `Showing first ${visibleCount} of ${allPartsData.length} parts`;
   }
 }
 document.getElementById("parts-search")?.addEventListener("input", applyPartsFilters);
@@ -1051,7 +1053,7 @@ function renderQuickSaleCatalog() {
     container.innerHTML = '<p class="quick-sale-empty">No parts match that search.</p>';
     return;
   }
-  container.innerHTML = matches.map(part => {
+  container.innerHTML = matches.slice(0, 4).map(part => {
     const stock = Number(part.quantity_in_stock || 0);
     const inCart = quickSaleCart.get(part.id) || 0;
     const stockClass = stock < 1 ? "out" : stock <= 3 ? "low" : "";
