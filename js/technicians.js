@@ -390,7 +390,7 @@ editGenerateOffDaysBtn.addEventListener("click", async () => {
   refreshOffDaysCacheForCurrentMonth();
 });
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("apr:technicians-unlocked", async () => {
   await loadEmployees();
   refreshOffDaysCacheForCurrentMonth();
-});
+}, { once: true });
