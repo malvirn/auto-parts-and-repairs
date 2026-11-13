@@ -15,10 +15,12 @@ function ensureHeaderBrand(header) {
     brand.className = "dashboard-header-brand";
     brand.href = new URL("../index.html", import.meta.url).href;
     brand.setAttribute("aria-label", "Centric Auto Mobile home");
-    const logo = document.createElement("img");
+    const existingLogo = document.querySelector(".sidebar__brand .brand-logo");
+    const logo = existingLogo || document.createElement("img");
     logo.src = new URL("../assets/logo.png", import.meta.url).href;
     logo.alt = "Centric Auto Mobile";
     logo.className = "dashboard-header-logo";
+    existingLogo?.closest(".sidebar__brand")?.remove();
     const copy = document.createElement("span");
     copy.className = "dashboard-header-brand-copy";
     copy.innerHTML = '<strong>Centric Auto Mobile</strong><small>Auto Parts & Repairs</small>';
