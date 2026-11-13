@@ -48,25 +48,31 @@ export async function getRateDetails({ forceRefresh = false } = {}) {
   if (pendingRequest) return pendingRequest;
 
   pendingRequest = (async () => {
+    let data;
     try {
-      const { data, error } = await supabase
+      const result = await supabase
         .from("business_settings")
         .select("usd_to_zig_bank_rate, exchange_rate_updated_at")
         .eq("id", 1)
         .single();
-      if (error) throw error;
-
-      const rate = numericRate(data?.usd_to_zig_bank_rate);
-      if (!rate) throw new Error("The bank exchange rate has not been set. Ask a Super Admin to enter it in Settings.");
-      return remember(rate, data.exchange_rate_updated_at);
+      if (result.error) throw result.error;
+      data = result.data;
     } catch (error) {
       const saved = readSavedRate();
       if (saved) return saved;
       throw new Error(error?.message || "Couldn't load the manually maintained bank exchange rate.");
+    }
+
+    const rate = numericRate(data?.usd_to_zig_bank_rate);
+    if (!rate) throw new Error("The bank exchange rate has not been set. Ask a Super Admin to enter it in Settings.");
+    try {
+      return remember(rate, data.exchange_rate_updated_at);
     } finally {
       pendingRequest = null;
     }
-  })();
+  })().finally(() => {
+    pendingRequest = null;
+  });
 
   return pendingRequest;
 }
