@@ -164,3 +164,5 @@ body.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:50px!im
   body.dashboard-workshop .main,body.dashboard-workshop .dashboard-topbar,
   .dashboard-sidebar-toggle{transition:none!important}
 }
+
+body.dashboard-page:not(.dashboard-home) .sidebar:not([data-dashboard-canonical="true"]){visibility:hidden!important}
