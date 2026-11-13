@@ -121,6 +121,12 @@ export function initializeSharedHeader() {
   const searchToggle = header.querySelector(".dashboard-search-toggle");
   const search = header.querySelector("#hs");
   const actions = header.querySelector(".dashboard-topbar-actions");
+  if (actions) {
+    [actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-analytics-link"),
+      actions.querySelector(".dashboard-connection-status"), actions.querySelector(".dashboard-refresh"),
+      actions.querySelector(".dashboard-new-job"), actions.querySelector(".dashboard-login-level")]
+      .filter(Boolean).forEach(node => actions.append(node));
+  }
   [menu, brand, date, searchToggle, search, actions].filter(Boolean).forEach(node => header.append(node));
   window.lucide?.createIcons();
 }
