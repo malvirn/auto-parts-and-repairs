@@ -1,5 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { syncAccountLabel } from "./account-label.js?v=phase1";
+import { initializeSharedHeader } from "./header.js?v=phase2";
 import "./sidebar.js?v=chrome-glass-1";
 
 const primaryLinks = [
@@ -686,8 +687,6 @@ function initializeNavigation() {
   const sidebar = document.querySelector("body.dashboard-page .sidebar");
   if (!sidebar) return;
   ensureSidebarAccount(sidebar);
-  document.querySelectorAll("body.dashboard-workshop .dashboard-topbar .hs, body.dashboard-workshop .app-header .hs, body.dashboard-workshop .main__header .hs")
-    .forEach(search => { if (!search.closest(".sidebar")) search.remove(); });
   document.querySelectorAll(".tabbar, .bottom-nav, .ftbar, .sidebar-toggle, .sidebar-backdrop, .dots-btn, .apr-header-menu, .menu-scrim").forEach(element => element.remove());
   document.body.classList.remove("sidebar-open", "menu-open");
   if (document.body.classList.contains("dashboard-workshop") && !isDashboardHome()) {
@@ -799,6 +798,7 @@ function initializeNavigation() {
   }
   if (!document.body.classList.contains("dashboard-workshop")) sidebar.inert = true;
   if (window.lucide) window.lucide.createIcons();
+  initializeSharedHeader();
 }
 
 function ensureSidebarAccount(sidebar) {
