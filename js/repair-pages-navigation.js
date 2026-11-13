@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import "./sidebar.js";
 
 const primaryLinks = [
   { href: "index.html", page: "index", label: "Home", paths: ["M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"] },
@@ -686,13 +687,12 @@ function initializeNavigation() {
   document.querySelectorAll("body.dashboard-workshop .dashboard-topbar .hs, body.dashboard-workshop .app-header .hs, body.dashboard-workshop .main__header .hs")
     .forEach(search => { if (!search.closest(".sidebar")) search.remove(); });
   document.querySelectorAll(".tabbar, .bottom-nav, .ftbar, .sidebar-toggle, .sidebar-backdrop, .dots-btn, .apr-header-menu, .menu-scrim").forEach(element => element.remove());
-  document.querySelector(".apr-bottom-nav")?.remove();
   document.body.classList.remove("sidebar-open", "menu-open");
   if (document.body.classList.contains("dashboard-workshop") && !isDashboardHome()) {
     document.querySelectorAll(".site-foot").forEach(element => element.remove());
     const toggle = document.getElementById("dashboard-sidebar-toggle");
     const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
-    const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+    const isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     // The saved "collapsed" choice is a desktop setting. On a phone the menu is a
     // slide-in drawer, and the collapsed flag used to keep that drawer off-screen
     // while the toggle button still jumped over the header icons.
