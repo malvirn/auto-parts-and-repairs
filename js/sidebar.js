@@ -11,12 +11,16 @@ function initialiseSidebarAccessibility() {
     document.querySelector("body.dashboard-home .sidebar");
   if (!sidebar || sidebar.dataset.keyboardReady === "true") return;
   sidebar.dataset.keyboardReady = "true";
+  sidebar.querySelectorAll("a.nav-link").forEach(link => {
+    const label = link.querySelector("span")?.textContent?.trim() || link.textContent.trim();
+    if (label && !link.hasAttribute("title")) link.title = label;
+  });
 
   const getItems = () => [...sidebar.querySelectorAll(
     'a.nav-link:not([aria-disabled="true"]),button.nav-grp,button.sidebar-account__footer, .sidebar-account__footer button'
   )].filter(item => {
     const style = getComputedStyle(item);
-    return style.display !== "none" && !item.hidden && !item.closest(".nav-grpwrap[hidden]");
+    return style.display !== "none" && !item.hidden && item.getClientRects().length > 0;
   });
 
   sidebar.addEventListener("keydown", event => {
@@ -29,6 +33,12 @@ function initialiseSidebarAccessibility() {
       const direction = event.key === "ArrowDown" ? 1 : -1;
       items[(index + direction + items.length) % items.length]?.focus();
     }
+  });
+
+  document.addEventListener("click", event => {
+    if (!event.target.closest("#dashboard-sidebar-toggle") ||
+        !document.body.classList.contains("sidebar-open")) return;
+    requestAnimationFrame(() => getItems()[0]?.focus({ preventScroll: true }));
   });
 
   document.addEventListener("keydown", event => {
