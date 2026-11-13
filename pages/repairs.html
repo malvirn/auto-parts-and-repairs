@@ -165,29 +165,7 @@
 
     /* ===== hidden navigation source for the shared More menu ===== */
     .menu-scrim{display:none}
-    body.dashboard-page .sidebar{position:fixed!important;top:0!important;right:0!important;left:auto!important;bottom:0!important;z-index:100!important;
-      display:block!important;width:min(360px,88vw)!important;max-width:none!important;height:100svh!important;margin:0!important;padding:22px 18px 40px!important;overflow-y:auto!important;
-      background:linear-gradient(180deg,#101a17,#0b1210)!important;border:0!important;border-left:1px solid var(--line)!important;box-shadow:-30px 0 60px rgba(0,0,0,.5);
-      transform:translateX(106%);visibility:hidden;transition:transform 420ms var(--ease),visibility 0s linear 420ms}
-    .drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
-    .drawer-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:none;color:#fff;font-size:22px;line-height:1;cursor:pointer}
-    .drawer-close:hover{background:rgba(255,255,255,.08)}
-    .sidebar .sidebar__brand{margin:0 0 18px}
-    .sidebar .brand-logo{width:120px;height:auto}
-    .sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:#dfe8e2;font-size:.95rem;font-weight:500;text-decoration:none;transition:background 200ms,color 200ms}
-    .sidebar .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
-    .sidebar .nav-link svg{width:20px;height:20px;flex:none}
-    .sidebar .nav-group{margin-top:8px}
-    .sidebar .nav-grp{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-align:left;text-transform:uppercase;cursor:pointer}
-    .sidebar .nav-link.active{color:#fff;background:rgba(18,161,80,.22)}
-    .sidebar .nav-grp{color:var(--muted)}
-    .sidebar .nav-grp:hover,.sidebar .nav-group.open>.nav-grp{color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.07)}
-    .sidebar .nav-grp>svg{width:18px;height:18px;flex:none;color:var(--green-bright);letter-spacing:normal}
-    .sidebar .nav-grp>span:first-of-type{flex:1}
-    .sidebar .nav-chev{width:8px;height:8px;margin-left:auto;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform 180ms}
-    .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)}
-    .sidebar .nav-grpwrap{display:none;padding:3px 0 5px 10px}
-    .sidebar .nav-group.open .nav-grpwrap{display:grid;gap:3px}
+    
     .sidebar .nav-grpwrap .nav-link{padding:10px 12px;font-size:.9rem}
 
     .apr-bottom-nav{position:fixed;z-index:1000;right:0;bottom:0;left:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:calc(76px + env(safe-area-inset-bottom,0px));padding:6px 0 env(safe-area-inset-bottom,0px);border-top:1px solid rgba(255,255,255,.12);background:rgba(12,18,20,.97);box-shadow:0 -14px 28px rgba(0,0,0,.35);backdrop-filter:blur(16px)}
@@ -627,75 +605,7 @@ select.st option{background:#10181a;color:#eef3ef}
 
 
 
-<style id="job-card-home-shell">
-/* Match the index dashboard shell and exact desktop/mobile positioning. */
-body.dashboard-workshop{padding:0!important}
-body.dashboard-workshop .main{width:auto!important;min-width:0!important;margin:0 0 0 224px!important;padding:88px clamp(16px,3vw,46px) 48px!important;min-height:100svh!important;transition:margin-left .24s!important}
-body.dashboard-workshop .app-header,body.dashboard-workshop .site-foot,body.dashboard-workshop .ftbar{display:none!important}
-body.dashboard-workshop .dashboard-topbar{position:fixed!important;z-index:1200!important;top:12px!important;right:20px!important;left:244px!important;display:flex!important;align-items:center!important;gap:10px!important;height:52px!important;min-height:52px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;transition:left .24s!important}
-body.dashboard-workshop .dashboard-header-date{display:flex!important;align-items:center!important;gap:7px!important;min-width:0!important;color:#26364b!important;font-size:11px!important;font-weight:650!important;white-space:nowrap!important}
-body.dashboard-workshop .dashboard-header-date>svg{width:15px!important;height:15px!important}
-body.dashboard-workshop .dashboard-header-date #hdr-clock{font-variant-numeric:tabular-nums!important;font-weight:750!important}
-body.dashboard-workshop .dashboard-topbar-actions{display:flex!important;align-items:center!important;gap:8px!important;margin-left:auto!important}
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,
-body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{position:relative!important;inset:auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;border:1px solid #dce4ee!important;border-radius:10px!important;background:#fff!important;color:#19365b!important;box-shadow:0 2px 8px rgba(20,40,70,.08)!important}
-body.dashboard-workshop .dashboard-topbar-actions svg{width:18px!important;height:18px!important;stroke:currentColor!important}
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="good"]{color:#159653!important}
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="fair"]{color:#d97706!important}
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="poor"],
-body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status[data-state="offline"]{color:#dc3545!important}
-body.dashboard-workshop .sidebar{position:fixed!important;z-index:1300!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;display:flex!important;flex-direction:column!important;width:224px!important;height:100vh!important;height:100dvh!important;margin:0!important;padding:20px 12px 16px!important;overflow-x:hidden!important;overflow-y:auto!important;visibility:visible!important;transform:none!important;border:0!important;border-right:1px solid rgba(174,224,202,.14)!important;background:linear-gradient(180deg,#071416,#0a1d1d)!important;box-shadow:18px 0 50px rgba(0,0,0,.24)!important;transition:width .24s,transform .24s!important}
-body.dashboard-workshop .sidebar__brand{display:flex!important;align-items:center!important;justify-content:center!important;min-height:76px!important;margin:0 0 12px!important;padding:0 0 12px!important;border-bottom:1px solid rgba(255,255,255,.1)!important}
-body.dashboard-workshop .brand-logo{width:124px!important;height:auto!important}
-body.dashboard-workshop .sidebar .nav-group{display:block!important;margin:5px 0!important}
-body.dashboard-workshop .sidebar .nav-grp{display:flex!important;width:100%!important;min-height:40px!important;align-items:center!important;gap:10px!important;padding:8px 10px!important;border:1px solid transparent!important;border-radius:9px!important;background:none!important;color:#9fb0a6!important;font:700 11px Inter,"Segoe UI",system-ui,sans-serif!important;letter-spacing:.08em!important;text-align:left!important;text-transform:uppercase!important}
-body.dashboard-workshop .sidebar .nav-grp:hover,body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{border-color:rgba(255,255,255,.07)!important;background:rgba(255,255,255,.045)!important;color:#fff!important}
-body.dashboard-workshop .sidebar .nav-grp>svg{width:18px!important;height:18px!important;flex:none!important;color:#1fc467!important}
-body.dashboard-workshop .sidebar .nav-grp>span:first-of-type{flex:1!important}
-body.dashboard-workshop .sidebar .nav-grpwrap{display:none!important;padding:3px 0 5px 8px!important}
-body.dashboard-workshop .sidebar .nav-group.open .nav-grpwrap{display:grid!important;gap:2px!important}
-body.dashboard-workshop .sidebar .nav-link{display:flex!important;min-height:39px!important;align-items:center!important;gap:12px!important;margin:1px 0!important;padding:9px 10px!important;border-radius:9px!important;color:#d8e7df!important;font-size:12px!important;font-weight:600!important;text-decoration:none!important;white-space:nowrap!important}
-body.dashboard-workshop .sidebar .nav-link:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}
-body.dashboard-workshop .sidebar .nav-link.active{background:linear-gradient(90deg,#0fa653,#08763c)!important;color:#fff!important}
-body.dashboard-workshop .sidebar .nav-link svg{width:18px!important;height:18px!important;flex:none!important;color:#1fc467!important}
-body.dashboard-workshop .sidebar .sidebar-search .hs-bar{min-height:38px!important;border-radius:10px!important}
-body.dashboard-workshop .sidebar .sidebar-quick-access,body.dashboard-workshop .sidebar .sidebar-workspace-note,body.dashboard-workshop .sidebar .sidebar-promo,body.dashboard-workshop .sidebar .sidebar-theme-row,body.dashboard-workshop .sidebar .sidebar-footer{flex-shrink:0!important}
-body.dashboard-workshop .sidebar .sidebar-theme-row{display:flex!important;align-items:center!important;justify-content:space-between!important}
-body.dashboard-workshop .dashboard-sidebar-toggle{position:fixed!important;z-index:1400!important;top:20px!important;left:204px!important;display:grid!important;width:36px!important;height:36px!important;place-items:center!important;border:1px solid rgba(174,224,202,.22)!important;border-radius:9px!important;background:#122326!important;color:#dcebe2!important;cursor:pointer!important;transition:left .24s,transform .24s!important}
-body.dashboard-workshop .dashboard-sidebar-toggle svg{width:18px!important;height:18px!important;stroke:none!important}
-body.dashboard-workshop .dashboard-sidebar-toggle .sidebar-toggle-mark path{fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important}
-body.dashboard-workshop .dashboard-sidebar-toggle:hover{border-color:#1fc467!important;background:#18312a!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar{width:76px!important;padding-inline:9px!important}
-body.dashboard-workshop.sidebar-collapsed .main{margin-left:76px!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .brand-logo{width:48px!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .sidebar__brand{min-height:58px!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{justify-content:center!important;padding-inline:8px!important;font-size:0!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span{display:none!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>svg{width:20px!important;height:20px!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-chev{display:none!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-grpwrap{display:none!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:center!important;padding-inline:8px!important;font-size:0!important}
-body.dashboard-workshop.sidebar-collapsed .sidebar .nav-link svg{width:20px!important;height:20px!important}
-body.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:58px!important;transform:rotate(180deg)!important}
-body.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:96px!important}
-:root[data-theme="light"] body.dashboard-workshop .sidebar{background:#f7f9fc!important;border-right:1px solid #e1e7ef!important;box-shadow:10px 0 30px rgba(24,42,75,.07)!important}
-:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp{color:#52627a!important}
-:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-grp:hover,:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-group.open>.nav-grp{background:#edf2f7!important;color:#172b40!important}
-:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link{color:#34445a!important}
-:root[data-theme="light"] body.dashboard-workshop .sidebar .nav-link.active{background:#dff7e7!important;color:#08763c!important}
-:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,:root[data-theme="light"] body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{background:#fff!important;color:#19365b!important;border-color:#dce4ee!important}
-:root[data-theme="dark"] body.dashboard-workshop .dashboard-header-date{color:#e8eef6!important}
-:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,:root[data-theme="dark"] body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{background:#202a38!important;color:#f3f6fb!important;border-color:#46556a!important}
-@media(max-width:760px){
- body.dashboard-workshop .main{margin-left:0!important;padding:72px 14px 32px!important}
- body.dashboard-workshop .dashboard-topbar{top:10px!important;left:58px!important;right:10px!important;height:42px!important;min-height:42px!important;gap:5px!important}
- body.dashboard-workshop .dashboard-header-date{gap:4px!important;font-size:9px!important}
- body.dashboard-workshop .dashboard-topbar-actions{gap:4px!important}
- body.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,body.dashboard-workshop .dashboard-topbar-actions .dashboard-connection-status,body.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:32px!important;height:32px!important;min-width:32px!important}
- body.dashboard-workshop .dashboard-header-date .header-separator{display:none!important}
-}
-</style>
+
 
 
 <style id="job-card-action-and-status-fix">
