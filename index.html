@@ -923,7 +923,10 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 <body class="dashboard-page dashboard-workshop dashboard-home">
   <header class="dashboard-topbar" role="toolbar" aria-label="Dashboard header">
 <div class="dashboard-header-date"><i data-lucide="calendar-days"></i><span id="dashboard-date">Loading date…</span><span class="header-separator">|</span><i data-lucide="clock-3"></i><span id="hdr-clock">--:--</span><span class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></span></div>
-<div class="dashboard-topbar-actions"><button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw"></i></button></div>
+<div class="dashboard-topbar-actions">
+<a class="dashboard-toolbar-button dashboard-new-job" href="pages/repairs.html?new=1" aria-label="Create a new job card" title="Create a new job card"><i data-lucide="plus" aria-hidden="true"></i></a>
+<button class="dashboard-toolbar-button dashboard-refresh" id="dashboard-refresh" type="button" aria-label="Refresh dashboard" title="Refresh dashboard"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
+</div>
 </header>
 <div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
