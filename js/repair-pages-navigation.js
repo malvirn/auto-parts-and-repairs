@@ -350,6 +350,7 @@ async function normalizeDashboardSidebar(sidebar) {
       group.classList.toggle("open", shouldOpen);
       group.querySelector(".nav-grp")?.setAttribute("aria-expanded", String(shouldOpen));
     });
+    canonical.dataset.dashboardCanonical = "true";
     sidebar.replaceWith(canonical);
 
     // Replace module-specific chrome with the exact Index page elements.
