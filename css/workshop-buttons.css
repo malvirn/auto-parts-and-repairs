@@ -82,3 +82,11 @@ body.dashboard-page :is(.rc-tabs .seg,[role="tab"])[aria-selected="true"]{
 }
 body.dashboard-page :is(.btn--success,.quotation-btn--success,[data-variant="success"]){border-color:#56c98a!important;color:#fff!important;background:linear-gradient(180deg,#35bd78,#13834c)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,55,25,.2),0 3px 0 #0b6338,0 5px 11px var(--cam-metal-shadow)!important}
 @media(prefers-reduced-motion:reduce){body.dashboard-page :is(.btn,button,input[type="button"],input[type="submit"]){transition:none}}
+
+/* Checklist page has legacy inline button rules. Keep its delete action steel too. */
+body.dashboard-page.dashboard-workshop .checklist-page .btn.btn--button-7-danger,
+body.dashboard-page.dashboard-workshop .checklist-page #delete-checklist{
+ border:1px solid #d96b68!important;color:var(--cam-metal-text)!important;
+ background:repeating-linear-gradient(102deg,rgba(255,255,255,.055) 0 1px,rgba(0,0,0,.035) 1px 2px,transparent 2px 4px),linear-gradient(180deg,var(--cam-metal-top),var(--cam-metal-mid) 48%,var(--cam-metal-bottom))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.22),0 0 0 2px rgba(217,75,72,.34),0 0 13px rgba(217,75,72,.34),0 3px 0 rgba(0,0,0,.22),0 5px 12px var(--cam-metal-shadow)!important;
+}
