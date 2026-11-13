@@ -839,3 +839,56 @@ body.dashboard-page:not(.dashboard-workshop) .app-header>.hdr-header-actions{gri
   body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-sub{font-size:10px!important}
   body.dashboard-page:not(.dashboard-workshop) .app-header>.hdr-header-actions{gap:4px!important}
 }
+
+
+/* Full-width stacked sidebar account actions. */
+body.dashboard-page.dashboard-workshop .sidebar-account__footer{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-end!important;
+  width:100%!important;
+  gap:9px!important;
+  padding:12px 10px 10px!important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-account__lock,
+body.dashboard-page.dashboard-workshop .sidebar-account__signout{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:11px!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:46px!important;
+  height:46px!important;
+  flex:0 0 auto!important;
+  padding:0 14px!important;
+  border-radius:11px!important;
+  font-size:12px!important;
+  font-weight:700!important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-account__lock span,
+body.dashboard-page.dashboard-workshop .sidebar-account__signout span{
+  display:inline!important;
+  white-space:nowrap!important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-account__footer svg{
+  width:17px!important;
+  height:17px!important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__footer{
+  padding-inline:7px!important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__lock,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__signout{
+  justify-content:center!important;
+  padding-inline:0!important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__lock span,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__signout span{
+  display:none!important;
+}
+@media(max-width:768px){
+  body.dashboard-page.dashboard-workshop .sidebar-account__lock{display:flex!important}
+}
