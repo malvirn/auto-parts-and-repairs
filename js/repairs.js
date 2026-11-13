@@ -1375,7 +1375,7 @@ async function loadJobPayments(jobId) {
   summary.textContent = "Loading payments…";
   history.innerHTML = "";
   const { data, error } = await supabase.from("repair_job_payments")
-    .select("id, amount, payment_method, paid_at, voided_at, void_reason")
+    .select("id, amount, tender_amount, currency_code, exchange_rate_to_usd, payment_account_id, payment_method, paid_at, voided_at, void_reason")
     .eq("repair_job_id", jobId)
     .order("paid_at");
   if (error) {
@@ -1523,8 +1523,8 @@ async function repairJobAppliedCredit(jobId) {
 async function loadRepairPaymentAccounts() {
   if (!paymentAccountSelect) return;
   const currency = paymentCurrencySelect.value || "USD";
-  const channel = String(paymentMethodSelect?.value || "").toLowerCase().includes("cash") ? "cash"
-    : String(paymentMethodSelect?.value || "").toLowerCase().includes("ecocash") ? "ecocash"
+  const channel = String(paymentMethodSelect?.value || "").toLowerCase().includes("ecocash") ? "ecocash"
+    : String(paymentMethodSelect?.value || "").toLowerCase().includes("cash") ? "cash"
     : String(paymentMethodSelect?.value || "").toLowerCase().includes("bank") ? "bank" : "card";
   const { data, error } = await supabase.from("accounts").select("id,code,name,currency_code,payment_channel")
     .eq("is_active", true).eq("type", "asset").eq("currency_code", currency).like("code", "10%").order("code");
