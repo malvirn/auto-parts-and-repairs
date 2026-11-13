@@ -1,0 +1,219 @@
+/* Centric Auto Mobile: chrome button system. Presentation only. */
+:root {
+  --chrome-silver-text:#12171b;
+  --chrome-gunmetal-text:#eef3f6;
+}
+body.dashboard-page :is(
+  .btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,
+  .quotation-footer-actions button,.quotation-modal-footer button,.modal-footer button,
+  .quote-action,.quote-action--primary,.quote-action--secondary,
+  .customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .customer-credit-reverse,.customer-credit-apply,.customer-credit-record,
+  .credit-voucher-redeem,.credit-voucher-launcher,.credit-voucher-overlay-tools button,
+  .credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn-primary,.button-primary,.btn-danger,.btn--button-7,
+  .pos-submit,.login-submit,.fp-btn,.forgot-link,
+  .action-btn,.table-action,.row-action,.icon-button,.icon-btn,.btn-icon,
+  button:not(.nav-grp):not(.nav-link):not(.theme-toggle):not(.dashboard-sidebar-toggle):not(.hdr-more):not(.tab):not(.tab-btn):not([role="tab"]):not(.toggle-password)
+),
+body.login-page :is(.login-submit,.fp-btn,.forgot-link),
+body:not(.dashboard-page):not(.login-page) main :is(button,.back) {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:48px;
+  padding:0 24px;
+  border:0;
+  border-radius:14px;
+  font:700 15px/1.2 inherit;
+  font-family:inherit;
+  letter-spacing:.3px;
+  cursor:pointer;
+  color:var(--chrome-gunmetal-text);
+  background:linear-gradient(180deg,#78838c 0%,#4b555c 22%,#2f373d 48%,#1f2529 52%,#2a3238 78%,#3d464d 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.6),0 0 0 1px #0a0d0f,0 0 0 2px rgba(255,255,255,.1),0 2px 0 #000,0 12px 22px rgba(0,0,0,.6);
+  text-shadow:0 -1px 0 rgba(0,0,0,.7);
+  text-decoration:none;
+  transition:transform .12s,box-shadow .12s,filter .2s;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body.dashboard-page :is(
+  .btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,
+  .quotation-footer-actions button,.quotation-modal-footer button,.modal-footer button,
+  .quote-action,.quote-action--primary,.quote-action--secondary,
+  .customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .customer-credit-reverse,.customer-credit-apply,.customer-credit-record,
+  .credit-voucher-redeem,.credit-voucher-launcher,.credit-voucher-overlay-tools button,
+  .credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn-primary,.button-primary,.btn-danger,.btn--button-7,.pos-submit,
+  .action-btn,.table-action,.row-action,.icon-button,.icon-btn,.btn-icon,
+  button:not(.nav-grp):not(.nav-link):not(.theme-toggle):not(.dashboard-sidebar-toggle):not(.hdr-more):not(.tab):not(.tab-btn):not([role="tab"]):not(.toggle-password)
+)::before,
+body.login-page :is(.login-submit,.fp-btn,.forgot-link)::before,
+body:not(.dashboard-page):not(.login-page) main :is(button,.back)::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.055) 0 1px,transparent 1px 3px);
+  pointer-events:none;
+}
+body.dashboard-page :is(
+  .btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,
+  .quotation-footer-actions button,.quotation-modal-footer button,.modal-footer button,
+  .quote-action,.quote-action--primary,.quote-action--secondary,
+  .customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .customer-credit-reverse,.customer-credit-apply,.customer-credit-record,
+  .credit-voucher-redeem,.credit-voucher-launcher,.credit-voucher-overlay-tools button,
+  .credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn-primary,.button-primary,.btn-danger,.btn--button-7,.pos-submit,
+  .action-btn,.table-action,.row-action,.icon-button,.icon-btn,.btn-icon,
+  button:not(.nav-grp):not(.nav-link):not(.theme-toggle):not(.dashboard-sidebar-toggle):not(.hdr-more):not(.tab):not(.tab-btn):not([role="tab"]):not(.toggle-password)
+)::after,
+body.login-page :is(.login-submit,.fp-btn,.forgot-link)::after,
+body:not(.dashboard-page):not(.login-page) main :is(button,.back)::after {
+  content:"";
+  position:absolute;
+  z-index:1;
+  top:0;
+  left:-70%;
+  width:45%;
+  height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);
+  transition:left .75s;
+  pointer-events:none;
+}
+body.dashboard-page :is(
+  .btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,
+  .quotation-footer-actions button,.quotation-modal-footer button,.modal-footer button,
+  .quote-action,.quote-action--primary,.quote-action--secondary,
+  .customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .customer-credit-reverse,.customer-credit-apply,.customer-credit-record,
+  .credit-voucher-redeem,.credit-voucher-launcher,.credit-voucher-overlay-tools button,
+  .credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn-primary,.button-primary,.btn-danger,.btn--button-7,.pos-submit,
+  .action-btn,.table-action,.row-action,.icon-button,.icon-btn,.btn-icon,
+  button:not(.nav-grp):not(.nav-link):not(.theme-toggle):not(.dashboard-sidebar-toggle):not(.hdr-more):not(.tab):not(.tab-btn):not([role="tab"]):not(.toggle-password)
+):hover::after,
+body.login-page :is(.login-submit,.fp-btn,.forgot-link):hover::after,
+body:not(.dashboard-page):not(.login-page) main :is(button,.back):hover::after {left:140%}
+
+body.dashboard-page :is(.btn--primary,.quotation-btn--primary,.quote-action--primary,
+  .customer-credit-confirm-submit,.customer-credit-apply,.credit-voucher-redeem,
+  .pos-submit,.btn-primary,.button-primary,.login-submit,[data-button-style="primary"]),
+body.login-page .login-submit,
+body:not(.dashboard-page):not(.login-page) main button[type="submit"] {
+  color:var(--chrome-silver-text);
+  background:linear-gradient(180deg,#fff 0%,#e4e9ed 16%,#bcc4cb 44%,#8a939b 50%,#a8b1b8 58%,#d8dee3 86%,#f4f6f8 100%);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(0,0,0,.28),inset 1px 0 0 rgba(255,255,255,.55),inset -1px 0 0 rgba(0,0,0,.14),0 0 0 1px #343b41,0 0 0 2px rgba(255,255,255,.16),0 2px 0 rgba(0,0,0,.65),0 12px 22px rgba(0,0,0,.55);
+  text-shadow:0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(0,0,0,.1);
+}
+body.dashboard-page :is(.btn--primary,.quotation-btn--primary,.quote-action--primary,
+  .customer-credit-confirm-submit,.customer-credit-apply,.credit-voucher-redeem,
+  .pos-submit,.btn-primary,.button-primary,.login-submit,[data-button-style="primary"])::after,
+body.login-page .login-submit::after,
+body:not(.dashboard-page):not(.login-page) main button[type="submit"]::after {background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent)}
+body.dashboard-page :is(.btn--danger,.btn-danger,.btn--button-7-danger,[data-variant="danger"]) {
+  box-shadow:0 0 0 1px rgba(255,106,94,.6),0 0 14px rgba(212,51,43,.5),inset 0 1px 0 rgba(255,255,255,.35),0 2px 0 #000,0 8px 18px rgba(0,0,0,.5);
+}
+body.dashboard-page :is(.pane-btn,.sync-btn,.icon-button,.icon-btn,.btn-icon,.table-action,.row-action,[data-icon-only="true"]),
+body.dashboard-page button[aria-label]:has(>svg):not(:has(>span)):not(.nav-grp):not(.theme-toggle):not(.dashboard-sidebar-toggle) {
+  width:56px;
+  min-width:56px;
+  min-height:56px;
+  padding:0;
+  border-radius:50%;
+  flex:0 0 56px;
+}
+body.dashboard-page :is(.btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,.modal-footer button,
+  .quote-action,.customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .credit-voucher-overlay-tools button,.credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn--button-7,.action-btn,.table-action,.row-action) {min-width:44px;min-height:48px}
+body.dashboard-page :is(.btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,.modal-footer button,
+  .quote-action,.customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .credit-voucher-overlay-tools button,.credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn--button-7,.action-btn,.table-action,.row-action):hover {filter:brightness(1.04)}
+body.dashboard-page :is(.btn,.btn--primary,.btn--danger,.quotation-btn--secondary,.quotation-btn--ghost,
+  .apr-state__action,.pane-btn,.sync-btn,.quotation-action-bar button,.modal-footer button,
+  .quote-action,.customer-credit-confirm-cancel,.customer-credit-confirm-submit,
+  .credit-voucher-overlay-tools button,.credit-voucher-code-entry button,.credit-voucher-actions button,
+  .btn--button-7,.action-btn,.table-action,.row-action):active {
+  transform:translateY(2px);
+  filter:brightness(.92);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.35),0 0 0 1px #343b41,0 5px 10px rgba(0,0,0,.5);
+}
+body.dashboard-page :is(button,.btn):focus-visible,body.login-page :is(button,.back):focus-visible {
+  outline:3px solid #8ec5ff;
+  outline-offset:3px;
+}
+body.dashboard-page :is(button,.btn):disabled,body.login-page button:disabled {
+  filter:grayscale(1) brightness(.6);
+  cursor:not-allowed;
+  transform:none;
+}
+body.dashboard-page :is(.quotation-action-bar,.quotation-footer-actions,.quotation-action-buttons,
+  .quotation-actions-row,.modal-footer,.modal-actions,.actions,.btn-group,.button-group,
+  .customer-credit-confirm-actions,.credit-doc-actions,.credit-voucher-actions) {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+body.dashboard-page :is(.modal-footer,.quotation-modal-footer,.customer-credit-confirm-actions) {
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
+}
+body.dashboard-page :is(.modal-footer,.quotation-modal-footer) {
+  position:sticky;
+  bottom:0;
+  z-index:5;
+}
+@media(max-width:520px) {
+  body.dashboard-page :is(.quotation-action-bar,.quotation-footer-actions,.quotation-action-buttons,
+    .quotation-actions-row,.modal-footer,.modal-actions,.actions,.btn-group,.button-group,
+    .customer-credit-confirm-actions,.credit-doc-actions,.credit-voucher-actions) {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    width:100%;
+    max-width:100%;
+  }
+  body.dashboard-page :is(.quotation-action-bar,.quotation-footer-actions,.quotation-action-buttons,
+    .quotation-actions-row,.modal-footer,.modal-actions,.actions,.btn-group,.button-group,
+    .customer-credit-confirm-actions,.credit-doc-actions,.credit-voucher-actions)>:is(button,a,.btn) {
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  body.dashboard-page :is(button,.btn),body.dashboard-page :is(button,.btn)::after,
+  body.login-page :is(button,.back),body.login-page :is(button,.back)::after {
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}
+@media print {
+  body.dashboard-page :is(button,.btn),body.login-page :is(button,.back),
+  body:not(.dashboard-page):not(.login-page) main :is(button,.back) {
+    position:static!important;display:inline-block!important;min-height:0!important;
+    width:auto!important;min-width:0!important;padding:0!important;margin:0!important;
+    border:1px solid #666!important;border-radius:0!important;
+    color:#111!important;background:#fff!important;box-shadow:none!important;
+    text-shadow:none!important;filter:none!important;transform:none!important;
+    font:inherit!important;letter-spacing:normal!important;
+  }
+  body.dashboard-page :is(button,.btn)::before,body.dashboard-page :is(button,.btn)::after,
+  body.login-page :is(button,.back)::before,body.login-page :is(button,.back)::after {display:none!important}
+}
