@@ -60,6 +60,20 @@ function clearLoginGuard() {
   try { localStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(all)); } catch (_) {}
 }
 
+function updateLoginGuardAfterRateLimit() {
+  const { all, record } = readLoginGuard();
+  const now = Date.now();
+  const lockedUntil = now + 60 * 1000;
+  all[loginGuardIdentity()] = {
+    count: Number(record?.count || 0),
+    firstFailedAt: record?.firstFailedAt || now,
+    lockedUntil,
+    rateLimited: true,
+  };
+  try { localStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(all)); } catch (_) {}
+  return lockedUntil;
+}
+
 function showLoginLock(until) {
   if (loginGuardTimer) clearInterval(loginGuardTimer);
   const update = () => {
@@ -73,7 +87,9 @@ function showLoginLock(until) {
     }
     submitBtn.disabled = true;
     const seconds = Math.ceil(remaining / 1000);
-    showMessage(`Too many unsuccessful attempts. Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}.`, "error");
+    const { record } = readLoginGuard();
+    const lockMessage = record?.rateLimited ? "Too many sign-in requests" : "Too many unsuccessful attempts";
+    showMessage(`${lockMessage}. Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}.`, "error");
   };
   update();
   loginGuardTimer = setInterval(update, 1000);
@@ -237,7 +253,8 @@ async function signIn(state, { quietIfNoSession = false } = {}) {
         reason = "Sign-in failed. Check your username and password.";
         if (guard.lockedUntil > Date.now()) reason = "Too many unsuccessful attempts. Please wait before trying again.";
       } else if (state.step === 0 && Number(error?.status) === 429) {
-        reason = "Too many sign-in requests. Wait a few minutes before trying again.";
+        updateLoginGuardAfterRateLimit();
+        reason = "Too many sign-in requests. Sign in is temporarily locked for 60 seconds.";
       }
       if (quietIfNoSession && state.step === 0) { bootCancel(); return false; } // stale bookmark session: just show the form
       const canRetry = !error?.fatal && !!error?.network;

@@ -196,8 +196,8 @@ function renderChecklistList(rows){
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
   const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
   const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Independent checklist · no job card linked";
-  const activeActions=(item.voided_at||item.status==="completed"||item.confirmed_at)?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
-  return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a>${activeActions}</div></div>`;
+  const activeActions=(item.voided_at||item.status==="completed"||item.confirmed_at)?"":`<button class="btn btn--danger" type="button" data-void-checklist="${esc(item.id)}">Void</button><button class="btn btn--button-7 btn--button-7-danger" type="button" data-delete-checklist="${esc(item.id)}">Delete</button>`;
+  return `<div class="checklist-row"><div><span class="checklist-number">Checklist #${esc(item.checklist_number)}</span><br><strong>${esc(customer)} · ${esc(vehicle)}</strong><small>${esc(status)} · ${item.confirmed_at?new Date(item.confirmed_at).toLocaleString():"Draft checklist"}</small></div><div class="actions" style="margin-top:0"><a class="btn btn--button-7" href="checklist.html?id=${encodeURIComponent(item.id)}">Open checklist</a>${activeActions}</div></div>`;
  }).join(""):'<p class="message">No saved vehicle checklists yet. Create one to begin.</p>';
 }
 async function loadList(){

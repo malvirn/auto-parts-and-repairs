@@ -179,6 +179,30 @@ body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
 body.dashboard-page .main{min-width:0}
 </style>
   <link rel="stylesheet" href="../css/workshop-buttons.css?v=steel-3d-2">
+  <style id="checklist-button-seven">
+    body.dashboard-page.dashboard-workshop .btn.btn--button-7{
+      display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;
+      min-height:42px!important;padding:9px 16px!important;border:1px solid #ffbf69!important;border-radius:11px!important;
+      background:linear-gradient(180deg,#ffbd55 0%,#ff941f 48%,#e86b08 100%)!important;
+      color:#241405!important;font-weight:850!important;letter-spacing:.01em!important;
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.48),inset 0 -3px 0 rgba(120,48,0,.28),0 4px 0 #a94d08,0 7px 14px rgba(0,0,0,.24)!important;
+      text-decoration:none!important;transform:translateY(0)!important;
+      transition:transform .12s ease,filter .12s ease,box-shadow .12s ease!important;
+    }
+    body.dashboard-page.dashboard-workshop .btn.btn--button-7:hover{
+      filter:brightness(1.07)!important;transform:translateY(-1px)!important;
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(120,48,0,.28),0 5px 0 #a94d08,0 9px 16px rgba(0,0,0,.28)!important;
+    }
+    body.dashboard-page.dashboard-workshop .btn.btn--button-7:active{
+      transform:translateY(3px)!important;
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(120,48,0,.2),0 1px 0 #a94d08,0 2px 5px rgba(0,0,0,.2)!important;
+    }
+    body.dashboard-page.dashboard-workshop .btn.btn--button-7:disabled{opacity:.55!important;filter:grayscale(.35)!important;cursor:not-allowed!important}
+    body.dashboard-page.dashboard-workshop .btn.btn--button-7-danger{
+      border-color:#ff9b91!important;background:linear-gradient(180deg,#ff9b91 0%,#f15d53 50%,#c93630 100%)!important;
+      color:#fff!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 0 rgba(100,0,0,.28),0 4px 0 #8d211e,0 7px 14px rgba(0,0,0,.24)!important;
+    }
+  </style>
 </head>
 <body class="dashboard-page dashboard-workshop">
 <div class="app-shell">
@@ -194,7 +218,7 @@ body.dashboard-page .main{min-width:0}
       <section id="list-view" class="card">
         <div class="actions" style="margin:0 0 14px">
           <button id="tab-checklists" class="btn btn--primary" type="button">Checklists</button>
-          <button id="tab-drafts" class="btn" type="button">Drafts <span id="drafts-count"></span></button>
+          <button id="tab-drafts" class="btn btn--button-7" type="button">Drafts <span id="drafts-count"></span></button>
         </div>
         <div id="checklists-pane">
           <h2 style="margin-top:0">Saved checklists</h2>
@@ -238,7 +262,7 @@ body.dashboard-page .main{min-width:0}
           <button id="save-draft" class="btn" type="button" hidden>Save draft</button>
           <button id="save-checklist" class="btn btn--primary" type="button">Complete inspection</button>
           <button id="void-checklist" class="btn btn--danger" type="button" hidden>Void checklist</button>
-          <button id="delete-checklist" class="btn" type="button" hidden>Delete checklist</button>
+          <button id="delete-checklist" class="btn btn--button-7 btn--button-7-danger" type="button" hidden>Delete checklist</button>
           <div class="print-actions"><button id="print-checklist" class="btn" type="button">Print completed checklist</button><button id="print-blank-checklist" class="btn" type="button">Print blank sheet</button></div>
           <a id="open-job" class="btn btn--primary hidden">Open linked job card</a>
         </div>

@@ -390,15 +390,44 @@ async function loadRate() {
   rateDisplay.textContent = "Loading…";
   try {
     const result = await getRateDetails({ forceRefresh: true });
-    rateDisplay.textContent = Number(result.rate).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-    $("rate-updated").textContent = result.stale
-      ? `ZimRate unavailable. Showing the last saved rate (${result.updatedAt ? new Date(result.updatedAt).toLocaleString() : "date unavailable"}).`
-      : `ZimRate Black Market Max · Updated ${result.updatedAt ? new Date(result.updatedAt).toLocaleString() : "just now"}.`;
+    rateDisplay.textContent = Number(result.rate).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+    $("rate-updated").textContent = `${result.stale ? "Saved offline copy" : "Bank rate"} · Updated ${result.updatedAt ? new Date(result.updatedAt).toLocaleString() : "date unavailable"}.`;
+    if ($("bank-rate-input")) $("bank-rate-input").value = Number(result.rate).toFixed(6);
   } catch (error) {
-    rateDisplay.textContent = "Unavailable";
-    $("rate-updated").textContent = error.message || "Couldn't load the current ZimRate rate.";
+    rateDisplay.textContent = "Not set";
+    $("rate-updated").textContent = error.message || "Enter the bank rate to enable currency conversions.";
   }
 }
+
+$("save-bank-rate")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const rate = Number($("bank-rate-input")?.value);
+  const message = $("bank-rate-message");
+  if (!Number.isFinite(rate) || rate <= 0) {
+    if (message) { message.textContent = "Enter a bank rate greater than zero."; message.style.color = "var(--danger)"; }
+    return;
+  }
+  button.disabled = true;
+  const original = button.textContent;
+  button.textContent = "Saving…";
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Your session has expired. Sign in again.");
+    const { error } = await supabase.from("business_settings").update({
+      usd_to_zig_bank_rate: rate,
+      exchange_rate_updated_at: new Date().toISOString(),
+      exchange_rate_updated_by: user.id,
+    }).eq("id", 1);
+    if (error) throw error;
+    if (message) { message.textContent = "Bank rate saved. New conversions will use this rate."; message.style.color = "var(--success)"; }
+    await loadRate();
+  } catch (error) {
+    if (message) { message.textContent = "Couldn't save bank rate: " + (error.message || String(error)); message.style.color = "var(--danger)"; }
+  } finally {
+    button.disabled = false;
+    button.textContent = original;
+  }
+});
 
 // ---- Account ----
 async function loadAccount() {
@@ -408,6 +437,7 @@ async function loadAccount() {
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   const labels = { super_admin: "Super Admin", accounting: "Accounting", staff: "Staff" };
   $("account-role").textContent = profile ? (labels[profile.role] || profile.role) : "—";
+  if ($("bank-rate-editor")) $("bank-rate-editor").hidden = profile?.role !== "super_admin";
 }
 $("reset-password-btn")?.addEventListener("click", async (e) => {
   const { data: { user } } = await supabase.auth.getUser();
