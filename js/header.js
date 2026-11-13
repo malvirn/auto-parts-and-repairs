@@ -83,6 +83,7 @@ function ensureActions(header) {
     analytics.title = "Analytics";
     analytics.setAttribute("aria-label", "Open analytics");
     analytics.append(icon("chart-no-axes-combined"));
+    analytics.hidden = !document.querySelector('.sidebar a[href*="analytics.html"]');
     actions.append(analytics);
   }
   const account = document.querySelector(".dashboard-login-level");
@@ -112,5 +113,12 @@ export function initializeSharedHeader() {
   ensureDateRow(header);
   ensureSearch(header);
   ensureActions(header);
+  const menu = header.querySelector("#dashboard-sidebar-toggle");
+  const brand = header.querySelector(".dashboard-header-brand");
+  const date = header.querySelector(".dashboard-header-date");
+  const searchToggle = header.querySelector(".dashboard-search-toggle");
+  const search = header.querySelector("#hs");
+  const actions = header.querySelector(".dashboard-topbar-actions");
+  [menu, brand, date, searchToggle, search, actions].filter(Boolean).forEach(node => header.append(node));
   window.lucide?.createIcons();
 }
