@@ -1,7 +1,7 @@
 import supabase from "./supabaseClient.js";
 import { syncAccountLabel } from "./account-label.js?v=phase1";
 import { initializeSharedHeader } from "./header.js?v=phase2";
-import "./sidebar.js?v=chrome-glass-1";
+import { applySidebarAccessRules } from "./sidebar.js?v=phase3";
 
 const primaryLinks = [
   { href: "index.html", page: "index", label: "Home", paths: ["M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"] },
@@ -277,22 +277,6 @@ async function normalizeDashboardSidebar(sidebar) {
     const normalizedRole = rawRole === "superadmin" ? "super_admin" : rawRole;
     // Verified numeric access level is authoritative for super-admin navigation.
     const role = Number(document.body.dataset.accessLevel || rememberedAccess.accessLevel) >= 2 ? "super_admin" : normalizedRole;
-    const accessByPage = {
-      accounting: ["super_admin", "accounting"],
-      ledger: ["super_admin", "accounting"],
-      payables: ["super_admin", "accounting"],
-      cashbook: ["super_admin", "accounting"],
-      commissions: ["super_admin", "accounting"],
-      "landed-cost": ["super_admin", "accounting"],
-      "fixed-assets": ["super_admin", "accounting"],
-      "financial-statements": ["super_admin", "accounting"],
-      analytics: ["super_admin", "accounting"],
-      technicians: ["super_admin"],
-      customers: ["super_admin", "staff"],
-      checklist: ["super_admin", "staff"],
-      repairs: ["super_admin", "staff"],
-      suppliers: ["super_admin", "staff"],
-    };
     const canonical = source.cloneNode(true);
     canonical.id = "sidebar";
     canonical.dataset.dashboardCanonical = "true";
@@ -305,30 +289,7 @@ async function normalizeDashboardSidebar(sidebar) {
       image.src = new URL(image.getAttribute("src"), indexUrl).href;
     });
     const currentPage = pageName(window.location.pathname);
-    canonical.querySelectorAll("a.nav-link").forEach(link => {
-      const target = new URL(link.getAttribute("href"), indexUrl);
-      const targetPage = pageName(target.pathname);
-      const allowedRoles = accessByPage[targetPage];
-      if (allowedRoles && !allowedRoles.includes(role)) {
-        const groupKey = link.closest(".nav-group")?.dataset.group;
-        if (groupKey === "accounting") {
-          const restrictedLink = document.createElement("span");
-          restrictedLink.className = "nav-link nav-link--restricted";
-          restrictedLink.setAttribute("aria-disabled", "true");
-          restrictedLink.title = "Your account does not have access to this module";
-          restrictedLink.innerHTML = link.innerHTML;
-          link.replaceWith(restrictedLink);
-          return;
-        }
-        link.remove();
-        return;
-      }
-      link.href = target.pathname + target.search + target.hash;
-      const isCurrent = pageName(target.pathname) === currentPage;
-      link.classList.toggle("active", isCurrent);
-      if (isCurrent) link.setAttribute("aria-current", "page");
-      else link.removeAttribute("aria-current");
-    });
+    applySidebarAccessRules(canonical, { role, indexUrl, currentPage, pageName });
     canonical.querySelectorAll(".sidebar-quick-access a").forEach(link => {
       const target = new URL(link.getAttribute("href"), indexUrl);
       const isCurrent = pageName(target.pathname) === currentPage;
