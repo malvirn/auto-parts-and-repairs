@@ -1001,3 +1001,175 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-b
     width:28px;height:28px;min-width:28px;flex:0 0 28px
   }
 }
+
+
+/* Phase 4: canonical sidebar styling. All dashboard pages use this stylesheet. */
+/* Centric Auto Mobile — shared premium glass sidebar.
+   Presentation only: existing navigation markup, URLs, roles and actions stay authoritative. */
+body.dashboard-page .sidebar,
+body.dashboard-page.dashboard-workshop .sidebar{
+  position:fixed!important;z-index:1300!important;inset:0 auto 0 0!important;
+  display:flex!important;flex-direction:column!important;gap:0!important;
+  width:260px!important;max-width:260px!important;height:100vh!important;height:100dvh!important;
+  margin:0!important;padding:14px 12px calc(14px + env(safe-area-inset-bottom,0px))!important;
+  overflow:hidden!important;visibility:visible!important;transform:translateX(0)!important;
+  border:1px solid rgba(255,255,255,.14)!important;border-left:0!important;border-radius:0 18px 18px 0!important;
+  background:linear-gradient(155deg,rgba(14,20,24,.84),rgba(5,8,10,.78))!important;
+  -webkit-backdrop-filter:blur(18px) saturate(160%)!important;backdrop-filter:blur(18px) saturate(160%)!important;
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.06),12px 0 36px rgba(0,0,0,.34)!important;
+  transition:width .24s ease,transform .24s ease!important;
+}
+body.dashboard-page .sidebar__brand,body.dashboard-page.dashboard-workshop .sidebar__brand{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  flex:none!important;min-height:82px!important;margin:0 0 10px!important;padding:8px 42px 13px 4px!important;
+  border-bottom:1px solid rgba(255,255,255,.12)!important;
+}
+body.dashboard-page .sidebar .brand-logo,body.dashboard-page.dashboard-workshop .sidebar .brand-logo{
+  width:min(150px,100%)!important;max-height:66px!important;object-fit:contain!important;
+}
+body.dashboard-page .sidebar .sidebar-scroll,body.dashboard-page.dashboard-workshop .sidebar .sidebar-scroll{
+  display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;padding:2px 1px 12px!important;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent;
+}
+body.dashboard-page .sidebar .nav-group,body.dashboard-page.dashboard-workshop .sidebar .nav-group{display:block!important;margin:7px 0!important}
+body.dashboard-page .sidebar .nav-grp,body.dashboard-page.dashboard-workshop .sidebar .nav-grp{
+  display:flex!important;width:100%!important;min-height:34px!important;align-items:center!important;gap:10px!important;
+  padding:7px 10px!important;border:1px solid transparent!important;border-radius:9px!important;
+  background:transparent!important;color:#aab5c0!important;font:700 10px/1.2 Inter,"Segoe UI",system-ui,sans-serif!important;
+  letter-spacing:.11em!important;text-align:left!important;text-transform:uppercase!important;cursor:pointer!important;
+}
+body.dashboard-page .sidebar .nav-grp>svg,body.dashboard-page.dashboard-workshop .sidebar .nav-grp>svg{
+  width:17px!important;height:17px!important;flex:none!important;color:#f58220!important;stroke-width:2!important;
+}
+body.dashboard-page .sidebar .nav-grp>span:first-of-type,body.dashboard-page.dashboard-workshop .sidebar .nav-grp>span:first-of-type{flex:1!important}
+body.dashboard-page .sidebar .nav-chev,body.dashboard-page.dashboard-workshop .sidebar .nav-chev{
+  width:8px!important;height:8px!important;margin:0 3px 3px auto!important;border-right:1.5px solid currentColor!important;
+  border-bottom:1.5px solid currentColor!important;transform:rotate(45deg)!important;transition:transform .18s ease!important;
+}
+body.dashboard-page .sidebar .nav-group.open .nav-chev,body.dashboard-page.dashboard-workshop .sidebar .nav-group.open .nav-chev{transform:rotate(225deg) translate(-2px,-1px)!important}
+body.dashboard-page .sidebar .nav-grp:hover,body.dashboard-page.dashboard-workshop .sidebar .nav-grp:hover,
+body.dashboard-page .sidebar .nav-group.open>.nav-grp,body.dashboard-page.dashboard-workshop .sidebar .nav-group.open>.nav-grp{
+  border-color:rgba(255,255,255,.08)!important;background:rgba(255,255,255,.045)!important;color:#fff!important;
+}
+body.dashboard-page .sidebar .nav-grpwrap,body.dashboard-page.dashboard-workshop .sidebar .nav-grpwrap{display:none!important;padding:3px 0 4px 8px!important}
+body.dashboard-page .sidebar .nav-group.open .nav-grpwrap,body.dashboard-page.dashboard-workshop .sidebar .nav-group.open .nav-grpwrap{display:grid!important;gap:4px!important}
+body.dashboard-page .sidebar .nav-link,body.dashboard-page.dashboard-workshop .sidebar .nav-link{
+  display:flex!important;min-height:42px!important;align-items:center!important;gap:12px!important;
+  margin:2px 0!important;padding:9px 11px!important;border:1px solid rgba(255,255,255,.07)!important;
+  border-radius:11px!important;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025))!important;
+  color:#e6ebf0!important;font:600 12px/1.25 Inter,"Segoe UI",system-ui,sans-serif!important;
+  text-decoration:none!important;white-space:nowrap!important;transition:background .16s,border-color .16s,transform .16s!important;
+}
+body.dashboard-page .sidebar .nav-link>svg,body.dashboard-page.dashboard-workshop .sidebar .nav-link>svg{
+  width:19px!important;height:19px!important;flex:none!important;color:#c7d0d9!important;stroke-width:2!important;
+}
+body.dashboard-page .sidebar .nav-link:hover,body.dashboard-page.dashboard-workshop .sidebar .nav-link:hover{
+  border-color:rgba(245,130,32,.32)!important;background:rgba(245,130,32,.12)!important;color:#fff!important;transform:translateX(2px)!important;
+}
+body.dashboard-page .sidebar .nav-link.active,body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{
+  position:relative!important;border-color:rgba(245,130,32,.58)!important;
+  background:linear-gradient(100deg,rgba(245,130,32,.30),rgba(245,130,32,.09))!important;
+  color:#fff!important;box-shadow:inset 0 0 18px rgba(245,130,32,.10),0 4px 14px rgba(0,0,0,.18)!important;
+}
+body.dashboard-page .sidebar .nav-link.active::before,body.dashboard-page.dashboard-workshop .sidebar .nav-link.active::before{
+  content:"";position:absolute;top:7px;bottom:7px;left:-1px;width:3px;border-radius:0 4px 4px 0;
+  background:#f58220;box-shadow:0 0 12px rgba(245,130,32,.8);
+}
+body.dashboard-page .sidebar .nav-link.active>svg,body.dashboard-page.dashboard-workshop .sidebar .nav-link.active>svg{color:#ffad58!important}
+body.dashboard-page .sidebar .nav-link--restricted,body.dashboard-page.dashboard-workshop .sidebar .nav-link--restricted{opacity:.42!important;cursor:not-allowed!important}
+body.dashboard-page .sidebar .sidebar-account,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account{
+  display:flex!important;flex:none!important;align-items:center!important;gap:9px!important;
+  margin:8px 0 8px!important;padding:11px 8px!important;border-top:1px solid rgba(255,255,255,.13)!important;
+  background:linear-gradient(90deg,rgba(245,130,32,.08),transparent)!important;
+}
+body.dashboard-page .sidebar .sidebar-account__avatar,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__avatar{
+  display:grid!important;width:38px!important;height:38px!important;flex:none!important;place-items:center!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:50%!important;
+  background:linear-gradient(145deg,#f58220,#a94c0a)!important;color:#fff!important;font-weight:800!important;
+  box-shadow:0 3px 12px rgba(0,0,0,.28)!important;
+}
+body.dashboard-page .sidebar .sidebar-account__details,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__details{display:grid!important;gap:3px!important;min-width:0!important;flex:1!important}
+body.dashboard-page .sidebar .sidebar-account__name,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__name{overflow:hidden!important;color:#f5f7fa!important;font-size:11px!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+body.dashboard-page .sidebar .sidebar-account__role,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__role{color:#ffad58!important;font-size:10px!important;text-transform:capitalize!important}
+body.dashboard-page .sidebar .sidebar-account__footer,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__footer{
+  display:flex!important;flex:none!important;align-items:center!important;gap:6px!important;padding:0 2px 4px!important;
+}
+body.dashboard-page .sidebar .sidebar-account__footer button,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__footer button{
+  min-height:34px!important;padding:6px 9px!important;border:1px solid rgba(255,255,255,.24)!important;border-radius:9px!important;
+  background:linear-gradient(180deg,#e7edf2,#9ca8b3 55%,#64717d)!important;color:#17212b!important;
+  font:700 10px Inter,"Segoe UI",system-ui,sans-serif!important;box-shadow:inset 0 1px 0 #fff,0 3px 8px rgba(0,0,0,.28)!important;
+}
+body.dashboard-page .sidebar .sidebar-account__footer button svg,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__footer button svg{width:14px!important;height:14px!important}
+body.dashboard-page .sidebar .sidebar-account__footer button:hover,body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__footer button:hover{filter:brightness(1.08)!important}
+body.dashboard-page.dashboard-workshop .main{margin-left:260px!important;transition:margin-left .24s ease!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar{left:280px!important;transition:left .24s ease!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar{width:72px!important;max-width:72px!important;padding-inline:9px!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar__brand{padding-inline:0!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .brand-logo{width:48px!important;object-fit:cover!important;object-position:left!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{justify-content:center!important;padding-inline:0!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp .nav-chev,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link>span,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account__details,
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account__footer button span{display:none!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:center!important;padding-inline:0!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-group.open .nav-grpwrap{display:none!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account{justify-content:center!important;padding-inline:0!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account__footer{flex-direction:column!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{margin-left:72px!important}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:92px!important}
+.dashboard-sidebar-toggle{
+  position:fixed!important;z-index:1401!important;top:18px!important;left:238px!important;
+  display:grid!important;width:36px!important;height:36px!important;place-items:center!important;
+  border:1px solid rgba(255,255,255,.35)!important;border-radius:50%!important;
+  background:linear-gradient(180deg,#f5f7f8,#aeb8c1 52%,#65717d)!important;color:#17212b!important;
+  box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(0,0,0,.35)!important;transition:left .24s,transform .24s!important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-toggle{left:50px!important}
+.dashboard-sidebar-toggle svg{width:18px!important;height:18px!important}
+.dashboard-sidebar-backdrop{display:none!important}
+:root[data-theme="light"] body.dashboard-page .sidebar,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar{
+  border-color:rgba(35,48,62,.16)!important;background:linear-gradient(155deg,rgba(255,255,255,.88),rgba(238,243,247,.82))!important;
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.7),10px 0 30px rgba(25,40,55,.12)!important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-grp,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .nav-grp{color:#596777!important}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .nav-link{
+  border-color:rgba(46,61,76,.10)!important;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(231,237,243,.72))!important;color:#263442!important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link>svg,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .nav-link>svg{color:#526273!important}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link.active,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .nav-link.active{
+  border-color:rgba(245,130,32,.52)!important;background:linear-gradient(100deg,rgba(245,130,32,.22),rgba(245,130,32,.07))!important;color:#182431!important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .sidebar-account__name,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__name{color:#172331!important}
+:root[data-theme="light"] body.dashboard-page .sidebar .sidebar-account__footer button,:root[data-theme="light"] body.dashboard-page.dashboard-workshop .sidebar .sidebar-account__footer button{color:#17212b!important}
+@media(max-width:1024px){
+  body.dashboard-page.dashboard-workshop .main,body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{margin-left:0!important;padding-left:clamp(14px,3vw,26px)!important}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar,body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:64px!important}
+  body.dashboard-page .sidebar,body.dashboard-page.dashboard-workshop .sidebar{
+    width:min(320px,86vw)!important;max-width:min(320px,86vw)!important;
+    transform:translateX(-105%)!important;box-shadow:18px 0 44px rgba(0,0,0,.45)!important;
+  }
+  body.dashboard-page.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important}
+  body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{
+    position:fixed!important;z-index:1290!important;inset:0!important;display:block!important;
+    background:rgba(3,7,12,.66)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{left:14px!important;top:14px!important}
+  body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(286px,calc(86vw - 24px))!important}
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp>span,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp .nav-chev,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link>span,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account__details,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .sidebar-account__footer button span{display:initial!important}
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link{justify-content:flex-start!important;padding-inline:11px!important}
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-group.open .nav-grpwrap{display:grid!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.dashboard-page .sidebar,body.dashboard-page.dashboard-workshop .sidebar,
+  body.dashboard-page.dashboard-workshop .main,body.dashboard-page.dashboard-workshop .dashboard-topbar,
+  .dashboard-sidebar-toggle{transition:none!important}
+}
+
+body.dashboard-page:not(.dashboard-home) .sidebar:not([data-dashboard-canonical="true"]){visibility:hidden!important}
+
