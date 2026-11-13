@@ -199,69 +199,75 @@
   </style>
 
   <style id="pos-theme">
-    /* Counter POS: compact, touch-friendly layout using live Shop data and existing sale handlers. */
-    #shop-quick-sale { margin-top: 4px; }
-    #quick-sale-form.pos { padding: 0; overflow: visible; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; background: linear-gradient(180deg,#151e24,#0d1419); box-shadow: 0 18px 42px rgba(0,0,0,.3); }
-    #quick-sale-form .pos-layout { display: grid; grid-template-columns: minmax(0,1fr) 370px; align-items: stretch; }
-    #quick-sale-form .pos-cart { min-width: 0; padding: 20px; }
-    #quick-sale-form .pos-checkout { display: grid; align-content: start; gap: 13px; min-width: 0; padding: 20px; border-left: 1px solid rgba(255,255,255,.09); border-radius: 0 18px 18px 0; background: rgba(0,0,0,.18); }
-    #quick-sale-form .pos-card-head { display: grid; gap: 5px; margin: 0 0 16px; }
-    #quick-sale-form .pos-cart h3, #quick-sale-form .pos-checkout h3 { margin: 0; color: #eef3f0; font-size: 1rem; font-weight: 750; }
-    #quick-sale-form .quick-sale-intro { display:flex; align-items:center; gap:8px; margin:0; color:#9ba9a4; font-size:.82rem; }
-    #quick-sale-form .quick-sale-intro svg { width:17px; height:17px; color:#f58220; flex:none; }
-    #quick-sale-form .quick-sale-category-filter { max-width:240px; margin:0 0 12px; }
-    #quick-sale-form .quick-sale-category-filter label,
-    #quick-sale-form .quick-sale-line .field>label,
-    #quick-sale-form .pos-fields label { display:block; margin:0 0 6px; color:#aab7b2; font-size:.76rem; font-weight:650; }
-    #quick-sale-form input, #quick-sale-form select { width:100%; min-height:44px; box-sizing:border-box; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:#1a252c; color:#eef3f0; padding:0 12px; }
-    #quick-sale-form input:focus, #quick-sale-form select:focus { border-color:rgba(245,130,32,.8); outline:2px solid rgba(245,130,32,.16); }
-    #quick-sale-form .quick-sale-cart { display:grid; gap:9px; }
-    #quick-sale-form .quick-sale-line { display:grid; grid-template-columns:minmax(180px,2fr) 82px minmax(105px,.8fr) minmax(105px,.8fr) 42px; gap:10px; align-items:end; padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)); }
-    #quick-sale-form .quick-sale-line:focus-within { border-color:rgba(245,130,32,.48); background:rgba(245,130,32,.035); }
+    /* Counter POS catalogue and live cart. All controls keep the Shop's existing data IDs. */
+    #quick-sale-form .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    #quick-sale-form.pos { padding:0; overflow:visible; border:1px solid rgba(255,255,255,.1); border-radius:18px; background:linear-gradient(180deg,#151e24,#0d1419); box-shadow:0 18px 42px rgba(0,0,0,.3); }
+    #quick-sale-form .pos-layout { display:grid; grid-template-columns:minmax(0,1fr) 410px; align-items:stretch; }
+    #quick-sale-form .pos-catalogue { min-width:0; padding:20px; }
+    #quick-sale-form .pos-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:0 0 16px; }
+    #quick-sale-form h3 { margin:0; color:#eef3f0; font-size:1rem; font-weight:750; }
+    #quick-sale-form .quick-sale-intro { margin:5px 0 0; color:#9ba9a4; font-size:.82rem; line-height:1.45; }
+    #quick-sale-form .pos-toolbar { display:grid; grid-template-columns:minmax(0,1fr) minmax(150px,.35fr); gap:9px; margin-bottom:14px; }
+    #quick-sale-form .pos-search { display:flex; align-items:center; gap:10px; min-width:0; min-height:48px; padding:0 13px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:#1a252c; color:#9ba9a4; }
+    #quick-sale-form .pos-search svg { width:18px; height:18px; flex:none; color:#f58220; }
+    #quick-sale-form .pos-search input { width:100%; min-width:0; min-height:44px; padding:0; border:0; outline:0; background:transparent; color:#eef3f0; box-shadow:none; }
+    #quick-sale-form .pos-category select { width:100%; min-height:48px; padding:0 12px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:#1a252c; color:#eef3f0; }
+    #quick-sale-form .pos-search:focus-within, #quick-sale-form .pos-category select:focus { border-color:rgba(245,130,32,.75); outline:2px solid rgba(245,130,32,.15); }
+    #quick-sale-form .quick-sale-products { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; align-content:start; }
+    #quick-sale-form .quick-sale-product-card { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:0; min-height:142px; padding:13px; border:1px solid rgba(255,255,255,.09)!important; border-radius:13px!important; background:linear-gradient(160deg,#202b33,#151e24)!important; color:#eef3f0!important; text-align:left; box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 4px 12px rgba(0,0,0,.16)!important; }
+    #quick-sale-form .quick-sale-product-card:hover:not(:disabled) { border-color:rgba(245,130,32,.6)!important; background:linear-gradient(160deg,#29343c,#19232a)!important; transform:translateY(-2px); }
+    #quick-sale-form .quick-sale-product-card:active:not(:disabled) { transform:scale(.98); }
+    #quick-sale-form .quick-sale-product-card:disabled { opacity:.45; cursor:not-allowed; }
+    #quick-sale-form .quick-sale-product-card b { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; font-size:.86rem; line-height:1.3; }
+    #quick-sale-form .quick-sale-product-card small { color:#91a099; font-size:.7rem; overflow-wrap:anywhere; }
+    #quick-sale-form .quick-sale-product-card .stock { display:inline-flex; align-items:center; gap:5px; padding:3px 7px; border-radius:99px; background:rgba(24,184,102,.12); color:#67d99c; font-size:.68rem; font-weight:700; }
+    #quick-sale-form .quick-sale-product-card .stock.low { background:rgba(245,176,32,.13); color:#f5b84e; }
+    #quick-sale-form .quick-sale-product-card .stock.out { background:rgba(229,72,62,.14); color:#ff8d85; }
+    #quick-sale-form .quick-sale-product-card strong { margin-top:auto; color:#fff; font-size:1.12rem; font-weight:850; font-variant-numeric:tabular-nums; }
+    #quick-sale-form .quick-sale-product-card .add-hint { position:absolute; right:11px; bottom:14px; display:grid; width:25px; height:25px; place-items:center; border-radius:50%; background:#f58220; color:white; font-size:1rem; font-weight:800; }
+    #quick-sale-form .pos-checkout { display:flex; flex-direction:column; gap:0; min-width:0; border-left:1px solid rgba(255,255,255,.09); border-radius:0 18px 18px 0; background:rgba(0,0,0,.18); }
+    #quick-sale-form .pos-cart-panel { padding:19px 18px 15px; border-bottom:1px solid rgba(255,255,255,.09); }
+    #quick-sale-form .pos-cart-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    #quick-sale-form .pos-cart-heading span { color:#99a8a1; font-size:.75rem; }
+    #quick-sale-form .quick-sale-cart { display:grid; gap:8px; max-height:330px; overflow:auto; }
+    #quick-sale-form .quick-sale-empty { grid-column:1/-1; margin:0; padding:22px 10px; color:#8f9e98; font-size:.82rem; text-align:center; }
+    #quick-sale-form .quick-sale-line { display:grid; gap:9px; padding:11px; border:1px solid rgba(255,255,255,.08); border-radius:11px; background:rgba(255,255,255,.035); }
+    #quick-sale-form .quick-sale-line-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    #quick-sale-form .quick-sale-line-head b { font-size:.8rem; line-height:1.3; }
+    #quick-sale-form .quick-sale-line-head small { display:block; margin-top:3px; color:#8f9e98; font-size:.68rem; }
+    #quick-sale-form .quick-sale-line-head button { width:30px; height:30px; min-height:30px; flex:none; padding:0; border-radius:8px!important; color:#ff9188!important; }
+    #quick-sale-form .quick-sale-line-fields { display:grid; grid-template-columns:58px minmax(70px,1fr) minmax(75px,1fr); gap:7px; align-items:end; }
     #quick-sale-form .quick-sale-line .field { min-width:0; margin:0; }
-    #quick-sale-form .quick-sale-line .field>label { font-size:.72rem; font-weight:600; }
-    #quick-sale-form .quick-sale-line input { min-height:42px; padding:0 10px; }
-    #quick-sale-form .quick-sale-line output { display:flex; align-items:center; min-height:42px; padding:0 10px; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:#111a20; color:#fff; font-size:.9rem; font-weight:800; font-variant-numeric:tabular-nums; }
-    #quick-sale-form .quick-sale-selected { display:flex; align-items:center; gap:8px; margin-top:7px; padding:8px 9px; border:1px solid rgba(245,130,32,.28); border-radius:9px; background:rgba(245,130,32,.08); }
-    #quick-sale-form .quick-sale-selected-check { background:#f58220; }
-    #quick-sale-form .quick-sale-change-product { color:#ffad66; }
-    #quick-sale-form .quick-sale-product-results { border:1px solid rgba(245,130,32,.28); border-radius:12px; background:#111a20; }
-    #quick-sale-form .quick-sale-product-result { border:1px solid rgba(255,255,255,.07); border-radius:9px; }
-    #quick-sale-form .quick-sale-product-result:hover { border-color:rgba(245,130,32,.42); background:rgba(245,130,32,.08); }
-    #quick-sale-form .quick-sale-results-heading { color:#f5a45f; }
-    #quick-sale-form .quick-sale-remove { min-height:42px; padding:0; border-radius:10px; color:#ff9188; }
-    #quick-sale-form .pos-add { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:10px; border:1px dashed rgba(245,130,32,.48)!important; border-radius:11px!important; background:rgba(245,130,32,.045)!important; color:#ffad66!important; font-weight:700; box-shadow:none!important; }
-    #quick-sale-form .pos-add:hover { background:rgba(245,130,32,.1); }
-    #quick-sale-form .pos-add svg { width:17px; height:17px; }
-    #quick-sale-form .pos-fields.form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; max-width:none; padding:0; border:0; border-radius:0; background:none; }
+    #quick-sale-form .quick-sale-line label { display:block; margin-bottom:4px; color:#91a099; font-size:.66rem; font-weight:650; }
+    #quick-sale-form input, #quick-sale-form select { box-sizing:border-box; color:#eef3f0; }
+    #quick-sale-form .quick-sale-line input { width:100%; min-height:36px; padding:0 7px; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:#111a20; font-size:.78rem; }
+    #quick-sale-form .quick-sale-line output { display:flex; align-items:center; min-height:36px; padding:0 7px; border:1px solid rgba(255,255,255,.08); border-radius:8px; background:#111a20; color:#fff; font-size:.78rem; font-weight:800; font-variant-numeric:tabular-nums; }
+    #quick-sale-form .pos-payment-panel { display:grid; gap:11px; padding:18px; }
+    #quick-sale-form .pos-fields.form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; max-width:none; padding:0; border:0; background:none; }
     #quick-sale-form .pos-fields .field { min-width:0; margin:0; }
     #quick-sale-form .pos-fields .pos-span { grid-column:1/-1; }
-    #quick-sale-form .pos-fields label small { margin-left:4px; color:#84928d; font-size:.7rem; font-weight:400; }
-    #quick-sale-form .pos-credit-note { margin:0; color:#8f9e98; font-size:.75rem; line-height:1.5; }
-    #quick-sale-form .quick-sale-total { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:52px; margin-top:2px; padding:12px 14px; border:1px solid rgba(245,130,32,.28); border-radius:12px; background:rgba(245,130,32,.09); color:#c6d0cb; font-size:.83rem; font-weight:600; }
-    #quick-sale-form .quick-sale-total strong { color:#fff; font-size:1.45rem; font-weight:850; white-space:nowrap; }
-    #quick-sale-form .pos-submit { display:flex; justify-content:center; align-items:center; gap:9px; width:100%; min-height:54px; border:1px solid #ffbf85!important; border-radius:12px!important; background:linear-gradient(180deg,#ffa24a,#f26a0a 58%,#d9540a)!important; color:#fff!important; font-size:1rem; font-weight:800; box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 0 #a8420a,0 9px 20px rgba(242,106,10,.2)!important; }
+    #quick-sale-form .pos-fields label { display:block; margin:0 0 5px; color:#aab7b2; font-size:.72rem; font-weight:650; }
+    #quick-sale-form .pos-fields label small { margin-left:4px; color:#84928d; font-size:.66rem; font-weight:400; }
+    #quick-sale-form .pos-fields input, #quick-sale-form .pos-fields select { width:100%; min-height:40px; padding:0 10px; border:1px solid rgba(255,255,255,.12); border-radius:9px; background:#1a252c; font-size:.8rem; }
+    #quick-sale-form .pos-credit-note { margin:0; color:#8f9e98; font-size:.7rem; line-height:1.45; }
+    #quick-sale-form .quick-sale-total { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:52px; padding:11px 13px; border:1px solid rgba(245,130,32,.28); border-radius:11px; background:rgba(245,130,32,.09); color:#c6d0cb; font-size:.76rem; font-weight:650; }
+    #quick-sale-form .quick-sale-total strong { color:#fff; font-size:1.35rem; font-weight:850; white-space:nowrap; }
+    #quick-sale-form .pos-submit { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:52px; border:1px solid #ffbf85!important; border-radius:11px!important; background:linear-gradient(180deg,#ffa24a,#f26a0a 58%,#d9540a)!important; color:#fff!important; font-size:.95rem; font-weight:800; box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 0 #a8420a,0 9px 18px rgba(242,106,10,.2)!important; }
     #quick-sale-form .pos-submit:active { transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 1px 0 #a8420a!important; }
     #quick-sale-form .form-message:empty { display:none; }
     #quick-sale-form .form-message { margin:0; }
-    #quick-sale-form .pos-checkout h3 { padding-bottom:2px; }
-    #quick-sale-form .quick-sale-line .quick-sale-product-search { background-color:#1a252c; }
-    #job-part-purchase-requests { margin-top:28px; }
-    #job-part-purchase-requests .panel { overflow-x:auto; }
-    #job-part-purchase-requests table { min-width:780px; }
-    @media(max-width:1100px) {
+    @media(max-width:1100px) { #quick-sale-form .pos-layout { grid-template-columns:minmax(0,1fr) 360px; } }
+    @media(max-width:820px) {
       #quick-sale-form .pos-layout { grid-template-columns:minmax(0,1fr); }
       #quick-sale-form .pos-checkout { border-left:0; border-top:1px solid rgba(255,255,255,.09); border-radius:0 0 18px 18px; }
-      #quick-sale-form .quick-sale-line { grid-template-columns:minmax(0,1fr) 82px; }
-      #quick-sale-form .quick-sale-line .field:first-child,
-      #quick-sale-form .quick-sale-line .field:nth-child(3),
-      #quick-sale-form .quick-sale-line .field:nth-child(4) { grid-column:1/-1; }
-      #quick-sale-form .quick-sale-remove { grid-column:2; grid-row:2; }
+      #quick-sale-form .quick-sale-cart { max-height:none; }
+      #quick-sale-form .quick-sale-products { grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); }
     }
     @media(max-width:520px) {
-      #quick-sale-form .pos-cart, #quick-sale-form .pos-checkout { padding:15px; }
+      #quick-sale-form .pos-catalogue, #quick-sale-form .pos-cart-panel, #quick-sale-form .pos-payment-panel { padding:14px; }
+      #quick-sale-form .pos-toolbar { grid-template-columns:1fr; }
       #quick-sale-form .pos-fields.form-grid { grid-template-columns:1fr; }
-      #quick-sale-form .quick-sale-category-filter { max-width:none; }
+      #quick-sale-form .quick-sale-line-fields { grid-template-columns:56px minmax(0,1fr) minmax(0,1fr); }
     }
   </style>
 
@@ -371,43 +377,43 @@ body.dashboard-page .main{min-width:0}
       </nav>
 
       <section class="page-section" id="shop-quick-sale">
-        <div class="section-heading"><div><p class="section-kicker">Walk-in counter sale</p><h2><i class="section-heading-icon" data-lucide="shopping-bag"></i>Quick Sale</h2></div><span class="section-note">Deducts stock, credits a salesperson, issues a receipt</span></div>
+        <div class="section-heading"><div><p class="section-kicker">Walk-in counter sale</p><h2><i class="section-heading-icon" data-lucide="shopping-bag"></i>Quick Sale</h2></div><span class="section-note">Live stock · instant receipt · salesperson commission</span></div>
         <form id="quick-sale-form" class="panel pos">
           <div class="pos-layout">
-            <div class="pos-cart">
+            <section class="pos-catalogue" aria-label="Product catalogue">
               <div class="pos-card-head">
-                <h3>Sale items</h3>
-                <p class="quick-sale-intro"><i data-lucide="scan-barcode"></i> Search or scan a product. Press Enter after the quantity to add the next item.</p>
+                <div><h3>Parts catalogue</h3><p class="quick-sale-intro">Search by part name or number, then tap a part to add it to the sale.</p></div>
               </div>
-              <div class="field quick-sale-category-filter">
-                <label for="quick-sale-category">Product category</label>
-                <select id="quick-sale-category" aria-label="Filter Quick Sale products by category">
-                  <option value="">All categories</option>
-                </select>
+              <div class="pos-toolbar">
+                <label class="pos-search"><i data-lucide="search" aria-hidden="true"></i><input id="quick-sale-search" type="search" placeholder="Search parts or scan barcode…" autocomplete="off" aria-label="Search Shop parts"></label>
+                <label class="pos-category"><span class="sr-only">Category</span><select id="quick-sale-category" aria-label="Filter Quick Sale products by category"><option value="">All categories</option></select></label>
               </div>
-              <div id="quick-sale-items" class="quick-sale-cart" aria-label="Sale items"></div>
-              <button type="button" class="btn pos-add" id="quick-sale-add-item"><i data-lucide="plus"></i> Add product</button>
-            </div>
-
-            <aside class="pos-checkout" aria-label="Checkout">
-              <h3>Checkout</h3>
-              <div class="pos-fields form-grid">
-                <div class="field pos-span"><label for="quick-sale-salesperson">Salesperson</label><select id="quick-sale-salesperson"><option value="">No salesperson, no commission</option></select></div>
-                <div class="field pos-span"><label for="quick-sale-customer-id">Registered customer <small>Required for credit</small></label><select id="quick-sale-customer-id"><option value="">Walk-in / no account</option></select></div>
-                <div class="field pos-span"><label for="quick-sale-customer">Walk-in name <small>Optional</small></label><input type="text" id="quick-sale-customer" placeholder="Walk-in Sale" /></div>
-                <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option><option value="Swipe">Swipe</option><option value="Credit">Buy on credit</option></select></div>
-                <div class="field"><label for="quick-sale-discount">Discount ($)</label><input type="number" id="quick-sale-discount" min="0" step="0.01" value="0" inputmode="decimal" /></div>
-              </div>
-              <p class="pos-credit-note">Any active registered customer can buy on credit. Record later installments under Ledger → Customer Accounts.</p>
-              <div class="quick-sale-total" id="quick-sale-total" aria-live="polite">Total: $0.00</div>
-              <button type="submit" class="btn btn--primary pos-submit"><i data-lucide="check"></i> Complete sale</button>
-              <p id="quick-sale-message" class="form-message"></p>
+              <div id="quick-sale-products" class="quick-sale-products" aria-live="polite"><p class="quick-sale-empty">Loading parts…</p></div>
+            </section>
+            <aside class="pos-checkout" aria-label="Current sale and checkout">
+              <section class="pos-cart-panel">
+                <div class="pos-cart-heading"><h3>Current sale</h3><span id="quick-sale-cart-count">0 items</span></div>
+                <div id="quick-sale-items" class="quick-sale-cart" aria-label="Sale items"><p class="quick-sale-empty">No items yet. Choose a part to begin.</p></div>
+              </section>
+              <section class="pos-payment-panel" aria-label="Checkout">
+                <h3>Checkout</h3>
+                <div class="pos-fields form-grid">
+                  <div class="field pos-span"><label for="quick-sale-salesperson">Salesperson</label><select id="quick-sale-salesperson"><option value="">No salesperson, no commission</option></select></div>
+                  <div class="field pos-span"><label for="quick-sale-customer-id">Registered customer <small>Required for credit</small></label><select id="quick-sale-customer-id"><option value="">Walk-in / no account</option></select></div>
+                  <div class="field pos-span"><label for="quick-sale-customer">Walk-in name <small>Optional</small></label><input type="text" id="quick-sale-customer" placeholder="Walk-in Sale" /></div>
+                  <div class="field"><label for="quick-sale-payment-method">Payment method</label><select id="quick-sale-payment-method"><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank</option><option value="Swipe">Swipe</option><option value="Credit">Buy on credit</option></select></div>
+                  <div class="field"><label for="quick-sale-discount">Discount ($)</label><input type="number" id="quick-sale-discount" min="0" step="0.01" value="0" inputmode="decimal" /></div>
+                </div>
+                <p class="pos-credit-note">Credit sales require a registered customer. Later installments are recorded under Ledger → Customer Accounts.</p>
+                <div class="quick-sale-total" id="quick-sale-total" aria-live="polite">Subtotal $0.00 <strong>Total $0.00</strong></div>
+                <button type="submit" class="btn btn--primary pos-submit"><i data-lucide="check-circle"></i> Complete sale</button>
+                <p id="quick-sale-message" class="form-message"></p>
+              </section>
             </aside>
           </div>
+          <button type="button" id="quick-sale-add-item" hidden aria-hidden="true" tabindex="-1">Add item</button>
         </form>
       </section>
-
-      
 
       <section class="page-section">
         <div class="section-heading"><div><p class="section-kicker">Needs attention</p><h2><i class="section-heading-icon" data-lucide="bell"></i>Alerts</h2></div></div>
