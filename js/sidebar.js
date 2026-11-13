@@ -166,10 +166,19 @@ function updateSidebarAttentionBadges(items) {
 
   sidebar.querySelectorAll(".nav-group").forEach(group => {
     const groupLinks = [...group.querySelectorAll("a.nav-link")];
-    const total = groupLinks.reduce((sum, link) => sum + Number(link.querySelector(":scope > .nav-badge")?.textContent.replace("+", "") || 0), 0);
+    const total = groupLinks.reduce((sum, link) => {
+      let file;
+      try { file = new URL(link.getAttribute("href"), document.baseURI).pathname.split("/").filter(Boolean).pop()?.toLowerCase(); }
+      catch (_) { return sum; }
+      return sum + (counts.get(file)?.count || 0);
+    }, 0);
     const hasCritical = groupLinks.some(link => link.querySelector(":scope > .nav-badge")?.dataset.severity === "critical");
     let groupBadge = group.querySelector(":scope > .nav-grp .nav-group-badge");
-    if (!total) { groupBadge?.remove(); return; }
+    if (!total) {
+      groupBadge?.remove();
+      group.querySelector(":scope > .nav-grp")?.removeAttribute("aria-label");
+      return;
+    }
     if (!groupBadge) {
       groupBadge = document.createElement("span");
       groupBadge.className = "nav-group-badge";
