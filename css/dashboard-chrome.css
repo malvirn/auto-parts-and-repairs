@@ -982,3 +982,22 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-b
   body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell{width:32px;height:32px;min-width:32px}
   body.dashboard-page.dashboard-workshop .main{padding-top:calc(108px + env(safe-area-inset-top,0px))!important}
 }
+
+@media(max-width:1024px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-search-toggle{
+    display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;
+    border:1px solid var(--line,#dce3ec);border-radius:9px;background:var(--panel,#fff);
+    color:var(--text,#17233d);
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date{grid-column:1 / -1;grid-row:2}
+}
+@media(max-width:767px){
+  body.dashboard-page.dashboard-workshop .dashboard-header-logo{width:28px;height:28px}
+  body.dashboard-page.dashboard-workshop .dashboard-header-brand-copy strong{max-width:88px;font-size:10px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions{gap:3px}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-toolbar-button,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions #global-notif-bell,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-search-toggle{
+    width:28px;height:28px;min-width:28px;flex:0 0 28px
+  }
+}
