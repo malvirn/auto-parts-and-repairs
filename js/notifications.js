@@ -120,6 +120,11 @@ function injectBellUI() {
 }
 
 function renderNotifications(items) {
+  // Share the exact notification objects already built above. Sidebar badges
+  // consume this event and never run their own database checks.
+  window.__aprNotificationItems = items;
+  document.dispatchEvent(new CustomEvent("apr:notifications-updated", { detail: items }));
+
   const badge = document.getElementById("global-notif-badge");
   const list = document.getElementById("global-notif-list");
   if (!badge || !list) return;
