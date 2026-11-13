@@ -18,7 +18,7 @@ export function syncAccountLabel() {
     ? `Access level ${accessLevel} · ${roleName}`
     : `Access · ${roleName}`;
   if (avatar) {
-    avatar.textContent = (accountName || "Account").split(/\\s+/)
+    avatar.textContent = (accountName || "Account").split(/\s+/)
       .filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "A";
   }
   return true;
