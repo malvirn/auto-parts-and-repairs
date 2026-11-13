@@ -75,8 +75,38 @@
     body.dashboard-page .main { min-width:0; }
   </style>
   <link rel="stylesheet" href="../css/workshop-buttons.css?v=steel-3d-2">
+  <style id="technicians-reconfirm-style">
+    body.technicians-reconfirm-required .app-shell{visibility:hidden!important;pointer-events:none!important}
+    .technicians-reconfirm[hidden]{display:none!important}
+    .technicians-reconfirm{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:20px;background:rgba(4,9,15,.88);backdrop-filter:blur(14px)}
+    .technicians-reconfirm__card{display:grid;gap:12px;width:min(440px,100%);padding:28px;border:1px solid rgba(190,207,224,.2);border-radius:20px;background:#111b27;color:#edf3fa;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+    .technicians-reconfirm__card h1{margin:0;font-size:1.45rem}
+    .technicians-reconfirm__card p{margin:0;color:#b7c4d2;line-height:1.5}
+    .technicians-reconfirm__card label{margin-top:4px;font-size:.82rem;font-weight:700}
+    .technicians-reconfirm__card input{width:100%;min-height:44px;padding:10px 12px;border:1px solid #46566a;border-radius:10px;background:#0b121c;color:#fff}
+    .technicians-reconfirm__card button{min-height:46px;justify-content:center}
+    .technicians-reconfirm__card a{color:#9fc4ef;text-align:center;text-decoration:none}
+    .technicians-reconfirm__icon{display:grid;width:48px;height:48px;place-items:center;border:1px solid rgba(151,190,229,.28);border-radius:14px;color:#c9dced;background:rgba(151,190,229,.1)}
+    .technicians-reconfirm__icon svg{width:24px;height:24px}
+    #technicians-reconfirm-message{min-height:1.3em;color:#ffb4a9;font-size:.84rem}
+  </style>
 </head>
-<body class="dashboard-page system-page dashboard-workshop">
+<body class="dashboard-page system-page dashboard-workshop technicians-reconfirm-required">
+  <section id="technicians-reconfirm" class="technicians-reconfirm" role="dialog" aria-modal="true" aria-labelledby="technicians-reconfirm-title" hidden>
+    <form id="technicians-reconfirm-form" class="technicians-reconfirm__card">
+      <span class="technicians-reconfirm__icon"><i data-lucide="shield-check" aria-hidden="true"></i></span>
+      <p class="section-kicker">Restricted workspace</p>
+      <h1 id="technicians-reconfirm-title">Confirm Super Admin access</h1>
+      <p>Enter your signed-in Super Admin account password to open Employees &amp; Staff.</p>
+      <label for="technicians-reconfirm-email">Super Admin account</label>
+      <input id="technicians-reconfirm-email" type="email" autocomplete="username" readonly>
+      <label for="technicians-reconfirm-password">Password</label>
+      <input id="technicians-reconfirm-password" type="password" autocomplete="current-password" required autofocus>
+      <button class="btn btn--primary" type="submit"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Confirm and continue</button>
+      <p id="technicians-reconfirm-message" role="alert" aria-live="polite"></p>
+      <a href="../index.html">Return to dashboard</a>
+    </form>
+  </section>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="sidebar__brand"><img class="brand-logo" src="../assets/logo.png" alt="Centric Auto Mobile"></div>
@@ -270,6 +300,7 @@
   <script type="module" src="../js/app.js"></script>
     <script type="module" src="../js/notifications.js"></script>
   <script type="module" src="../js/phone-inputs.js"></script>
+  <script type="module" src="../js/technicians-page-lock.js"></script>
   <script type="module" src="../js/technicians.js"></script>
   <script type="module" src="../js/staff-payroll.js"></script>
   <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
