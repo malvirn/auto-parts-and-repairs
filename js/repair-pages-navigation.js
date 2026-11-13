@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { syncAccountLabel } from "./account-label.js?v=phase1";
 import "./sidebar.js?v=chrome-glass-1";
 
 const primaryLinks = [
@@ -954,6 +955,7 @@ async function initializeAfterAccess() {
   }
   await normalizeDashboardSidebar(document.querySelector("body.dashboard-page .sidebar"));
   ensureSidebarNotifications(document.querySelector("body.dashboard-page .sidebar"));
+  syncAccountLabel();
   initializeNavigation();
 }
 
