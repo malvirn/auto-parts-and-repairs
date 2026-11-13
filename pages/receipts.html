@@ -2689,7 +2689,6 @@ $("invoice-payment-save").onclick=async()=>{
   const invoiceId=cur.id;
   const selectedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
   const converted=await paymentCurrencyTools.usdEquivalent(amount,currency);
-  if(converted.usdAmount>balance+0.005)throw new Error("The USD equivalent exceeds the remaining invoice balance. Record the excess as customer credit separately.");
   const{data:journalEntryId,error}=await supabase.rpc("record_customer_invoice_payment_multicurrency",{p_invoice_id:invoiceId,p_tender_amount:amount,p_account_id:accountId,p_payment_date:paymentDate,p_currency_code:currency,p_exchange_rate_to_usd:converted.rate});
   if(error)throw new Error(error.message);
   paymentSaved=true;
