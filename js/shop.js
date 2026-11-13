@@ -952,6 +952,7 @@ function addQuickSalePart(partId) {
   document.getElementById("quick-sale-message").textContent = "";
   renderQuickSaleCart();
   updateQuickSaleTotal();
+  renderQuickSaleCatalog();
 }
 
 function renderQuickSaleCart() {
@@ -1095,6 +1096,7 @@ document.getElementById("quick-sale-items")?.addEventListener("click", event => 
   if (row) quickSaleCart.delete(row.dataset.partId);
   renderQuickSaleCart();
   updateQuickSaleTotal();
+  renderQuickSaleCatalog();
 });
 document.getElementById("quick-sale-items")?.addEventListener("input", event => {
   if (!event.target.matches('input[type="number"][step="1"]')) return;
