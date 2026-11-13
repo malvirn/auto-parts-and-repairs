@@ -113,3 +113,85 @@ sidebarObserver.observe(document.documentElement, { childList: true, subtree: tr
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initialiseSidebarAccessibility, { once: true });
 } else initialiseSidebarAccessibility();
+
+
+// Sidebar attention badges are a presentation of the existing global
+// notification feed. No notification checks or data requests belong here.
+function updateSidebarAttentionBadges(items) {
+  if (!Array.isArray(items)) return;
+  const sidebar = document.querySelector("body.dashboard-page .sidebar");
+  if (!sidebar) return;
+
+  const counts = new Map();
+  items.forEach(item => {
+    if (!item?.link) return;
+    let file;
+    try {
+      const url = new URL(item.link, document.baseURI);
+      file = url.pathname.split("/").filter(Boolean).pop()?.toLowerCase();
+    } catch (_) { return; }
+    if (!file) return;
+    const current = counts.get(file) || { count: 0, critical: false };
+    current.count += 1;
+    current.critical ||= item.severity === "critical";
+    counts.set(file, current);
+  });
+
+  const links = [...sidebar.querySelectorAll("a.nav-link")];
+  links.forEach(link => {
+    let file;
+    try { file = new URL(link.getAttribute("href"), document.baseURI).pathname.split("/").filter(Boolean).pop()?.toLowerCase(); }
+    catch (_) { return; }
+    const state = counts.get(file) || { count: 0, critical: false };
+    let badge = link.querySelector(":scope > .nav-badge");
+    if (!state.count) {
+      badge?.remove();
+      link.removeAttribute("aria-label");
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "nav-badge";
+      badge.setAttribute("aria-hidden", "true");
+      link.append(badge);
+    }
+    badge.textContent = state.count > 9 ? "9+" : String(state.count);
+    badge.dataset.severity = state.critical ? "critical" : "warning";
+    const label = link.dataset.attentionLabel || link.getAttribute("title") ||
+      [...link.childNodes].filter(node => !(node.nodeType === 1 && node.classList?.contains("nav-badge")))
+        .map(node => node.textContent || "").join(" ").replace(/\\s+/g, " ").trim();
+    link.dataset.attentionLabel = label;
+    link.setAttribute("aria-label", `${label}, ${state.count} need attention`);
+  });
+
+  sidebar.querySelectorAll(".nav-group").forEach(group => {
+    const groupLinks = [...group.querySelectorAll("a.nav-link")];
+    const total = groupLinks.reduce((sum, link) => sum + Number(link.querySelector(":scope > .nav-badge")?.textContent.replace("+", "") || 0), 0);
+    const hasCritical = groupLinks.some(link => link.querySelector(":scope > .nav-badge")?.dataset.severity === "critical");
+    let groupBadge = group.querySelector(":scope > .nav-grp .nav-group-badge");
+    if (!total) { groupBadge?.remove(); return; }
+    if (!groupBadge) {
+      groupBadge = document.createElement("span");
+      groupBadge.className = "nav-group-badge";
+      groupBadge.setAttribute("aria-hidden", "true");
+      group.querySelector(":scope > .nav-grp")?.append(groupBadge);
+    }
+    groupBadge.textContent = total > 9 ? "9+" : String(total);
+    groupBadge.dataset.severity = hasCritical ? "critical" : "warning";
+    group.querySelector(":scope > .nav-grp")?.setAttribute("aria-label", `${group.querySelector(":scope > .nav-grp > span")?.textContent.trim() || "Navigation group"}, ${total} need attention`);
+  });
+}
+
+function initialiseSidebarAttentionBadges() {
+  const apply = items => updateSidebarAttentionBadges(items);
+  document.addEventListener("apr:notifications-updated", event => apply(event.detail));
+  if (Array.isArray(window.__aprNotificationItems)) apply(window.__aprNotificationItems);
+  const observer = new MutationObserver(() => {
+    if (Array.isArray(window.__aprNotificationItems)) apply(window.__aprNotificationItems);
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initialiseSidebarAttentionBadges, { once: true });
+} else initialiseSidebarAttentionBadges();
