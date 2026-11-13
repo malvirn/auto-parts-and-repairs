@@ -869,7 +869,7 @@ body.dashboard-page .main{min-width:0}
       $("jb-payment-modal").style.display = "flex";
       try {
         const { data, error } = await supabase.from("accounts")
-          .select("id,code,name")
+          .select("id,code,name,currency_code,payment_channel")
           .eq("is_active", true)
           .eq("type", "asset")
           .like("code", "10%")
