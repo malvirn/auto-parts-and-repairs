@@ -702,7 +702,13 @@ function initializeNavigation() {
     const lockKey = "apr-sidebar-locked";
     const isLocked = () => { try { return localStorage.getItem(lockKey) === "true"; } catch (_) { return false; } };
     const applySavedCollapse = () => {
-      document.body.classList.toggle("sidebar-collapsed", !isMobile() && !isLocked());
+      let savedCollapsed = null;
+      try {
+        const stored = localStorage.getItem(collapseKey);
+        if (stored !== null) savedCollapsed = stored === "true";
+      } catch (_) {}
+      const collapsed = !isMobile() && !isLocked() && (savedCollapsed === null ? true : savedCollapsed);
+      document.body.classList.toggle("sidebar-collapsed", collapsed);
       document.body.classList.remove("sidebar-open");
     };
     applySavedCollapse();
