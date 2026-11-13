@@ -48,12 +48,6 @@ export function applySidebarAccessRules(sidebar, { role, indexUrl, currentPage, 
 }
 
 
-const stylesheet = document.createElement("link");
-stylesheet.rel = "stylesheet";
-stylesheet.href = new URL("../css/sidebar.css?v=phase3", import.meta.url).href;
-stylesheet.dataset.sharedSidebarStyles = "true";
-document.head.append(stylesheet);
-
 function initialiseSidebarAccessibility() {
   const sidebar = document.querySelector('body.dashboard-page .sidebar[data-dashboard-canonical="true"]') ||
     document.querySelector("body.dashboard-home .sidebar");
