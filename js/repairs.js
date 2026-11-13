@@ -3,7 +3,7 @@ import supabase from "./supabaseClient.js";
 import { STATUS_META, messageForStatus } from "./portalShared.js";
 import { hydrate } from "./data-cache.js";
 import { confirmTypedDelete } from "./bulk-delete.js";
-import { getRate as getZimRate } from "./currency.js";
+import { getRate as getBankRate } from "./currency.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -223,7 +223,7 @@ editRateTier?.addEventListener("change", recalcLabourFromHours);
 editHours?.addEventListener("input", recalcLabourFromHours);
 
 async function getRate() {
-  return getZimRate();
+  return getBankRate();
 }
 
 // Job card totals bar (labour + parts + incidentals) and ZiG equivalent.
