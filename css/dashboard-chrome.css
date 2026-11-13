@@ -892,3 +892,12 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar-account__signo
 @media(max-width:768px){
   body.dashboard-page.dashboard-workshop .sidebar-account__lock{display:flex!important}
 }
+
+
+/* Shared signed-in account label used by the dashboard topbar. */
+body.dashboard-page.dashboard-workshop .dashboard-login-level{display:flex;align-items:center;gap:8px;min-width:0;color:#17233d}
+body.dashboard-page.dashboard-workshop .dashboard-user-avatar{display:grid;width:38px;height:38px;flex:none;place-items:center;border-radius:50%;background:linear-gradient(145deg,#2457b5,#183568);color:#fff;font-size:13px;font-weight:800}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy strong{display:block;max-width:140px;overflow:hidden;color:#17233d;font-size:12px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+body.dashboard-page.dashboard-workshop .dashboard-user-copy small{display:block;max-width:140px;overflow:hidden;color:#728096;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:519px){body.dashboard-page.dashboard-workshop .dashboard-user-copy{display:none}}
