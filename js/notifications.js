@@ -112,6 +112,9 @@ function injectBellUI() {
   document.addEventListener("click", (e) => {
     if (!panel.contains(e.target) && e.target !== bell) panel.classList.remove("open");
   });
+  document.addEventListener("apr:open-notifications", () => {
+    if (!panel.classList.contains("open")) bell.click();
+  });
 
   if (window.lucide) lucide.createIcons();
 }
