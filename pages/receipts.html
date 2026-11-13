@@ -971,7 +971,8 @@ select.st option{background:#10181a;color:#eef3ef}
     <h2 id="invoice-payment-title">Record customer payment</h2>
     <p id="invoice-payment-summary" class="section-note"></p>
     <div class="field"><label for="invoice-payment-percent">Payment percentage of original invoice</label><select id="invoice-payment-percent"><option value="">Enter a fixed amount instead</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option></select></div>
-    <div class="field"><label for="invoice-payment-amount">Amount received ($)</label><input id="invoice-payment-amount" type="number" min="0.01" step="0.01" required></div>
+    <div class="field"><label for="invoice-payment-currency">Payment currency</label><select id="invoice-payment-currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></div>
+    <div class="field"><label for="invoice-payment-amount">Amount received</label><input id="invoice-payment-amount" type="number" min="0.01" step="0.01" required></div>
     <p id="invoice-payment-breakdown" class="section-note"></p>
     <div class="field"><label for="invoice-payment-date">Payment date</label><input id="invoice-payment-date" type="date" required></div>
     <div class="field"><label for="invoice-payment-method">Payment method</label><select id="invoice-payment-method" required><option value="">Choose Cash, Card, EcoCash or Bank…</option><option value="Cash">Cash</option><option value="Card">Card / POS</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank transfer</option></select></div>
@@ -1100,7 +1101,8 @@ window.addEventListener("error",event=>{
 </div>
 <script type="module">
 let supabase;
-try{supabase=(await import("../js/supabaseClient.js")).default}
+let paymentCurrencyTools;
+try{supabase=(await import("../js/supabaseClient.js")).default;paymentCurrencyTools=await import("../js/payment-currency.js")}
 catch(error){console.error("Couldn't load ../js/supabaseClient.js:",error);document.getElementById("list").innerHTML=`<div class="ov-empty">Couldn't load ../js/supabaseClient.js: ${String(error?.message||error)}</div>`;throw error}
 let confirmTypedDelete=async()=>false,isSuperAdmin=()=>false;
 import("../js/bulk-delete.js").then(bulk=>{
@@ -1178,7 +1180,7 @@ async function load(){
  const [r,i,a]=await Promise.all([
  loadAllReceipts(),
   supabase.from("invoices").select("*,customers(customer_code,is_company,company_name,full_name,phone,email)").order("issued_at",{ascending:false}).limit(300),
-  supabase.from("accounts").select("id,code,name").eq("is_active",true).eq("type","asset").like("code","10%").order("code")]);
+  supabase.from("accounts").select("id,code,name,currency_code,payment_channel").eq("is_active",true).eq("type","asset").like("code","10%").order("code")]);
  invoiceAccounts=a.data||[];
  $("invoice-payment-account").innerHTML=a.error
   ? `<option value="">Couldn't load accounts: ${esc(a.error.message)}</option>`
@@ -1721,12 +1723,13 @@ function openReceiptEditor(){
 }
 function closeReceiptEditor(){$("receipt-edit-modal").classList.add("hidden")}
 function populatePaymentAccounts(method){
- const select=$("invoice-payment-account"),key=String(method||"").toLowerCase();
+ const select=$("invoice-payment-account"),key=String(method||"").toLowerCase(),currency=$("invoice-payment-currency").value||"USD";
  const tokens={cash:["cash","till","drawer"],card:["card","pos","point of sale"],ecocash:["ecocash","eco cash"],bank:["bank","transfer"]}[key]||[];
- const matches=invoiceAccounts.filter(account=>tokens.some(token=>`${account.code||""} ${account.name||""}`.toLowerCase().includes(token)));
- select.innerHTML=matches.length?`<option value="">Select ${esc(method)} account…</option>`+matches.map(account=>`<option value="${esc(account.id)}">${esc(account.code)} — ${esc(account.name)}</option>`).join(""):`<option value="">No ${esc(method)} account configured — add one in Chart of Accounts</option>`;
+ const matches=invoiceAccounts.filter(account=>(account.currency_code||"USD")===currency&&tokens.some(token=>`${account.code||""} ${account.name||""} ${account.payment_channel||""}`.toLowerCase().includes(token)));
+ select.innerHTML=matches.length?`<option value="">Select ${esc(currency)} ${esc(method)} account…</option>`+matches.map(account=>`<option value="${esc(account.id)}">${esc(account.code)} — ${esc(account.name)}</option>`).join(""):`<option value="">No ${esc(currency)} ${esc(method)} account configured</option>`;
 }
 $("invoice-payment-method").addEventListener("change",()=>populatePaymentAccounts($("invoice-payment-method").value));
+$("invoice-payment-currency").addEventListener("change",()=>populatePaymentAccounts($("invoice-payment-method").value));
 function openInvoicePayment(){
  if(!cur||cur.kind!=="invoice")return;
  const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
@@ -2674,7 +2677,7 @@ $("invoice-use-credit").onclick=()=>{
 $("invoice-payment-modal").addEventListener("click",event=>{if(event.target===$("invoice-payment-modal"))closeInvoicePayment()});
 $("invoice-payment-save").onclick=async()=>{
  if(!cur||cur.kind!=="invoice")return;
- const amount=Number($("invoice-payment-amount").value),paymentDate=$("invoice-payment-date").value,accountId=$("invoice-payment-account").value,paymentMethod=$("invoice-payment-method").value;
+ const amount=Number($("invoice-payment-amount").value),paymentDate=$("invoice-payment-date").value,accountId=$("invoice-payment-account").value,paymentMethod=$("invoice-payment-method").value,currency=$("invoice-payment-currency").value||"USD";
  const balance=Math.max(0,calc(cur).total-Number(cur.amountPaid||0));
  const message=$("invoice-payment-message"),saveButton=$("invoice-payment-save");
  if(!Number.isFinite(amount)||amount<=0){message.textContent="Enter a payment amount greater than zero. Overpayments remain as customer credit.";message.dataset.tone="error";return}
@@ -2684,7 +2687,9 @@ $("invoice-payment-save").onclick=async()=>{
  try{
   const invoiceId=cur.id;
   const selectedAccount=invoiceAccounts.find(a=>String(a.id)===String(accountId));
-  const{data:journalEntryId,error}=await supabase.rpc("record_customer_invoice_payment",{p_invoice_id:invoiceId,p_amount:amount,p_account_id:accountId,p_payment_date:paymentDate});
+  const converted=await paymentCurrencyTools.usdEquivalent(amount,currency);
+  if(converted.usdAmount>balance+0.005)throw new Error("The USD equivalent exceeds the remaining invoice balance. Record the excess as customer credit separately.");
+  const{data:journalEntryId,error}=await supabase.rpc("record_customer_invoice_payment_multicurrency",{p_invoice_id:invoiceId,p_tender_amount:amount,p_account_id:accountId,p_payment_date:paymentDate,p_currency_code:currency,p_exchange_rate_to_usd:converted.rate});
   if(error)throw new Error(error.message);
   paymentSaved=true;
   if(!journalEntryId)throw new Error("The payment was saved, but the ledger did not return a receipt reference. Verify the invoice payment before retrying.");
@@ -2694,7 +2699,7 @@ $("invoice-payment-save").onclick=async()=>{
    if(syncError){linkedSyncWarning=" The linked job invoice could not be refreshed: "+syncError.message;console.error("Invoice payment saved but linked job invoice synchronization failed:",syncError)}
   }
   signalDocumentChange("invoices",cur.number);
-  lastPaymentContext={jobId:cur.repairJobId,amount,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
+  lastPaymentContext={jobId:cur.repairJobId,amount:converted.usdAmount,tenderAmount:amount,currency,exchangeRate:converted.rate,method:`${paymentMethod}${selectedAccount?` — ${selectedAccount.code} ${selectedAccount.name}`:""}`};
   closeInvoicePayment();
   const cleanParams=new URLSearchParams(location.search);cleanParams.delete("new");cleanParams.delete("job");cleanParams.delete("pay");payAfterSave=false;
   history.replaceState(null,"",`${location.pathname}${cleanParams.toString()?"?"+cleanParams.toString():""}`);
