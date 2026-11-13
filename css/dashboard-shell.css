@@ -2366,3 +2366,95 @@ body.dashboard-page.dashboard-workshop .main :is(button,.btn,a.btn,[role="button
   width:34px!important;height:34px!important;min-width:34px!important;border-radius:10px!important;
  }
 }
+
+/* Search field: keep the wrapper as the only visible control surface. */
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-bar > #hs-input,
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar > #hs-input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.dashboard-workshop .sidebar-search .hs-bar > #hs-input:focus,
+body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar > #hs-input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Mobile dashboard header: restore the complete date/time and both quick actions. */
+@media (max-width: 768px) {
+  body.dashboard-page.dashboard-workshop .dashboard-topbar {
+    height: 62px !important;
+    min-height: 62px !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+    overflow: visible !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date span#dashboard-date {
+    display: inline !important;
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date .header-separator,
+  body.dashboard-page.dashboard-workshop .dashboard-header-date svg:nth-of-type(2),
+  body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock {
+    display: inline !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date #hdr-clock {
+    font-variant-numeric: tabular-nums;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions {
+    flex: 0 0 auto !important;
+    gap: 6px !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-new-job,
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-refresh {
+    display: inline-flex !important;
+    visibility: visible !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions .dashboard-new-job[hidden] {
+    display: none !important;
+  }
+}
+@media (max-width: 420px) {
+  body.dashboard-page.dashboard-workshop .dashboard-topbar {
+    padding-left: 48px !important;
+    padding-right: 8px !important;
+    gap: 4px !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date {
+    gap: 3px !important;
+    font-size: 9px !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-header-date span#dashboard-date {
+    max-width: 88px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar-actions {
+    gap: 4px !important;
+  }
+}
