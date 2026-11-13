@@ -2,7 +2,9 @@
 import supabase from "./supabaseClient.js";
 
 const CACHE_KEY = "centric-manual-bank-rate-v1";
+const CACHE_TTL = 5 * 60 * 1000;
 let cachedRate = null;
+let cachedAt = 0;
 let cachedUpdatedAt = null;
 let pendingRequest = null;
 
@@ -13,6 +15,7 @@ function numericRate(value) {
 
 function remember(rate, updatedAt = null) {
   cachedRate = rate;
+  cachedAt = Date.now();
   cachedUpdatedAt = updatedAt || new Date().toISOString();
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -30,6 +33,7 @@ function readSavedRate() {
     const rate = numericRate(saved?.rate);
     if (rate) {
       cachedRate = rate;
+      cachedAt = Number(saved.cachedAt || 0);
       cachedUpdatedAt = saved.updatedAt || null;
       return { rate, updatedAt: cachedUpdatedAt, source: "manual-bank-rate-cache", stale: true };
     }
@@ -38,7 +42,7 @@ function readSavedRate() {
 }
 
 export async function getRateDetails({ forceRefresh = false } = {}) {
-  if (!forceRefresh && cachedRate) {
+  if (!forceRefresh && cachedRate && Date.now() - cachedAt < CACHE_TTL) {
     return { rate: cachedRate, updatedAt: cachedUpdatedAt, source: "manual-bank-rate", stale: false };
   }
   if (pendingRequest) return pendingRequest;
