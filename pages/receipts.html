@@ -1528,7 +1528,7 @@ async function open(o){
 }
 async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
  const{data:payment,error:paymentError}=await supabase.from("invoice_payments")
-  .select("id,invoice_id,amount,payment_date,payment_method,journal_entry_id")
+  .select("id,invoice_id,amount,tender_amount,currency_code,exchange_rate_to_usd,payment_account_id,payment_date,payment_method,journal_entry_id")
   .eq("journal_entry_id",journalEntryId).maybeSingle();
  if(paymentError)throw new Error(paymentError.message);
  if(!payment)throw new Error("No saved invoice payment matches this receipt link.");
@@ -1592,6 +1592,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
   ref:invoice.reference||invoiceNumber,
   jobCard,
   receiptAmount:amount,
+  tenderAmount:Number(payment.tender_amount??amount),currency:payment.currency_code||"USD",exchangeRateToUsd:Number(payment.exchange_rate_to_usd)||1,
   paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
   jobPayment:{
    jobTotal:total,
