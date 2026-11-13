@@ -432,7 +432,7 @@
     body.dashboard-workshop{padding:0;background:#071112}
     body.dashboard-workshop .app-shell{display:block!important;min-height:100svh;background:radial-gradient(circle at 72% 8%,rgba(18,161,80,.12),transparent 28%)}
     body.dashboard-workshop .main{width:auto!important;min-width:0;margin:0 0 0 224px!important;padding:88px clamp(16px,3vw,46px) 48px!important;min-height:100svh;background:transparent!important;transition:margin-left .24s}
-    body.dashboard-workshop .app-header,body.dashboard-workshop .site-foot,body.dashboard-workshop .ftbar{display:none!important}
+    body.dashboard-workshop .site-foot,body.dashboard-workshop .ftbar{display:none!important}
     body.dashboard-workshop .dashboard-topbar{position:fixed;z-index:1200;top:12px;right:20px;left:244px;display:flex;align-items:center;gap:10px;height:52px;transition:left .24s}
     body.dashboard-workshop .dashboard-topbar .hs{flex:1;width:auto;max-width:none;min-width:120px;justify-self:stretch}
     body.dashboard-workshop .dashboard-topbar .hs-bar{height:44px;border-color:rgba(174,224,202,.22);border-radius:11px;background:rgba(16,33,36,.94)}
@@ -1559,6 +1559,44 @@ body.dashboard-page.dashboard-workshop .sidebar-quick-access>a:not(:first-of-typ
     :root[data-theme="dark"] body.dashboard-page{--sidebar-action-bg:#202a38;--sidebar-action-border:#46556a;--sidebar-action-text:#edf2f8}
     :root[data-theme="dark"] body.dashboard-page .sidebar-account__lock[aria-pressed="true"]{background:#123b2a!important;color:#79e5a4!important;border-color:#168b50!important}
     :root[data-theme="dark"] body.dashboard-page .sidebar-account__signout{background:#39252b!important;color:#ffb4b4!important;border-color:#74434a!important}
+
+
+    /* The index dashboard must retain its full brand/date/greeting masthead.
+       Module pages build their own compact toolbar and remove their old header. */
+    body.dashboard-workshop.dashboard-page .main > .app-header{
+      display:grid!important;
+      grid-template-columns:minmax(190px,auto) minmax(120px,1fr) auto auto!important;
+      grid-template-areas:"brand search right actions"!important;
+      align-items:center!important;
+      width:100%!important;
+      min-height:108px!important;
+      gap:clamp(10px,1.4vw,20px)!important;
+      position:relative!important;
+      top:auto!important;
+      padding:18px clamp(14px,2.5vw,36px) 30px!important;
+      background:linear-gradient(110deg,#101a1c,#0b1114)!important;
+      border-bottom:1px solid rgba(31,196,103,.16)!important;
+    }
+    body.dashboard-workshop.dashboard-page .main > .app-header .hdr-brand{grid-area:brand}
+    body.dashboard-workshop.dashboard-page .main > .app-header .hs{grid-area:search;min-width:0!important;width:100%!important}
+    body.dashboard-workshop.dashboard-page .main > .app-header .hdr-right{grid-area:right;display:flex!important;min-width:0!important}
+    body.dashboard-workshop.dashboard-page .main > .app-header .hdr-header-actions{grid-area:actions;display:flex!important;align-items:center!important;justify-self:end!important}
+    @media(max-width:900px){
+      body.dashboard-workshop.dashboard-page .main > .app-header{
+        grid-template-columns:minmax(0,1fr) auto!important;
+        grid-template-areas:"brand actions" "search search" "right right"!important;
+        min-height:0!important;row-gap:12px!important;
+      }
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-right{display:flex!important;justify-content:space-between!important}
+    }
+    @media(max-width:480px){
+      body.dashboard-workshop.dashboard-page .main > .app-header{padding:14px 14px 24px!important}
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-brand .dashboard-hero__logo{width:44px!important}
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-name{font-size:18px!important}
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-sub{display:block!important;font-size:10px!important}
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-right{gap:8px!important}
+      body.dashboard-workshop.dashboard-page .main > .app-header .hdr-clock{font-size:18px!important}
+    }
 
 </style>
 </body>
