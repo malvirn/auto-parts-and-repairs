@@ -861,6 +861,7 @@ if (form) form.addEventListener("submit", async (e) => {
 let quickSaleParts = [];
 let quickSaleSalespeople = [];
 let quickSaleCustomers = [];
+let quickSaleCart = new Map();
 
 function zimbabweBusinessDate() {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -932,103 +933,52 @@ async function loadQuickSaleData() {
       `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.full_name)}${customer.phone ? ` · ${escapeHtml(customer.phone)}` : ""}</option>`
     ).join("");
   }
-  if (!document.getElementById("quick-sale-items").children.length) addQuickSaleLine();
+  renderQuickSaleCatalog();
+  renderQuickSaleCart();
   updateQuickSaleTotal();
 }
 
-function addQuickSaleLine() {
+function addQuickSalePart(partId) {
+  const part = quickSaleParts.find(item => item.id === partId);
+  if (!part || Number(part.quantity_in_stock || 0) < 1) return;
+  const nextQuantity = (quickSaleCart.get(partId) || 0) + 1;
+  if (nextQuantity > Number(part.quantity_in_stock || 0)) {
+    const message = document.getElementById("quick-sale-message");
+    message.textContent = `Only ${part.quantity_in_stock} ${part.name} available in stock.`;
+    message.dataset.tone = "error";
+    return;
+  }
+  quickSaleCart.set(partId, nextQuantity);
+  document.getElementById("quick-sale-message").textContent = "";
+  renderQuickSaleCart();
+  updateQuickSaleTotal();
+}
+
+function renderQuickSaleCart() {
   const cart = document.getElementById("quick-sale-items");
-  const row = document.createElement("div");
-  row.className = "quick-sale-line";
-  const productField = document.createElement("div");
-  productField.className = "field quick-sale-product-field";
-  productField.innerHTML = `<label>Search product</label><input class="quick-sale-product-search" type="search" autocomplete="off" placeholder="Name, part number or description" aria-label="Search products by name, part number or description"><div class="quick-sale-selected" hidden></div><div class="quick-sale-product-results" role="list" aria-live="polite" hidden></div>`;
-  const quantityField = document.createElement("div");
-  quantityField.className = "field";
-  quantityField.innerHTML = `<label>Quantity</label><input type="number" min="1" step="1" value="1" required>`;
-  const priceField = document.createElement("div");
-  priceField.className = "field";
-  priceField.innerHTML = `<label>Selling price ($)</label><input type="number" min="0.01" step="0.01" placeholder="0.00" title="Price comes from the current product catalogue; apply approved discounts in the sale discount field." readonly required>`;
-  const lineTotalField = document.createElement("div");
-  lineTotalField.className = "field";
-  lineTotalField.innerHTML = `<label>Line total</label><output>$0.00</output>`;
-  const removeButton = document.createElement("button");
-  removeButton.type = "button";
-  removeButton.className = "btn quick-sale-remove";
-  removeButton.setAttribute("aria-label", "Remove product");
-  removeButton.innerHTML = '<i data-lucide="trash-2"></i>';
-  row.append(productField, quantityField, priceField, lineTotalField, removeButton);
-  cart.append(row);
-  const search = row.querySelector(".quick-sale-product-search");
-  const selectedProduct = row.querySelector(".quick-sale-selected");
-  const results = row.querySelector(".quick-sale-product-results");
-  search.addEventListener("input", () => {
-    delete row.dataset.partId;
-    selectedProduct.hidden = true;
-    selectedProduct.innerHTML = "";
-    row.querySelector('input[type="number"][step="0.01"]').value = "";
-    renderQuickSaleProductResults(row);
-  });
-  search.addEventListener("focus", () => {
-    if (search.value.trim()) renderQuickSaleProductResults(row);
-  });
-  results.addEventListener("click", event => {
-    const addButton = event.target.closest("[data-quick-sale-part-id]");
-    if (!addButton) return;
-    const part = quickSaleParts.find(item => item.id === addButton.dataset.quickSalePartId);
-    if (!part || Number(part.quantity_in_stock) < 1) return;
-    row.dataset.partId = part.id;
-    search.value = part.name;
-    results.hidden = true;
-    selectedProduct.innerHTML = `<span class="quick-sale-selected-check" aria-hidden="true">✓</span><span><strong>${escapeHtml(part.name)}</strong><small>${Number(part.quantity_in_stock)} available in stock</small></span><button type="button" class="quick-sale-change-product" aria-label="Change selected product">Change</button>`;
-    selectedProduct.hidden = false;
-    row.querySelector('input[type="number"][step="0.01"]').value = Number(part.selling_price || 0).toFixed(2);
-    updateQuickSaleTotal();
-    row.querySelector('input[type="number"][step="1"]').focus();
-  });
-  selectedProduct.addEventListener("click", event => {
-    if (!event.target.closest(".quick-sale-change-product")) return;
-    delete row.dataset.partId;
-    selectedProduct.hidden = true;
-    search.value = "";
-    search.focus();
-    results.hidden = true;
-    row.querySelector('input[type="number"][step="0.01"]').value = "";
-    updateQuickSaleTotal();
-  });
-  row.addEventListener("input", updateQuickSaleTotal);
-  row.addEventListener("keydown", event => {
-    if (event.key !== "Enter") return;
-    if (event.target === search) {
-      event.preventDefault();
-      const firstAddButton = results.querySelector("[data-quick-sale-part-id]:not(:disabled)");
-      firstAddButton?.click();
-      return;
-    }
-    event.preventDefault();
-    if (event.target.matches('input[type="number"][step="1"]')) {
-      const quantity = Number(event.target.value);
-      const part = quickSaleParts.find(item => item.id === row.dataset.partId);
-      if (!part) {
-        row.querySelector(".quick-sale-product-search").focus();
-        return;
-      }
-      if (!Number.isInteger(quantity) || quantity < 1 || quantity > Number(part.quantity_in_stock || 0)) {
-        event.target.focus();
-        return;
-      }
-      addQuickSaleLine();
-    } else {
-      addQuickSaleLine();
-    }
-  });
-  removeButton.addEventListener("click", () => {
-    row.remove();
-    if (!cart.children.length) addQuickSaleLine();
-    updateQuickSaleTotal();
-  });
+  if (!cart) return;
+  const entries = [...quickSaleCart.entries()];
+  if (!entries.length) {
+    cart.innerHTML = '<p class="quick-sale-empty">No items yet. Choose a part to begin.</p>';
+    return;
+  }
+  cart.innerHTML = entries.map(([partId, quantity]) => {
+    const part = quickSaleParts.find(item => item.id === partId);
+    if (!part) return "";
+    return `
+      <div class="quick-sale-line" data-part-id="${escapeHtml(part.id)}">
+        <div class="quick-sale-line-head">
+          <span><b>${escapeHtml(part.name)}</b><small>${escapeHtml(part.part_number || "No part number")}</small></span>
+          <button type="button" class="btn quick-sale-remove" data-quick-sale-remove aria-label="Remove ${escapeHtml(part.name)}"><i data-lucide="trash-2"></i></button>
+        </div>
+        <div class="quick-sale-line-fields">
+          <div class="field"><label>Qty</label><input type="number" min="1" step="1" value="${quantity}" required aria-label="Quantity of ${escapeHtml(part.name)}"></div>
+          <div class="field"><label>Unit price</label><input type="number" min="0.01" step="0.01" value="${Number(part.selling_price || 0).toFixed(2)}" readonly required aria-label="Unit price of ${escapeHtml(part.name)}"></div>
+          <div class="field"><label>Line total</label><output>${formatMoney(Number(part.selling_price || 0) * quantity)}</output></div>
+        </div>
+      </div>`;
+  }).join("");
   if (window.lucide) lucide.createIcons();
-  search.focus();
 }
 
 function normalizeProductSearch(value) {
@@ -1085,40 +1035,35 @@ function productSearchScore(query, part) {
   return score;
 }
 
-function renderQuickSaleProductResults(row) {
-  const search = row.querySelector(".quick-sale-product-search");
-  const results = row.querySelector(".quick-sale-product-results");
-  const query = normalizeProductSearch(search.value);
+function renderQuickSaleCatalog() {
+  const container = document.getElementById("quick-sale-products");
+  if (!container) return;
+  const query = normalizeProductSearch(document.getElementById("quick-sale-search")?.value || "");
   const category = document.getElementById("quick-sale-category")?.value || "";
-  results.replaceChildren();
-  if (!query) {
-    results.hidden = true;
-    return;
-  }
-  const rankedMatches = quickSaleParts
+  const matches = quickSaleParts
     .filter(part => !category || String(part.category || "").trim() === category)
-    .map(part => ({ part, score: productSearchScore(query, part) }))
+    .map(part => ({ part, score: query ? productSearchScore(query, part) : 0 }))
     .filter(match => Number.isFinite(match.score))
     .sort((left, right) => left.score - right.score || left.part.name.localeCompare(right.part.name))
-    .slice(0, 30);
-  const hasExactMatch = rankedMatches.some(match => match.score === 0);
-  const matches = rankedMatches.map(match => match.part);
+    .map(match => match.part);
   if (!matches.length) {
-    results.innerHTML = '<div class="quick-sale-product-empty">No close matches found. Check the spelling or try a shorter search.</div>';
-    results.hidden = false;
+    container.innerHTML = '<p class="quick-sale-empty">No parts match that search.</p>';
     return;
   }
-  results.innerHTML = `${hasExactMatch ? '<div class="quick-sale-results-heading">Matching products</div>' : '<div class="quick-sale-results-heading">Closest spelling matches</div>'}${matches.map(part => {
-    const unavailable = Number(part.quantity_in_stock) < 1;
-    const productDetails = [
-      part.part_number,
-      part.description,
-      `${Number(part.quantity_in_stock)} in stock`,
-      formatMoney(part.selling_price),
-    ].filter(Boolean).join(" · ");
-    return `<div class="quick-sale-product-result"><span class="quick-sale-product-result-name">${escapeHtml(part.name)}<small>${escapeHtml(productDetails)}</small></span><button type="button" class="btn btn--primary" data-quick-sale-part-id="${escapeHtml(part.id)}" aria-label="Add ${escapeHtml(part.name)}" ${unavailable ? "disabled" : ""}>${unavailable ? "Out of stock" : "Add"}</button></div>`;
-  }).join("")}`;
-  results.hidden = false;
+  container.innerHTML = matches.map(part => {
+    const stock = Number(part.quantity_in_stock || 0);
+    const inCart = quickSaleCart.get(part.id) || 0;
+    const stockClass = stock < 1 ? "out" : stock <= 3 ? "low" : "";
+    const stockLabel = stock < 1 ? "Out of stock" : stock <= 3 ? `Low stock · ${stock}` : `${stock} in stock`;
+    return `
+      <button type="button" class="quick-sale-product-card" data-quick-sale-part-id="${escapeHtml(part.id)}" ${stock < 1 ? "disabled" : ""} aria-label="Add ${escapeHtml(part.name)} to sale">
+        <b>${escapeHtml(part.name)}</b>
+        <small>${escapeHtml(part.part_number || part.category || "Part")}</small>
+        <span class="stock ${stockClass}">${stockLabel}</span>
+        <strong>${formatMoney(Number(part.selling_price || 0))}</strong>
+        ${inCart ? `<span class="add-hint">${inCart}</span>` : '<span class="add-hint" aria-hidden="true">+</span>'}
+      </button>`;
+  }).join("");
 }
 
 function updateQuickSaleTotal() {
@@ -1135,14 +1080,24 @@ function updateQuickSaleTotal() {
   const total = roundMoney(Math.max(0, subtotal - discount));
   document.getElementById("quick-sale-total").innerHTML = `Subtotal ${formatMoney(subtotal)} <span aria-hidden="true">−</span> Discount ${formatMoney(discount)} <strong>Total ${formatMoney(total)}</strong>`;
 }
-document.getElementById("quick-sale-add-item")?.addEventListener("click", addQuickSaleLine);
-document.getElementById("quick-sale-discount")?.addEventListener("input", updateQuickSaleTotal);
-document.getElementById("quick-sale-category")?.addEventListener("change", () => {
-  document.querySelectorAll(".quick-sale-line").forEach(row => {
-    const search = row.querySelector(".quick-sale-product-search");
-    if (search?.value.trim()) renderQuickSaleProductResults(row);
-  });
+document.getElementById("quick-sale-search")?.addEventListener("input", renderQuickSaleCatalog);
+document.getElementById("quick-sale-products")?.addEventListener("click", event => {
+  const card = event.target.closest("[data-quick-sale-part-id]");
+  if (card && !card.disabled) addQuickSalePart(card.dataset.quickSalePartId);
 });
+document.getElementById("quick-sale-items")?.addEventListener("click", event => {
+  const remove = event.target.closest("[data-quick-sale-remove]");
+  if (!remove) return;
+  const row = remove.closest(".quick-sale-line");
+  if (row) quickSaleCart.delete(row.dataset.partId);
+  renderQuickSaleCart();
+  updateQuickSaleTotal();
+});
+document.getElementById("quick-sale-items")?.addEventListener("input", event => {
+  if (event.target.matches('input[type="number"][step="1"]')) updateQuickSaleTotal();
+});
+document.getElementById("quick-sale-discount")?.addEventListener("input", updateQuickSaleTotal);
+document.getElementById("quick-sale-category")?.addEventListener("change", renderQuickSaleCatalog);
 
 document.getElementById("quick-sale-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
