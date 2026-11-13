@@ -921,6 +921,23 @@ function ensureSidebarAccount(sidebar) {
   window.lucide?.createIcons();
 }
 
+function ensureSidebarNotifications(sidebar) {
+  if (!sidebar || sidebar.querySelector(".sidebar-notifications-link")) return;
+  const home = sidebar.querySelector(':scope > a.nav-link[href*="index.html"], :scope > .sidebar-scroll > a.nav-link[href*="index.html"]');
+  const item = document.createElement("button");
+  item.type = "button";
+  item.className = "nav-link sidebar-notifications-link";
+  item.setAttribute("aria-label", "Open notifications");
+  item.innerHTML = '<i data-lucide="bell" aria-hidden="true"></i><span>Notifications</span>';
+  item.addEventListener("click", () => {
+    document.dispatchEvent(new Event("apr:open-notifications"));
+    if (window.innerWidth <= 1024) document.body.classList.remove("sidebar-open");
+  });
+  if (home?.parentElement) home.after(item);
+  else sidebar.prepend(item);
+  window.lucide?.createIcons();
+}
+
 async function initializeAfterAccess() {
   if (document.body.dataset.role) {
     try {
@@ -935,6 +952,7 @@ async function initializeAfterAccess() {
     return;
   }
   await normalizeDashboardSidebar(document.querySelector("body.dashboard-page .sidebar"));
+  ensureSidebarNotifications(document.querySelector("body.dashboard-page .sidebar"));
   initializeNavigation();
 }
 
