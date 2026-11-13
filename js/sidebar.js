@@ -1,8 +1,56 @@
-/* Shared sidebar presentation and keyboard support. Existing navigation code
-   remains responsible for URLs, role filtering, account actions and open state. */
+/* Shared sidebar module. It owns role-filtered link state and keyboard access;
+   the navigation bootstrap retains account actions, URLs and open-state behaviour. */
+/* Apply the existing verified role rules and active-page state to the
+   canonical sidebar. Keep this policy in one place for every module page. */
+export function applySidebarAccessRules(sidebar, { role, indexUrl, currentPage, pageName }) {
+  if (!sidebar || !indexUrl || typeof pageName !== "function") return;
+  const accessByPage = {
+    accounting: ["super_admin", "accounting"],
+    ledger: ["super_admin", "accounting"],
+    payables: ["super_admin", "accounting"],
+    cashbook: ["super_admin", "accounting"],
+    commissions: ["super_admin", "accounting"],
+    "landed-cost": ["super_admin", "accounting"],
+    "fixed-assets": ["super_admin", "accounting"],
+    "financial-statements": ["super_admin", "accounting"],
+    analytics: ["super_admin", "accounting"],
+    technicians: ["super_admin"],
+    customers: ["super_admin", "staff"],
+    checklist: ["super_admin", "staff"],
+    repairs: ["super_admin", "staff"],
+    suppliers: ["super_admin", "staff"],
+  };
+
+  sidebar.querySelectorAll("a.nav-link").forEach(link => {
+    const target = new URL(link.getAttribute("href"), indexUrl);
+    const targetPage = pageName(target.pathname);
+    const allowedRoles = accessByPage[targetPage];
+    if (allowedRoles && !allowedRoles.includes(role)) {
+      const groupKey = link.closest(".nav-group")?.dataset.group;
+      if (groupKey === "accounting") {
+        const restrictedLink = document.createElement("span");
+        restrictedLink.className = "nav-link nav-link--restricted";
+        restrictedLink.setAttribute("aria-disabled", "true");
+        restrictedLink.title = "Your account does not have access to this module";
+        restrictedLink.innerHTML = link.innerHTML;
+        link.replaceWith(restrictedLink);
+        return;
+      }
+      link.remove();
+      return;
+    }
+    link.href = target.pathname + target.search + target.hash;
+    const isCurrent = targetPage === currentPage;
+    link.classList.toggle("active", isCurrent);
+    if (isCurrent) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
+
+
 const stylesheet = document.createElement("link");
 stylesheet.rel = "stylesheet";
-stylesheet.href = new URL("../css/sidebar.css?v=chrome-glass-1", import.meta.url).href;
+stylesheet.href = new URL("../css/sidebar.css?v=phase3", import.meta.url).href;
 stylesheet.dataset.sharedSidebarStyles = "true";
 document.head.append(stylesheet);
 
