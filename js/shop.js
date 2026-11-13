@@ -1078,6 +1078,9 @@ function updateQuickSaleTotal() {
   const discountInput = document.getElementById("quick-sale-discount");
   const discount = Math.max(0, Number(discountInput?.value) || 0);
   const total = roundMoney(Math.max(0, subtotal - discount));
+  const itemCount = rows.reduce((sum, row) => sum + (Number(row.querySelector('input[type="number"][step="1"]').value) || 0), 0);
+  const countLabel = document.getElementById("quick-sale-cart-count");
+  if (countLabel) countLabel.textContent = `${itemCount} item${itemCount === 1 ? "" : "s"}`;
   document.getElementById("quick-sale-total").innerHTML = `Subtotal ${formatMoney(subtotal)} <span aria-hidden="true">−</span> Discount ${formatMoney(discount)} <strong>Total ${formatMoney(total)}</strong>`;
 }
 document.getElementById("quick-sale-search")?.addEventListener("input", renderQuickSaleCatalog);
@@ -1094,7 +1097,15 @@ document.getElementById("quick-sale-items")?.addEventListener("click", event => 
   updateQuickSaleTotal();
 });
 document.getElementById("quick-sale-items")?.addEventListener("input", event => {
-  if (event.target.matches('input[type="number"][step="1"]')) updateQuickSaleTotal();
+  if (!event.target.matches('input[type="number"][step="1"]')) return;
+  const row = event.target.closest(".quick-sale-line");
+  const quantity = Number(event.target.value) || 0;
+  if (row) {
+    if (quantity > 0) quickSaleCart.set(row.dataset.partId, quantity);
+    else quickSaleCart.delete(row.dataset.partId);
+  }
+  updateQuickSaleTotal();
+  renderQuickSaleCatalog();
 });
 document.getElementById("quick-sale-discount")?.addEventListener("input", updateQuickSaleTotal);
 document.getElementById("quick-sale-category")?.addEventListener("change", renderQuickSaleCatalog);
