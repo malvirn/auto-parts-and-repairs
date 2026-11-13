@@ -913,6 +913,55 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-theme-row{background:#202a38!important;border-color:#46556a!important;color:#f3f6fb!important}
 :root[data-theme="dark"] body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle{background:#f2b84b!important;color:#172033!important}
 
+
+    /* INDEX FIX: keep the dashboard toolbar and navigation anchored to the viewport. */
+    body.dashboard-page.dashboard-workshop > header.dashboard-topbar{
+      position:fixed!important;top:0!important;right:0!important;left:244px!important;
+      z-index:1400!important;transform:none!important;
+      padding-top:env(safe-area-inset-top,0px)!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > aside.sidebar{
+      position:fixed!important;top:0!important;bottom:0!important;left:0!important;
+      z-index:1300!important;height:100vh!important;height:100dvh!important;
+      transform:none!important;visibility:visible!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > .dashboard-sidebar-backdrop{
+      position:fixed!important;inset:0!important;z-index:1290!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > .dashboard-sidebar-toggle{
+      position:fixed!important;z-index:1450!important;
+    }
+    @media(max-width:768px){
+      body.dashboard-page.dashboard-workshop > header.dashboard-topbar{
+        left:0!important;right:0!important;top:0!important;height:60px!important;
+        padding-top:env(safe-area-inset-top,0px)!important;
+      }
+      body.dashboard-page.dashboard-workshop > .app-shell > aside.sidebar{
+        top:0!important;bottom:0!important;left:0!important;
+        width:min(300px,86vw)!important;height:100vh!important;height:100dvh!important;
+        transform:translateX(-105%)!important;visibility:hidden!important;
+      }
+      body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > aside.sidebar{
+        transform:translateX(0)!important;visibility:visible!important;
+      }
+      body.dashboard-page.dashboard-workshop > .app-shell > .dashboard-sidebar-backdrop{
+        display:block!important;opacity:0!important;visibility:hidden!important;
+        pointer-events:none!important;
+      }
+      body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > .dashboard-sidebar-backdrop{
+        opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+      }
+      body.dashboard-page.dashboard-workshop > .app-shell > .dashboard-sidebar-toggle{
+        top:12px!important;left:9px!important;
+      }
+      body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > .dashboard-sidebar-toggle{
+        left:min(258px,calc(86vw - 42px))!important;
+      }
+      body.dashboard-page.dashboard-workshop > .app-shell > .main{
+        padding-top:76px!important;
+      }
+    }
+
 </style>
   <link rel="stylesheet" href="css/dashboard-shell.css">
   <link rel="stylesheet" href="css/ui-consistency.css">
