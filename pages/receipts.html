@@ -1615,7 +1615,7 @@ async function openInvoicePaymentReceipt(journalEntryId,paymentMethod){
 }
 async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
  const{data:payment,error:paymentError}=await supabase.from("quick_sale_payments")
-  .select("id,sales_order_id,amount,payment_date,payment_method,journal_entry_id")
+  .select("id,sales_order_id,amount,tender_amount,currency_code,exchange_rate_to_usd,payment_account_id,payment_date,payment_method,journal_entry_id")
   .eq("journal_entry_id",journalEntryId).maybeSingle();
  if(paymentError)throw new Error(paymentError.message);
  if(!payment)throw new Error("No saved Quick Sale payment matches this receipt link.");
@@ -1652,6 +1652,7 @@ async function openQuickSalePaymentReceipt(journalEntryId,paymentMethod){
   customer:{name:customer.company_name||customer.full_name||order.walk_in_name||"Walk-in customer",phone:customer.phone||"",email:customer.email||"",customer_code:customer.customer_code||"",company_name:customer.company_name||"",is_company:Boolean(customer.is_company)},
   ref:orderNumber,
   receiptAmount:amount,
+  tenderAmount:Number(payment.tender_amount??amount),currency:payment.currency_code||"USD",exchangeRateToUsd:Number(payment.exchange_rate_to_usd)||1,
   paymentMethod:paymentMethod||payment.payment_method||"Not recorded",
   jobPayment:{
    totalLabel:"Original sale total",
