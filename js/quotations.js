@@ -577,12 +577,22 @@ quoteForm.addEventListener("submit", async event => {
   let createdCustomerCode = null;
   const is_company = document.getElementById("quote-is-company")?.checked || false;
   const company_name = document.getElementById("quote-company-name")?.value.trim() || "";
+  if (!job && is_company && !company_name) { alert("Enter the company name before saving the quotation."); document.getElementById("quote-company-name")?.focus(); return; }
   if (!job && !matchedCustomer) {
-    if (is_company && !company_name) { alert("Enter the company name before saving the quotation."); document.getElementById("quote-company-name")?.focus(); return; }
     const { data: createdCustomer, error: customerError } = await supabase.from("customers").insert({ full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email, is_company, company_name: is_company ? company_name : null, supervisor_name: is_company ? walk_in_name : null, company_email: is_company ? walk_in_email : null, supervisor_personal_phone: is_company ? walk_in_phone : null, landline: is_company ? walk_in_landline : null }).select("id,customer_code").single();
     if (customerError) throw new Error("Could not register this quotation customer: " + customerError.message);
     customer_id = createdCustomer.id;
     createdCustomerCode = createdCustomer.customer_code || null;
+  } else if (!job && matchedCustomer) {
+    const { error: customerUpdateError } = await supabase.from("customers").update({
+      full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email,
+      is_company, company_name: is_company ? company_name : null,
+      supervisor_name: is_company ? walk_in_name : null,
+      company_email: is_company ? walk_in_email : null,
+      supervisor_personal_phone: is_company ? walk_in_phone : null,
+      landline: is_company ? walk_in_landline : null
+    }).eq("id", matchedCustomer.id);
+    if (customerUpdateError) throw new Error("Could not update the quotation customer contact details: " + customerUpdateError.message);
   }
   const vehicle_id = job?.vehicle_id || (matchedCustomer?.id === customerSelect.value ? vehicleSelect.value || null : null);
   const fault_reported = document.getElementById("quote-fault").value.trim() || job?.fault_reported || null;
