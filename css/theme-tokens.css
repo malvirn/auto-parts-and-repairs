@@ -1,0 +1,37 @@
+/* Shared theme foundation. Phase 1: canonical colour tokens only. */
+:root,
+:root[data-theme="light"] {
+  --bg: #eef1f3;
+  --surface: #ffffff;
+  --surface-2: #f4f6f7;
+  --line: #c5ccd1;
+  --text: #07090b;
+  --text-muted: #2e373e;
+  --text-faint: #4a555d;
+  --text-link: #b84a00;
+  --accent: #f58220;
+  --ok: #0a7a40;
+  --warn: #b45309;
+  --danger: #b4231b;
+  --input-bg: #ffffff;
+  --input-text: #07090b;
+  --placeholder: #4a555d;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1012;
+  --surface: #121a1f;
+  --surface-2: #18222a;
+  --line: #33424b;
+  --text: #f8faf9;
+  --text-muted: #d0d9d4;
+  --text-faint: #b3beb8;
+  --text-link: #ffb066;
+  --accent: #f58220;
+  --ok: #5fe0a0;
+  --warn: #f5b020;
+  --danger: #ff8d85;
+  --input-bg: #18222a;
+  --input-text: #f8faf9;
+  --placeholder: #b3beb8;
+}
