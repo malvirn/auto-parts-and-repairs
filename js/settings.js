@@ -384,6 +384,74 @@ $("save-goals-btn")?.addEventListener("click", async (e) => {
   if (!error) loadGoals();
 });
 
+const ZIMRATE_CACHE_KEY = "apr-zimrate-reference-v1";
+const ZIMRATE_CACHE_MS = 30 * 60 * 1000;
+
+function renderZimRate(records, fetchedAt, stale = false) {
+  const target = $("zimrate-rates");
+  const updated = $("zimrate-updated");
+  if (!target) return;
+  const rows = Array.isArray(records) ? records.filter(row => row?.currencyPair?.startsWith("USD/ZiG")) : [];
+  const latest = predicate => rows.filter(predicate).sort((a,b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0))[0];
+  const low = latest(row => /InformalLow/i.test(row.currencyPair));
+  const high = latest(row => /InformalHigh/i.test(row.currencyPair));
+  const cash = latest(row => /Cash/i.test(row.currencyPair));
+  const official = latest(row => row.currencyPair === "USD/ZiG" && /official/i.test(row.source?.type || ""));
+  const business = latest(row => /MaxBusiness/i.test(row.currencyPair));
+  const value = row => {
+    if (!row) return "Unavailable";
+    const number = Number(row.buyRate ?? row.sellRate);
+    return Number.isFinite(number) && number > 0 ? number.toLocaleString("en-US", {minimumFractionDigits:2,maximumFractionDigits:4}) + " ZiG" : "Unavailable";
+  };
+  const items = [
+    ["Official reference", official],
+    ["Parallel market low", low],
+    ["Parallel market high", high],
+    ["Cash reference", cash],
+    ["Business reference", business],
+  ].filter(([,row]) => row);
+  target.innerHTML = items.length
+    ? items.map(([label,row]) => `<div class="t"><b>${escapeHtml(label)}</b><span>${escapeHtml(value(row))} · ${escapeHtml(row.source?.name || "ZimRate")}</span></div>`).join("")
+    : '<span>No USD/ZiG market reference rates were returned.</span>';
+  const sourceDate = rows.map(row => row.scrapedAt).filter(Boolean).sort().at(-1);
+  updated.textContent = `${stale ? "Cached reference" : "Updated"} ${sourceDate ? new Date(sourceDate).toLocaleString() : new Date(fetchedAt).toLocaleString()}.`;
+}
+
+async function loadZimRate(force = false) {
+  const target = $("zimrate-rates");
+  if (!target) return;
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(ZIMRATE_CACHE_KEY) || "null"); } catch {}
+  if (!force && cached?.records && Date.now() - cached.fetchedAt < ZIMRATE_CACHE_MS) {
+    renderZimRate(cached.records, cached.fetchedAt);
+    return;
+  }
+  if (!cached?.records) target.textContent = "Loading market reference…";
+  const button = $("refresh-zimrate");
+  if (button) button.disabled = true;
+  try {
+    const response = await fetch("https://zimrate.com/api/rates/latest", { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`ZimRate returned HTTP ${response.status}`);
+    const records = await response.json();
+    if (!Array.isArray(records)) throw new Error("ZimRate returned an unexpected response.");
+    const entry = { records, fetchedAt: Date.now() };
+    try { localStorage.setItem(ZIMRATE_CACHE_KEY, JSON.stringify(entry)); } catch {}
+    renderZimRate(records, entry.fetchedAt);
+  } catch (error) {
+    if (cached?.records) {
+      renderZimRate(cached.records, cached.fetchedAt, true);
+      $("zimrate-updated").textContent += ` Refresh failed: ${error.message}`;
+    } else {
+      target.textContent = "Market reference unavailable. Check your connection and refresh.";
+      $("zimrate-updated").textContent = error.message || "Could not load ZimRate.";
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+$("refresh-zimrate")?.addEventListener("click", () => loadZimRate(true));
+
 async function loadRate() {
   const rateDisplay = $("exchange-rate");
   if (!rateDisplay) return;
@@ -475,6 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadTiers();
   loadNotifications();
   loadRate();
+  loadZimRate();
   loadAccount();
   if (window.lucide) lucide.createIcons();
   if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
