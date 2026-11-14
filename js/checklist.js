@@ -26,6 +26,42 @@ const CONDITION_GROUPS=[
  ]]
 ];
 let selectedJob=null,record=null,report={parts:{},notes:""},editable=false;
+let checklistCustomers=[];
+
+
+async function loadChecklistCustomers(){
+ const {data,error}=await supabase.from("customers").select("id,customer_code,full_name,company_name,is_company,deleted_at,vehicles(id,license_plate,make,model)").is("deleted_at",null).order("created_at",{ascending:false});
+ if(error)throw new Error("Couldn't load registered customers: "+error.message);
+ checklistCustomers=data||[];
+ const select=$("checklist-customer-select");
+ select.replaceChildren(new Option("Select a registered customer",""),...checklistCustomers.map(customer=>new Option(
+  (customer.is_company&&customer.company_name?customer.company_name:customer.full_name)+(customer.customer_code?" · "+customer.customer_code:""),customer.id
+ )));
+}
+function selectChecklistCustomer(customerId,vehicleId=null){
+ const customer=checklistCustomers.find(item=>item.id===customerId);
+ $("checklist-customer-select").value=customer?.id||"";
+ const vehicleSelect=$("checklist-vehicle-select");
+ const vehicles=customer?.vehicles||[];
+ vehicleSelect.replaceChildren(new Option("Select a customer vehicle (optional)",""),...vehicles.map(vehicle=>new Option([vehicle.license_plate,vehicle.make,vehicle.model].filter(Boolean).join(" · "),vehicle.id)));
+ if(vehicleId&&vehicles.some(vehicle=>vehicle.id===vehicleId))vehicleSelect.value=vehicleId;
+ if(customer){$("customer-name-input").value=customer.is_company&&customer.company_name?customer.company_name:customer.full_name||"";}
+ const vehicle=vehicles.find(item=>item.id===vehicleSelect.value);
+ if(vehicle)$("vehicle-registration-input").value=vehicle.license_plate||"";
+}
+function resolveChecklistCustomer(){
+ const customer=checklistCustomers.find(item=>item.id===$("checklist-customer-select").value)||null;
+ const plate=$("vehicle-registration-input").value.trim().toUpperCase();
+ const vehicle=customer?.vehicles?.find(item=>String(item.license_plate||"").trim().toUpperCase()===plate)||null;
+ return {customer,vehicle};
+}
+$("checklist-customer-select")?.addEventListener("change",()=>selectChecklistCustomer($("checklist-customer-select").value));
+$("checklist-vehicle-select")?.addEventListener("change",()=>{
+ const customer=checklistCustomers.find(item=>item.id===$("checklist-customer-select").value);
+ const vehicle=customer?.vehicles?.find(item=>item.id===$("checklist-vehicle-select").value);
+ if(vehicle)$("vehicle-registration-input").value=vehicle.license_plate||"";
+ syncInspectionStrip();
+});
 
 function showMessage(text,isError=false){
  $("page-message").textContent=text;
@@ -160,7 +196,7 @@ function startNewChecklist(prefillJob=null){
  $("print-checklist-number").textContent="";
  $("job-meta").hidden=!prefillJob;
  $("job-meta").textContent=prefillJob?`Checklist for ${prefillJob.cro_number||`JC-${String(prefillJob.job_number??"").padStart(5,"0")}`}`:"";
- $("customer-name-input").value=(prefillJob?.customers?.is_company?prefillJob?.customers?.company_name:prefillJob?.customers?.full_name)||"";
+ selectChecklistCustomer(prefillJob?.customer_id,prefillJob?.vehicle_id);\n $("customer-name-input").value=(prefillJob?.customers?.is_company?prefillJob?.customers?.company_name:prefillJob?.customers?.full_name)||"";
  $("vehicle-registration-input").value=prefillJob?.vehicles?.license_plate||"";
  $("checked-by-input").value="";
  $("checklist-notes").value="";
@@ -216,7 +252,7 @@ async function showRecord(item){
  record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-"+item.id)||"null");if(local?.report&&new Date(local.updated_at).getTime()>new Date(item.updated_at||0).getTime())report=local.report;}catch{}
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
- $("customer-name-input").value=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"";
+ selectChecklistCustomer(item.customer_id,item.vehicle_id);\n $("customer-name-input").value=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"";
  $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
  $("checklist-notes").value=report.notes;
  $("checklist-number-display").textContent=item.inspection_no||"CL-"+String(item.checklist_number).padStart(6,"0");
@@ -273,10 +309,10 @@ async function saveDraft(){
   const odometer=odometerText?Number(odometerText):null;
   if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))throw new Error("Enter a valid whole-number odometer reading.");
   const persistedReport={...report,notes:$("checklist-notes").value||"",parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||"",photo_path:value.photo_path||null}]))};
-  const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:record?.customer_id||selectedJob?.customer_id||null,vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
+  const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:linkedCustomer?.id||record?.customer_id||selectedJob?.customer_id||null,vehicle_id:linkedVehicle?.id||record?.vehicle_id||selectedJob?.vehicle_id||null,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
   let checklistId=record?.id;
   if(checklistId){
-   const updatePayload={customer_name:payload.customer_name,vehicle_registration:payload.vehicle_registration,checked_by:payload.checked_by,report:payload.report,fuel_level_in:payload.fuel_level_in,odometer_in:payload.odometer_in,updated_at:payload.updated_at};
+   const updatePayload={customer_id:payload.customer_id,vehicle_id:payload.vehicle_id,customer_name:payload.customer_name,vehicle_registration:payload.vehicle_registration,checked_by:payload.checked_by,report:payload.report,fuel_level_in:payload.fuel_level_in,odometer_in:payload.odometer_in,updated_at:payload.updated_at};
    const {error}=await supabase.from("job_condition_reports").update(updatePayload).eq("id",checklistId);
    if(error)throw new Error("Couldn't save this draft: "+error.message);
   }else{
