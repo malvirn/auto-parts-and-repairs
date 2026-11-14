@@ -3,6 +3,7 @@ const SUPABASE_ORIGIN = "https://pztwmmkmkyotszylbhsr.supabase.co";
 const DB_NAME = "apr-offline-cache";
 const STORE_NAME = "rest-reads";
 const MAX_CACHE_ENTRIES = 1200;
+const MAX_CACHE_AGE_MS = 6 * 60 * 60 * 1000;
 const MAX_RETRIES = 6;
 const BASE_DELAY_MS = 2000;
 const MAX_DELAY_MS = 60000;
@@ -81,6 +82,10 @@ async function readCached(url, headers, method = "GET", body = "") {
       req.onerror = () => reject(req.error);
     });
     if (!record) return null;
+    if (!record.savedAt || Date.now() - record.savedAt > MAX_CACHE_AGE_MS) {
+      db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(key);
+      return null;
+    }
     record.lastUsedAt = Date.now();
     db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).put(record);
     return new Response(record.body, {
