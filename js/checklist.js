@@ -176,7 +176,7 @@ function startNewChecklist(prefillJob=null){
 }
 function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
-  const customer=item.customer_name||(item.customers?.is_company?item.customers?.company_name:item.customers?.full_name)||"Customer not recorded";
+  const customer=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"Customer not recorded";
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
   const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
   const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Independent checklist · no job card linked";
@@ -216,7 +216,7 @@ async function showRecord(item){
  record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-"+item.id)||"null");if(local?.report&&new Date(local.updated_at).getTime()>new Date(item.updated_at||0).getTime())report=local.report;}catch{}
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
- $("customer-name-input").value=item.customer_name||(item.customers?.is_company?item.customers?.company_name:item.customers?.full_name)||"";
+ $("customer-name-input").value=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"";
  $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
  $("checklist-notes").value=report.notes;
  $("checklist-number-display").textContent=item.inspection_no||"CL-"+String(item.checklist_number).padStart(6,"0");
@@ -333,7 +333,7 @@ async function saveDraft(){
   $("job-meta").textContent=record.job_id?"Linked to "+(record.repair_jobs?.cro_number||"job card"):"";
   $("link-existing-fields").hidden=true;
   syncInspectionStrip();renderInspectionSummary();
-  setDetailMessage(record.job_id?"Checklist saved. Inspection number generated and job card linked automatically.":"Checklist saved independently. You can link or create its job card later.");
+  showCreatedModal("Checklist saved",record.job_id?"Checklist saved and linked to the job card.":"Checklist saved successfully.");
   button.disabled=false;
  }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
 }
