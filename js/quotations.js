@@ -218,10 +218,11 @@ async function loadBaseData() {
     fetchAllQuotationRows(() => supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name")),
     fetchAllQuotationRows(() => supabase.from("vehicle_rate_tiers").select("*").order("sort_order")),
   ]);
-  if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
-  if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
-  if (customersResult.error) console.error("Quotation customers load failed:", customersResult.error);
-  if (tiersResult.error) console.error("Quotation labour rates load failed:", tiersResult.error);
+  const failedLoad = [jobsResult, partsResult, customersResult, tiersResult].find(result => result.error);
+  if (failedLoad) {
+    console.error("Quotation base data load failed:", failedLoad.error);
+    throw new Error("Some quotation data could not be loaded. Refresh and try again.");
+  }
   jobs = jobsResult.data || [];
   parts = partsResult.data || [];
   customers = customersResult.data || [];
