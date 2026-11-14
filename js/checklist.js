@@ -139,7 +139,7 @@ function renderInspectionSummary(){
 function syncInspectionStrip(){
  $("inspection-number-top").textContent=record?.inspection_no||(record?.checklist_number?"CL-"+String(record.checklist_number).padStart(6,"0"):"New inspection");
  $("inspection-job-top").textContent=selectedJob?(selectedJob.cro_number||"JC-"+String(selectedJob.job_number??"").padStart(5,"0")):"Not linked";
- $("inspection-cid-top").textContent=record?.customers?.customer_code||selectedJob?.customers?.customer_code||"Not linked";
+ $("inspection-cid-top").textContent=checklistCustomers.find(item=>item.id===$("checklist-customer-select")?.value)?.customer_code||record?.customers?.customer_code||selectedJob?.customers?.customer_code||"Not linked";
  $("inspection-plate-top").textContent=$("vehicle-registration-input").value.trim().toUpperCase()||"Not recorded";
 }
 function getIncompleteConditions(){ return []; }
