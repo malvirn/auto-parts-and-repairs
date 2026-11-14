@@ -2029,7 +2029,7 @@ async function openBuilder(fromChecklist=null){
  buildInspection=emptyReport();
  renderBuildInspection();
  $("f-cust").value="__new_customer__";
- $("f-is-company").checked=false;$("f-company-name").value="";$("f-company-name").hidden=true;$("f-customer-cid").textContent="";$("f-customer-cid-copy").hidden=true;$("f-customer-cid-whatsapp").hidden=true;
+ $("f-is-company").checked=false;$("f-is-company").disabled=false;$("f-company-name").value="";$("f-company-name").hidden=true;$("f-customer-cid").textContent="";$("f-customer-cid-copy").hidden=true;$("f-customer-cid-whatsapp").hidden=true;
  ["f-name","f-phone","f-email","f-landline","f-driver-name","f-driver-phone","f-make","f-model","f-year","f-plate","f-fault","f-work-done","f-work-missing","f-custom-part","f-fuel-in","f-odometer-in"].forEach(id=>$(id).value="");
  syncBuilderCompanyFields(false);
  syncBuildReadings();
@@ -2242,6 +2242,7 @@ $("f-cust").onchange=async e=>{
  ["f-name","f-phone","f-email"].forEach(id=>{$(id).readOnly=Boolean(customer);});
  $("f-name").value=customer?.supervisor_name||customer?.full_name||"";
  $("f-is-company").checked=Boolean(customer?.is_company);
+ $("f-is-company").disabled=Boolean(customer);
  $("f-company-name").value=customer?.company_name||"";
  syncBuilderCompanyFields(Boolean(customer?.is_company));
  $("f-landline").value=customer?.landline||"";
