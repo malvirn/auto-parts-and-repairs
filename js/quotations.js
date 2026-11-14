@@ -138,11 +138,30 @@ function fillWalkinDetails(customer) {
   document.getElementById("quote-walkin-name").value = customer.full_name || "";
   document.getElementById("quote-walkin-phone").value = customer.phone || "";
   document.getElementById("quote-walkin-email").value = customer.email || "";
+  if (quoteCustomerKind) quoteCustomerKind.value = customer.is_company ? "company" : "individual";
   document.getElementById("quote-is-company").checked = Boolean(customer.is_company);
+  syncQuotationCustomerKind();
   document.getElementById("quote-company-name").value = customer.company_name || "";
   document.getElementById("quote-company-name-wrap").hidden = !customer.is_company;
   document.getElementById("quote-company-name").required = Boolean(customer.is_company);
 }
+
+const quoteCustomerKind = document.getElementById("quote-customer-kind");
+const quoteCompanyNameWrap = document.getElementById("quote-company-name-wrap");
+const quoteCompanyName = document.getElementById("quote-company-name");
+const quoteCompanyToggle = document.getElementById("quote-is-company");
+function syncQuotationCustomerKind() {
+  const isCompany = quoteCustomerKind?.value === "company";
+  if (quoteCompanyToggle) quoteCompanyToggle.checked = isCompany;
+  if (quoteCompanyNameWrap) quoteCompanyNameWrap.hidden = !isCompany;
+  if (quoteCompanyName) quoteCompanyName.required = isCompany;
+  const label = document.getElementById("quote-customer-name-label");
+  const name = document.getElementById("quote-walkin-name");
+  if (label) label.textContent = isCompany ? "Contact Person" : "Full Name";
+  if (name) name.placeholder = isCompany ? "Name of contact person" : "e.g. Tendai Moyo";
+}
+quoteCustomerKind?.addEventListener("change", syncQuotationCustomerKind);
+syncQuotationCustomerKind();
 
 document.getElementById("quote-walkin-name").addEventListener("change", event => {
   const typedName = event.currentTarget.value.trim().toLocaleLowerCase();
