@@ -323,15 +323,15 @@ async function normalizeDashboardSidebar(sidebar) {
     const existingBell = document.getElementById("global-notif-bell");
     if (header && existingHeader) existingHeader.replaceWith(header);
     else if (header) document.body.insertBefore(header, document.body.firstChild);
-    const headerActions = header.querySelector(".dashboard-topbar-actions");
+    const headerActions = header?.querySelector(".dashboard-topbar-actions") || null;
     if (existingBell && headerActions) headerActions.prepend(existingBell);
-    addToolbarUtilities(headerActions, true);
-    const refreshButton = header.querySelector("#dashboard-refresh, .dashboard-refresh");
+    if (headerActions) addToolbarUtilities(headerActions, true);
+    const refreshButton = header?.querySelector("#dashboard-refresh, .dashboard-refresh");
     if (refreshButton && !refreshButton.dataset.sharedRefreshBound) {
       refreshButton.dataset.sharedRefreshBound = "true";
       refreshButton.addEventListener("click", () => window.location.reload());
     }
-    placeSharedNotificationBell();
+    if (header) placeSharedNotificationBell();
 
     const toggle = sourceToggle.cloneNode(true);
     document.getElementById("dashboard-sidebar-toggle")?.replaceWith(toggle);
