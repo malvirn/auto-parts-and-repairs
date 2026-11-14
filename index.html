@@ -1151,16 +1151,22 @@ body.dashboard-page.dashboard-workshop > .app-shell > .main{
        const sidebarToggle = $("dashboard-sidebar-toggle");
        const sidebar = $("sidebar");
        const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
-       const isMobile = () => matchMedia("(max-width: 768px)").matches;
+       // Same 1024px breakpoint as js/repair-pages-navigation.js and css/dashboard-chrome.css, so the menu
+       // is a closed drawer (not an open sidebar over the header) on phones and tablets.
+       const isMobile = () => matchMedia("(max-width: 1024px)").matches;
        // The saved "collapsed" choice is a desktop setting; on a phone the menu is a drawer.
        const applySavedCollapse = () => {
-         let saved = false;
-         try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
+         let saved = null;
+         try {
+           const stored = localStorage.getItem("apr-sidebar-collapsed");
+           if (stored !== null) saved = stored === "true";
+         } catch (error) {
            console.warn("Could not read saved sidebar state:", error);
          }
          let locked = false;
           try { locked = localStorage.getItem("apr-sidebar-locked") === "true"; } catch (_) {}
-          body.classList.toggle("sidebar-collapsed", !locked && saved && !isMobile());
+          body.classList.toggle("sidebar-collapsed", !locked && !isMobile() && (saved === null ? true : saved));
+          body.classList.remove("sidebar-open");
        };
        applySavedCollapse();
        const syncSidebar = () => {
@@ -1592,6 +1598,18 @@ body.dashboard-page.dashboard-workshop .sidebar-quick-access>a:not(:first-of-typ
        The duplicate banner (and its stray three-dots button) is hidden. */
     body.dashboard-workshop.dashboard-page .main > .app-header{display:none!important}
   </style>
+<style id="index-tablet-drawer">
+/* Tablet / "desktop site" width (769-1024px): close the menu into a drawer, like every other page. */
+@media(min-width:769px) and (max-width:1024px){body.dashboard-page.dashboard-workshop > .app-shell > aside.sidebar{width:min(320px,86vw)!important;transform:translateX(-105%)!important;visibility:hidden!important;transition:transform .24s,visibility .24s!important}
+body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > aside.sidebar{transform:translateX(0)!important;visibility:visible!important}
+body.dashboard-page.dashboard-workshop .sidebar{width:min(320px,86vw)!important;transform:translateX(-105%)!important;visibility:hidden!important;transition:transform .24s,visibility .24s!important}
+body.dashboard-page.dashboard-workshop.sidebar-open .sidebar{transform:translateX(0)!important;visibility:visible!important}
+body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-backdrop{display:block;position:fixed;inset:0;z-index:1290;background:rgba(15,28,50,.35)}
+body.dashboard-page.dashboard-workshop .main,body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{margin:0!important;padding:76px clamp(14px,3vw,26px) 34px!important}
+body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{top:12px!important;left:14px!important}
+body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(286px,calc(86vw - 24px))!important}
+body.dashboard-page.dashboard-workshop .dashboard-topbar,body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{left:64px!important}}
+</style>
 </body>
 </html>
 
