@@ -1821,6 +1821,40 @@ $("d-status").onchange=async e=>{
  if(/^closed$/i.test(status)||isTerminalStatus(status)){e.target.value=cur.status;toast("Use Close job card and complete the test details to close this job");return}
  if(!await saveDailyUpdate(status))e.target.value=cur.status;
 };
+async function refreshCloseReadiness(){
+ if(!cur)return false;
+ const button=$("confirm-close-job");
+ const message=$("close-job-message");
+ const checksBox=$("close-job-checks");
+ button.disabled=true;
+ checksBox.textContent="Checking job card, checklist, parts funding and invoice…";
+ try{
+  const{data,error}=await supabase.rpc("get_repair_job_close_readiness",{
+   p_job_id:cur.id,
+   p_work_complete:$("close-work-complete").checked,
+   p_qc_signed_by:$("close-tested-by").value.trim()||null,
+   p_customer_signed_by:$("close-customer-signed-by").value.trim()||null
+  });
+  if(error)throw error;
+  const result=Array.isArray(data)?data[0]:data;
+  const checks=result?.checks||[];
+  checksBox.innerHTML=checks.map(check=>`<div class="close-job-check ${check.ok?"is-ok":"is-missing"}"><span>${check.ok?"✓":"!"}</span><span>${esc(check.label)}</span></div>`).join("")||"No readiness checks were returned.";
+  const canClose=Boolean(result?.can_close);
+  const role=String(document.body.dataset.role||"").toLowerCase().replace(/[- ]/g,"_");
+  const mayOverride=["admin","supervisor","super_admin"].includes(role);
+  const reason=$("close-override-reason").value.trim();
+  $("close-override-wrap").hidden=!mayOverride;
+  button.disabled=!(canClose||(mayOverride&&reason.length>=8));
+  if(message&&error)message.textContent=error.message||String(error);
+  return canClose;
+ }catch(error){
+  console.error("Could not verify job-card close requirements:",error);
+  checksBox.textContent="Requirements could not be verified. Closing is disabled until the checks can be loaded.";
+  message.textContent=error.message||String(error);
+  button.disabled=true;
+  return false;
+ }
+}
 $("close-job-card").onclick=()=>{
  if(!cur||isClosed(cur))return;
  const vehicle=[veh(cur.vehicles),cur.vehicles?.license_plate].filter(Boolean).join(" ");
@@ -1835,49 +1869,55 @@ $("close-job-card").onclick=()=>{
   </dl>
   <dl id="close-job-money" class="close-job-money"><dt>Payments</dt><dd>Loading…</dd></dl>`;
  fillCloseMoney(cur);
- $("close-tested-by").value=cur.tested_by||"";
+ $("close-work-complete").checked=Boolean(cur.work_ready);
+ $("close-tested-by").value=cur.qc_signed_by||cur.tested_by||"";
+ $("close-customer-signed-by").value=cur.customer_signed_by||"";
  $("close-next-service").value=cur.next_service_mileage??"";
+ $("close-override-reason").value="";
  $("close-job-message").textContent="";
  $("close-job-modal").classList.remove("hidden");
+ refreshCloseReadiness();
  $("close-tested-by").focus();
 };
+["close-work-complete","close-tested-by","close-customer-signed-by","close-override-reason"].forEach(id=>{
+ $(id).addEventListener("input",refreshCloseReadiness);
+ $(id).addEventListener("change",refreshCloseReadiness);
+});
 $("cancel-close-job").onclick=()=>$("close-job-modal").classList.add("hidden");
 $("close-job-form").onsubmit=async event=>{
  event.preventDefault();
  if(!cur)return;
- const testedBy=$("close-tested-by").value.trim(),nextMileage=$("close-next-service").value.trim();
- if(!testedBy||!nextMileage){$("close-job-message").textContent="Enter who tested the vehicle and its next checkup mileage.";return}
+ const testedBy=$("close-tested-by").value.trim();
+ const customerSignedBy=$("close-customer-signed-by").value.trim();
+ const nextMileage=$("close-next-service").value.trim();
  const mileage=Number(nextMileage);
+ const role=String(document.body.dataset.role||"").toLowerCase().replace(/[- ]/g,"_");
+ const mayOverride=["admin","supervisor","super_admin"].includes(role);
+ const overrideReason=mayOverride?$("close-override-reason").value.trim():"";
+ if(!testedBy||!nextMileage){$("close-job-message").textContent="Enter the QC inspector and next checkup mileage.";return}
  if(!Number.isSafeInteger(mileage)||mileage<0){$("close-job-message").textContent="Enter a valid next checkup mileage.";return}
- const confirmButton=$("confirm-close-job");
- confirmButton.disabled=true;
- const originalLabel=confirmButton.textContent;
- confirmButton.textContent="Checking ledger prices…";
+ const button=$("confirm-close-job"),jobId=cur.id;
+ button.disabled=true;button.textContent="Verifying close requirements…";
  try{
-  const{data:ledgerItems,error:ledgerError}=await supabase.from("job_parts")
-   .select("part_name,price_at_time,awaiting_accounting_price")
-   .eq("job_id",cur.id);
-  if(ledgerError)throw new Error("Couldn't verify Ledger prices: "+ledgerError.message);
-  const unpriced=(ledgerItems||[]).filter(item=>
-   item.awaiting_accounting_price===true
-   ||item.price_at_time==null
-   ||!Number.isFinite(Number(item.price_at_time))
-   ||Number(item.price_at_time)<=0
-  );
-  if(unpriced.length){
-   const names=unpriced.map(item=>item.part_name||"Unnamed item").join(", ");
-   $("close-job-message").textContent="Job card cannot be closed. Add Ledger prices for: "+names+".";
-   toast("Price every job-card item in the Ledger before closing.");
-   return;
-  }
-  const closedAt=new Date().toISOString();
-  if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt,ready_at:closedAt}))return;
+  const{data,error}=await supabase.rpc("close_repair_job_with_checks",{
+   p_job_id:jobId,
+   p_tested_by:testedBy,
+   p_next_service_mileage:mileage,
+   p_work_complete:$("close-work-complete").checked,
+   p_customer_signed_by:customerSignedBy||null,
+   p_override_reason:overrideReason.length>=8?overrideReason:null
+  });
+  if(error)throw error;
+  $("close-job-modal").classList.add("hidden");
+  toast(data?.overridden?"Job card closed with an authorised override. The reason was recorded.":"Job card closed. All required checks passed.");
+  await load();
+  const refreshed=jobs.find(item=>item.id===jobId);
+  if(refreshed)await open(refreshed);
  }catch(error){
-  console.error("Ledger price check failed:",error);
   $("close-job-message").textContent=error.message||String(error);
+  await refreshCloseReadiness();
  }finally{
-  confirmButton.disabled=false;
-  confirmButton.textContent=originalLabel;
+  button.textContent="Confirm close";
  }
 };
 
