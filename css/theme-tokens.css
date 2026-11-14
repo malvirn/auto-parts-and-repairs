@@ -45,3 +45,37 @@
   --input: var(--input-bg);
   --toolbar-button-bg: var(--surface-2);
 }
+
+/* Phase 3: readable defaults for application text and form controls. */
+body,
+h1, h2, h3, h4, h5, h6,
+p, li, td, th, label, legend, summary, strong, small, span, dt, dd {
+  color: var(--text);
+}
+label, .muted, .section-note, small, th { color: var(--text-muted); }
+input, select, textarea {
+  color: var(--input-text);
+  background: var(--input-bg);
+  border-color: var(--line);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+a { color: var(--text-link); }
+
+/* Printed and customer-facing documents remain white with black text. */
+#doc, #doc *,
+.quotation-paper, .quotation-paper *,
+.receipt-modal-card, .receipt-modal-card * {
+  color: #111111;
+  background-color: #ffffff;
+}
+@media print {
+  #doc, #doc *,
+  .quotation-paper, .quotation-paper *,
+  .receipt-modal-card, .receipt-modal-card * {
+    color: #111111;
+    background-color: #ffffff;
+  }
+}
