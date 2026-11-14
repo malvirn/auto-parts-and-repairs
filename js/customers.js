@@ -529,6 +529,8 @@ function syncCustomerAccountKind(kind = document.getElementById("cust-account-ki
   if (nameLabel) nameLabel.textContent = isCompany ? "Supervisor Name" : "Full Name";
   if (phoneLabel) phoneLabel.textContent = isCompany ? "Supervisor Personal Phone" : "Phone Number";
   if (emailLabel) emailLabel.textContent = isCompany ? "Company Email" : "Email (optional)";
+  const emailInput = document.getElementById("customer-email");
+  if (emailInput) emailInput.placeholder = isCompany ? "company@example.com" : "customer@gmail.com";
   if (!isCompany) document.getElementById("cust-landline").value = "";
 }
 document.getElementById("cust-account-kind")?.addEventListener("change", event => {
