@@ -1107,7 +1107,9 @@ function renderQuickSaleProductResults(row) {
   const hasExactMatch = rankedMatches.some(match => match.score === 0);
   const matches = rankedMatches.map(match => match.part);
   if (!matches.length) {
-    results.innerHTML = '<div class="quick-sale-product-empty">No close matches found. Check the spelling or try a shorter search.</div>';
+    results.innerHTML = query
+      ? '<div class="quick-sale-product-empty">No close matches found. Check the spelling or try a shorter search.</div>'
+      : '<div class="quick-sale-product-empty">No products currently in stock in this category.</div>';
     results.hidden = false;
     return;
   }
