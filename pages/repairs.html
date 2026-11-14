@@ -802,10 +802,12 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <p class="section-note">Typed-in parts are added to the Accounting queue and must be priced there before being billed.</p>
       <div id="build-parts-list" aria-live="polite"></div>
       <label class="job-vat-option" for="job-vat-enabled"><input id="job-vat-enabled" type="checkbox"> Apply 5% VAT to parts</label>
+      <div id="build-work-section" hidden aria-hidden="true">
       <h3>5 · Work</h3>
       <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
       <label for="f-work-missing">Work still missing</label><textarea id="f-work-missing" rows="3" placeholder="Outstanding work or parts still needed"></textarea>
       <select id="f-tech"><option value="">Assign technician (optional)</option></select>
+      </div>
       <p style="margin:10px 0;color:var(--muted);font-size:.85rem">Saved as a <b>Draft</b> unless you opened it from a checklist. Draft job cards are linked under Vehicle Checklist → Drafts.</p>
       <button class="btn btn--primary" id="save" type="button"><i data-lucide="check"></i> Save job card</button>
     </div>
