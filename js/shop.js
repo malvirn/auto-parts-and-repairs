@@ -335,7 +335,7 @@ async function loadSalesAnalysis() {
 function renderLowStockAlert(parts) {
   const el = document.getElementById("low-stock-alert");
   if (!el) return;
-  const lowStock = parts.filter(p => Number(p.minimum_stock || 0) > 0 && Number(p.quantity_in_stock || 0) <= Number(p.minimum_stock) * 0.1);
+  const lowStock = parts.filter(p => Number(p.minimum_stock || 0) > 0 && Number(p.quantity_in_stock || 0) <= Number(p.minimum_stock));
   el.innerHTML = lowStock.length
     ? lowStock.map(p => `<div class="alert-row"><span>${escapeHtml(p.name)}</span><strong class="stock-low">${p.quantity_in_stock} left</strong></div>`).join("")
     : `<span style="color:var(--text-muted); font-size:.85rem;">Stock levels are healthy.</span>`;
@@ -346,7 +346,7 @@ function renderLowStockAlert(parts) {
   // reliable part; this is just a bonus if the browser allows it.
   if (lowStock.length && "Notification" in window) {
     if (Notification.permission === "granted") {
-      new Notification("Low stock", { body: `${lowStock.length} part(s) at or below 10% of minimum: ${lowStock.map(p => p.name).join(", ")}` });
+      new Notification("Low stock", { body: `${lowStock.length} part(s) at or below minimum level: ${lowStock.map(p => p.name).join(", ")}` });
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission();
     }
