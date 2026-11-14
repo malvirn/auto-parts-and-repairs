@@ -149,25 +149,16 @@ cashForm.addEventListener("submit", async (e) => {
   if (submitButton) submitButton.disabled = true;
   cashFormMessage.textContent = "Posting…"; cashFormMessage.dataset.tone = "info";
   try {
-  const { data: entry, error: entryError } = await supabase.from("journal_entries").insert([{
-    entry_date: date, description, source_type: "cash_transaction",
-  }]).select().single();
-  if (entryError) {
-    cashFormMessage.textContent = "Failed to post: " + entryError.message;
-    cashFormMessage.dataset.tone = "error";
-    return;
-  }
-
-  const lines = direction === "in"
-    ? [{ account_id: cashAccountId, debit: amount, credit: 0 }, { account_id: contraAccountId, debit: 0, credit: amount }]
-    : [{ account_id: contraAccountId, debit: amount, credit: 0 }, { account_id: cashAccountId, debit: 0, credit: amount }];
-
-  const { error: linesError } = await supabase.from("journal_lines").insert(lines.map(l => ({ ...l, journal_entry_id: entry.id })));
-  if (linesError) {
-    const { error: cleanupError } = await supabase.from("journal_entries").delete().eq("id", entry.id);
-    cashFormMessage.textContent = cleanupError
-      ? `Transaction lines failed (${linesError.message}) and the incomplete journal entry could not be removed (${cleanupError.message}). Contact an administrator before retrying.`
-      : "Failed to post: " + linesError.message + ". The incomplete journal entry was removed; you can safely retry.";
+  const { error: postError } = await supabase.rpc("post_cashbook_transaction", {
+    p_entry_date: date,
+    p_description: description,
+    p_direction: direction,
+    p_amount: amount,
+    p_cash_account_id: cashAccountId,
+    p_contra_account_id: contraAccountId,
+  });
+  if (postError) {
+    cashFormMessage.textContent = "Failed to post: " + postError.message;
     cashFormMessage.dataset.tone = "error";
     return;
   }
