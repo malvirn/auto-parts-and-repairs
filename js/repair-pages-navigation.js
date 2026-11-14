@@ -408,7 +408,7 @@ function startSharedDashboardHeaderClock() {
     const date = document.getElementById("dashboard-date");
     const clock = document.getElementById("hdr-clock");
     if (date) date.textContent = new Intl.DateTimeFormat("en-GB", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric",
+      day: "2-digit", month: "2-digit", year: "numeric",
       timeZone: "Africa/Harare"
     }).format(new Date());
     if (clock) clock.textContent = new Intl.DateTimeFormat("en-GB", {
@@ -574,7 +574,7 @@ function initializeGeneratedHeader(header) {
   const live = header.querySelector("#hdr-live");
   const update = () => {
     const now = new Date();
-    date.textContent = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    date.textContent = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
     clock.textContent = now.toLocaleTimeString("en-GB", { hour12: false });
   };
   const updateConnection = () => {
