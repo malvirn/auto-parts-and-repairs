@@ -389,8 +389,9 @@ body.dashboard-page .main{min-width:0}
               <label for="quote-customer-kind">Customer Type<select id="quote-customer-kind" required><option value="individual">Individual</option><option value="company">Company</option></select></label>
               <label id="quote-company-name-wrap" for="quote-company-name" hidden>Company Name<input id="quote-company-name" autocomplete="organization"></label>
               <label for="quote-walkin-name"><span id="quote-customer-name-label">Full Name</span><input id="quote-walkin-name" list="quote-customer-suggestions" autocomplete="off" required></label>
-              <label for="quote-walkin-phone">Phone Number<input id="quote-walkin-phone" type="tel" autocomplete="tel" required></label>
-              <label for="quote-walkin-email">Email Address<input id="quote-walkin-email" type="email" autocomplete="email"></label>
+              <label for="quote-walkin-phone"><span id="quote-customer-phone-label">Phone Number</span><input id="quote-walkin-phone" type="tel" autocomplete="tel" required></label>
+              <label for="quote-walkin-email"><span id="quote-customer-email-label">Email Address</span><input id="quote-walkin-email" type="email" autocomplete="email"></label>
+              <label id="quote-walkin-landline-wrap" for="quote-walkin-landline" hidden>Landline<input id="quote-walkin-landline" type="tel" autocomplete="tel-national"></label>
               <input id="quote-is-company" type="checkbox" hidden aria-hidden="true" tabindex="-1">
             </div>
             <datalist id="quote-customer-suggestions"></datalist>
