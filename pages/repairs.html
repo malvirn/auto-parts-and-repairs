@@ -942,15 +942,23 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <section class="close-job-context" aria-labelledby="close-job-context-title">
         <h3 id="close-job-context-title">Selected job card</h3>
         <div id="close-job-context"></div>
-        <p class="section-note" style="margin-top:14px">Every job-card item must have a price recorded in the Ledger before this job card can be closed.</p>
+        <p class="section-note" style="margin-top:14px">Every requirement below is checked against the live job, checklist, parts funding and invoice records.</p>
+        <div id="close-job-checks" class="close-job-checks" aria-live="polite">Checking job-card requirements…</div>
       </section>
       <form class="close-job-form" id="close-job-form">
-        <p>Confirm the vehicle test details for this job card before closing it.</p>
-        <label for="close-tested-by">Tested by
+        <p>Complete the final sign-offs. The system checks every requirement again before closing.</p>
+        <label class="job-vat-option" for="close-work-complete"><input id="close-work-complete" type="checkbox"> All work tasks are complete and no work remains outstanding</label>
+        <label for="close-tested-by">Final inspection / QC signed off by
           <input id="close-tested-by" name="tested_by" type="text" maxlength="120" autocomplete="name" required>
+        </label>
+        <label for="close-customer-signed-by">Customer sign-off recorded by
+          <input id="close-customer-signed-by" name="customer_signed_by" type="text" maxlength="120" autocomplete="name" required>
         </label>
         <label for="close-next-service">Next checkup mileage (km)
           <input id="close-next-service" name="next_service_mileage" type="number" min="0" step="1" required>
+        </label>
+        <label id="close-override-wrap" for="close-override-reason" hidden>Supervisor / admin override reason
+          <textarea id="close-override-reason" rows="3" maxlength="500" placeholder="Explain why this job is being closed with unmet requirements"></textarea>
         </label>
         <p id="close-job-message" class="form-message" role="status" aria-live="polite"></p>
         <div class="rc-bar"><button class="btn btn--primary" id="confirm-close-job" type="submit">Confirm close</button><button class="btn" id="cancel-close-job" type="button">Cancel</button></div>
