@@ -128,16 +128,17 @@ function findMatchingCustomer(name, phone, email) {
   );
   const normalizedPhone = phone.replace(/\D/g, "");
   const normalizedEmail = email.trim().toLocaleLowerCase();
-  if (normalizedPhone) matches = matches.filter(customer => (customer.phone || "").replace(/\D/g, "") === normalizedPhone);
-  if (normalizedEmail) matches = matches.filter(customer => (customer.email || "").trim().toLocaleLowerCase() === normalizedEmail);
+  if (normalizedPhone) matches = matches.filter(customer => (customer.supervisor_personal_phone || customer.phone || "").replace(/\D/g, "") === normalizedPhone);
+  if (normalizedEmail) matches = matches.filter(customer => (customer.company_email || customer.email || "").trim().toLocaleLowerCase() === normalizedEmail);
   return matches.length === 1 ? matches[0] : null;
 }
 
 function fillWalkinDetails(customer) {
   if (!customer) return;
-  document.getElementById("quote-walkin-name").value = customer.full_name || "";
-  document.getElementById("quote-walkin-phone").value = customer.phone || "";
-  document.getElementById("quote-walkin-email").value = customer.email || "";
+  document.getElementById("quote-walkin-name").value = customer.supervisor_name || customer.full_name || "";
+  document.getElementById("quote-walkin-phone").value = customer.supervisor_personal_phone || customer.phone || "";
+  document.getElementById("quote-walkin-email").value = customer.company_email || customer.email || "";
+  document.getElementById("quote-walkin-landline").value = customer.landline || "";
   if (quoteCustomerKind) quoteCustomerKind.value = customer.is_company ? "company" : "individual";
   document.getElementById("quote-is-company").checked = Boolean(customer.is_company);
   syncQuotationCustomerKind();
@@ -155,10 +156,16 @@ function syncQuotationCustomerKind() {
   if (quoteCompanyToggle) quoteCompanyToggle.checked = isCompany;
   if (quoteCompanyNameWrap) quoteCompanyNameWrap.hidden = !isCompany;
   if (quoteCompanyName) quoteCompanyName.required = isCompany;
+  document.getElementById("quote-walkin-landline-wrap").hidden = !isCompany;
   const label = document.getElementById("quote-customer-name-label");
+  const phoneLabel = document.getElementById("quote-customer-phone-label");
+  const emailLabel = document.getElementById("quote-customer-email-label");
   const name = document.getElementById("quote-walkin-name");
-  if (label) label.textContent = isCompany ? "Contact Person" : "Full Name";
-  if (name) name.placeholder = isCompany ? "Name of contact person" : "e.g. Tendai Moyo";
+  if (label) label.textContent = isCompany ? "Supervisor Name" : "Full Name";
+  if (phoneLabel) phoneLabel.textContent = isCompany ? "Supervisor Personal Phone" : "Phone Number";
+  if (emailLabel) emailLabel.textContent = isCompany ? "Company Email" : "Email Address";
+  if (name) name.placeholder = isCompany ? "Name of company supervisor" : "e.g. Tendai Moyo";
+  if (!isCompany) document.getElementById("quote-walkin-landline").value = "";
 }
 quoteCustomerKind?.addEventListener("change", syncQuotationCustomerKind);
 syncQuotationCustomerKind();
@@ -168,23 +175,23 @@ document.getElementById("quote-walkin-name").addEventListener("change", event =>
   const typedDigits = typedName.replace(/\D/g, "");
   const matches = customers.filter(customer =>
     [customer.full_name,customer.company_name,customer.customer_code].some(value => String(value || "").trim().toLocaleLowerCase() === typedName) ||
-    (typedDigits.length >= 7 && (customer.phone || "").replace(/\D/g, "") === typedDigits)
+    (typedDigits.length >= 7 && (customer.supervisor_personal_phone || customer.phone || "").replace(/\D/g, "") === typedDigits)
   );
   if (matches.length !== 1) return;
   const customer = matches[0];
   const phone = document.getElementById("quote-walkin-phone");
   const email = document.getElementById("quote-walkin-email");
-  if (!phone.value.trim()) phone.value = customer.phone || "";
-  if (!email.value.trim()) email.value = customer.email || "";
+  if (!phone.value.trim()) phone.value = customer.supervisor_personal_phone || customer.phone || "";
+  if (!email.value.trim()) email.value = customer.company_email || customer.email || "";
 });
 
 // A quotation/order's customer is either a linked registered customer, or
 // a walk-in entered directly on the form — this resolves whichever applies.
 function resolveCustomer(record) {
   return {
-    full_name: record.customers?.company_name || record.customers?.full_name || record.walk_in_name || "Customer",
-    phone: record.customers?.phone || record.walk_in_phone || "—",
-    email: record.customers?.email || record.walk_in_email || "—",
+    full_name: record.customers?.company_name || record.customers?.supervisor_name || record.customers?.full_name || record.walk_in_name || "Customer",
+    phone: record.customers?.supervisor_personal_phone || record.customers?.phone || record.walk_in_phone || "—",
+    email: record.customers?.company_email || record.customers?.email || record.walk_in_email || "—",
     customer_code: record.customers?.customer_code || "",
     company_name: record.customers?.company_name || "",
     is_company: Boolean(record.customers?.is_company),
@@ -196,7 +203,7 @@ async function loadBaseData() {
   const [jobsResult, partsResult, customersResult, tiersResult] = await Promise.all([
     supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type, customer_code, is_company, company_name), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
     supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
-    supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
+    supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
     supabase.from("vehicle_rate_tiers").select("*").order("sort_order"),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
@@ -564,6 +571,7 @@ quoteForm.addEventListener("submit", async event => {
   const walk_in_name = document.getElementById("quote-walkin-name").value.trim();
   const walk_in_phone = document.getElementById("quote-walkin-phone").value.trim();
   const walk_in_email = document.getElementById("quote-walkin-email").value.trim() || null;
+  const walk_in_landline = document.getElementById("quote-walkin-landline").value.trim() || null;
   const matchedCustomer = findMatchingCustomer(walk_in_name, walk_in_phone, walk_in_email || "");
   let customer_id = job?.customer_id || matchedCustomer?.id || null;
   let createdCustomerCode = null;
@@ -571,7 +579,7 @@ quoteForm.addEventListener("submit", async event => {
   const company_name = document.getElementById("quote-company-name")?.value.trim() || "";
   if (!job && !matchedCustomer) {
     if (is_company && !company_name) { alert("Enter the company name before saving the quotation."); document.getElementById("quote-company-name")?.focus(); return; }
-    const { data: createdCustomer, error: customerError } = await supabase.from("customers").insert({ full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email, is_company, company_name: is_company ? company_name : null }).select("id,customer_code").single();
+    const { data: createdCustomer, error: customerError } = await supabase.from("customers").insert({ full_name: walk_in_name, phone: walk_in_phone, email: walk_in_email, is_company, company_name: is_company ? company_name : null, supervisor_name: is_company ? walk_in_name : null, company_email: is_company ? walk_in_email : null, supervisor_personal_phone: is_company ? walk_in_phone : null, landline: is_company ? walk_in_landline : null }).select("id,customer_code").single();
     if (customerError) throw new Error("Could not register this quotation customer: " + customerError.message);
     customer_id = createdCustomer.id;
     createdCustomerCode = createdCustomer.customer_code || null;
@@ -616,7 +624,7 @@ quoteForm.addEventListener("submit", async event => {
     customer_id, vehicle_id, fault_reported, repair_job_id: job?.id || null, markup_pct: 25, usd_to_zig_rate: rate,
     vat_rate: vatRate, prepared_by: document.getElementById("quote-prepared-by").value.trim() || null,
     total_usd: totalUsd, total_zig: totalUsd * rate, vehicle_details: quotationVehicleDetails(),
-    walk_in_name, walk_in_phone, walk_in_email, notes,
+    walk_in_name, walk_in_phone, walk_in_email, walk_in_landline, notes,
   }]).select().single();
   if (error) { alert("Failed to save quotation: " + error.message); return; }
   itemRows.forEach(item => { item.quotation_id = quote.id; });
