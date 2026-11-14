@@ -1943,7 +1943,7 @@ form?.addEventListener("submit", async (e) => {
 
     const labour_cost = labourValue + quotedLabourCost;
     const labour_hours = (labourHours || 0) + quotedLabourHours;
-    const { error: intakeError } = await supabase.rpc("finalize_repair_job_intake", {
+    const { data: intakeResult, error: intakeError } = await supabase.rpc("finalize_repair_job_intake", {
       p_job_id: job.id,
       p_parts: jobPartItems,
       p_incidentals: incidentals,
@@ -1951,12 +1951,17 @@ form?.addEventListener("submit", async (e) => {
       p_labour_hours: labour_hours || null,
     });
 
-    if (intakeError) {
-      const { error: cleanupError } = await supabase.from("repair_jobs").delete().eq("id", job.id);
-      const cleanupNote = cleanupError
-        ? " The incomplete job card could not be removed automatically. Contact an administrator before retrying."
-        : " No stock was deducted and the incomplete job card was removed.";
-      throw new Error("Job card intake was not completed: " + intakeError.message + cleanupNote);
+    if (intakeError || intakeResult?.error) {
+      let cleanupNote = " No stock was deducted.";
+      if (intakeError) {
+        const { error: cleanupError } = await supabase.from("repair_jobs").delete().eq("id", job.id);
+        cleanupNote += cleanupError
+          ? " The incomplete job card could not be removed automatically. Contact an administrator before retrying."
+          : " The incomplete job card was removed.";
+      } else {
+        cleanupNote += " The incomplete job card was removed automatically.";
+      }
+      throw new Error("Job card intake was not completed: " + (intakeError?.message || intakeResult.error) + cleanupNote);
     }
 
     if (quoteId) {
