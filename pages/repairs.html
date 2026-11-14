@@ -955,7 +955,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
         <p>Complete the final sign-offs. The system checks every requirement again before closing.</p>
         <label class="job-vat-option" for="close-work-complete"><input id="close-work-complete" type="checkbox"> All work tasks are complete and no work remains outstanding</label>
         <label for="close-tested-by">Final inspection / QC signed off by
-          <input id="close-tested-by" name="tested_by" type="text" maxlength="120" autocomplete="name" required>
+          <input id="close-tested-by" name="tested_by" type="text" maxlength="120" autocomplete="name">
         </label>
         <label for="close-customer-signed-by">Customer sign-off name / signature
           <input id="close-customer-signed-by" name="customer_signed_by" type="text" maxlength="120" autocomplete="name">
@@ -1900,7 +1900,8 @@ $("close-job-form").onsubmit=async event=>{
  const role=String(document.body.dataset.role||"").toLowerCase().replace(/[- ]/g,"_");
  const mayOverride=["admin","supervisor","super_admin"].includes(role);
  const overrideReason=mayOverride?$("close-override-reason").value.trim():"";
- if(!testedBy||!nextMileage){$("close-job-message").textContent="Enter the QC inspector and next checkup mileage.";return}
+ if(!nextMileage){$("close-job-message").textContent="Enter the next checkup mileage.";return}
+ if(!testedBy&&!(mayOverride&&overrideReason.length>=8)){$("close-job-message").textContent="Enter the QC inspector, or provide an authorised override reason.";return}
  if(!customerSignedBy&&!(mayOverride&&overrideReason.length>=8)){$("close-job-message").textContent="Record the customer sign-off name, or enter an authorised override reason.";return}
  if(!Number.isSafeInteger(mileage)||mileage<0){$("close-job-message").textContent="Enter a valid next checkup mileage.";return}
  const button=$("confirm-close-job"),jobId=cur.id;
