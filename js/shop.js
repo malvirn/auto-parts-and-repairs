@@ -162,9 +162,21 @@ async function loadPartSuppliersMap() {
 // ---- Load + render parts ----
 let allPartsData = [];
 
+async function fetchAllShopRows(queryFactory, pageSize = 1000) {
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await queryFactory().range(offset, offset + pageSize - 1);
+    if (error) return { data: null, error };
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return { data: rows, error: null };
+}
+
 async function loadParts() {
   const [{ data, error }, partSuppliersMap] = await Promise.all([
-    supabase.from("parts").select("*").order("name"),
+    fetchAllShopRows(() => supabase.from("parts").select("*").order("name")),
     loadPartSuppliersMap(),
   ]);
   currentPartSuppliers = partSuppliersMap;
@@ -203,8 +215,8 @@ function renderPartsTable(data) {
   tableBody.innerHTML = data.map(p => {
     const margin = p.selling_price - p.cost_price;
     const marginPct = p.cost_price > 0 ? ((margin / p.cost_price) * 100).toFixed(0) : "—";
-    const alertLevel = Number(p.minimum_stock || 0) * 0.1;
-    const isLowStock = alertLevel > 0 && Number(p.quantity_in_stock) <= alertLevel;
+    const alertLevel = Number(p.minimum_stock || 0);
+    const isLowStock = Number(p.quantity_in_stock) <= alertLevel;
     const stockClass = isLowStock ? "stock-low" : "stock-ok";
     const linked = currentPartSuppliers[p.id] || [];
     const supplierChips = linked.length
