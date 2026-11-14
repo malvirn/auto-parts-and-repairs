@@ -1458,7 +1458,7 @@ async function ensureReceiptForOrder(orderId, amount) {
     return false;
   }
   if (existing && existing.length) return true;
-  const { error } = await supabase.from("receipts").insert([{ sales_order_id: orderId, amount }]);
+  const { error } = await supabase.rpc("create_validated_receipt", { p_repair_job_id: null, p_sales_order_id: orderId, p_amount: amount });
   if (error) {
     if (error.code === "23505") {
       const { data: duplicate, error: duplicateError } = await supabase.from("receipts")
