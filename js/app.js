@@ -76,7 +76,7 @@ function renderGreeting() {
   setText(document.getElementById("dashboard-greeting"), `${greeting} ${roleLabel}`);
   const dateEl = document.getElementById("dashboard-date");
   if (dateEl) {
-    dateEl.textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    dateEl.textContent = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 }
 
@@ -97,7 +97,7 @@ function renderTodaySnapshot(jobs, customers, receipts, todayStr) {
     `;
   }
   const dateNote = document.getElementById("snapshot-date");
-  if (dateNote) dateNote.textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  if (dateNote) dateNote.textContent = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return { createdToday, revenueToday };
 }
