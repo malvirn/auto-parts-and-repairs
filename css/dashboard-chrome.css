@@ -1376,3 +1376,42 @@ body.dashboard-page.dashboard-workshop .dashboard-header-date .header-separator{
     flex-basis:34px!important;width:34px!important;height:34px!important;min-width:34px!important;
   }
 }
+
+/* Home header uses the same compact date/time plus action layout as modules. */
+body.dashboard-page:not(.dashboard-workshop) .app-header{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:"right actions"!important;
+  align-items:center!important;
+}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-right{
+  display:flex!important;grid-area:right!important;min-width:0!important;
+  align-items:center!important;justify-self:start!important;
+}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  gap:7px!important;min-width:0!important;white-space:nowrap!important;
+}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-hello,
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-right>.hdr-divider,
+body.dashboard-page:not(.dashboard-workshop) .app-header>.hs{display:none!important}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time #dashboard-date{
+  display:inline!important;font-size:12px!important;white-space:nowrap!important;
+}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time #hdr-clock,
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time .hdr-live{display:inline-flex!important}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-header-actions{
+  display:flex!important;grid-area:actions!important;align-items:center!important;
+  justify-self:end!important;gap:5px!important;min-width:0!important;
+}
+body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-header-actions>*{
+  flex:0 0 34px!important;width:34px!important;min-width:34px!important;height:34px!important;
+}
+@media(max-width:380px){
+  body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time{gap:4px!important}
+  body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time #dashboard-date{font-size:10px!important}
+  body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-time #hdr-clock{font-size:10px!important}
+  body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-header-actions{gap:3px!important}
+  body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-header-actions>*{
+    flex-basis:30px!important;width:30px!important;min-width:30px!important;height:30px!important;
+  }
+}
