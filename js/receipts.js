@@ -211,7 +211,7 @@ async function generateReceipt(jobId, amount) {
     }
 
     if (!existing?.length) {
-      const { error } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount: Number(amount || job.total_cost || 0) }]);
+      const { error } = await supabase.rpc("create_validated_receipt", { p_repair_job_id: jobId, p_sales_order_id: null, p_amount: Number(amount || job.total_cost || 0) });
       if (error && error.code !== "23505") {
         alert("Failed to generate receipt: " + error.message);
         return;
