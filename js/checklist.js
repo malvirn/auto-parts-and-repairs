@@ -41,6 +41,7 @@ async function loadChecklistCustomers(){
 function selectChecklistCustomer(customerId,vehicleId=null){
  const customer=checklistCustomers.find(item=>item.id===customerId);
  $("checklist-customer-select").value=customer?.id||"";
+ $("customer-name-input").readOnly=Boolean(customer);
  const vehicleSelect=$("checklist-vehicle-select");
  const vehicles=customer?.vehicles||[];
  vehicleSelect.replaceChildren(new Option("Select a customer vehicle (optional)",""),...vehicles.map(vehicle=>new Option([vehicle.license_plate,vehicle.make,vehicle.model].filter(Boolean).join(" · "),vehicle.id)));
