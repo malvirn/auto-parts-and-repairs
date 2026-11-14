@@ -197,7 +197,8 @@ function startNewChecklist(prefillJob=null){
  $("print-checklist-number").textContent="";
  $("job-meta").hidden=!prefillJob;
  $("job-meta").textContent=prefillJob?`Checklist for ${prefillJob.cro_number||`JC-${String(prefillJob.job_number??"").padStart(5,"0")}`}`:"";
- selectChecklistCustomer(prefillJob?.customer_id,prefillJob?.vehicle_id);\n $("customer-name-input").value=(prefillJob?.customers?.is_company?prefillJob?.customers?.company_name:prefillJob?.customers?.full_name)||"";
+ selectChecklistCustomer(prefillJob?.customer_id,prefillJob?.vehicle_id);
+ $("customer-name-input").value=(prefillJob?.customers?.is_company?prefillJob?.customers?.company_name:prefillJob?.customers?.full_name)||"";
  $("vehicle-registration-input").value=prefillJob?.vehicles?.license_plate||"";
  $("checked-by-input").value="";
  $("checklist-notes").value="";
@@ -253,7 +254,8 @@ async function showRecord(item){
  record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-"+item.id)||"null");if(local?.report&&new Date(local.updated_at).getTime()>new Date(item.updated_at||0).getTime())report=local.report;}catch{}
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
- selectChecklistCustomer(item.customer_id,item.vehicle_id);\n $("customer-name-input").value=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"";
+ selectChecklistCustomer(item.customer_id,item.vehicle_id);
+ $("customer-name-input").value=(item.customers?.is_company?item.customers?.company_name:(item.customer_name||item.customers?.full_name))||"";
  $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
  $("checklist-notes").value=report.notes;
  $("checklist-number-display").textContent=item.inspection_no||"CL-"+String(item.checklist_number).padStart(6,"0");
