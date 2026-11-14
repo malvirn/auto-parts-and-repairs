@@ -63,7 +63,7 @@ function resetCustomerFormMode() {
 
 async function fetchCustomersList() {
   const { data, error } = await supabase.from("customers")
-    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, created_at, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, created_at, deleted_at, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -85,7 +85,7 @@ function renderCustomersList(data) {
     return `
     <tr data-customer-id="${escapeHtml(c.id)}">
       <td data-label="Customer ID"><span class="customer-id-chip">${escapeHtml(c.customer_code || "—")}</span></td>
-      <td data-label="Name / Company"><div class="customer-name-cell"><span class="customer-avatar"><i data-lucide="${c.is_company ? "building-2" : "user-round"}"></i></span><span><strong>${escapeHtml(customerLabel || "—")}</strong>${c.is_company ? `<small>Driver: ${escapeHtml(c.full_name || "—")}</small>` : ""}</span></div></td>
+      <td data-label="Name / Company"><div class="customer-name-cell"><span class="customer-avatar"><i data-lucide="${c.is_company ? "building-2" : "user-round"}"></i></span><span><strong>${escapeHtml(customerLabel || "—")}</strong>${c.is_company ? `<small>Supervisor: ${escapeHtml(c.supervisor_name || c.full_name || "—")}</small>` : ""}</span></div></td>
       <td data-label="Date"><span class="customer-date"><i data-lucide="calendar-days"></i>${escapeHtml(dateLabel)}</span></td>
       <td data-label="Actions"><div class="customer-row-actions"><button type="button" class="btn customer-edit" data-edit-customer="${escapeHtml(c.id)}"><i data-lucide="pencil"></i><span>Edit</span></button><button type="button" class="btn btn--primary customer-job-card" data-open-job-card="${escapeHtml(c.id)}" data-vehicle-id="${escapeHtml(c.vehicles?.[0]?.id || "")}"><i data-lucide="car-front"></i><span>Open Job Card</span></button></div></td>
     </tr>`;
@@ -170,7 +170,7 @@ async function addVehicle(customerId, vehicle) {
 async function startEditingCustomer(customerId) {
   const { data: customer, error } = await supabase
     .from("customers")
-    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
+    .select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, vehicles(id, license_plate, body_type, make, model, year, chassis_number, engine_number)")
     .eq("id", customerId)
     .single();
   if (error || !customer) {
@@ -181,7 +181,7 @@ async function startEditingCustomer(customerId) {
   hideSavedActions();
   editingCustomerId = customer.id;
   editingVehicleId = customer.vehicles?.[0]?.id || null;
-  document.getElementById("cust-name").value = customer.full_name || "";
+  document.getElementById("cust-name").value = customer.supervisor_name || customer.full_name || "";
   document.getElementById("cust-is-company").checked = Boolean(customer.is_company);
   document.getElementById("cust-account-kind").value = customer.is_company ? "company" : "individual";
   syncCustomerAccountKind(customer.is_company ? "company" : "individual");
@@ -189,8 +189,9 @@ async function startEditingCustomer(customerId) {
   document.getElementById("cust-customer-code").value = customer.customer_code || "";
   document.getElementById("cust-customer-code").readOnly = !canManageCustomerCode;
   document.getElementById("cust-type").value = customer.customer_type || "individual";
-  document.getElementById("cust-phone").value = customer.phone || "";
-  document.getElementById("customer-email").value = customer.email || "";
+  document.getElementById("cust-phone").value = customer.supervisor_personal_phone || customer.phone || "";
+  document.getElementById("customer-email").value = customer.company_email || customer.email || "";
+  document.getElementById("cust-landline").value = customer.landline || "";
 
   const vehicle = customer.vehicles?.[0] || null;
   document.getElementById("cust-plate").value = vehicle?.license_plate || "";
@@ -273,6 +274,7 @@ if (form) {
     const companyNameField = document.getElementById("cust-company-name");
     const customer_type = document.getElementById("cust-type").value;
     const phone = document.getElementById("cust-phone").value.trim();
+    const landline = document.getElementById("cust-landline").value.trim();
     const license_plate = document.getElementById("cust-plate").value.trim().toUpperCase();
     const email = document.getElementById("customer-email").value.trim();
     const requestedCustomerCode = document.getElementById("cust-customer-code")?.value.trim() || "";
@@ -302,9 +304,9 @@ if (form) {
       phoneField?.focus();
       return;
     }
-    if (email && !/^[^\s@]+@gmail\.com$/.test(email)) {
+    if (email && !(is_company ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) : /^[^\s@]+@gmail\.com$/.test(email))) {
       const emailField = document.getElementById("customer-email");
-      window.APRUI?.flagField(emailField, "Email must end with @gmail.com.");
+      window.APRUI?.flagField(emailField, is_company ? "Enter a valid company email address." : "Email must end with @gmail.com.");
       emailField?.focus();
       return;
     }
@@ -328,7 +330,7 @@ if (form) {
     if (editingCustomerId) {
       const { error: customerError } = await supabase
         .from("customers")
-        .update({ full_name, phone, email: email || null, is_company, company_name: is_company ? company_name : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) })
+        .update({ full_name, phone, email: email || null, is_company, company_name: is_company ? company_name : null, supervisor_name: is_company ? full_name : null, company_email: is_company ? (email || null) : null, supervisor_personal_phone: is_company ? phone : null, landline: is_company ? (landline || null) : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) })
         .eq("id", editingCustomerId);
       if (customerError) {
         alert(`Couldn't update customer details: ${customerError.message}`);
@@ -436,7 +438,7 @@ if (form) {
 
     // No existing match — this really is a new customer.
     const { data: customer, error } = await supabase.from("customers").insert([
-      { full_name, phone, email: email || null, is_company, company_name: is_company ? company_name : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) }
+      { full_name, phone, email: email || null, is_company, company_name: is_company ? company_name : null, supervisor_name: is_company ? full_name : null, company_email: is_company ? (email || null) : null, supervisor_personal_phone: is_company ? phone : null, landline: is_company ? (landline || null) : null, ...(canManageCustomerCode && requestedCustomerCode ? { customer_code: requestedCustomerCode } : {}) }
     ]).select("id, customer_code").single();
 
     if (error) {
@@ -509,13 +511,18 @@ function syncCustomerAccountKind(kind = document.getElementById("cust-account-ki
   const companyInput = document.getElementById("cust-company-name");
   const nameLabel = document.getElementById("cust-name-label");
   const phoneLabel = document.getElementById("cust-phone-label");
+  const emailLabel = document.getElementById("customer-email-label");
+  const landlineWrap = document.getElementById("cust-landline-field");
   const typeSelect = document.getElementById("cust-type");
   if (legacyToggle) legacyToggle.checked = isCompany;
   if (typeSelect) typeSelect.value = kind;
   if (companyWrap) companyWrap.hidden = !isCompany;
   if (companyInput) companyInput.required = isCompany;
-  if (nameLabel) nameLabel.textContent = isCompany ? "Driver Name" : "Full Name";
-  if (phoneLabel) phoneLabel.textContent = isCompany ? "Driver Phone Number" : "Phone Number";
+  if (landlineWrap) landlineWrap.hidden = !isCompany;
+  if (nameLabel) nameLabel.textContent = isCompany ? "Supervisor Name" : "Full Name";
+  if (phoneLabel) phoneLabel.textContent = isCompany ? "Supervisor Personal Phone" : "Phone Number";
+  if (emailLabel) emailLabel.textContent = isCompany ? "Company Email" : "Email (optional)";
+  if (!isCompany) document.getElementById("cust-landline").value = "";
 }
 document.getElementById("cust-account-kind")?.addEventListener("change", event => {
   syncCustomerAccountKind(event.currentTarget.value);
