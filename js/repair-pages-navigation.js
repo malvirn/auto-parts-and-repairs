@@ -138,6 +138,7 @@ function addToolbarUtilities(container, isModuleToolbar) {
     searchButton.className = "dashboard-toolbar-button dashboard-search-toggle";
     searchButton.id = "dashboard-search-toggle";
     searchButton.setAttribute("aria-label", "Open search");
+    searchButton.dataset.searchBound = "true";
     searchButton.setAttribute("aria-expanded", "false");
     searchButton.innerHTML = '<i data-lucide="search" aria-hidden="true"></i>';
     const toolbar = container.closest(".dashboard-topbar");
@@ -145,7 +146,7 @@ function addToolbarUtilities(container, isModuleToolbar) {
     searchPanel.className = "dashboard-search-panel";
     searchPanel.id = "dashboard-search-panel";
     searchPanel.hidden = true;
-    searchPanel.innerHTML = '<input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">';
+    searchPanel.innerHTML = '<input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system"><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div>';
     const searchInput = searchPanel.querySelector("#hs-input");
     searchInput.addEventListener("keydown", event => {
       if (event.key === "Escape") {
@@ -527,10 +528,10 @@ function initializePageChrome() {
     header.className = "main__header dashboard-hero app-header";
     header.innerHTML = `
       <div class="hs dashboard-search-control" id="hs">
-        <button type="button" class="dashboard-search-toggle" id="dashboard-search-toggle" aria-label="Open search" aria-expanded="false" aria-controls="dashboard-search-panel">
+        <button type="button" class="dashboard-search-toggle" id="dashboard-search-toggle" aria-label="Open search" aria-expanded="false" aria-controls="hs-panel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
         </button>
-        <div class="hs-panel dashboard-search-panel" id="dashboard-search-panel" hidden>
+        <div class="hs-panel dashboard-search-panel" id="hs-panel" hidden>
           <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system">
           <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div>
         </div>
@@ -591,6 +592,7 @@ function initializeGeneratedHeader(header) {
   const search = header.querySelector("#hs-input");
   const searchToggle = header.querySelector("#dashboard-search-toggle");
   const searchPanel = header.querySelector("#dashboard-search-panel");
+  if (searchToggle) searchToggle.dataset.searchBound = "true";
   searchToggle?.addEventListener("click", () => {
     const open = searchPanel?.hidden !== false;
     if (searchPanel) searchPanel.hidden = !open;
