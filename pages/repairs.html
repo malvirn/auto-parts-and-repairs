@@ -935,7 +935,7 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
       <section class="close-job-context" aria-labelledby="close-job-context-title">
         <h3 id="close-job-context-title">Selected job card</h3>
         <div id="close-job-context"></div>
-        <p class="section-note" style="margin-top:14px">Unpriced typed-in parts do not prevent workshop closure. Close the completed job card as normal; Accounting will enter each part's unit price in the General Ledger before an invoice can be created.</p>
+        <p class="section-note" style="margin-top:14px">Every job-card item must have a price recorded in the Ledger before this job card can be closed.</p>
       </section>
       <form class="close-job-form" id="close-job-form">
         <p>Confirm the vehicle test details for this job card before closing it.</p>
@@ -1294,12 +1294,6 @@ return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mo
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Additional job costs</small><br>${curIncidentals.map(item=>`${esc(item.description||"Additional cost")} — ${money(Number(item.amount)||0)}`).join("<br>")||"—"}</div>
 <div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Cost summary</small><br>Labour: ${money(Number(j.labour_cost)||0)}<br>Parts: ${money(curParts.reduce((sum,part)=>sum+(part.awaiting_accounting_price?0:(Number(part.price_at_time)||0)*Number(part.quantity||0)),0))}<br>Additional costs: ${money(curIncidentals.reduce((sum,item)=>sum+(Number(item.amount)||0),0))}<br><b>Total: ${money(Number(j.total_cost)||curParts.reduce((sum,part)=>sum+(part.awaiting_accounting_price?0:(Number(part.price_at_time)||0)*Number(part.quantity||0)),0)+curIncidentals.reduce((sum,item)=>sum+(Number(item.amount)||0),0)+(Number(j.labour_cost)||0))}</b></div>
 ${j.tested_by||j.next_service_mileage!=null?`<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Vehicle test &amp; next checkup</small><br>Tested by: ${esc(j.tested_by||"—")}<br>Next checkup mileage: ${Number(j.next_service_mileage).toLocaleString()} km</div>`:""}
-<section class="inspection"><h2>Vehicle condition checklist — drop-off</h2>
-${damageSummaryHTML(j)}
-<div class="inspection-readings"><div>Fuel level at drop-off: <b>${esc(j.fuel_level_in||"Not recorded")}</b></div><div>Odometer at drop-off: <b>${j.odometer_in==null?"Not recorded":`${Number(j.odometer_in).toLocaleString()} km`}</b></div></div>
-<div style="margin-top:10px;font-size:11px"><b>Existing damage / additional notes:</b><div class="inspection-note" style="min-height:40px;white-space:pre-wrap">${esc(reportOf(j.id).notes||"")}</div></div>
-<div class="valuables-warning">IMPORTANT: Centric Auto Mobile is not accountable for any valuables left in the car. The vehicle owner is encouraged to remove and carry all personal belongings before leaving the car.</div>
-</section>
 <div class="sig"><div>Tested by: ${esc(j.tested_by||"")} · Date: ${dt(j.closed_at)}</div><div>Next checkup mileage: ${j.next_service_mileage==null?"—":`${Number(j.next_service_mileage).toLocaleString()} km`}</div></div>
 <div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
 async function confirmDraftChecklist(){
@@ -1473,7 +1467,14 @@ async function open(j){
  $("d-work-done").value=j.work_done||"";
  $("d-work-missing").value=j.work_missing||"";
  $("d-update-note").value="";
- $("close-job-card").hidden=isClosed(j);
+ const jobIsClosed=isClosed(j);
+ $("close-job-card").hidden=false;
+ $("close-job-card").disabled=jobIsClosed;
+ $("close-job-card").classList.toggle("job-card-closed-button",jobIsClosed);
+ $("close-job-card").innerHTML=jobIsClosed
+  ? '<i data-lucide="check-circle"></i> Job Card Closed'
+  : '<i data-lucide="circle-check"></i> Close job card';
+ window.lucide?.createIcons();
  $("mark-job-collected").hidden=!(Boolean(j.closed_at)&&!isTerminalStatus(j.status)&&!j.collected_at);
  $("job-parts-list").innerHTML=curParts.map(part=>`<div class="rc-row"><div><b>${esc(part.parts?.description||part.part_name)}</b><small>Qty ${esc(part.quantity)}${part.awaiting_accounting_price?" · IMPORTANT: awaiting Accounting price":""}</small></div><b>${part.awaiting_accounting_price?"PRICE REQUIRED":money(Number(part.price_at_time)*Number(part.quantity))}</b></div>`).join("")||'<p class="section-note">No parts have been recorded.</p>';
  show("doc");
@@ -1778,7 +1779,11 @@ async function saveDailyUpdate(status,extraFields={}){
  let creditMessage="";
  if(status===CLOSED_STATUS){
   $("close-job-modal").classList.add("hidden");
-  $("close-job-card").hidden=true;
+  $("close-job-card").hidden=false;
+  $("close-job-card").disabled=true;
+  $("close-job-card").classList.add("job-card-closed-button");
+  $("close-job-card").innerHTML='<i data-lucide="check-circle"></i> Job Card Closed';
+  window.lucide?.createIcons();
   $("mark-job-collected").hidden=false;
   $("d-status").value=saved.status;
   $("d-status").disabled=true;
@@ -1829,9 +1834,36 @@ $("close-job-form").onsubmit=async event=>{
  if(!testedBy||!nextMileage){$("close-job-message").textContent="Enter who tested the vehicle and its next checkup mileage.";return}
  const mileage=Number(nextMileage);
  if(!Number.isSafeInteger(mileage)||mileage<0){$("close-job-message").textContent="Enter a valid next checkup mileage.";return}
- // Pricing is intentionally not a workshop-close requirement. The Ledger owns pricing.
- const closedAt=new Date().toISOString();
- if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt,ready_at:closedAt}))return;
+ const confirmButton=$("confirm-close-job");
+ confirmButton.disabled=true;
+ const originalLabel=confirmButton.textContent;
+ confirmButton.textContent="Checking ledger prices…";
+ try{
+  const{data:ledgerItems,error:ledgerError}=await supabase.from("job_parts")
+   .select("part_name,price_at_time,awaiting_accounting_price")
+   .eq("job_id",cur.id);
+  if(ledgerError)throw new Error("Couldn't verify Ledger prices: "+ledgerError.message);
+  const unpriced=(ledgerItems||[]).filter(item=>
+   item.awaiting_accounting_price===true
+   ||item.price_at_time==null
+   ||!Number.isFinite(Number(item.price_at_time))
+   ||Number(item.price_at_time)<=0
+  );
+  if(unpriced.length){
+   const names=unpriced.map(item=>item.part_name||"Unnamed item").join(", ");
+   $("close-job-message").textContent="Job card cannot be closed. Add Ledger prices for: "+names+".";
+   toast("Price every job-card item in the Ledger before closing.");
+   return;
+  }
+  const closedAt=new Date().toISOString();
+  if(!await saveDailyUpdate(CLOSED_STATUS,{tested_by:testedBy,next_service_mileage:mileage,closed_at:closedAt,ready_at:closedAt}))return;
+ }catch(error){
+  console.error("Ledger price check failed:",error);
+  $("close-job-message").textContent=error.message||String(error);
+ }finally{
+  confirmButton.disabled=false;
+  confirmButton.textContent=originalLabel;
+ }
 };
 
 $("mark-job-collected").onclick=async()=>{
@@ -2370,6 +2402,12 @@ load().then(()=>{
 <script type="module" src="../js/phone-inputs.js"></script>
 <script defer src="../js/progressive-lists.js"></script>
 <script type="module" src="../js/credit-vouchers.js?v=credit-vouchers-module-check-4"></script>
+<style id="job-card-closed-button-style">
+body.dashboard-workshop #close-job-card.job-card-closed-button,
+body.dashboard-workshop #close-job-card:disabled{
+ opacity:.42!important;filter:grayscale(1)!important;cursor:not-allowed!important;box-shadow:none!important;
+}
+</style>
 </body>
 </html>
 
