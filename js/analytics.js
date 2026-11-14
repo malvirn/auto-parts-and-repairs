@@ -213,7 +213,7 @@ async function loadAnalytics() {
     supabase.from("technician_directory").select("id, full_name, department, is_active"),
     techniciansRequest,
     supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),
-    supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at"),
+    supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at").not("repair_job_id", "is", null),
     payrollRunsRequest,
   ]);
 
@@ -323,7 +323,7 @@ function renderFinancialCards(jobs, parts, receipts, payrollRuns) {
     <div class="stat-card"><div class="stat-card__label">Receipts Issued</div><div class="stat-card__value">${receipts.length}</div></div>
     <div class="stat-card"><div class="stat-card__label">Completed Repair Billings</div><div class="stat-card__value">$${billed.toFixed(2)}</div><small>Job totals for finished repairs.</small></div>
     <div class="stat-card"><div class="stat-card__label">Customer Payments Received</div><div class="stat-card__value">$${collected.toFixed(2)}</div><small>Total recorded receipt payments.</small></div>
-    <div class="stat-card"><div class="stat-card__label">Estimated Balance on Completed Repairs</div><div class="stat-card__value">$${outstandingAmount.toFixed(2)}</div><small>Completed repair billings less all recorded receipts.</small></div>
+    <div class="stat-card"><div class="stat-card__label">Estimated Balance on Completed Repairs</div><div class="stat-card__value">$${outstandingAmount.toFixed(2)}</div><small>Completed repair billings less repair-job receipts only.</small></div>
     <div class="stat-card"><div class="stat-card__label">Inventory Value (cost)</div><div class="stat-card__value">$${inventoryValue.toFixed(2)}</div></div>
     <div class="stat-card"><div class="stat-card__label">Estimated Gross Profit</div><div class="stat-card__value">$${grossProfit.toFixed(2)}</div><small>Completed repair billings less parts cost.</small></div>
     <div class="stat-card"><div class="stat-card__label">Payroll (this month)</div><div class="stat-card__value">$${payrollThisMonth.toFixed(2)}</div>${!thisMonthRun ? '<div style="font-size:.72rem;color:var(--text-muted);">Not yet processed</div>' : ""}</div>
