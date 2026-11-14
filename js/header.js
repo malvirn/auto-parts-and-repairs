@@ -66,6 +66,8 @@ function ensureSearch(header) {
   oldBar?.remove();
   const legacyInput = header.querySelector("#hs-input");
   if (legacyInput && !panel.contains(legacyInput)) panel.prepend(legacyInput);
+  header.append(panel);
+  header.querySelector("#hs")?.remove();
   return { searchToggle, panel };
 }
 
