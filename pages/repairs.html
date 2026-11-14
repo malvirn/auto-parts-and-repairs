@@ -2039,7 +2039,7 @@ async function openBuilder(fromChecklist=null){
  renderBuildParts();show("build");
  try{
   const [customersResult,techniciansResult]=await Promise.all([
-   supabase.from("customers").select("id,customer_code,full_name,phone,email,is_company,company_name").is("deleted_at",null).order("full_name").limit(1000),
+   supabase.from("customers").select("id,customer_code,full_name,phone,email,is_company,company_name,supervisor_name,company_email,supervisor_personal_phone,landline").is("deleted_at",null).order("full_name").limit(1000),
    supabase.from("technician_directory").select("id,full_name").limit(300),
    loadLabourTiers(),loadInventoryParts(),
   ]);
@@ -2245,9 +2245,10 @@ $("f-cust").onchange=async e=>{
  $("f-landline").value=customer?.landline||"";
  $("f-driver-name").value="";$("f-driver-phone").value="";
  $("f-customer-cid").textContent=customer?.customer_code?"Customer ID: "+customer.customer_code:"";
- $("f-customer-cid-copy").hidden=!customer?.customer_code;$("f-customer-cid-whatsapp").hidden=!customer?.customer_code;
- $("f-phone").value=customer?.phone||"";
- $("f-email").value=customer?.email||"";
+ $("f-customer-cid-copy").hidden=true;$("f-customer-cid-whatsapp").hidden=true;
+ $("f-phone").value=customer?.supervisor_personal_phone||customer?.phone||"";
+ $("f-email").value=customer?.company_email||customer?.email||"";
+ $("f-customer-cid-copy").hidden=true;$("f-customer-cid-whatsapp").hidden=true;
  if(!customer)return;
  const{data,error}=await supabase.from("vehicles").select("id,make,model,year,license_plate,body_type,chassis_number,engine_number").eq("customer_id",customer.id).order("license_plate");
  if(error){console.error("Couldn't load selected customer's vehicles:",error);toast(`Couldn't load this customer's vehicles: ${error.message}`);return}
