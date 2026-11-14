@@ -2458,3 +2458,14 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar > #hs-input:foc
     gap: 4px !important;
   }
 }
+
+
+/* A collapsed workshop sidebar is fully removed from hit-testing and accessibility. */
+body.dashboard-page.dashboard-workshop.sidebar-collapsed:not(.sidebar-open) .sidebar {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+body.dashboard-page.dashboard-workshop.sidebar-open .sidebar {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
