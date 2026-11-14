@@ -592,13 +592,15 @@ function initializeGeneratedHeader(header) {
   const search = header.querySelector("#hs-input");
   const searchToggle = header.querySelector("#dashboard-search-toggle");
   const searchPanel = header.querySelector("#dashboard-search-panel");
-  if (searchToggle) searchToggle.dataset.searchBound = "true";
-  searchToggle?.addEventListener("click", () => {
-    const open = searchPanel?.hidden !== false;
-    if (searchPanel) searchPanel.hidden = !open;
-    searchToggle.setAttribute("aria-expanded", String(open));
-    if (open) search?.focus({ preventScroll: true });
-  });
+  if (searchToggle && !searchToggle.dataset.searchBound) {
+    searchToggle.dataset.searchBound = "true";
+    searchToggle.addEventListener("click", () => {
+      const open = searchPanel?.hidden !== false;
+      if (searchPanel) searchPanel.hidden = !open;
+      searchToggle.setAttribute("aria-expanded", String(open));
+      if (open) search?.focus({ preventScroll: true });
+    });
+  }
   search?.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       if (searchPanel) searchPanel.hidden = true;
