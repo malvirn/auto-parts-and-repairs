@@ -39,7 +39,7 @@ function showSavedActions(customerId, vehicleId = null, customerCode = "") {
   const actions = document.getElementById("customer-saved-actions");
   const cidResult = document.getElementById("customer-cid-result");
   const cidPill = document.getElementById("customer-cid-pill");
-  if (actions) actions.hidden = false;
+  if (actions) actions.hidden = true;
   if (cidPill) cidPill.textContent = savedCustomerCode || "CID pending";
   if (cidResult) cidResult.hidden = !savedCustomerCode;
   if (window.lucide) lucide.createIcons();
