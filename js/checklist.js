@@ -58,16 +58,15 @@ function renderDamage(){
      renderDamage();
      renderInspectionSummary();
      persistInspectionLocally();
-     if(record?.id)saveAreaMark(key).catch(error=>console.warn("Inspection mark will retry:",error));
-     else scheduleChecklistAutosave();
+     scheduleChecklistAutosave();
     }
    });
   }
  });
 }
 function persistInspectionLocally(){
- try{localStorage.setItem("centric-inspection-draft-"+(record?.id||"new"),JSON.stringify({report,updated_at:new Date().toISOString()}));$("inspection-save-state").textContent="Saved on this device";}
- catch{$("inspection-save-state").textContent="Couldn't save this draft on this device";}
+ try{localStorage.setItem("centric-inspection-draft-"+(record?.id||"new"),JSON.stringify({report,updated_at:new Date().toISOString()}));$("inspection-save-state").textContent="Unsaved changes · kept on this device";}
+ catch{$("inspection-save-state").textContent="Couldn't keep this draft on this device";}
 }
 async function saveAreaMark(area){
  if(!record?.id||!editable)return;
@@ -151,22 +150,9 @@ async function ensureChecklistRecord(){
 }
 function scheduleChecklistAutosave(){
  if(!editable)return;
+ // Keep a recovery copy on this device. Supabase is updated only by Save draft
+ // or Save checklist, so names and mileage are committed together once.
  persistInspectionLocally();
- clearTimeout(checklistAutosaveTimer);
- checklistAutosaveTimer=setTimeout(async()=>{
-  try{
-   await ensureChecklistRecord();
-   const odometerText=$("odometer").value.trim(),odometer=odometerText?Number(odometerText):null;
-   if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))return;
-   const payload={customer_name:$("customer-name-input").value.trim()||null,vehicle_registration:$("vehicle-registration-input").value.trim().toUpperCase()||null,checked_by:$("checked-by-input").value.trim()||null,report:{...report,notes:$("checklist-notes").value||"",parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||"",photo_path:value.photo_path||null}]))},fuel_level_in:$("fuel").value||null,odometer_in:odometer,updated_at:new Date().toISOString()};
-   const{error}=await supabase.from("job_condition_reports").update(payload).eq("id",record.id);
-   if(error)throw error;
-   record={...record,...payload};
-   $("inspection-save-state").textContent="Saved automatically";
-   $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
-   $("checklist-number-display").hidden=false;syncInspectionStrip();
-  }catch(error){console.warn("Checklist autosave failed:",error);$("inspection-save-state").textContent="Autosave failed. Changes kept on this device.";}
- },650);
 }
 function startNewChecklist(prefillJob=null){
  record=null;clearTimeout(checklistAutosaveTimer);report={parts:{},notes:""};try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-new")||"null");if(local?.report)report=local.report;}catch{}selectedJob=prefillJob;
