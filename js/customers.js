@@ -412,12 +412,17 @@ if (form) {
         }
         savedVehicleIdForExisting = vehicleResult.vehicle?.id || null;
       }
-      if (is_company !== Boolean(existing.is_company) || (is_company && company_name !== existing.company_name)) {
-        const { error: companyError } = await supabase.from("customers")
-          .update({ is_company, company_name: is_company ? company_name : null })
-          .eq("id", existing.id);
-        if (companyError) throw new Error("Customer was found, but company details could not be saved: " + companyError.message);
-      }
+      const { error: companyError } = await supabase.from("customers")
+        .update({
+          full_name, phone, email: email || null, is_company,
+          company_name: is_company ? company_name : null,
+          supervisor_name: is_company ? full_name : null,
+          company_email: is_company ? (email || null) : null,
+          supervisor_personal_phone: is_company ? phone : null,
+          landline: is_company ? (landline || null) : null
+        })
+        .eq("id", existing.id);
+      if (companyError) throw new Error("Customer was found, but company contact details could not be saved: " + companyError.message);
       if (!existing.is_repeat_customer) {
         const { error: flagError } = await supabase
           .from("customers")
@@ -426,6 +431,7 @@ if (form) {
         if (flagError) console.error("Error marking repeat customer:", flagError);
       }
       form.reset();
+      syncCustomerAccountKind("individual");
       await loadCustomers();
       showCustomerMessage(existing.is_archived
         ? `${existing.full_name} was restored${license_plate ? ` and vehicle ${license_plate} was added` : ""}.`
@@ -456,6 +462,7 @@ if (form) {
     }
 
     form.reset();
+    syncCustomerAccountKind("individual");
     await loadCustomers();
     showCustomerMessage(vehicleSaveError
       ? `Customer ${full_name} has been added, but vehicle ${license_plate} could not be saved: ${vehicleSaveError.message}`
