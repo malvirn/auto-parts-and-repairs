@@ -430,10 +430,10 @@ async function loadZimRate(force = false) {
   const button = $("refresh-zimrate");
   if (button) button.disabled = true;
   try {
-    const response = await fetch("https://zimrate.com/api/rates/latest", { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error(`ZimRate returned HTTP ${response.status}`);
-    const records = await response.json();
-    if (!Array.isArray(records)) throw new Error("ZimRate returned an unexpected response.");
+    const { data, error } = await supabase.functions.invoke("zimrate-reference");
+    if (error) throw error;
+    const records = data?.rates;
+    if (!Array.isArray(records)) throw new Error(data?.error || "ZimRate returned an unexpected response.");
     const entry = { records, fetchedAt: Date.now() };
     try { localStorage.setItem(ZIMRATE_CACHE_KEY, JSON.stringify(entry)); } catch {}
     renderZimRate(records, entry.fetchedAt);
