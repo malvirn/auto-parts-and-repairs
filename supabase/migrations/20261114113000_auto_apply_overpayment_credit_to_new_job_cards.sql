@@ -133,11 +133,28 @@ begin
     from public.customer_overpayment_credit_notes note
     join public.customer_overpayment_credits credit
       on credit.id = note.overpayment_credit_id
+    join public.invoices original_invoice
+      on original_invoice.id = note.invoice_id
+    join public.customers customer
+      on customer.id = new.customer_id
     where note.customer_id = new.customer_id
       and coalesce(credit.available_amount,0) > 0.005
+      and lower(trim(coalesce(customer.full_name,''))) = lower(trim(coalesce(note.customer_name,'')))
+      and regexp_replace(coalesce(customer.phone,''),'[^0-9]','','g') =
+          regexp_replace(coalesce(note.customer_phone,''),'[^0-9]','','g')
+      and lower(trim(coalesce(customer.email,''))) =
+          lower(trim(coalesce(original_invoice.customer_email,'')))
     order by note.issued_at asc, note.note_number asc
   loop
-    perform public.link_overpayment_credit_to_job(note_record.id, new.id);
+    begin
+      perform public.link_overpayment_credit_to_job(note_record.id, new.id);
+    exception
+      when raise_exception then
+        if sqlerrm = 'This job card has no outstanding balance for this credit note' then
+          exit;
+        end if;
+        raise;
+    end;
   end loop;
 
   return new;
