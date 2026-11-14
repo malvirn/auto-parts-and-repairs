@@ -704,6 +704,7 @@ async function initialize(){
  const{data:access,error:accessError}=await supabase.rpc("current_access_level");
  if(accessError)throw new Error(`Couldn't verify staff access: ${accessError.message}`);
  if(Number(access)<1)throw new Error("You do not have permission to access workshop checklists.");
+ await loadChecklistCustomers().catch(error=>{console.error("Checklist customer lookup failed:",error);showMessage(error.message||String(error),true)});
  const jobId=params.get("job"),checklistId=params.get("id");
  if(checklistId){await showRecord(await loadRecord(checklistId));return}
  if(jobId){
