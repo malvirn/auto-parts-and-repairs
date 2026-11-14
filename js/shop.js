@@ -148,7 +148,7 @@ async function loadSuppliersIntoSelect() {
 }
 
 async function loadPartSuppliersMap() {
-  const { data, error } = await supabase.from("part_suppliers").select("part_id, is_preferred, suppliers(id, name)");
+  const { data, error } = await fetchAllShopRows(() => supabase.from("part_suppliers").select("part_id, is_preferred, suppliers(id, name)"));
   if (error) { console.error("Error loading part-supplier links:", error); return {}; }
   const map = {};
   (data || []).forEach(row => {
@@ -309,8 +309,8 @@ async function renderStockSummary(parts) {
 
 async function loadSalesAnalysis() {
   const [repairParts, orderItems] = await Promise.all([
-    supabase.from("job_parts").select("job_id, quantity, price_at_time, repair_jobs!inner(status)"),
-    supabase.from("sales_order_items").select("quantity, total_usd, sales_orders!inner(status, repair_job_id)"),
+    fetchAllShopRows(() => supabase.from("job_parts").select("job_id, quantity, price_at_time, repair_jobs!inner(status)")),
+    fetchAllShopRows(() => supabase.from("sales_order_items").select("quantity, total_usd, sales_orders!inner(status, repair_job_id)")),
   ]);
   const error = repairParts.error || orderItems.error;
   if (error) {
