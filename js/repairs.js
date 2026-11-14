@@ -1622,7 +1622,7 @@ async function ensureReceiptExists(jobId, amount) {
     if (error) throw new Error("Couldn't update the cumulative job receipt: " + error.message);
     return;
   }
-  const { error: insertError } = await supabase.from("receipts").insert([{ repair_job_id: jobId, amount }]);
+  const { error: insertError } = await supabase.rpc("create_validated_receipt", { p_repair_job_id: jobId, p_sales_order_id: null, p_amount: amount });
   if (insertError?.code === "23505") {
     const { data: duplicate, error: duplicateError } = await supabase.from("receipts")
       .select("id")
