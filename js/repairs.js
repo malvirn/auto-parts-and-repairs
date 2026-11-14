@@ -1883,6 +1883,82 @@ form?.addEventListener("submit", async (e) => {
     const { data: job, error: jobError } = await supabase.from("repair_jobs").insert([jobRow]).select("id, cro_number, job_number").single();
     if (jobError) throw new Error("Couldn't create the job: " + jobError.message);
     let quoteLinkWarning = "";
+
+    // Prepare every quoted/staged part and incidental before changing stock.
+    const skipped = [];
+    let quotedLabourCost = 0;
+    let quotedLabourHours = 0;
+    const quoteSundries = [];
+    const jobPartItems = [];
+
+    for (const item of quotedItems) {
+      const itemType = item.item_type || (item.part_id ? "part" : "other");
+      const quantity = Number(item.quantity);
+      const amount = Number(item.total_usd ?? quantity * Number(item.unit_price_usd));
+      if (itemType === "labour") {
+        if (!Number.isFinite(quantity) || quantity < 0 || !Number.isFinite(amount) || amount < 0) {
+          throw new Error("The quoted labour contains invalid quantities or amounts.");
+        }
+        quotedLabourHours += quantity;
+        quotedLabourCost += amount;
+      } else if (itemType === "sundry") {
+        if (!Number.isFinite(amount) || amount < 0) throw new Error("A quoted sundry has an invalid amount.");
+        quoteSundries.push({ description: item.part_name || "Quoted sundry", amount });
+      } else if (itemType === "part") {
+        if (!item.part_id || !Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(amount) || amount < 0) {
+          throw new Error("A quoted part has invalid details. Correct the quotation before creating this job card.");
+        }
+        jobPartItems.push({
+          part_id: item.part_id,
+          part_name: item.part_name || "Quoted part",
+          quantity,
+          price_at_time: Number(item.unit_price_usd || 0),
+          line_total: amount,
+        });
+      }
+    }
+
+    for (const part of partsToAdd) {
+      const quantity = Number(part.qty);
+      const price = Number(part.price);
+      if (!part.part_id || !Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(price) || price < 0) {
+        throw new Error("A staged part has invalid details. Check the parts list and try again.");
+      }
+      jobPartItems.push({
+        part_id: part.part_id,
+        part_name: part.name || "Workshop part",
+        quantity,
+        price_at_time: price,
+        line_total: price * quantity,
+      });
+    }
+
+    const incidentals = [
+      ...quoteSundries,
+      ...incidentalsToAdd.map(item => ({ description: item.description, amount: Number(item.amount) })),
+    ];
+    if (incidentals.some(item => !item.description?.trim() || !Number.isFinite(item.amount) || item.amount < 0)) {
+      throw new Error("One or more additional costs have invalid details.");
+    }
+
+    const labour_cost = labourValue + quotedLabourCost;
+    const labour_hours = (labourHours || 0) + quotedLabourHours;
+    const { error: intakeError } = await supabase.rpc("finalize_repair_job_intake", {
+      p_job_id: job.id,
+      p_parts: jobPartItems,
+      p_incidentals: incidentals,
+      p_labour_cost: labour_cost,
+      p_labour_hours: labour_hours || null,
+    });
+
+    if (intakeError) {
+      const { error: cleanupError } = await supabase.from("repair_jobs").delete().eq("id", job.id);
+      const cleanupNote = cleanupError
+        ? " The incomplete job card could not be removed automatically. Contact an administrator before retrying."
+        : " No stock was deducted and the incomplete job card was removed.";
+      throw new Error("Job card intake was not completed: " + intakeError.message + cleanupNote);
+    }
+
     if (quoteId) {
       const { error: quoteUpdateError } = await supabase.from("quotations")
         .update({ repair_job_id: job.id })
@@ -1891,83 +1967,6 @@ form?.addEventListener("submit", async (e) => {
         quoteLinkWarning = ` The job was created, but the quotation link could not be updated: ${quoteUpdateError.message}`;
         console.error("Could not link the created job to its quotation:", quoteUpdateError);
       }
-    }
-
-    // ---- 4. Parts (stock is taken here) and incidentals ----
-    const skipped = [];
-    let partsCost = 0;
-    let quotedLabourCost = 0;
-    let quotedLabourHours = 0;
-    const quoteSundries = [];
-    for (const item of quotedItems) {
-      const itemType = item.item_type || (item.part_id ? "part" : "other");
-      const quantity = Number(item.quantity);
-      const amount = Number(item.total_usd ?? quantity * Number(item.unit_price_usd));
-      if (itemType === "labour") {
-        quotedLabourHours += quantity;
-        quotedLabourCost += amount;
-      } else if (itemType === "sundry") {
-        quoteSundries.push({ description: item.part_name || "Quoted sundry", amount });
-      } else if (itemType === "part") {
-        if (!item.part_id || !Number.isInteger(quantity) || quantity <= 0) {
-          skipped.push(item.part_name || "invalid quoted part");
-          continue;
-        }
-        const { data: consumed, error: stockError } = await supabase.rpc("consume_part_stock", {
-          p_part_id: item.part_id,
-          p_quantity: quantity,
-        });
-        if (stockError || !consumed) {
-          skipped.push(item.part_name);
-          continue;
-        }
-        const { error: insertError } = await supabase.from("job_parts").insert([{
-          job_id: job.id,
-          part_id: item.part_id,
-          part_name: item.part_name,
-          quantity,
-          price_at_time: item.unit_price_usd,
-        }]);
-        if (insertError) {
-          await supabase.rpc("restore_part_stock", { p_part_id: item.part_id, p_quantity: quantity });
-          skipped.push(item.part_name);
-          continue;
-        }
-        partsCost += amount;
-      }
-    }
-    for (const p of partsToAdd) {
-      const { data: ok, error } = await supabase.rpc("consume_part_stock", { p_part_id: p.part_id, p_quantity: p.qty });
-      if (error || !ok) { skipped.push(p.name); continue; }
-      const { error: insErr } = await supabase.from("job_parts").insert([{ job_id: job.id, part_id: p.part_id, part_name: p.name, quantity: p.qty, price_at_time: p.price }]);
-      if (insErr) {
-        await supabase.rpc("restore_part_stock", { p_part_id: p.part_id, p_quantity: p.qty });
-        skipped.push(p.name);
-        continue;
-      }
-      partsCost += p.price * p.qty;
-    }
-    const incidentals = [
-      ...quoteSundries,
-      ...incidentalsToAdd.map(item => ({ description: item.description, amount: item.amount })),
-    ];
-    let incCost = 0;
-    if (incidentals.length) {
-      const { error } = await supabase.from("job_incidentals").insert(incidentals.map(item => ({ job_id: job.id, ...item })));
-      if (error) skipped.push("incidentals");
-      else incCost = incidentals.reduce((sum, item) => sum + item.amount, 0);
-    }
-    const labour_cost = labourValue + quotedLabourCost;
-    const labour_hours = (labourHours || 0) + quotedLabourHours;
-    const { error: totalsError } = await supabase.from("repair_jobs").update({
-      labour_cost,
-      labour_hours: labour_hours || null,
-      parts_cost: partsCost,
-      incidentals_cost: incCost,
-    }).eq("id", job.id);
-    if (totalsError) {
-      quoteLinkWarning += ` The job was created, but its quoted totals could not be saved: ${totalsError.message}`;
-      console.error("Could not save transferred quotation totals:", totalsError);
     }
 
     let depositNote = "";
