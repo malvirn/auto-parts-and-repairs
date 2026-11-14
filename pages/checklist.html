@@ -238,7 +238,9 @@ body.dashboard-page .main{min-width:0}
           <button id="back-to-list" class="btn" type="button">Back to checklists</button>
         </div>
         <div class="fields">
+          <label>Registered customer<select id="checklist-customer-select"><option value="">Select a registered customer</option></select></label>
           <label>Customer name<input id="customer-name-input" maxlength="160" required autocomplete="name"></label>
+          <label>Registered vehicle<select id="checklist-vehicle-select"><option value="">Select a customer vehicle (optional)</option></select></label>
           <label>Vehicle registration<input id="vehicle-registration-input" maxlength="40" required style="text-transform:uppercase"></label>
           <label>Checklist completed by<input id="checked-by-input" maxlength="120" required autocomplete="name"></label>
           <label>Fuel level at drop-off<select id="fuel" required><option value="">Select fuel level</option><option value="Empty">Empty</option><option value="1/4">1/4 tank</option><option value="1/2">1/2 tank</option><option value="3/4">3/4 tank</option><option value="Full">Full</option></select></label>
