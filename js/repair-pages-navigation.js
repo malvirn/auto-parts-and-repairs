@@ -267,7 +267,7 @@ async function normalizeDashboardSidebar(sidebar) {
     const sourceHeader = indexDocument.querySelector("body.dashboard-workshop > .dashboard-topbar");
     const sourceToggle = indexDocument.querySelector("#dashboard-sidebar-toggle");
     const sourceBackdrop = indexDocument.querySelector(".dashboard-sidebar-backdrop");
-    if (!source || !sourceHeader || !sourceToggle || !sourceBackdrop) {
+    if (!source || !sourceToggle || !sourceBackdrop) {
       throw new Error("The Index shared layout template is incomplete");
     }
 
@@ -317,12 +317,12 @@ async function normalizeDashboardSidebar(sidebar) {
     sidebar.replaceWith(canonical);
 
     // Replace module-specific chrome with the exact Index page elements.
-    const header = sourceHeader.cloneNode(true);
+    const header = sourceHeader?.cloneNode(true) || null;
     const existingHeader = document.querySelector("body.dashboard-workshop > .dashboard-topbar");
     // Preserve the live notification button before replacing the module header.
     const existingBell = document.getElementById("global-notif-bell");
-    if (existingHeader) existingHeader.replaceWith(header);
-    else document.body.insertBefore(header, document.body.firstChild);
+    if (header && existingHeader) existingHeader.replaceWith(header);
+    else if (header) document.body.insertBefore(header, document.body.firstChild);
     const headerActions = header.querySelector(".dashboard-topbar-actions");
     if (existingBell && headerActions) headerActions.prepend(existingBell);
     addToolbarUtilities(headerActions, true);
