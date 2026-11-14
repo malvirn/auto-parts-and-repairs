@@ -33,7 +33,7 @@ if (header) {
 function updateHeader() {
   const now = new Date();
   if (clock) clock.textContent = now.toLocaleTimeString("en-GB", { hour12: false });
-  if (date) date.textContent = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  if (date) date.textContent = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function updateConnection() {
