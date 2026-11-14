@@ -439,6 +439,10 @@
           <label id="cust-phone-label" for="cust-phone">Phone Number</label>
           <input type="tel" id="cust-phone" placeholder="77 123 4567" title="Choose a country code and enter a valid phone number" required />
         </div>
+        <div class="field" id="cust-landline-field" hidden>
+          <label for="cust-landline">Landline</label>
+          <input type="tel" id="cust-landline" placeholder="Company landline">
+        </div>
         <div class="field">
           <label for="cust-plate">Vehicle Plate Number <span class="customer-optional">(optional)</span></label>
           <input type="text" id="cust-plate" placeholder="e.g. ABC 1234" />
@@ -450,8 +454,8 @@
         <div class="field"><label for="cust-chassis">Chassis Number</label><input id="cust-chassis" /></div>
         <div class="field"><label for="cust-engine">Engine Number</label><input id="cust-engine" /></div>
         <div class="field">
-          <label for="customer-email">Email <span class="customer-optional">(optional)</span></label>
-          <input type="email" id="customer-email" placeholder="customer@gmail.com" pattern="^[^\s@]+@gmail\.com$" title="Use a Gmail address ending in @gmail.com" />
+          <label id="customer-email-label" for="customer-email">Email <span class="customer-optional">(optional)</span></label>
+          <input type="email" id="customer-email" placeholder="customer@gmail.com" />
         </div>
         <div class="customer-form__actions">
           <button type="submit" id="customer-submit-button" class="btn btn--primary"><i data-lucide="user-plus"></i> Add Customer</button>
