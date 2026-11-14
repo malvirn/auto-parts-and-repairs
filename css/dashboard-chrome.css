@@ -631,7 +631,7 @@ body.dashboard-page.dashboard-workshop .dashboard-topbar #global-notif-bell{
 /* Network bars must use the connection-state palette, never the theme accent blue. */
 body.dashboard-page .dashboard-topbar .dashboard-connection-status{
   color:#22c55e!important;
-  background:var(--toolbar-button-bg,#202a38)!important;
+  background:var(--toolbar-button-bg)!important;
 }
 body.dashboard-page .dashboard-topbar .dashboard-connection-status .dashboard-connection-bars i{
   background:#22c55e!important;
