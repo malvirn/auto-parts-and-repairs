@@ -490,18 +490,14 @@ function initializePageChrome() {
     const header = document.createElement("header");
     header.className = "main__header dashboard-hero app-header";
     header.innerHTML = `
-      <div class="hdr-brand dashboard-hero__brand">
-        <img src="../assets/logo.png" alt="Centric Auto Mobile" class="dashboard-hero__logo">
-        <span class="hdr-divider" aria-hidden="true"></span>
-        <div><p class="hdr-name">Centric <em>Auto Mobile</em></p><p class="hdr-sub">Auto Parts &amp; Repairs Management System</p></div>
-      </div>
-      <div class="hs" id="hs">
-        <div class="hs-bar" role="search">
+      <div class="hs dashboard-search-control" id="hs">
+        <button type="button" class="dashboard-search-toggle" id="dashboard-search-toggle" aria-label="Open search" aria-expanded="false" aria-controls="dashboard-search-panel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel">
-          <span class="hs-kbd" aria-hidden="true">/</span>
+        </button>
+        <div class="hs-panel dashboard-search-panel" id="dashboard-search-panel" hidden>
+          <input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system">
+          <div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div>
         </div>
-        <div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div>
       </div>
       <div class="hdr-right">
         <div class="hdr-time"><p class="page-intro" id="dashboard-date">Loading…</p><div class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--:--</div><div class="hdr-live" id="hdr-live" data-state="online"><i aria-hidden="true"></i><span>Live</span></div></div>
@@ -557,14 +553,26 @@ function initializeGeneratedHeader(header) {
   window.addEventListener("offline", updateConnection);
 
   const search = header.querySelector("#hs-input");
-  if (!document.querySelector('script[src*="/js/dashboard-header.js"]')) {
-    search.addEventListener("keydown", event => {
-      if (event.key !== "Enter" || !search.value.trim()) return;
-      const dashboard = new URL("../index.html", window.location.href);
-      dashboard.searchParams.set("search", search.value.trim());
-      window.location.href = dashboard.href;
-    });
-  }
+  const searchToggle = header.querySelector("#dashboard-search-toggle");
+  const searchPanel = header.querySelector("#dashboard-search-panel");
+  searchToggle?.addEventListener("click", () => {
+    const open = searchPanel?.hidden !== false;
+    if (searchPanel) searchPanel.hidden = !open;
+    searchToggle.setAttribute("aria-expanded", String(open));
+    if (open) search?.focus({ preventScroll: true });
+  });
+  search?.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      if (searchPanel) searchPanel.hidden = true;
+      searchToggle?.setAttribute("aria-expanded", "false");
+      searchToggle?.focus({ preventScroll: true });
+      return;
+    }
+    if (event.key !== "Enter" || !search.value.trim()) return;
+    const dashboard = new URL("../index.html", window.location.href);
+    dashboard.searchParams.set("search", search.value.trim());
+    window.location.href = dashboard.href;
+  });
 
   if (!document.querySelector('script[src*="/js/dashboard-header.js"]')) {
     const button = header.querySelector("#hdr-menu-btn");
