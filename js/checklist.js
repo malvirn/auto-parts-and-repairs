@@ -91,9 +91,7 @@ async function saveAreaMark(area){
  if(reportError)throw reportError;
  $("inspection-save-state").textContent="Saved";
 }
-window.addEventListener("online",()=>{
- if(record?.id&&editable){Object.keys(report.parts||{}).forEach(key=>saveAreaMark(key).catch(error=>console.warn("Inspection retry failed:",error)));}
-});
+// Checklist edits are committed only by the explicit Save draft / Save checklist actions.
 function renderInspectionSummary(){
  const parts=CONDITION_GROUPS.flatMap(([,items])=>items.map(([key,name])=>({key,name})));
  const marked=parts.filter(p=>report.parts?.[p.key]?.dmg?.length);
