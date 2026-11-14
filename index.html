@@ -699,7 +699,7 @@ body.dashboard-page.dashboard-workshop{background:#f3f6fb!important;color:#17233
 body.dashboard-page.dashboard-workshop .main{margin:0 0 0 244px!important;padding:88px clamp(18px,3vw,42px) 42px!important;background:#f3f6fb!important}
 body.dashboard-page.dashboard-workshop .app-header{display:none!important}
 body.dashboard-page.dashboard-workshop .sidebar{position:fixed!important;z-index:1300!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;display:flex!important;flex-direction:column;width:244px!important;height:100dvh!important;padding:14px 12px!important;overflow-x:hidden!important;overflow-y:auto!important;visibility:visible!important;transform:none!important;border:0!important;border-right:1px solid #e4e9f0!important;background:#fff!important;box-shadow:8px 0 28px rgba(24,42,75,.045)!important;gap:2px}
-body.dashboard-page.dashboard-workshop .sidebar__brand{display:flex;justify-content:center;align-items:center;min-height:88px;margin:0 0 10px!important;padding:8px 0 12px;border-bottom:1px solid #edf0f4}
+body.dashboard-page.dashboard-workshop .sidebar__brand{display:none!important}
 body.dashboard-page.dashboard-workshop .sidebar .brand-logo{width:164px;max-height:72px;object-fit:contain}
 body.dashboard-page.dashboard-workshop .sidebar .nav-link{min-height:37px;padding:8px 10px;border-radius:9px;color:#263750!important;font-size:11px;font-weight:600}
 body.dashboard-page.dashboard-workshop .sidebar .nav-link>svg{width:17px;height:17px;color:#526783}
@@ -727,7 +727,7 @@ body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{position:fixed!
 body.dashboard-page.dashboard-workshop .dashboard-sidebar-backdrop{display:none}
 body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar{width:74px!important}
 body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{margin-left:74px!important}
-body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar__brand .brand-logo{width:48px}
+body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar__brand{display:none!important}
 body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-link,
 body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grp{font-size:0;justify-content:center}
 body.dashboard-page.dashboard-workshop.sidebar-collapsed .sidebar .nav-grpwrap,
@@ -941,7 +941,7 @@ body.dashboard-page.dashboard-workshop > .app-shell > .main{
     <!-- Module links are reused by the shared More menu after role filtering. -->
     <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar__brand"><img class="brand-logo" src="assets/logo.png" alt="Centric Auto Mobile"></div>
+
       
       <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
       <div class="nav-group open" data-group="workshop">
@@ -1470,16 +1470,7 @@ body.dashboard-page.dashboard-workshop > .app-shell > .main{
   <script>
   (() => {
     const sidebar = document.getElementById("sidebar");
-    const removeAccessCard = () => {
-      if (!sidebar) return;
-      [...sidebar.children].forEach(node => {
-        if (node.classList.contains("sidebar__brand")) return;
-        const content = (node.innerText || node.textContent || "").toUpperCase();
-        if (content.includes("ACCESS LEVEL") || (content.includes("SUPER ADMIN") && content.includes("ONLINE"))) node.remove();
-      });
-    };
-    removeAccessCard();
-    if (sidebar) new MutationObserver(removeAccessCard).observe(sidebar,{childList:true,subtree:true});
+    // Keep the account and access-level panel visible in the shared sidebar.
     const applyButtonRoles = root => {
       root.querySelectorAll?.("a,button").forEach(el => {
         const label=(el.innerText||el.getAttribute("aria-label")||"").trim().toLowerCase();
