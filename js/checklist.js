@@ -56,7 +56,7 @@ function resolveChecklistCustomer(){
  const vehicle=customer?.vehicles?.find(item=>String(item.license_plate||"").trim().toUpperCase()===plate)||null;
  return {customer,vehicle};
 }
-$("checklist-customer-select")?.addEventListener("change",()=>selectChecklistCustomer($("checklist-customer-select").value));
+$("checklist-customer-select")?.addEventListener("change",()=>{selectChecklistCustomer($("checklist-customer-select").value);syncInspectionStrip();});
 $("checklist-vehicle-select")?.addEventListener("change",()=>{
  const customer=checklistCustomers.find(item=>item.id===$("checklist-customer-select").value);
  const vehicle=customer?.vehicles?.find(item=>item.id===$("checklist-vehicle-select").value);
@@ -151,7 +151,7 @@ const normalizeMatch=value=>String(value||"").trim().toLocaleUpperCase();
 function setEditable(value){
  editable=value&&!record?.voided_at&&!record?.confirmed_at;
  ["customer-name-input","vehicle-registration-input","checked-by-input"].forEach(id=>$(id).readOnly=!editable);
- ["customer-name-input","vehicle-registration-input","checked-by-input","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
+ ["customer-name-input","vehicle-registration-input","checked-by-input","checklist-customer-select","checklist-vehicle-select","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
  $("fuel").disabled=!editable;
  $("odometer").disabled=!editable;
  $("save-checklist").hidden=!editable;
