@@ -195,6 +195,18 @@ async function searchChecklistAccount(value) {
   }
 }
 
+async function fetchAllAnalyticsRows(queryFactory, pageSize = 1000) {
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await queryFactory().range(offset, offset + pageSize - 1);
+    if (error) return { data: null, error };
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return { data: rows, error: null };
+}
+
 async function loadAnalytics() {
   // technician_directory (Phase 0 security) is the safe, no-salary view —
   // used for names and counts that every staff member should still see.
@@ -207,13 +219,13 @@ async function loadAnalytics() {
     ? supabase.from("payroll_runs").select("id, year, month, pay_date, total_amount, processed_at").order("year", { ascending: false }).order("month", { ascending: false }).limit(6)
     : Promise.resolve({ data: [], error: null });
   const [jobsRes, jobPartsRes, customersRes, techDirRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes] = await Promise.all([
-    supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id`),
-    supabase.from("job_parts").select("part_name, quantity, price_at_time"),
-    supabase.from("customers").select("id").is("deleted_at", null),
-    supabase.from("technician_directory").select("id, full_name, department, is_active"),
+    fetchAllAnalyticsRows(() => supabase.from("repair_jobs").select(`id, status, total_cost, parts_cost, labour_cost, created_at, completed_at, technician_id`)),
+    fetchAllAnalyticsRows(() => supabase.from("job_parts").select("part_name, quantity, price_at_time")),
+    fetchAllAnalyticsRows(() => supabase.from("customers").select("id").is("deleted_at", null)),
+    fetchAllAnalyticsRows(() => supabase.from("technician_directory").select("id, full_name, department, is_active")),
     techniciansRequest,
-    supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price"),
-    supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at").not("repair_job_id", "is", null),
+    fetchAllAnalyticsRows(() => supabase.from("parts").select("id, quantity_in_stock, cost_price, selling_price")),
+    fetchAllAnalyticsRows(() => supabase.from("receipts").select("id, amount, issued_at, repair_job_id, voided_at").not("repair_job_id", "is", null)),
     payrollRunsRequest,
   ]);
 
