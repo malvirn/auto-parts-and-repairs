@@ -817,13 +817,8 @@ body.dashboard-page :is(.btn--danger, .btn-danger, [data-variant="destructive"])
 }
 
 :root[data-theme="light"] body.dashboard-page {
-  --ink: #e2e4e7;
-  --panel: #e8eaed;
   --surface: #e8eaed;
   --surface-2: #dfe2e6;
-  --line: rgba(69, 78, 88, .2);
-  --text: #17191c;
-  --muted: #17191c;
   color: #17191c !important;
   background: #e2e4e7 !important;
 }
@@ -1976,20 +1971,14 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
 :root[data-theme] body.dashboard-page,
 :root[data-theme] body.system-page {
   --bg: var(--apr-bg);
-  --ink: var(--apr-bg);
   --mh-bg: var(--apr-bg);
-  --panel: var(--apr-surface);
   --surface: var(--apr-surface);
   --surface-2: var(--apr-surface-2);
   --surface-alt: var(--apr-surface-2);
   --border: var(--apr-border);
-  --line: var(--apr-border);
   --mh-bd: var(--apr-border);
-  --text: var(--apr-text);
   --mh-tx: var(--apr-text);
-  --text-muted: var(--apr-muted);
   --text-dim: var(--apr-muted);
-  --muted: var(--apr-muted);
   --accent: var(--apr-accent);
   background: var(--apr-bg) !important;
   color: var(--apr-text);

@@ -35,3 +35,13 @@
   --input-text: #f8faf9;
   --placeholder: #b3beb8;
 }
+
+/* Backward-compatible aliases for existing components. */
+:root {
+  --muted: var(--text-muted);
+  --ink: var(--text);
+  --panel: var(--surface);
+  --card: var(--surface);
+  --input: var(--input-bg);
+  --toolbar-button-bg: var(--surface-2);
+}

@@ -26,10 +26,8 @@
   <style id="quotations-design">
     html{background:#0b1012;color-scheme:dark}
     body.dashboard-page{
-      --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773;
-      --ink:#0b1012; --panel:#10181a; --line:rgba(31,196,103,.34);
-      --text:#eef3ef; --muted:#9fb0a6; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
-      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210; --text-muted:var(--muted);
+      --green:#12a150; --green-bright:#1fc467; --orange:#ff7a12; --grey:#6f7773; --font:"Inter","Segoe UI",system-ui,sans-serif; --ease:cubic-bezier(.2,.78,.2,1);
+      --bg:var(--ink); --surface:var(--panel); --surface-2:#0c1210;
       --accent:var(--green-bright); --accent-dim:var(--green); --danger:#ff6b6b;
       --border:var(--line); --surface-alt:#0c1210; --success:var(--green-bright);
       margin:0; min-height:100svh; background:var(--ink); color:var(--text); font-family:var(--font);
@@ -205,7 +203,7 @@
     @media print{.apr-bottom-nav,.tabbar,.app-header,.site-foot{display:none!important}}
 
     /* ===== light theme ===== */
-    :root[data-theme="light"] body.dashboard-page{--ink:#f1f2f3;--panel:#fff;--line:#d9dcdf;--text:#111;--muted:#44484c;--surface-alt:#f5f6f7;background:#f1f2f3;color:#111}
+    :root[data-theme="light"] body.dashboard-page{--surface-alt:#f5f6f7;background:#f1f2f3;color:#111}
     :root[data-theme="light"] body.dashboard-page .app-header,:root[data-theme="light"] body.dashboard-page .site-foot{background:#fff!important;color:#111!important}
     :root[data-theme="light"] body.dashboard-page .hdr-name,:root[data-theme="light"] body.dashboard-page .hdr-sub,:root[data-theme="light"] body.dashboard-page .hdr-clock,:root[data-theme="light"] body.dashboard-page .hdr-hello,:root[data-theme="light"] body.dashboard-page #dashboard-date{color:#111}
     :root[data-theme="light"] body.dashboard-page #dashboard-greeting{color:#111}
