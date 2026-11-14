@@ -509,96 +509,21 @@ async function processPayrollOnce(technicians, year, month, payDate) {
     return;
   }
 
-  // Pull in any unpaid commissions so they go out with the same payroll
-  // run, the way most shops actually pay commission — not as a separate
-  // cash-out every time a job or sale closes.
-  const { data: unpaidCommissions } = await supabase.from("commissions").select("id, employee_id, commission_amount").eq("status", "unpaid");
-  const commissionByEmployee = {};
-  (unpaidCommissions || []).forEach(c => {
-    commissionByEmployee[c.employee_id] = (commissionByEmployee[c.employee_id] || 0) + Number(c.commission_amount);
+  const { data: run, error: payrollError } = await supabase.rpc("process_payroll_transaction", {
+    p_year: year,
+    p_month: month,
+    p_pay_date: payDate.toISOString().slice(0, 10),
   });
-
-  const payments = active.map(t => {
-    const gross = Number(t.salary || 0);
-    const deductions = Number(t.deductions || 0);
-    const commission = commissionByEmployee[t.id] || 0;
-    return {
-      employee_id: t.id, employee_name: t.full_name, department: t.department,
-      gross_salary: gross, deductions, commission_amount: commission,
-      net_pay: gross + commission - deductions,
-    };
-  });
-  if (payments.some(p => p.deductions < 0 || p.deductions > p.gross_salary + p.commission_amount)) {
-    alert("Payroll cannot be processed: deductions must not exceed gross salary plus commission.");
-    return;
-  }
-  const totalNet = payments.reduce((sum, p) => sum + p.net_pay, 0);
-  const totalGrossPlusCommission = payments.reduce((sum, p) => sum + p.gross_salary + p.commission_amount, 0);
-  const totalDeductions = payments.reduce((sum, p) => sum + p.deductions, 0);
-
-  // ---- Post to the ledger: Debit Wages Expense (5100) for the full cost,
-  //      Credit Bank (1010) for what's actually paid out, Credit Tax
-  //      Payable (2200) for anything withheld rather than paid — it's
-  //      owed elsewhere (tax authority), not vanished. ----
-  const { data: accounts } = await supabase.from("accounts").select("id, code");
-  const wagesExpense = accounts?.find(a => a.code === "5100");
-  const bankAccount = accounts?.find(a => a.code === "1010");
-  const taxPayable = accounts?.find(a => a.code === "2200");
-
-  if (!wagesExpense || !bankAccount || !taxPayable) {
-    alert("Couldn't find the Wages Expense (5100), Bank (1010), or Tax Payable (2200) accounts — check your Chart of Accounts in the Ledger.");
+  if (payrollError) {
+    alert("Payroll was not processed: " + payrollError.message);
     return;
   }
 
-  const { data: entry, error: entryError } = await supabase.from("journal_entries").insert([{
-    entry_date: payDate.toISOString().slice(0, 10),
-    description: `Payroll for ${new Date(year, month - 1, 1).toLocaleString("default", { month: "long", year: "numeric" })}`,
-    source_type: "payroll",
-  }]).select().single();
-  if (entryError) { alert("Failed to post payroll to the ledger: " + entryError.message); return; }
-
-  const lines = [{ account_id: wagesExpense.id, debit: totalGrossPlusCommission, credit: 0 }];
-  if (totalDeductions > 0) lines.push({ account_id: taxPayable.id, debit: 0, credit: totalDeductions });
-  lines.push({ account_id: bankAccount.id, debit: 0, credit: totalNet });
-
-  const { error: linesError } = await supabase.from("journal_lines").insert(lines.map(l => ({ ...l, journal_entry_id: entry.id })));
-  if (linesError) {
-    await supabase.from("journal_entries").delete().eq("id", entry.id);
-    alert("Failed to post payroll to the ledger: " + linesError.message);
-    return;
-  }
-
-  const { data: run, error } = await supabase
-    .from("payroll_runs")
-    .insert([{ year, month, pay_date: payDate.toISOString().slice(0, 10), total_amount: totalNet, journal_entry_id: entry.id }])
-    .select().single();
-  if (error) {
-    if (error.code === "23505") {
-      const { error: cleanupError } = await supabase.from("journal_entries").delete().eq("id", entry.id);
-      if (cleanupError) {
-        console.error("Could not remove duplicate payroll journal entry:", cleanupError);
-        alert(`Payroll was already processed in another session, but this duplicate ledger entry could not be removed: ${cleanupError.message}. Contact an administrator.`);
-      } else {
-        alert("Payroll was processed in another session. The duplicate ledger entry was removed; refresh Analytics before continuing.");
-      }
-      return;
-    }
-    alert("Ledger entry posted, but payroll run record failed to save: " + error.message);
-    return;
-  }
-
-  const { error: paymentsError } = await supabase
-    .from("payroll_payments")
-    .insert(payments.map(p => ({ ...p, payroll_run_id: run.id })));
-  if (paymentsError) { alert("Payroll run was created, but individual payment records failed to save: " + paymentsError.message); return; }
-
-  // Mark the commissions that just got paid out as paid, tied to this run.
-  const paidCommissionIds = (unpaidCommissions || []).map(c => c.id);
-  if (paidCommissionIds.length) {
-    await supabase.from("commissions").update({ status: "paid", payroll_run_id: run.id }).in("id", paidCommissionIds);
-  }
-
-  window.aprToast?.("Payroll processed", "success", `${totalNet.toFixed(2)} net across ${payments.length} employee(s), including ${(unpaidCommissions || []).length} commission payment(s). Posted to the Ledger.`);
+  window.aprToast?.(
+    "Payroll processed",
+    "success",
+    `${Number(run?.total_amount || 0).toFixed(2)} net across ${Number(run?.employee_count || active.length)} employee(s). Ledger and commission records were saved together.`
+  );
   loadAnalytics();
 }
 
