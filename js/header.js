@@ -8,27 +8,6 @@ const icon = (name) => {
   return node;
 };
 
-function ensureHeaderBrand(header) {
-  let brand = header.querySelector(":scope > .dashboard-header-brand");
-  if (!brand) {
-    brand = document.createElement("a");
-    brand.className = "dashboard-header-brand";
-    brand.href = new URL("../index.html", import.meta.url).href;
-    brand.setAttribute("aria-label", "Centric Auto Mobile home");
-    const existingLogo = document.querySelector(".sidebar__brand .brand-logo");
-    const logo = existingLogo || document.createElement("img");
-    logo.src = new URL("../assets/logo.png", import.meta.url).href;
-    logo.alt = "Centric Auto Mobile";
-    logo.className = "dashboard-header-logo";
-    existingLogo?.closest(".sidebar__brand")?.remove();
-    const copy = document.createElement("span");
-    copy.className = "dashboard-header-brand-copy";
-    copy.innerHTML = '<strong>Centric Auto Mobile</strong><small>Auto Parts & Repairs</small>';
-    brand.append(logo, copy);
-  }
-  header.prepend(brand);
-}
-
 function ensureMenuButton(header) {
   let toggle = document.getElementById("dashboard-sidebar-toggle");
   if (!toggle) {
@@ -45,15 +24,8 @@ function ensureMenuButton(header) {
 }
 
 function ensureSearch(header) {
-  let search = document.getElementById("hs");
-  if (!search) {
-    search = document.createElement("div");
-    search.className = "hs dashboard-header-search";
-    search.id = "hs";
-    search.innerHTML = '<div class="hs-bar" role="search"><i data-lucide="search" aria-hidden="true"></i><input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system" aria-controls="hs-panel"><span class="hs-kbd" aria-hidden="true">/</span></div><div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div></div>';
-  }
-  if (!header.contains(search)) header.append(search);
   let searchToggle = header.querySelector(".dashboard-search-toggle");
+  let panel = header.querySelector("#dashboard-search-panel, #hs-panel");
   if (!searchToggle) {
     searchToggle = document.createElement("button");
     searchToggle.type = "button";
@@ -61,14 +33,40 @@ function ensureSearch(header) {
     searchToggle.setAttribute("aria-label", "Open search");
     searchToggle.setAttribute("aria-expanded", "false");
     searchToggle.innerHTML = '<i data-lucide="search" aria-hidden="true"></i>';
-    header.insertBefore(searchToggle, search);
+  }
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.className = "dashboard-search-panel";
+    panel.id = "dashboard-search-panel";
+    panel.hidden = true;
+    panel.innerHTML = '<input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search the whole system"><div class="hs-chips" id="hs-chips" role="group" aria-label="Search filters"></div><div id="hs-results" aria-live="polite"></div>';
+    header.append(panel);
+  }
+  if (!searchToggle.dataset.searchBound) {
+    searchToggle.dataset.searchBound = "true";
     searchToggle.addEventListener("click", () => {
-      const expanded = header.classList.toggle("search-expanded");
-      searchToggle.setAttribute("aria-expanded", String(expanded));
-      if (expanded) document.getElementById("hs-input")?.focus({ preventScroll: true });
-      else searchToggle.focus({ preventScroll: true });
+      const open = panel.hidden;
+      panel.hidden = !open;
+      searchToggle.setAttribute("aria-expanded", String(open));
+      if (open) panel.querySelector("#hs-input")?.focus({ preventScroll: true });
+    });
+    panel.querySelector("#hs-input")?.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        panel.hidden = true;
+        searchToggle.setAttribute("aria-expanded", "false");
+        searchToggle.focus({ preventScroll: true });
+      } else if (event.key === "Enter" && event.currentTarget.value.trim()) {
+        const target = new URL("../index.html", import.meta.url);
+        target.searchParams.set("search", event.currentTarget.value.trim());
+        window.location.href = target.href;
+      }
     });
   }
+  const oldBar = header.querySelector(".hs-bar");
+  oldBar?.remove();
+  const legacyInput = header.querySelector("#hs-input");
+  if (legacyInput && !panel.contains(legacyInput)) panel.prepend(legacyInput);
+  return { searchToggle, panel };
 }
 
 function ensureActions(header) {
@@ -113,15 +111,15 @@ export function initializeSharedHeader() {
   header.setAttribute("role", "toolbar");
   header.setAttribute("aria-label", "Dashboard header");
   ensureMenuButton(header);
-  ensureHeaderBrand(header);
+  header.querySelectorAll(".hdr-brand, .dashboard-header-brand, .dashboard-header-logo").forEach(node => node.remove());
+  document.querySelectorAll("body.dashboard-page .sidebar__brand").forEach(node => node.remove());
   ensureDateRow(header);
   ensureSearch(header);
   ensureActions(header);
   const menu = header.querySelector("#dashboard-sidebar-toggle");
-  const brand = header.querySelector(".dashboard-header-brand");
   const date = header.querySelector(".dashboard-header-date");
   const searchToggle = header.querySelector(".dashboard-search-toggle");
-  const search = header.querySelector("#hs");
+  const searchPanel = header.querySelector("#dashboard-search-panel, #hs-panel");
   const actions = header.querySelector(".dashboard-topbar-actions");
   if (actions) {
     [actions.querySelector(".dashboard-search-toggle"), actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-analytics-link"),
@@ -129,6 +127,6 @@ export function initializeSharedHeader() {
       actions.querySelector(".dashboard-new-job"), actions.querySelector(".dashboard-login-level")]
       .filter(Boolean).forEach(node => actions.append(node));
   }
-  [menu, brand, date, search, actions].filter(Boolean).forEach(node => header.append(node));
+  [menu, date, actions, searchPanel].filter(Boolean).forEach(node => header.append(node));
   window.lucide?.createIcons();
 }
