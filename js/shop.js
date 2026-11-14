@@ -970,7 +970,7 @@ function addQuickSaleLine() {
     renderQuickSaleProductResults(row);
   });
   search.addEventListener("focus", () => {
-    if (search.value.trim()) renderQuickSaleProductResults(row);
+    renderQuickSaleProductResults(row);
   });
   results.addEventListener("click", event => {
     const addButton = event.target.closest("[data-quick-sale-part-id]");
@@ -1091,16 +1091,19 @@ function renderQuickSaleProductResults(row) {
   const query = normalizeProductSearch(search.value);
   const category = document.getElementById("quick-sale-category")?.value || "";
   results.replaceChildren();
-  if (!query) {
-    results.hidden = true;
-    return;
-  }
-  const rankedMatches = quickSaleParts
-    .filter(part => !category || String(part.category || "").trim() === category)
-    .map(part => ({ part, score: productSearchScore(query, part) }))
-    .filter(match => Number.isFinite(match.score))
-    .sort((left, right) => left.score - right.score || left.part.name.localeCompare(right.part.name))
-    .slice(0, 30);
+  const categoryParts = quickSaleParts
+    .filter(part => !category || String(part.category || "").trim() === category);
+  const rankedMatches = query
+    ? categoryParts
+        .map(part => ({ part, score: productSearchScore(query, part) }))
+        .filter(match => Number.isFinite(match.score))
+        .sort((left, right) => left.score - right.score || left.part.name.localeCompare(right.part.name))
+        .slice(0, 3)
+    : categoryParts
+        .filter(part => Number(part.quantity_in_stock) > 0)
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .slice(0, 3)
+        .map(part => ({ part, score: 0 }));
   const hasExactMatch = rankedMatches.some(match => match.score === 0);
   const matches = rankedMatches.map(match => match.part);
   if (!matches.length) {
