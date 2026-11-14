@@ -237,7 +237,8 @@ body.dashboard-page .main{min-width:0}
     <div class="modal">
       <h3>Record Payment</h3>
       <p id="payment-modal-summary" style="color:var(--text-muted); font-size:.88rem;"></p>
-      <div class="field"><label>Amount ($)</label><input type="number" id="payment-amount" step="0.01" min="0.01" /></div>
+      <div class="field"><label for="payment-currency">Payment currency</label><select id="payment-currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></div>
+      <div class="field"><label>Amount received</label><input type="number" id="payment-amount" step="0.01" min="0.01" /></div>
       <div class="field"><label>Payment Date</label><input type="date" id="payment-date" /></div>
       <div class="field"><label>Paid From</label><select id="payment-credit-account"></select></div>
       <div style="display:flex; gap:8px; margin-top:10px;">
