@@ -1173,3 +1173,76 @@ body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-sidebar-togg
 
 body.dashboard-page:not(.dashboard-home) .sidebar:not([data-dashboard-canonical="true"]){visibility:hidden!important}
 
+/* Shared header cleanup and phone layout. Keep this block last so it wins over
+   older page-specific header rules. */
+body.dashboard-page .hdr-brand .dashboard-hero__logo,
+body.dashboard-page .sidebar__brand,
+body.dashboard-page .sidebar .brand-logo{
+  display:none!important;
+}
+body.dashboard-page .hdr-brand{gap:0!important;min-width:0!important}
+body.dashboard-page .hdr-divider{display:none!important}
+body.dashboard-page .app-header{
+  position:sticky!important;top:0!important;z-index:1200!important;
+  width:100%!important;max-width:100%!important;
+}
+body.dashboard-page .dashboard-topbar{
+  box-sizing:border-box!important;min-width:0!important;max-width:100vw!important;
+}
+body.dashboard-page .dashboard-topbar .hs{
+  min-width:0!important;flex:1 1 140px!important;width:auto!important;
+}
+body.dashboard-page .dashboard-topbar .hs-bar{min-width:0!important;width:100%!important}
+body.dashboard-page .dashboard-topbar #hs-input{min-width:0!important;width:100%!important}
+body.dashboard-page .dashboard-topbar .dashboard-topbar-actions{
+  display:flex!important;flex:0 0 auto!important;flex-wrap:nowrap!important;
+  align-items:center!important;gap:7px!important;min-width:0!important;
+}
+@media(max-width:1024px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{
+    position:fixed!important;top:8px!important;right:10px!important;left:58px!important;
+    display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+    gap:8px!important;height:48px!important;min-height:48px!important;
+    padding:4px!important;border:1px solid rgba(174,224,202,.14)!important;
+    border-radius:12px!important;background:rgba(8,20,22,.96)!important;
+    box-shadow:0 8px 24px rgba(0,0,0,.28)!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-header-date{display:none!important}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs{
+    display:block!important;flex:1 1 auto!important;width:auto!important;
+    min-width:0!important;max-width:none!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{
+    height:38px!important;min-width:0!important;padding-inline:10px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions{
+    display:flex!important;flex:0 0 auto!important;flex-wrap:nowrap!important;
+    gap:5px!important;min-width:0!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions>*{
+    flex:0 0 36px!important;width:36px!important;min-width:36px!important;
+    height:36px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-sidebar-toggle{
+    top:14px!important;left:12px!important;width:36px!important;height:36px!important;
+  }
+  body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{
+    left:min(286px,calc(86vw - 24px))!important;
+  }
+  body.dashboard-page.dashboard-workshop .main,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .main{
+    margin-left:0!important;padding-top:78px!important;
+  }
+}
+@media(max-width:380px){
+  body.dashboard-page.dashboard-workshop .dashboard-topbar,
+  body.dashboard-page.dashboard-workshop.sidebar-collapsed .dashboard-topbar{
+    left:54px!important;right:7px!important;gap:5px!important;padding:3px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions{gap:3px!important}
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions>*{
+    flex-basis:32px!important;width:32px!important;min-width:32px!important;height:32px!important;
+  }
+  body.dashboard-page.dashboard-workshop .dashboard-topbar .hs-bar{height:36px!important;padding-inline:8px!important}
+}
