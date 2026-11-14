@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { usdEquivalent } from "./payment-currency.js";
 
 const tbody = document.getElementById("customer-accounts-body");
 const message = document.getElementById("customer-accounts-message");
@@ -143,7 +144,7 @@ function render() {
       ${customer.entries.map(entry => {
         const paying = selectedPaymentEntry?.source_id === entry.source_id;
         return `<div class="customer-transaction"><span>${escapeHtml(entry.reference)} · ${escapeHtml(dateLabel(entry.entry_date))} · ${escapeHtml(entry.source_type)}</span><span>${money(entry.discount_amount)}</span><span>${escapeHtml(entry.payment_method || "—")}</span><span>${money(entry.total_amount)}</span><span>${money(entry.amount_paid)}</span><span class="${entry.balance_due > 0.01 ? "is-outstanding" : ""}">${money(entry.balance_due)}${entry.can_record_payment && entry.balance_due > 0.01 ? paying ? "" : ` <button type="button" class="btn" data-action="pay-order" data-customer-id="${escapeHtml(customer.id)}" data-source-id="${escapeHtml(entry.source_id)}">Record payment</button>` : ""}</span></div>
-        ${paying ? `<form class="customer-inline-payment" data-inline-payment><strong>Record payment · ${escapeHtml(entry.reference)}</strong><label>Amount<input name="amount" type="number" min="0.01" max="${Number(entry.balance_due).toFixed(2)}" step="0.01" value="${Number(entry.balance_due).toFixed(2)}" required></label><label>Date<input name="date" type="date" value="${dateInZimbabwe()}" required></label><label>Method<select name="method"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option><option value="EcoCash">EcoCash</option><option value="Other">Other</option></select></label><p class="form-message" data-inline-payment-message></p><div class="customer-inline-payment-actions"><button type="button" class="btn" data-action="cancel-inline-payment">Cancel</button><button type="submit" class="btn btn--primary">Save payment</button></div></form>` : ""}`;
+        ${paying ? `<form class="customer-inline-payment" data-inline-payment><strong>Record payment · ${escapeHtml(entry.reference)}</strong><label>Currency<select name="currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></label><label>Amount received<input name="amount" type="number" min="0.01" step="0.01" value="${Number(entry.balance_due).toFixed(2)}" required></label><label>Date<input name="date" type="date" value="${dateInZimbabwe()}" required></label><label>Method<select name="method"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option><option value="EcoCash">EcoCash</option></select></label><p class="form-message" data-inline-payment-message></p><div class="customer-inline-payment-actions"><button type="button" class="btn" data-action="cancel-inline-payment">Cancel</button><button type="submit" class="btn btn--primary">Save payment</button></div></form>` : ""}`;
       }).join("")}
       ${overpaymentCredits.filter(credit => credit.customer_id === customer.id && (Number(credit.available_amount) > 0.005 || linkedOverpaymentNote(credit))).map(credit => `<div class="customer-transaction"><span>Invoice overpayment · ${escapeHtml(credit.invoices?.invoice_number ? `INV-${credit.invoices.invoice_number}` : "Invoice")} · ${escapeHtml(dateLabel(credit.payment_date))}${linkedOverpaymentNote(credit) ? ` · CN-${String(linkedOverpaymentNote(credit).note_number).padStart(5,"0")}` : ""}</span><span>—</span><span>Customer credit</span><span>${money(credit.amount)}</span><span>—</span><span>Amount carried forward ${money(credit.available_amount)} ${linkedOverpaymentNote(credit) ? `<span class="customer-credit-note-issued">CN-${String(linkedOverpaymentNote(credit).note_number).padStart(5,"0")} issued</span>` : `<button type="button" class="btn btn--primary" data-action="issue-overpayment-credit" data-customer-id="${escapeHtml(customer.id)}" data-overpayment-credit-id="${escapeHtml(credit.id)}">Issue credit note</button>`}</span></div>`).join("")}
       </div></td></tr>` : "";
@@ -248,9 +249,10 @@ tbody.addEventListener("submit", async event => {
   const amount = Number(form.elements.amount.value);
   const paymentDate = form.elements.date.value;
   const paymentMethod = form.elements.method.value;
+  const currency = form.elements.currency.value || "USD";
   const formMessage = form.querySelector("[data-inline-payment-message]");
-  if (!Number.isFinite(amount) || amount <= 0 || amount > Number(selectedPaymentEntry.balance_due) + 0.005) {
-    formMessage.textContent = `Enter an amount greater than zero and no more than ${money(selectedPaymentEntry.balance_due)}.`;
+  if (!Number.isFinite(amount) || amount <= 0) {
+    formMessage.textContent = "Enter an amount greater than zero.";
     return;
   }
   if (!paymentDate) { formMessage.textContent = "Choose the date the payment was received."; return; }
@@ -258,18 +260,23 @@ tbody.addEventListener("submit", async event => {
   submit.disabled = true;
   formMessage.textContent = "Recording payment…";
   try {
-    const { data: journalEntryId, error } = await supabase.rpc("record_quick_sale_payment", {
+    const converted = await usdEquivalent(amount, currency);
+    if (converted.usdAmount > Number(selectedPaymentEntry.balance_due) + 0.005) throw new Error("The USD equivalent exceeds the remaining customer balance.");
+    const normalizedMethod = paymentMethod === "Bank Transfer" ? "Bank" : paymentMethod;
+    const { data: journalEntryId, error } = await supabase.rpc("record_quick_sale_payment_multicurrency", {
       p_sales_order_id: selectedPaymentEntry.source_id,
-      p_amount: amount,
-      p_payment_method: paymentMethod,
+      p_tender_amount: amount,
+      p_payment_method: normalizedMethod,
       p_payment_date: paymentDate,
+      p_currency_code: currency,
+      p_exchange_rate_to_usd: converted.rate,
     });
     if (error) throw new Error(error.message);
     if (!journalEntryId) throw new Error("The payment was recorded, but the ledger did not return a receipt reference. Verify the payment before retrying.");
     const receiptUrl = new URL("receipts.html", window.location.href);
     receiptUrl.searchParams.set("tab", "receipts");
     receiptUrl.searchParams.set("quickSalePayment", journalEntryId);
-    receiptUrl.searchParams.set("paymentMethod", paymentMethod);
+    receiptUrl.searchParams.set("paymentMethod", `${paymentMethod} · ${currency} ${amount.toFixed(2)}`);
     receiptUrl.searchParams.set("from", "ledger");
     window.location.assign(receiptUrl.href);
   } catch (error) {

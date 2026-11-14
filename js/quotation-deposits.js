@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { usdEquivalent } from "./payment-currency.js";
 
 const quoteTable = document.getElementById("quotations-table");
 
@@ -18,7 +19,8 @@ function openDepositDialog(button) {
     <form class="modal invoice-payment-modal" role="dialog" aria-modal="true" aria-labelledby="quotation-deposit-title">
       <h2 id="quotation-deposit-title">Record quotation deposit</h2>
       <p class="section-note" data-quote-summary></p>
-      <div class="field"><label for="quotation-deposit-amount">Amount received ($)</label><input id="quotation-deposit-amount" type="number" min="0.01" step="0.01" required></div>
+      <div class="field"><label for="quotation-deposit-currency">Payment currency</label><select id="quotation-deposit-currency"><option value="USD">USD</option><option value="ZiG">ZiG</option></select></div>
+      <div class="field"><label for="quotation-deposit-amount">Amount received</label><input id="quotation-deposit-amount" type="number" min="0.01" step="0.01" required></div>
       <div class="field"><label for="quotation-deposit-method">Payment method</label><select id="quotation-deposit-method" required><option value="Cash">Cash</option><option value="EcoCash">EcoCash</option><option value="Bank">Bank transfer</option><option value="Swipe">Card / POS</option></select></div>
       <div class="field"><label for="quotation-deposit-date">Payment date</label><input id="quotation-deposit-date" type="date" required></div>
       <div class="field"><label for="quotation-deposit-reference">Payment reference (optional)</label><input id="quotation-deposit-reference" maxlength="120" autocomplete="off"></div>
@@ -75,13 +77,18 @@ function openDepositDialog(button) {
         }
       }
 
-      const { data, error } = await supabase.rpc("record_quotation_deposit", {
+      const currency = form.querySelector("#quotation-deposit-currency").value || "USD";
+      const converted = await usdEquivalent(value, currency);
+      const method = form.querySelector("#quotation-deposit-method").value;
+      const { data, error } = await supabase.rpc("record_quotation_deposit_multicurrency", {
         p_quotation_id: button.dataset.id,
-        p_amount: value,
-        p_payment_method: form.querySelector("#quotation-deposit-method").value,
+        p_tender_amount: value,
+        p_payment_method: method,
         p_payment_date: date.value,
         p_reference: form.querySelector("#quotation-deposit-reference").value.trim() || null,
         p_idempotency_key: idempotencyKey,
+        p_currency_code: currency,
+        p_exchange_rate_to_usd: converted.rate,
       });
       if (error) throw error;
 

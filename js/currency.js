@@ -54,7 +54,8 @@ export async function getRateDetails({ forceRefresh = false } = {}) {
         .from("business_settings")
         .select("usd_to_zig_bank_rate, exchange_rate_updated_at")
         .eq("id", 1)
-        .single();
+        .limit(1)
+        .maybeSingle();
       if (result.error) throw result.error;
       data = result.data;
     } catch (error) {

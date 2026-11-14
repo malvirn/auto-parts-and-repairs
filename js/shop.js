@@ -1047,11 +1047,16 @@ function renderQuickSaleCatalog() {
     .filter(match => Number.isFinite(match.score))
     .sort((left, right) => left.score - right.score || left.part.name.localeCompare(right.part.name))
     .map(match => match.part);
-  if (!matches.length) {
-    container.innerHTML = '<p class="quick-sale-empty">No parts match that search.</p>';
+  const visibleMatches = query
+    ? matches.slice(0, 3)
+    : matches.filter(part => Number(part.quantity_in_stock || 0) > 0).slice(0, 3);
+  if (!visibleMatches.length) {
+    container.innerHTML = query
+      ? '<p class="quick-sale-empty">No parts match that search.</p>'
+      : '<p class="quick-sale-empty">No products currently in stock in this category.</p>';
     return;
   }
-  container.innerHTML = matches.map(part => {
+  container.innerHTML = visibleMatches.map(part => {
     const stock = Number(part.quantity_in_stock || 0);
     const inCart = quickSaleCart.get(part.id) || 0;
     const stockClass = stock < 1 ? "out" : stock <= 3 ? "low" : "";
