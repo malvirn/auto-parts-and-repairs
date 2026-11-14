@@ -229,8 +229,10 @@ async function loadAnalytics() {
     payrollRunsRequest,
   ]);
 
-  if (jobsRes.error || jobPartsRes.error) {
-    console.error("Analytics load error:", jobsRes.error || jobPartsRes.error);
+  const loadResults = [jobsRes, jobPartsRes, customersRes, techDirRes, techniciansRes, partsRes, receiptsRes, payrollRunsRes];
+  const failedLoad = loadResults.find(result => result.error);
+  if (failedLoad) {
+    console.error("Analytics load error:", failedLoad.error);
     return;
   }
 
