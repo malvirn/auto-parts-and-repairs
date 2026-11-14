@@ -104,7 +104,7 @@ async function load() {
   if (!hasLoadedCreditNotes) list.innerHTML = '<div class="customer-credit-empty">Loading credit notes…</div>';
   const [receiptsResult, balancesResult, movementsResult, targetsResult, authResult] = await Promise.all([
     supabase.from("quotation_deposit_receipts")
-      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, payment_method, payment_date, reference, created_at, journal_entry_id, voucher_code, voucher_status, expires_at, holder_note, quotations(quotation_number, created_at, repair_job_id), customers(email,customer_code,is_company,company_name)")
+      .select("id, credit_note_number, quotation_id, customer_id, customer_name, customer_phone, amount, tender_amount, currency_code, exchange_rate_to_usd, payment_account_id, payment_method, payment_date, reference, created_at, journal_entry_id, voucher_code, voucher_status, expires_at, holder_note, quotations(quotation_number, created_at, repair_job_id), customers(email,customer_code,is_company,company_name)")
       .order("created_at", { ascending: false }),
     supabase.from("customer_credit_balances").select("deposit_receipt_id, available_amount"),
     supabase.from("customer_credit_movements")
@@ -303,7 +303,7 @@ async function printCreditNote(note) {
     </tbody></table>
     ${qrData ? `<h2>Portable voucher</h2><div style="text-align:center;padding:12px"><img src="${qrData}" alt="Voucher QR code" style="width:130px;height:130px"><div style="font:800 18px ui-monospace,monospace;letter-spacing:.1em">${escapeHtml(note.voucher_code)}</div></div>` : ""}
     <h2>Credit summary</h2><table class="totals"><tbody>
-      <tr><td>Original deposit</td><td>${money(note.amount)}</td></tr>
+      <tr><td>Original deposit</td><td>${note.tender_amount != null ? `${escapeHtml(note.currency_code || "USD")} ${Number(note.tender_amount).toFixed(2)} (${money(note.amount)} USD equivalent)` : money(note.amount)}</td></tr>
       <tr><td>Applied</td><td>${money(status.applied)}</td></tr>
       <tr><td>Refunded</td><td>${money(status.refunded)}</td></tr>
       <tr><td>Available credit</td><td>${money(note.available_amount)}</td></tr>
@@ -431,7 +431,7 @@ function render() {
             <div class="credit-detail-row"><span>Customer</span><strong>${escapeHtml(noteName)}<small>${note.customers?.customer_code ? "Customer ID: " + escapeHtml(note.customers.customer_code) + " · " : ""}${escapeHtml(note.customer_phone || "No phone recorded")}</small></strong></div>
             <div class="credit-detail-row"><span>Source</span><strong>Quotation #${escapeHtml(quoteNumber)}</strong></div>
             <div class="credit-detail-row"><span>Date and payment method</span><strong>${dateLabel(note.payment_date)} · ${escapeHtml(note.payment_method || "—")}</strong></div>
-            <div class="credit-detail-row"><span>Original deposit</span><strong>${money(note.amount)}</strong></div>
+            <div class="credit-detail-row"><span>Original deposit</span><strong>${note.tender_amount != null ? `${escapeHtml(note.currency_code || "USD")} ${Number(note.tender_amount).toFixed(2)} · ${money(note.amount)} USD equivalent` : money(note.amount)}</strong></div>
             <div class="credit-detail-row"><span>Portable voucher</span><strong>${escapeHtml(note.voucher_code || "Not issued")}<small>Expires ${dateLabel(note.expires_at)}</small></strong></div>
             <div class="credit-detail-row"><span>Applied</span><strong>${money(status.applied)}</strong></div>
             <div class="credit-detail-row"><span>Refunded</span><strong>${money(status.refunded)}</strong></div>
