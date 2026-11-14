@@ -525,9 +525,13 @@ async function processPayrollOnce(technicians, year, month, payDate) {
     return {
       employee_id: t.id, employee_name: t.full_name, department: t.department,
       gross_salary: gross, deductions, commission_amount: commission,
-      net_pay: Math.max(0, gross + commission - deductions),
+      net_pay: gross + commission - deductions,
     };
   });
+  if (payments.some(p => p.deductions < 0 || p.deductions > p.gross_salary + p.commission_amount)) {
+    alert("Payroll cannot be processed: deductions must not exceed gross salary plus commission.");
+    return;
+  }
   const totalNet = payments.reduce((sum, p) => sum + p.net_pay, 0);
   const totalGrossPlusCommission = payments.reduce((sum, p) => sum + p.gross_salary + p.commission_amount, 0);
   const totalDeductions = payments.reduce((sum, p) => sum + p.deductions, 0);
