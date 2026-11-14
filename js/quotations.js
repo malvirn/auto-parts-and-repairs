@@ -224,7 +224,7 @@ async function loadBaseData() {
   jobSelect.innerHTML = `<option value="">No job card — walk-in customer</option>` + jobs.map(job => {
     const vehicle = vehicleLabel(job.vehicles);
     const plate = job.vehicles?.license_plate ? ` (${job.vehicles.license_plate})` : "";
-    return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
+    return `<option value="${job.id}">${escapeHtml(jobRef(job))} — ${escapeHtml(job.customers?.company_name || job.customers?.supervisor_name || job.customers?.full_name || "Customer")} — ${escapeHtml((vehicle || "Vehicle") + plate)}</option>`;
   }).join("");
   partSelect.innerHTML = parts.map(part => `<option value="${part.id}">${escapeHtml(part.name)} — ${money(part.selling_price)} · ${part.quantity_in_stock} in shop</option>`).join("");
   customerSelect.innerHTML = `<option value="">Select a customer or enter a walk-in below…</option>` + customers.map(customer => `<option value="${customer.id}">${escapeHtml([customer.customer_code,customer.company_name||customer.full_name,customer.phone].filter(Boolean).join(" · "))}</option>`).join("");
