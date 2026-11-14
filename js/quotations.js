@@ -198,13 +198,25 @@ function resolveCustomer(record) {
   };
 }
 
+async function fetchAllQuotationRows(queryFactory, pageSize = 1000) {
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await queryFactory().range(offset, offset + pageSize - 1);
+    if (error) return { data: null, error };
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return { data: rows, error: null };
+}
+
 async function loadBaseData() {
   exchangeRate = await getRate();
   const [jobsResult, partsResult, customersResult, tiersResult] = await Promise.all([
-    supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type, customer_code, is_company, company_name), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false }),
-    supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name"),
-    supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name"),
-    supabase.from("vehicle_rate_tiers").select("*").order("sort_order"),
+    fetchAllQuotationRows(() => supabase.from("repair_jobs").select("id, job_number, cro_number, customer_id, vehicle_id, status, fault_reported, diagnosis, labour_cost, labour_hours, labour_mode, fuel_level_in, odometer_in, driver_name, driver_phone, customers(full_name, phone, email, customer_type, customer_code, is_company, company_name), vehicles(id, make, model, year, license_plate, chassis_number, engine_number, body_type), vehicle_rate_tiers(tier_name, hourly_rate)").order("created_at", { ascending: false })),
+    fetchAllQuotationRows(() => supabase.from("parts").select("id, name, cost_price, selling_price, quantity_in_stock").order("name")),
+    fetchAllQuotationRows(() => supabase.from("customers").select("id, customer_code, full_name, phone, email, customer_type, is_company, company_name, supervisor_name, company_email, supervisor_personal_phone, landline, vehicles(id, license_plate, make, model, year, body_type, chassis_number, engine_number, odometer_out)").is("deleted_at", null).order("full_name")),
+    fetchAllQuotationRows(() => supabase.from("vehicle_rate_tiers").select("*").order("sort_order")),
   ]);
   if (jobsResult.error) console.error("Quotation jobs load failed:", jobsResult.error);
   if (partsResult.error) console.error("Quotation parts load failed:", partsResult.error);
