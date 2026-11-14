@@ -1,25 +1,18 @@
 :root {
-  --bg: #0b1012;
-  --surface: #111b18;
-  --surface-2: #0c1210;
-  --surface-alt: #0c1210;
-  --border: rgba(31, 196, 103, .24);
-  --text-dim: #9fb0a6;
-  --accent: #1fc467;
-  --accent-hover: #12a150;
-  --accent-dim: rgba(31, 196, 103, .28);
-  --primary: #12a150;
-  --success: #4cc38a;
-  --warning: #f2c14e;
-  --danger: #ff6b6b;
+  --surface-alt: var(--surface-2);
+  --border: var(--line);
+  --text-dim: var(--text-muted);
+  --accent-hover: var(--ok);
+  --accent-dim: color-mix(in srgb, var(--accent) 28%, transparent);
+  --primary: var(--ok);
+  --success: var(--ok);
+  --warning: var(--warn);
   --radius: 14px;
-  color-scheme: dark;
 }
 
 html {
   min-height: 100%;
-  background: #0b1012;
-  color-scheme: dark;
+  background: var(--bg);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -28,14 +21,10 @@ body.dashboard-page {
   margin: 0;
   padding: 0 0 calc(76px + env(safe-area-inset-bottom, 0px));
   overflow-x: clip;
-  background: #0b1012;
-  color: #eef3ef;
+  background: transparent !important;
+  color: var(--text);
   font: 400 15px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-}
-
-body.dashboard-page::after {
-  display: none !important;
 }
 
 body.dashboard-page .app-shell {

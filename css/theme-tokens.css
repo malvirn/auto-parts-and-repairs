@@ -79,3 +79,29 @@ a { color: var(--text-link); }
     background-color: #ffffff;
   }
 }
+
+
+/* Phase 4: theme-aware application surfaces and navigation. */
+:root { --cam-surface: var(--surface); }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.hs-chips,.filter-more-grid,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal,.settings-welcome,.sjump a,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog) { background-color:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important; }
+body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal,.modal-content,.modal-card,.modal-dialog) :is(h1,h2,h3,h4,h5,p,span,label,small,strong,a,button,li) { color:var(--text)!important; }
+body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(.muted,small,.section-note) { color:var(--text-muted)!important; }
+body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(input,select,textarea) { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
+body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(input,textarea)::placeholder { color:var(--placeholder)!important;opacity:1; }
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) { background-color:color-mix(in srgb,var(--surface) 94%,transparent)!important;color:var(--text)!important;border-color:var(--line)!important; }
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) :is(h1,h2,h3,h4,h5,p,span,label,small,strong,td,th) { color:var(--text)!important; }
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) :is(.muted,.section-note,small) { color:var(--text-muted)!important; }
+body.dashboard-page .app-header,body.dashboard-page .dashboard-topbar { background:color-mix(in srgb,var(--surface) 96%,transparent)!important;color:var(--text)!important;border-color:var(--line)!important; }
+body.dashboard-page .sidebar .nav-link,body.dashboard-page .hdr-menu a,body.dashboard-page .hdr-menu .m-grp { color:var(--text)!important; }
+body.dashboard-page .sidebar .nav-link:hover,body.dashboard-page .hdr-menu a:hover,body.dashboard-page .hdr-menu .m-grp:hover { background:var(--surface-2)!important;color:var(--text)!important; }
+body.dashboard-page .sidebar .nav-link.active { background:var(--ok)!important;color:#fff!important; }
+body.dashboard-page .sidebar .nav-grp,body.dashboard-page .hdr-menu .m-head { color:var(--text-muted)!important; }
+body.dashboard-page .hs-bar { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
+body.dashboard-page .hs-bar input,body.dashboard-page #hs-input { color:var(--input-text)!important; }
+body.dashboard-page .hs-bar input::placeholder,body.dashboard-page #hs-input::placeholder { color:var(--placeholder)!important;opacity:1; }
+body.dashboard-page .filter-more-grid { background:var(--surface)!important;color:var(--text-muted)!important; }
+body.dashboard-page .quotation-modal,body.dashboard-page .quotation-modal-header,body.dashboard-page .quotation-modal-footer { background:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important; }
+body.dashboard-page .quotation-line-list .quotation-line { background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--line)!important; }
+body.dashboard-page .quotation-line-list .amend-price,body.dashboard-page .quotation-line-list .amend-qty { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
