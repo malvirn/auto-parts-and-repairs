@@ -160,7 +160,7 @@ function startNewChecklist(prefillJob=null){
  $("print-checklist-number").textContent="";
  $("job-meta").hidden=!prefillJob;
  $("job-meta").textContent=prefillJob?`Checklist for ${prefillJob.cro_number||`JC-${String(prefillJob.job_number??"").padStart(5,"0")}`}`:"";
- $("customer-name-input").value=prefillJob?.customers?.full_name||"";
+ $("customer-name-input").value=(prefillJob?.customers?.is_company?prefillJob?.customers?.company_name:prefillJob?.customers?.full_name)||"";
  $("vehicle-registration-input").value=prefillJob?.vehicles?.license_plate||"";
  $("checked-by-input").value="";
  $("checklist-notes").value="";
@@ -176,7 +176,7 @@ function startNewChecklist(prefillJob=null){
 }
 function renderChecklistList(rows){
  $("checklist-list").innerHTML=rows.length?rows.map(item=>{
-  const customer=item.customer_name||item.customers?.full_name||"Customer not recorded";
+  const customer=item.customer_name||(item.customers?.is_company?item.customers?.company_name:item.customers?.full_name)||"Customer not recorded";
   const vehicle=item.vehicle_registration||item.vehicles?.license_plate||"Registration not recorded";
   const linkedJob=item.repair_jobs?.cro_number||`JC-${String(item.repair_jobs?.job_number??"").padStart(5,"0")}`;
   const status=item.voided_at?`Voided ${new Date(item.voided_at).toLocaleString()} · ${item.void_reason||"No reason recorded"}`:item.job_id?`Linked to ${linkedJob}`:"Independent checklist · no job card linked";
@@ -186,19 +186,19 @@ function renderChecklistList(rows){
 }
 async function loadList(){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,voided_at,void_reason,customers(full_name,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,confirmed_at,updated_at,voided_at,void_reason,customers(full_name,company_name,is_company,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .order("updated_at",{ascending:false}).limit(300);
  if(error)throw new Error(`Couldn't load saved checklists: ${error.message}`);
  renderChecklistList(data||[]);
 }
 async function loadJob(jobId){
- const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,vehicle_id,fuel_level_in,odometer_in,customers(full_name,customer_code),vehicles(license_plate,make,model,year)").eq("id",jobId).single();
+ const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,customer_id,vehicle_id,fuel_level_in,odometer_in,customers(full_name,company_name,is_company,customer_code),vehicles(license_plate,make,model,year)").eq("id",jobId).single();
  if(error)throw new Error(`Couldn't load the job card: ${error.message}`);
  return data;
 }
 async function loadRecord(id){
  const{data,error}=await supabase.from("job_condition_reports")
-  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,voided_at,voided_by,void_reason,customers(full_name,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
+  .select("id,checklist_number,inspection_no,status,job_id,customer_id,vehicle_id,customer_name,vehicle_registration,checked_by,report,confirmed_at,confirmed_by,fuel_level_in,odometer_in,voided_at,voided_by,void_reason,customers(full_name,company_name,is_company,customer_code),vehicles(license_plate),repair_jobs(job_number,cro_number)")
   .eq("id",id).single();
  if(error)throw new Error(`Couldn't load this checklist: ${error.message}`);
  return data;
@@ -216,7 +216,7 @@ async function showRecord(item){
  record=item;report=item.report||{parts:{},notes:""};report.parts=report.parts||{};report.notes=report.notes||"";await loadInspectionMarks(item);try{const local=JSON.parse(localStorage.getItem("centric-inspection-draft-"+item.id)||"null");if(local?.report&&new Date(local.updated_at).getTime()>new Date(item.updated_at||0).getTime())report=local.report;}catch{}
  selectedJob=item.job_id?{id:item.job_id,customer_id:item.customer_id,vehicle_id:item.vehicle_id,...item.repair_jobs}:null;
  $("detail-view").classList.remove("hidden");$("list-view").classList.add("hidden");
- $("customer-name-input").value=item.customer_name||item.customers?.full_name||"";
+ $("customer-name-input").value=item.customer_name||(item.customers?.is_company?item.customers?.company_name:item.customers?.full_name)||"";
  $("vehicle-registration-input").value=item.vehicle_registration||item.vehicles?.license_plate||"";
  $("checklist-notes").value=report.notes;
  $("checklist-number-display").textContent=item.inspection_no||"CL-"+String(item.checklist_number).padStart(6,"0");
@@ -249,11 +249,11 @@ async function showRecord(item){
 }
 async function loadMatchingJobs(item){
  const{data,error}=await supabase.from("repair_jobs")
-  .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name),vehicles(license_plate)")
+  .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name,company_name,is_company),vehicles(license_plate)")
   .order("created_at",{ascending:false}).limit(1000);
  if(error)throw new Error(`Couldn't load matching job cards: ${error.message}`);
  const matches=(data||[]).filter(job=>
-  normalizeMatch(job.customers?.full_name)===normalizeMatch(item.customer_name)
+  normalizeMatch((job.customers?.is_company?job.customers?.company_name:job.customers?.full_name))===normalizeMatch(item.customer_name)
   && normalizeMatch(job.vehicles?.license_plate)===normalizeMatch(item.vehicle_registration)
   && (!item.customer_id||String(item.customer_id)===String(job.customer_id))
   && (!item.vehicle_id||String(item.vehicle_id)===String(job.vehicle_id))
@@ -306,11 +306,11 @@ async function saveDraft(){
   // Link automatically only when exactly one job matches this customer's vehicle.
   if(!record.job_id&&customerName&&vehicleRegistration){
    const{data:jobs,error:jobsError}=await supabase.from("repair_jobs")
-    .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name),vehicles(license_plate)")
+    .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name,company_name,is_company),vehicles(license_plate)")
     .order("created_at",{ascending:false}).limit(1000);
    if(jobsError)throw new Error("Checklist saved, but matching job cards could not be checked: "+jobsError.message);
    const matches=(jobs||[]).filter(job=>
-    normalizeMatch(job.customers?.full_name)===normalizeMatch(customerName)
+    normalizeMatch((job.customers?.is_company?job.customers?.company_name:job.customers?.full_name))===normalizeMatch(customerName)
     &&normalizeMatch(job.vehicles?.license_plate)===normalizeMatch(vehicleRegistration)
     &&(!record.customer_id||String(record.customer_id)===String(job.customer_id))
     &&(!record.vehicle_id||String(record.vehicle_id)===String(job.vehicle_id))
@@ -336,6 +336,12 @@ async function saveDraft(){
   setDetailMessage(record.job_id?"Checklist saved. Inspection number generated and job card linked automatically.":"Checklist saved independently. You can link or create its job card later.");
   button.disabled=false;
  }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
+}
+function showCreatedModal(title,detail,onClose){
+ let modal=document.getElementById("centric-created-modal");
+ if(!modal){modal=document.createElement("div");modal.id="centric-created-modal";modal.className="modal-overlay";modal.style.zIndex="2147483647";modal.innerHTML='<div class="modal" role="dialog" aria-modal="true" style="text-align:center"><div style="width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:#123b25;color:#71e39b;font-size:34px;font-weight:900">✓</div><h2 id="centric-created-title"></h2><p id="centric-created-detail" style="color:var(--muted)"></p><button type="button" class="btn btn--primary" id="centric-created-ok">Done</button></div>';document.body.appendChild(modal);}
+ modal.querySelector("#centric-created-title").textContent=title;modal.querySelector("#centric-created-detail").textContent=detail;modal.classList.remove("hidden");
+ const close=()=>{modal.classList.add("hidden");onClose?.();};modal.querySelector("#centric-created-ok").onclick=close;
 }
 async function saveAndConfirm(){
  const button=$("save-checklist");
@@ -408,7 +414,7 @@ async function saveAndConfirm(){
   $("checklist-number-display").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
   $("checklist-number-display").hidden=false;
   $("print-checklist-number").textContent=record.inspection_no||"CL-"+String(record.checklist_number).padStart(6,"0");
-  location.href=`checklist.html?id=${encodeURIComponent(checklistId)}`;
+  showCreatedModal("Checklist created","Your vehicle checklist has been saved successfully.",()=>{location.href=`checklist.html?id=${encodeURIComponent(checklistId)}`;});
  }catch(error){
   console.error("Checklist save failed:",error);
   setDetailMessage(error.message||String(error),true);
@@ -624,12 +630,12 @@ function jobRef(job){return job.cro_number||`JC-${String(job.job_number??"").pad
 function renderDrafts(rows){
  $("drafts-count").textContent=rows.length?`(${rows.length})`:"";
  $("drafts-list").innerHTML=rows.length?rows.map(job=>{
-  const customer=job.customers?.full_name||"Customer not recorded",v=job.vehicles,plate=v?.license_plate||"No registration",car=[v?.make,v?.model].filter(Boolean).join(" ");
+  const customer=(job.customers?.is_company?job.customers?.company_name:job.customers?.full_name)||"Customer not recorded",v=job.vehicles,plate=v?.license_plate||"No registration",car=[v?.make,v?.model].filter(Boolean).join(" ");
   return `<div class="checklist-row"><div><strong>${esc(jobRef(job))} · ${esc(customer)} · ${esc(plate)}</strong><small>${esc(car?car+" · ":"")}Saved ${job.created_at?new Date(job.created_at).toLocaleString():""} · Waiting for a checklist</small></div><div class="actions" style="margin-top:0"><input type="number" min="1" step="1" inputmode="numeric" placeholder="Checklist number" aria-label="Checklist number for ${esc(jobRef(job))}" data-draft-number="${esc(job.id)}" style="max-width:170px"><button class="btn btn--primary" type="button" data-link-draft="${esc(job.id)}">Link checklist</button></div></div>`;
  }).join(""):'<p class="message">No draft job cards. Job cards saved without a checklist appear here.</p>';
 }
 async function loadDrafts(){
- const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,created_at,customers(full_name),vehicles(license_plate,make,model)").eq("status","Draft").is("checklist_number",null).order("created_at",{ascending:false}).limit(300);
+ const{data,error}=await supabase.from("repair_jobs").select("id,job_number,cro_number,created_at,customers(full_name,company_name,is_company),vehicles(license_plate,make,model)").eq("status","Draft").is("checklist_number",null).order("created_at",{ascending:false}).limit(300);
  if(error)throw new Error(`Couldn't load draft job cards: ${error.message}`);
  renderDrafts(data||[]);
 }
