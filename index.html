@@ -1142,11 +1142,14 @@ body.dashboard-page.dashboard-workshop .sidebar-theme-row .theme-toggle svg{widt
        const sidebarToggle = $("dashboard-sidebar-toggle");
        const sidebar = $("sidebar");
        const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
-       const isMobile = () => matchMedia("(max-width: 768px)").matches;
+       const isMobile = () => matchMedia("(max-width: 1024px)").matches;
        // The saved "collapsed" choice is a desktop setting; on a phone the menu is a drawer.
        const applySavedCollapse = () => {
-         let saved = false;
-         try { saved = localStorage.getItem("apr-sidebar-collapsed") === "true"; } catch (error) {
+         let saved = true;
+         try {
+           const stored = localStorage.getItem("apr-sidebar-collapsed");
+           if (stored !== null) saved = stored === "true";
+         } catch (error) {
            console.warn("Could not read saved sidebar state:", error);
          }
          let locked = false;
@@ -1599,6 +1602,43 @@ body.dashboard-page.dashboard-workshop .sidebar-quick-access>a:not(:first-of-typ
       body.dashboard-workshop.dashboard-page .main > .app-header .hdr-clock{font-size:18px!important}
     }
 
+</style>
+
+<!-- Tablet drawer override: keep the sidebar toggle reachable and clear the header. -->
+<style id="index-tablet-sidebar-fix">
+  @media (min-width:769px) and (max-width:1024px) {
+    body.dashboard-page.dashboard-workshop > .app-shell > aside.sidebar {
+      left:0!important; right:auto!important; width:min(300px,86vw)!important;
+      transform:translateX(-105%)!important; visibility:hidden!important; z-index:1300!important;
+      transition:transform .24s ease,visibility .24s ease!important;
+    }
+    body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > aside.sidebar {
+      transform:translateX(0)!important; visibility:visible!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > main.main,
+    body.dashboard-page.dashboard-workshop.sidebar-collapsed > .app-shell > main.main {
+      margin-left:0!important; padding-top:76px!important;
+    }
+    body.dashboard-page.dashboard-workshop > .dashboard-topbar { left:64px!important; right:12px!important; }
+    body.dashboard-page.dashboard-workshop > .app-shell > button.dashboard-sidebar-toggle {
+      position:fixed!important; z-index:1401!important; top:14px!important; left:14px!important;
+      display:grid!important; width:38px!important; height:38px!important; place-items:center!important;
+      transform:none!important; cursor:pointer!important; touch-action:manipulation;
+    }
+    body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > button.dashboard-sidebar-toggle {
+      left:min(258px,calc(86vw - 42px))!important; transform:rotate(180deg)!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > button.dashboard-sidebar-toggle .sidebar-toggle-mark {
+      display:block!important; width:19px!important; height:19px!important; stroke:currentColor!important;
+    }
+    body.dashboard-page.dashboard-workshop > .app-shell > button.dashboard-sidebar-backdrop {
+      position:fixed!important; inset:0!important; z-index:1290!important; display:block!important;
+      background:rgba(4,8,7,.62)!important; opacity:0!important; visibility:hidden!important; pointer-events:none!important;
+    }
+    body.dashboard-page.dashboard-workshop.sidebar-open > .app-shell > button.dashboard-sidebar-backdrop {
+      opacity:1!important; visibility:visible!important; pointer-events:auto!important;
+    }
+  }
 </style>
 </body>
 </html>
