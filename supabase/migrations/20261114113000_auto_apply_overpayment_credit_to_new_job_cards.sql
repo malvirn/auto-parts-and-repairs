@@ -173,3 +173,52 @@ when (new.customer_id is not null and new.checklist_number is not null and coale
 execute function public.auto_apply_customer_overpayment_credit_to_job();
 
 commit;
+
+do $$
+declare
+  view_sql text;
+  cte_start integer;
+  select_start integer;
+  replacement_cte text := $cte$
+invoice_credit_totals AS (
+  SELECT applied.invoice_id, sum(applied.applied_amount) AS applied_amount
+  FROM (
+    SELECT movement.target_id AS invoice_id, movement.amount AS applied_amount
+    FROM public.customer_credit_movements movement
+    WHERE movement.movement_type = 'application'
+      AND movement.target_type = 'invoice'
+      AND movement.reversed_at IS NULL
+    UNION ALL
+    SELECT invoice.id AS invoice_id, movement.amount AS applied_amount
+    FROM public.invoices invoice
+    JOIN public.customer_credit_movements movement
+      ON movement.target_type = 'repair_job'
+     AND movement.target_id = invoice.repair_job_id
+    WHERE movement.movement_type = 'application'
+      AND movement.reversed_at IS NULL
+    UNION ALL
+    SELECT invoice.id AS invoice_id, link.applied_amount
+    FROM public.invoices invoice
+    JOIN public.customer_overpayment_credit_job_links link
+      ON link.repair_job_id = invoice.repair_job_id
+    WHERE link.applied_amount > 0
+  ) applied
+  GROUP BY applied.invoice_id
+)
+$cte$;
+begin
+  view_sql := pg_get_viewdef('public.customer_account_statement'::regclass, true);
+  cte_start := strpos(view_sql, 'invoice_credit_totals AS (');
+  if cte_start = 0 then
+    raise exception 'Could not safely locate invoice credit totals in customer_account_statement';
+  end if;
+  select_start := cte_start + position('SELECT c.id AS customer_id' in substring(view_sql from cte_start)) - 1;
+  if select_start < cte_start then
+    raise exception 'Could not safely locate customer statement SELECT';
+  end if;
+  view_sql := left(view_sql, cte_start - 1)
+    || replacement_cte || E'\n'
+    || substring(view_sql from select_start);
+  execute 'create or replace view public.customer_account_statement with (security_invoker = true) as ' || view_sql;
+end;
+$$;
