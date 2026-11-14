@@ -445,6 +445,28 @@
 .credit-voucher-preview strong{display:block}
 #voucher-redeem-video{width:100%;max-height:260px;object-fit:cover;border-radius:10px;background:#000}
 @media(max-width:560px){.credit-voucher-code-entry{grid-template-columns:1fr 1fr}.credit-voucher-code-entry input{grid-column:1/-1}}
+
+/* Compact filter bars: keep search visible and tuck secondary controls away. */
+.receipt-list-filters{display:flex!important;flex-wrap:wrap;align-items:center;gap:9px!important}
+.receipt-list-filters>label:first-child{flex:1 1 320px;min-width:min(100%,240px)}
+.receipt-list-filters>.filter-more{position:relative;flex:0 0 auto}
+.filter-more>summary{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font-size:.82rem;font-weight:700;cursor:pointer;list-style:none}
+.filter-more>summary::-webkit-details-marker{display:none}
+.filter-more>summary svg{width:17px;height:17px}
+.filter-more[open]>summary{border-color:var(--orange);color:var(--orange)}
+.filter-more-grid{position:absolute;z-index:80;top:calc(100% + 8px);right:0;display:grid;grid-template-columns:repeat(2,minmax(170px,1fr));gap:10px;width:min(540px,calc(100vw - 36px));padding:14px;border:1px solid var(--line);border-radius:12px;background:#121b22;box-shadow:0 18px 40px rgba(0,0,0,.38)}
+.filter-more-grid label{display:grid;gap:5px;min-width:0;color:var(--muted);font-size:.75rem;font-weight:700}
+.filter-more-grid input,.filter-more-grid select{width:100%;min-width:0}
+.filter-more-grid .btn{align-self:end}
+@media(max-width:560px){.filter-more-grid{position:fixed;top:auto;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));left:12px;width:auto;grid-template-columns:repeat(2,minmax(0,1fr));max-height:65vh;overflow:auto}}
+/* QCN cards use neutral chrome in dark mode, not green-tinted panels. */
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record){border-color:#465365!important;border-left-color:#8291a5!important;background:linear-gradient(145deg,#202a38,#151d29)!important}
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record):hover,:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record)[open]{border-color:#7b8da5!important;box-shadow:0 14px 30px rgba(0,0,0,.34)!important}
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record)>.customer-credit-record__summary{background:linear-gradient(110deg,rgba(130,145,165,.12),rgba(255,255,255,.025))!important}
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-id{border-color:#64748b!important;background:rgba(100,116,139,.2)!important;color:#d7e0eb!important}
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance strong{color:#e2e8f0!important}
+:root[data-theme="dark"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record)[open]>.customer-credit-record__summary{border-bottom-color:#465365!important;background:linear-gradient(110deg,rgba(130,145,165,.16),rgba(255,255,255,.035))!important}
+
 </style>
 <style id="rc-design">
 .rc-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -847,13 +869,15 @@ select.st option{background:#10181a;color:#eef3ef}
     <div class="rc-stats" style="margin:18px 0" id="stats"></div>
     <div class="receipt-list-filters" role="search" aria-label="Filter receipts and invoices">
       <label for="receipt-filter-search">Search customer, document number, phone, email, job card or reference<input id="receipt-filter-search" type="search" placeholder="Search all receipt and invoice details…" autocomplete="off"></label>
-      <label for="receipt-filter-from">From date<input id="receipt-filter-from" type="date"></label>
-      <label for="receipt-filter-to">To date<input id="receipt-filter-to" type="date"></label>
-      <label for="receipt-filter-status">Payment status<select id="receipt-filter-status"><option value="">All statuses</option><option value="paid">Paid</option><option value="partially_paid">Partially paid</option><option value="unpaid">Unpaid</option><option value="void">Voided</option><option value="refunded">Refunded</option></select></label>
-      <label for="receipt-filter-method">Payment method<select id="receipt-filter-method"><option value="">All methods</option><option>Cash</option><option>Card</option><option>Card / POS</option><option>EcoCash</option><option>Bank</option><option>Bank transfer</option><option>Swipe</option><option>Other</option></select></label>
-      <label for="receipt-filter-min">Minimum amount ($)<input id="receipt-filter-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
-      <label for="receipt-filter-max">Maximum amount ($)<input id="receipt-filter-max" type="number" min="0" step="0.01" placeholder="Any"></label>
-      <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
+      <details class="filter-more"><summary><i data-lucide="sliders-horizontal"></i> More filters</summary><div class="filter-more-grid">
+        <label for="receipt-filter-from">From date<input id="receipt-filter-from" type="date"></label>
+        <label for="receipt-filter-to">To date<input id="receipt-filter-to" type="date"></label>
+        <label for="receipt-filter-status">Payment status<select id="receipt-filter-status"><option value="">All statuses</option><option value="paid">Paid</option><option value="partially_paid">Partially paid</option><option value="unpaid">Unpaid</option><option value="void">Voided</option><option value="refunded">Refunded</option></select></label>
+        <label for="receipt-filter-method">Payment method<select id="receipt-filter-method"><option value="">All methods</option><option>Cash</option><option>Card</option><option>Card / POS</option><option>EcoCash</option><option>Bank</option><option>Bank transfer</option><option>Swipe</option><option>Other</option></select></label>
+        <label for="receipt-filter-min">Minimum amount ($)<input id="receipt-filter-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
+        <label for="receipt-filter-max">Maximum amount ($)<input id="receipt-filter-max" type="number" min="0" step="0.01" placeholder="Any"></label>
+        <button class="btn" id="receipt-filter-clear" type="button">Clear filters</button>
+      </div></details>
     </div>
     <div id="list" data-no-progressive><div class="ov-empty">Loading…</div></div>
   </section>
@@ -864,13 +888,15 @@ select.st option{background:#10181a;color:#eef3ef}
     <p class="invoice-billing-note">Includes quotation deposits and invoice overpayments. Overpayments appear here with their credit note number, original invoice and amount carried forward. Customer credit remains a liability, not new income. Quotation deposit applications, refunds and reversals are audited in the ledger.</p>
     <div class="receipt-list-filters credit-note-filters" role="search" aria-label="Filter credit notes">
       <label for="customer-credit-search">Search customer, credit note, invoice, phone or reference<input id="customer-credit-search" type="search" placeholder="Search credit notes…" autocomplete="off"></label>
-      <label for="customer-credit-from">From date<input id="customer-credit-from" type="date"></label>
-      <label for="customer-credit-to">To date<input id="customer-credit-to" type="date"></label>
-      <label for="customer-credit-status">Status<select id="customer-credit-status"><option value="">All statuses</option><option value="available">Available</option><option value="partial">Partially used / refunded</option><option value="applied">Fully applied</option><option value="refunded">Refunded</option></select></label>
-      <label for="customer-credit-method">Payment method<select id="customer-credit-method"><option value="">All methods</option><option>Cash</option><option>EcoCash</option><option>Bank</option><option>Swipe</option><option>Card</option><option>Other</option></select></label>
-      <label for="customer-credit-min">Minimum amount ($)<input id="customer-credit-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
-      <label for="customer-credit-max">Maximum amount ($)<input id="customer-credit-max" type="number" min="0" step="0.01" placeholder="Any"></label>
-      <button class="btn" id="customer-credit-clear" type="button">Clear filters</button>
+      <details class="filter-more"><summary><i data-lucide="sliders-horizontal"></i> More filters</summary><div class="filter-more-grid">
+        <label for="customer-credit-from">From date<input id="customer-credit-from" type="date"></label>
+        <label for="customer-credit-to">To date<input id="customer-credit-to" type="date"></label>
+        <label for="customer-credit-status">Status<select id="customer-credit-status"><option value="">All statuses</option><option value="available">Available</option><option value="partial">Partially used / refunded</option><option value="applied">Fully applied</option><option value="refunded">Refunded</option></select></label>
+        <label for="customer-credit-method">Payment method<select id="customer-credit-method"><option value="">All methods</option><option>Cash</option><option>EcoCash</option><option>Bank</option><option>Swipe</option><option>Card</option><option>Other</option></select></label>
+        <label for="customer-credit-min">Minimum amount ($)<input id="customer-credit-min" type="number" min="0" step="0.01" placeholder="0.00"></label>
+        <label for="customer-credit-max">Maximum amount ($)<input id="customer-credit-max" type="number" min="0" step="0.01" placeholder="Any"></label>
+        <button class="btn" id="customer-credit-clear" type="button">Clear filters</button>
+      </div></details>
     </div>
     <div class="rc-doc-wrap"><div id="customer-credit-list" data-no-progressive aria-live="polite"><div class="customer-credit-empty">Loading customer credit…</div></div></div>
   </section>
