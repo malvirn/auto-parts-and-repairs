@@ -1111,7 +1111,8 @@ function renderQuickSaleProductResults(row) {
     results.hidden = false;
     return;
   }
-  results.innerHTML = `${hasExactMatch ? '<div class="quick-sale-results-heading">Matching products</div>' : '<div class="quick-sale-results-heading">Closest spelling matches</div>'}${matches.map(part => {
+  const resultsHeading = !query ? "Available products" : hasExactMatch ? "Matching products" : "Closest spelling matches";
+  results.innerHTML = `<div class="quick-sale-results-heading">${resultsHeading}</div>${matches.map(part => {
     const unavailable = Number(part.quantity_in_stock) < 1;
     const productDetails = [
       part.part_number,
