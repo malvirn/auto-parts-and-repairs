@@ -518,6 +518,12 @@ async function updateNewTotals() {
   setText("sum-zig", total > 0 ? `≈ ZiG ${(total * rate).toLocaleString("en-US", { maximumFractionDigits: 2 })}` : "");
 }
 
+function showCreatedModal(title,detail){
+ let modal=document.getElementById("centric-created-modal");
+ if(!modal){modal=document.createElement("div");modal.id="centric-created-modal";modal.className="modal-overlay";modal.style.zIndex="2147483647";modal.innerHTML='<div class="modal" role="dialog" aria-modal="true" style="text-align:center"><div style="width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:#123b25;color:#71e39b;font-size:34px;font-weight:900">✓</div><h2 id="centric-created-title"></h2><p id="centric-created-detail" style="color:var(--muted)"></p><button type="button" class="btn btn--primary" id="centric-created-ok">Done</button></div>';document.body.appendChild(modal);}
+ modal.querySelector("#centric-created-title").textContent=title;modal.querySelector("#centric-created-detail").textContent=detail;modal.classList.remove("hidden");modal.querySelector("#centric-created-ok").onclick=()=>modal.classList.add("hidden");
+}
+
 function showFormMessage(text, tone = "error") {
   if (!formMessage) return;
   formMessage.textContent = text;
@@ -2004,9 +2010,10 @@ form?.addEventListener("submit", async (e) => {
     }
     resetIntakeForm();
     const label = job.cro_number || (job.job_number != null ? `#${String(job.job_number).padStart(4, "0")}` : "");
-    showFormMessage(skipped.length
-      ? `Job card ${label} created, but these weren't added (not enough stock or an error): ${skipped.join(", ")}. Add them from the job card.${quoteLinkWarning}${depositNote}${customerIdNotice}`
-      : `Job card ${label} created.${quoteLinkWarning}${depositNote}${customerIdNotice}`.replace("  ", " "), skipped.length || quoteLinkWarning ? "error" : "success");
+    const creationDetail = skipped.length
+      ? `Job card ${label} created. Some items need attention: ${skipped.join(", ")}.${quoteLinkWarning}${depositNote}${customerIdNotice}`
+      : `Job card ${label} created successfully.${quoteLinkWarning}${depositNote}${customerIdNotice}`;
+    showCreatedModal("Job card created", creationDetail);
     await Promise.all([loadJobs(), loadPartsIntoSelect(), loadCustomers()]);
     await refreshBusyMechanics();
     refreshTechnicianOptions(newTechnician, null);
