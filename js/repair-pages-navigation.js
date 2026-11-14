@@ -131,6 +131,42 @@ function addToolbarUtilities(container, isModuleToolbar) {
   }
   newJob.href = new URL("../pages/repairs.html?new=1", import.meta.url).href;
   newJob.hidden = !["super_admin", "staff"].includes(document.body.dataset.role || "staff");
+
+  if (isModuleToolbar && !container.querySelector(".dashboard-search-toggle")) {
+    const searchButton = document.createElement("button");
+    searchButton.type = "button";
+    searchButton.className = "dashboard-toolbar-button dashboard-search-toggle";
+    searchButton.id = "dashboard-search-toggle";
+    searchButton.setAttribute("aria-label", "Open search");
+    searchButton.setAttribute("aria-expanded", "false");
+    searchButton.innerHTML = '<i data-lucide="search" aria-hidden="true"></i>';
+    const toolbar = container.closest(".dashboard-topbar");
+    const searchPanel = document.createElement("div");
+    searchPanel.className = "dashboard-search-panel";
+    searchPanel.id = "dashboard-search-panel";
+    searchPanel.hidden = true;
+    searchPanel.innerHTML = '<input type="search" id="hs-input" placeholder="Search everything…" autocomplete="off" aria-label="Search the whole system">';
+    const searchInput = searchPanel.querySelector("#hs-input");
+    searchInput.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        searchPanel.hidden = true;
+        searchButton.setAttribute("aria-expanded", "false");
+        searchButton.focus({ preventScroll: true });
+      } else if (event.key === "Enter" && searchInput.value.trim()) {
+        const dashboard = new URL("../index.html", import.meta.url);
+        dashboard.searchParams.set("search", searchInput.value.trim());
+        window.location.href = dashboard.href;
+      }
+    });
+    searchButton.addEventListener("click", () => {
+      const open = searchPanel.hidden;
+      searchPanel.hidden = !open;
+      searchButton.setAttribute("aria-expanded", String(open));
+      if (open) searchInput.focus({ preventScroll: true });
+    });
+    container.append(searchButton);
+    toolbar?.append(searchPanel);
+  }
   window.lucide?.createIcons();
 }
 
