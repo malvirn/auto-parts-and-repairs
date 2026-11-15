@@ -102,7 +102,7 @@ function bindShell(root) {
     setCollapsed(saved === "collapsed");
   }
   toggle.addEventListener("click", () => {
-    if (mobile()) setCollapsed(!document.body.classList.contains("glass-drawer-open"));
+    if (mobile()) setCollapsed(document.body.classList.contains("glass-drawer-open"));
     else setCollapsed(!document.body.classList.contains("glass-sidebar-collapsed"));
   });
   sidebar.querySelector(".glass-sidebar-close").addEventListener("click", () => setCollapsed(true));
