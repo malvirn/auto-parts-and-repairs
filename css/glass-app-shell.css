@@ -24,7 +24,8 @@ body.dashboard-page.glass-app-shell::before {
   background-size: cover;
   background-repeat: no-repeat;
 }
-#glass-app-chrome { position: relative; z-index: 1500; }\nbody.dashboard-page.glass-app-shell > .app-shell, body.dashboard-page.glass-app-shell > .main, body.dashboard-page.glass-app-shell .main { position: relative; z-index: 1; }
+#glass-app-chrome { position: relative; z-index: 1500; }
+body.dashboard-page.glass-app-shell > .app-shell, body.dashboard-page.glass-app-shell > .main, body.dashboard-page.glass-app-shell .main { position: relative; z-index: 1; }
 .glass-header,.glass-sidebar {
   color: #f4f8f8;
   background: var(--centric-glass-tint);
