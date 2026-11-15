@@ -926,9 +926,11 @@ body.dashboard-page.dashboard-workshop > .app-shell > .main{
       body.dashboard-page.dashboard-workshop.sidebar-open .dashboard-sidebar-toggle{left:min(258px,calc(86vw - 42px))!important}
     }
 </style>
-  <link rel="stylesheet" href="css/dashboard-shell.css?v=theme-v5">
+
+
   <link rel="stylesheet" href="css/ui-consistency.css?v=theme-v5">
-  <link rel="stylesheet" href="css/dashboard-chrome.css?v=theme-v5">
+
+
   <link rel="stylesheet" href="css/theme-background.css?v=theme-v5">
   <link rel="stylesheet" href="css/workshop-buttons.css?v=theme-v5">
 </head>
@@ -937,58 +939,7 @@ body.dashboard-page.dashboard-workshop > .app-shell > .main{
 <div class="app-shell">
     <!-- Module links are reused by the shared More menu after role filtering. -->
     <button class="dashboard-sidebar-backdrop" type="button" aria-label="Close navigation"></button>
-    <aside class="sidebar" id="sidebar">
-
-      
-      <a class="nav-link active" href="index.html" title="Home"><i data-lucide="house"></i> Home</a>
-      <div class="nav-group open" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="true" title="Workshop"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/repairs.html" title="Job Cards"><i data-lucide="clipboard-list"></i> Job Cards</a>
-          <a class="nav-link" href="pages/checklist.html" title="Vehicle Checklist"><i data-lucide="clipboard-check"></i> Vehicle Checklist</a>
-          <a class="nav-link" href="pages/customers.html" title="Customers"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="pages/technicians.html" data-level="2" title="Employees &amp; Staff"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
-        </div>
-      </div>
-      <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="true" title="Parts &amp; Sales"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/shop.html" data-level="2" title="Parts &amp; Stock"><i data-lucide="store"></i> Parts &amp; Stock</a>
-          <a class="nav-link" href="pages/quotations.html" data-level="2" title="Quotations"><i data-lucide="file-text"></i> Quotations</a>
-          <a class="nav-link" href="pages/receipts.html" data-level="2" title="Receipts"><i data-lucide="receipt"></i> Receipts</a>
-          <a class="nav-link" href="pages/suppliers.html" data-level="2" title="Suppliers"><i data-lucide="truck"></i> Suppliers</a>
-        </div>
-      </div>
-      <div class="nav-group open" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="true" title="Accounting"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/accounting.html" title="Overview"><i data-lucide="landmark"></i> Overview</a>
-          <a class="nav-link" href="pages/ledger.html" title="Ledger"><i data-lucide="book-open-check"></i> Ledger</a>
-          <a class="nav-link" href="pages/payables.html" title="Payables"><i data-lucide="banknote"></i> Payables</a>
-          <a class="nav-link" href="pages/analytics.html" title="Analytics"><i data-lucide="bar-chart-3"></i> Analytics</a>
-          <a class="nav-link" href="pages/cashbook.html" title="Cashbook"><i data-lucide="wallet"></i> Cashbook</a>
-          <a class="nav-link" href="pages/financial-statements.html" title="Financial Statements"><i data-lucide="file-bar-chart"></i> Financial Statements</a>
-          <a class="nav-link" href="pages/commissions.html" title="Commissions"><i data-lucide="percent"></i> Commissions</a>
-          <a class="nav-link" href="pages/fixed-assets.html" title="Fixed Assets"><i data-lucide="wrench"></i> Fixed Assets</a>
-          <a class="nav-link" href="pages/landed-cost.html" title="Landed Cost"><i data-lucide="ship"></i> Landed Cost</a>
-        </div>
-      </div>
-      <div class="nav-group open" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="true" title="Administration"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="pages/settings.html" title="Settings"><i data-lucide="settings"></i> Settings</a>
-        </div>
-      </div>
-    <div class="sidebar-quick-access">
-  <p class="sidebar-section-label">QUICK ACCESS</p>
-  <a href="pages/repairs.html" title="Create and manage job cards"><i data-lucide="clipboard-plus"></i><span>Job Cards</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
-  <a href="pages/customers.html" title="Open customers"><i data-lucide="users"></i><span>Customers</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
-  <a href="pages/shop.html" title="Open parts and stock"><i data-lucide="package"></i><span>Parts &amp; Stock</span><i data-lucide="arrow-up-right" class="quick-arrow"></i></a>
-</div>
-<div class="sidebar-workspace-note"><span class="workspace-note-icon"><i data-lucide="lightbulb"></i></span><div><strong>Keep work moving</strong><p>Jobs, parts and payments, all in one workspace.</p></div></div>
-<div class="sidebar-promo"><img src="assets/dashboard-hero.jpeg" alt="Centric Auto Mobile vehicle" loading="lazy"><strong>Centric Auto Mobile</strong><span>Your trusted auto partner in Zimbabwe</span></div>
-<div class="sidebar-theme-row"><span class="sidebar-theme-label"><i data-lucide="sun"></i><span id="sidebar-theme-label">Light mode</span></span><button class="theme-toggle" id="sidebar-theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><i data-lucide="moon"></i></button></div>
-<div class="sidebar-footer">© 2026 Centric Auto Mobile</div></aside>
+    
     <button class="dashboard-sidebar-toggle" id="dashboard-sidebar-toggle" type="button" aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"><svg class="sidebar-toggle-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 16h9"/></svg></button>
 
     <main class="main">
