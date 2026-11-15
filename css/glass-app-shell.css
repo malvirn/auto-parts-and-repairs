@@ -1,6 +1,6 @@
 /* Shared glass application shell. The background image is configured once here. */
 :root {
-  --centric-shell-image: url("/assets/workshop-glass-background.webp");
+  --centric-shell-image: url("/img/engine-bay-bg.webp");
   --centric-glass-tint: rgba(8, 27, 37, .60);
   --centric-glass-border: rgba(218, 240, 238, .19);
   --centric-glass-blur: 22px;
