@@ -71,7 +71,7 @@ function buildHeader() {
   return '<header class="glass-header" id="glass-header">' +
     '<button class="glass-icon-button glass-menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="glass-sidebar" aria-expanded="true">' + icon("panel-left") + '</button>' +
     '<div class="glass-header-brand"><span class="glass-brand-mark">C</span><strong>Centric Auto</strong></div>' +
-    '<div class="glass-search" id="hs"><i data-lucide="search" aria-hidden="true"></i><input id="hs-input" type="search" placeholder="Search jobs, customers, parts..." autocomplete="off" aria-label="Search the system"><kbd>/</kbd>' +
+    '<div class="glass-search hs" id="hs"><i data-lucide="search" aria-hidden="true"></i><input id="hs-input" type="search" placeholder="Search jobs, customers, parts..." autocomplete="off" aria-label="Search the system"><kbd>/</kbd>' +
     '<div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search categories"></div><div id="hs-results" aria-live="polite"></div></div></div>' +
     '<div class="glass-header-actions"><a class="glass-job-action" href="' + esc(hrefFor("pages/repairs.html")) + '?new=1">' + icon("plus") + '<span>Job Card</span></a>' +
     '<a class="glass-icon-button glass-shop-action" href="' + esc(hrefFor("pages/shop.html")) + '" aria-label="Open shop" title="Shop">' + icon("shopping-cart") + '</a>' +
