@@ -162,7 +162,7 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <script src="../js/pwa.js" defer></script>
   <link rel="stylesheet" href="../css/repair-pages.css">
-  <link rel="stylesheet" href="../css/dashboard-header.css">
+
 
   <style id="shop-theme">
     /* The dashboard design is dark, so the Shop's light-theme colours are re-tuned here (colours only). */
@@ -284,9 +284,11 @@
     html[data-theme="light"] #parts-table .stock-low, html.light #parts-table .stock-low, body.light #parts-table .stock-low, body.light-theme #parts-table .stock-low, body[data-theme="light"] #parts-table .stock-low { color: #b91c1c; }
     html[data-theme="light"] #parts-table .supplier-chip, html.light #parts-table .supplier-chip, body.light #parts-table .supplier-chip, body.light-theme #parts-table .supplier-chip, body[data-theme="light"] #parts-table .supplier-chip { background: #e5e7eb; color: #1f2937; }
   </style>
-  <link rel="stylesheet" href="../css/dashboard-shell.css">
+
+
   <link rel="stylesheet" href="../css/ui-consistency.css">
-  <link rel="stylesheet" href="../css/dashboard-chrome.css?v=header-cleanup2-20261114" data-shared-dashboard-chrome="true">
+
+
 <link rel="stylesheet" href="../css/theme-background.css?v=engine-bay-bg-1">
 <style id="dashboard-chrome-prepaint">
 body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
@@ -299,52 +301,7 @@ body.dashboard-page .main{min-width:0}
 </head>
 <body class="dashboard-page dashboard-workshop">
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      
-      <a class="nav-link" href="../index.html"><i data-lucide="house"></i> Home</a>
-      <div class="nav-group" data-group="workshop">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="wrench"></i><span>Workshop</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="repairs.html"><i data-lucide="clipboard-list"></i> Job Cards</a>
-          <a class="nav-link" href="customers.html"><i data-lucide="users"></i> Customers</a>
-          <a class="nav-link" href="technicians.html" data-level="2"><i data-lucide="hard-hat"></i> Employees &amp; Staff</a>
-        </div>
-      </div>
-      <div class="nav-group open" data-group="sales">
-        <button type="button" class="nav-grp" aria-expanded="true"><i data-lucide="package"></i><span>Parts &amp; Sales</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link active" href="shop.html" data-level="2" aria-current="page"><i data-lucide="store"></i> Parts &amp; Stock</a>
-          <a class="nav-link" href="quotations.html" data-level="2"><i data-lucide="file-text"></i> Quotations</a>
-          <a class="nav-link" href="receipts.html" data-level="2"><i data-lucide="receipt"></i> Receipts</a>
-          <a class="nav-link" href="suppliers.html" data-level="2"><i data-lucide="truck"></i> Suppliers</a>
-        </div>
-      </div>
-      <div class="nav-group" data-group="accounting">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="landmark"></i><span>Accounting</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="accounting.html"><i data-lucide="landmark"></i> Overview</a>
-          <a class="nav-link" href="ledger.html"><i data-lucide="book-open-check"></i> Ledger</a>
-          <a class="nav-link" href="payables.html"><i data-lucide="banknote"></i> Payables</a>
-          <a class="nav-link" href="cashbook.html"><i data-lucide="wallet"></i> Cash Book</a>
-          <a class="nav-link" href="commissions.html"><i data-lucide="percent"></i> Commissions</a>
-          <a class="nav-link" href="landed-cost.html"><i data-lucide="ship"></i> Landed Cost</a>
-          <a class="nav-link" href="fixed-assets.html"><i data-lucide="wrench"></i> Fixed Assets</a>
-          <a class="nav-link" href="financial-statements.html"><i data-lucide="file-bar-chart"></i> Statements</a>
-        </div>
-      </div>
-      <div class="nav-group" data-group="insights">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="chart-no-axes-column-increasing"></i><span>Reports &amp; Insights</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="analytics.html"><i data-lucide="bar-chart-3"></i> Analytics</a>
-        </div>
-      </div>
-      <div class="nav-group" data-group="system">
-        <button type="button" class="nav-grp" aria-expanded="false"><i data-lucide="settings"></i><span>Administration</span><span class="nav-chev" aria-hidden="true"></span></button>
-        <div class="nav-grpwrap">
-          <a class="nav-link" href="settings.html"><i data-lucide="settings"></i> Settings</a>
-        </div>
-      </div>
-    </aside>
+    
 
     <main class="main" id="shop-root">
       
