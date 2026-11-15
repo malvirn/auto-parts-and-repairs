@@ -99,7 +99,7 @@ function bindShell(root) {
     document.body.classList.remove("glass-sidebar-collapsed", "glass-drawer-open");
     toggle.setAttribute("aria-expanded", "false");
   } else {
-    setCollapsed(saved === "collapsed");
+    setCollapsed(mobile() ? true : saved === "collapsed");
   }
   toggle.addEventListener("click", () => {
     if (mobile()) setCollapsed(document.body.classList.contains("glass-drawer-open"));
@@ -173,5 +173,22 @@ export function initializeGlassAppShell() {
     '<button class="glass-sidebar-backdrop" type="button" aria-label="Close navigation"></button>';
   document.body.prepend(root);
   bindShell(root);
+  // Resolve the signed-in account label from Supabase without blocking shell rendering.
+  supabase.auth.getUser().then(({ data }) => {
+    const user = data?.user;
+    if (!user) return;
+    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Centric Auto User";
+    const profile = root.querySelector(".glass-profile-copy strong");
+    const avatar = root.querySelector(".glass-avatar");
+    if (profile) profile.textContent = name;
+    if (avatar) avatar.textContent = initials(name);
+    const image = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+    if (image && avatar) {
+      const photo = document.createElement("img");
+      photo.src = image; photo.alt = ""; photo.referrerPolicy = "no-referrer";
+      photo.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:inherit";
+      avatar.textContent = ""; avatar.append(photo);
+    }
+  }).catch(error => console.warn("Profile details unavailable:", error));
   if (window.lucide) window.lucide.createIcons();
 }
