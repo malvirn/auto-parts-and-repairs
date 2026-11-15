@@ -511,19 +511,22 @@ function initializePageChrome() {
 
   const main = document.querySelector(".dashboard-page .main");
   if (!main) return;
+
+  // The legacy shared header has been retired. Remove its markup from every
+  // dashboard page and do not construct a replacement from this navigation
+  // initializer. This leaves the main page content and navigation untouched.
+  document.body.classList.add("dashboard-workshop");
+  document.querySelectorAll(
+    "body.dashboard-page > .dashboard-topbar, body.dashboard-page .main > .app-header, " +
+    "body.dashboard-page .main > .main__header, body.dashboard-page .main > .site-masthead"
+  ).forEach(element => element.remove());
+
   if (!isDashboardHome()) {
-    document.body.classList.add("dashboard-workshop");
-    // Start the safety release before building the toolbar so even an
-    // initialization error cannot leave the page header hidden indefinitely.
-    if (dashboardChromeFallbackTimer === null) {
-      dashboardChromeFallbackTimer = window.setTimeout(markDashboardChromeReady, 3000);
-    }
-    addDashboardToolbar(main);
-    revealDashboardChromeWhenReady();
+    markDashboardChromeReady();
     return;
   }
 
-  if (!main.querySelector(":scope > .site-masthead, :scope > .app-header")) {
+  if (false && !main.querySelector(":scope > .site-masthead, :scope > .app-header")) {
     const header = document.createElement("header");
     header.className = "main__header dashboard-hero app-header";
     header.innerHTML = `
@@ -565,8 +568,6 @@ function initializePageChrome() {
     main.append(footer);
   }
 
-  ensureDashboardToolbarActions(document.querySelector("body.dashboard-workshop .dashboard-topbar"));
-  ensureDashboardHeaderActions(main.querySelector(":scope > .app-header"));
 }
 
 function initializeGeneratedHeader(header) {
