@@ -515,13 +515,13 @@ function initializePageChrome() {
   // The legacy shared header has been retired. Remove its markup from every
   // dashboard page and do not construct a replacement from this navigation
   // initializer. This leaves the main page content and navigation untouched.
-  document.body.classList.add("dashboard-workshop");
   document.querySelectorAll(
     "body.dashboard-page > .dashboard-topbar, body.dashboard-page .main > .app-header, " +
     "body.dashboard-page .main > .main__header, body.dashboard-page .main > .site-masthead"
   ).forEach(element => element.remove());
 
   if (!isDashboardHome()) {
+    document.body.classList.add("dashboard-workshop");
     markDashboardChromeReady();
     return;
   }
