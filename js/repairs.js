@@ -1260,8 +1260,9 @@ editSaveBtn?.addEventListener("click", async () => {
       alert(receiptError.message || String(receiptError));
     }
   }
-  if (isNowReadyOrUnclaimed) {
+  if (isNowReadyOrUnclaimed && currentEditJob?.status !== status) {
     await sendStatusEmail(currentEditJob, status, total_cost);
+    await sendStatusWhatsApp(currentEditJob, status);
   }
 
   closeEditModal();
@@ -1337,6 +1338,26 @@ editMarkCollectedBtn?.addEventListener("click", async () => {
   closeEditModal();
   loadJobs();
 });
+
+async function sendStatusWhatsApp(job, status) {
+  const phone = formatPhoneForWhatsApp(job?.customers?.phone);
+  if (!phone) {
+    console.warn("No customer phone number on file — skipping WhatsApp notification.");
+    return;
+  }
+  const customerName = job.customers?.company_name || job.customers?.full_name || "Customer";
+  const vehicle = [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" ") || "your vehicle";
+  const { error } = await supabase.functions.invoke("send-whatsapp-notification", {
+    body: {
+      to: phone,
+      customerName,
+      jobNumber: job.job_number || job.cro_number || "N/A",
+      status,
+      vehicle,
+    },
+  });
+  if (error) console.error("WhatsApp notification failed:", error);
+}
 
 async function sendStatusEmail(job, status, totalCost) {
   if (!job?.customers?.email) {
