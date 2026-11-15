@@ -669,7 +669,7 @@ function ensureSidebarNotifications(sidebar) {
   window.lucide?.createIcons();
 }
 
-async async function initializeAfterAccess() {
+async function initializeAfterAccess() {
   if (document.body.dataset.role) {
     try {
       localStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({
@@ -684,6 +684,7 @@ async async function initializeAfterAccess() {
   }
   syncAccountLabel();
   initializeNavigation();
+  initializeGlassAppShell();
 }
 
 // Retire legacy page chrome before the shared glass shell mounts after access checks.
