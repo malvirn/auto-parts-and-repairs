@@ -23,7 +23,7 @@ const NAV = [
     { label: "Fixed Assets", href: "pages/fixed-assets.html", icon: "landmark", page: "fixed-assets", roles: ["super_admin","accounting"] },
     { label: "Financial Statements", href: "pages/financial-statements.html", icon: "chart-no-axes-combined", page: "financial-statements", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Intelligence", items: [
+  { title: "Centric Intelligence", items: [
     { label: "Analytics", href: "pages/analytics.html", icon: "chart-no-axes-combined", page: "analytics", roles: ["super_admin","accounting"] }
   ]},
   { title: "Administration", items: [
@@ -157,8 +157,7 @@ function bindShell(root) {
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener("beforeunload", () => observer.disconnect(), { once: true });
 
-  // Search uses the existing Supabase-backed search implementation.
-  import("./dashboard-search.js").catch(error => console.warn("Global search unavailable:", error));
+  // dashboard-search.js is loaded by each dashboard page and binds to #hs-input.
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -177,11 +176,11 @@ export function initializeGlassAppShell() {
   supabase.auth.getUser().then(({ data }) => {
     const user = data?.user;
     if (!user) return;
-    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Centric Auto User";
+    const name = document.body.dataset.accountName || user.user_metadata?.full_name || user.user_metadata?.name || user.email || "Centric Auto User";
     const profile = root.querySelector(".glass-profile-copy strong");
     const avatar = root.querySelector(".glass-avatar");
     if (profile) profile.textContent = name;
-    if (avatar) avatar.textContent = initials(name);
+    if (avatar && !avatar.querySelector("img")) avatar.textContent = initials(name);
     const image = user.user_metadata?.avatar_url || user.user_metadata?.picture;
     if (image && avatar) {
       const photo = document.createElement("img");
