@@ -85,9 +85,9 @@ import supabase from "./supabaseClient.js";
             .map(a => mk(a.name || "Asset", [a.category, a.status].filter(Boolean).join(" · "), "pages/fixed-assets.html", flat(a))) },
       { key: "pages", label: "Pages", icon: "layout-grid", load: async () => {
           const out = [];
-          document.querySelectorAll("#sidebar .nav-group").forEach(g => {
-            const grp = g.querySelector(".nav-grp span")?.textContent.trim() || "";
-            g.querySelectorAll("a.nav-link").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
+          document.querySelectorAll(".glass-nav-group").forEach(g => {
+            const grp = g.querySelector(".glass-nav-heading")?.textContent.trim() || "";
+            g.querySelectorAll("a.glass-nav-link").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
           });
           return out; } },
     ];
