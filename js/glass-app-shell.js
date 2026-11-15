@@ -89,11 +89,18 @@ function bindShell(root) {
     document.body.classList.toggle("glass-sidebar-collapsed", collapsed && !mobile());
     document.body.classList.toggle("glass-drawer-open", !collapsed && mobile());
     toggle.setAttribute("aria-expanded", String(!collapsed));
-    try { localStorage.setItem(KEY, collapsed ? "collapsed" : "expanded"); } catch (_) {}
+    if (!mobile()) {
+      try { localStorage.setItem(KEY, collapsed ? "collapsed" : "expanded"); } catch (_) {}
+    }
   };
   let saved = "expanded";
   try { saved = localStorage.getItem(KEY) || "expanded"; } catch (_) {}
-  setCollapsed(saved === "collapsed");
+  if (mobile()) {
+    document.body.classList.remove("glass-sidebar-collapsed", "glass-drawer-open");
+    toggle.setAttribute("aria-expanded", "false");
+  } else {
+    setCollapsed(saved === "collapsed");
+  }
   toggle.addEventListener("click", () => {
     if (mobile()) setCollapsed(!document.body.classList.contains("glass-drawer-open"));
     else setCollapsed(!document.body.classList.contains("glass-sidebar-collapsed"));
@@ -102,8 +109,15 @@ function bindShell(root) {
   backdrop.addEventListener("click", () => setCollapsed(true));
   sidebar.querySelectorAll("a.glass-nav-link").forEach(a => a.addEventListener("click", () => { if (mobile()) setCollapsed(true); }));
   window.addEventListener("resize", () => {
-    if (!mobile()) document.body.classList.remove("glass-drawer-open");
-    else document.body.classList.remove("glass-sidebar-collapsed");
+    if (!mobile()) {
+      document.body.classList.remove("glass-drawer-open");
+      let preference = "expanded";
+      try { preference = localStorage.getItem(KEY) || "expanded"; } catch (_) {}
+      setCollapsed(preference === "collapsed");
+    } else {
+      document.body.classList.remove("glass-sidebar-collapsed", "glass-drawer-open");
+      toggle.setAttribute("aria-expanded", "false");
+    }
   });
 
   const profile = sidebar.querySelector(".glass-profile");
