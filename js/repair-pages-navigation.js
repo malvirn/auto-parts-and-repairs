@@ -1,7 +1,5 @@
 import supabase from "./supabaseClient.js";
 import { syncAccountLabel } from "./account-label.js?v=phase1";
-import { initializeSharedHeader } from "./header.js?v=phase2";
-import { applySidebarAccessRules } from "./sidebar.js?v=phase3";
 
 const primaryLinks = [
   { href: "index.html", page: "index", label: "Home", paths: ["M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"] },
@@ -507,160 +505,20 @@ function revealDashboardChromeWhenReady() {
 }
 
 function initializePageChrome() {
-  if (!document.body.classList.contains("dashboard-page")) return;
-
-  const main = document.querySelector(".dashboard-page .main");
-  if (!main) return;
-
-  // The legacy shared header has been retired. Remove its markup from every
-  // dashboard page and do not construct a replacement from this navigation
-  // initializer. This leaves the main page content and navigation untouched.
+  if (!document.body?.classList.contains("dashboard-page")) return;
   document.querySelectorAll(
-    "body.dashboard-page > .dashboard-topbar, body.dashboard-page .main > .app-header, " +
-    "body.dashboard-page .main > .main__header, body.dashboard-page .main > .site-masthead"
+    "body.dashboard-page .sidebar, body.dashboard-page .dashboard-topbar, " +
+    "body.dashboard-page .app-header, body.dashboard-page .main__header, " +
+    "body.dashboard-page .site-masthead, body.dashboard-page .dashboard-sidebar-toggle, " +
+    "body.dashboard-page .dashboard-sidebar-backdrop, body.dashboard-page .tabbar, " +
+    "body.dashboard-page .ftbar, body.dashboard-page .bottom-nav"
   ).forEach(element => element.remove());
-
-  if (!isDashboardHome()) {
-    document.body.classList.add("dashboard-workshop");
-    markDashboardChromeReady();
-    return;
-  }
-
-  if (!main.querySelector(":scope > .site-foot")) {
-    const footer = document.createElement("footer");
-    footer.className = "site-foot";
-
-    const copyright = document.createElement("span");
-    copyright.textContent = "© 2025 Centric Auto Mobile. All rights reserved.";
-
-    const email = document.createElement("a");
-    email.href = "mailto:malvirngomo8@gmail.com";
-    email.append(makeIcon("mail"), document.createTextNode("malvirngomo8@gmail.com"));
-
-    footer.append(copyright, email);
-    main.append(footer);
-  }
-
+  document.body.classList.remove("dashboard-workshop", "sidebar-open", "sidebar-collapsed", "menu-open");
+  document.body.classList.add("dashboard-chrome-ready");
 }
 
 function initializeNavigation() {
   initializePageChrome();
-
-  const sidebar = document.querySelector("body.dashboard-page .sidebar");
-  if (!sidebar) return;
-  ensureSidebarAccount(sidebar);
-  document.querySelectorAll(".tabbar, .bottom-nav, .ftbar, .sidebar-toggle, .sidebar-backdrop, .dots-btn, .apr-header-menu, .menu-scrim").forEach(element => element.remove());
-  document.body.classList.remove("sidebar-open", "menu-open");
-  if (document.body.classList.contains("dashboard-workshop") && !isDashboardHome()) {
-    document.querySelectorAll(".site-foot").forEach(element => element.remove());
-    const toggle = document.getElementById("dashboard-sidebar-toggle");
-    const backdrop = document.querySelector(".dashboard-sidebar-backdrop");
-    const isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
-    // The saved "collapsed" choice is a desktop setting. On a phone the menu is a
-    // slide-in drawer, and the collapsed flag used to keep that drawer off-screen
-    // while the toggle button still jumped over the header icons.
-    // Tablets (769 to 1100px) start with the menu collapsed, like the dashboard, so the
-    // page gets the full width. Laptops start expanded. Each size remembers its own choice.
-    const collapseKey = "apr-sidebar-collapsed";
-    const lockKey = "apr-sidebar-locked";
-    const isLocked = () => { try { return localStorage.getItem(lockKey) === "true"; } catch (_) { return false; } };
-    const applySavedCollapse = () => {
-      let savedCollapsed = null;
-      try {
-        const stored = localStorage.getItem(collapseKey);
-        if (stored !== null) savedCollapsed = stored === "true";
-      } catch (_) {}
-      const collapsed = !isMobile() && !isLocked() && (savedCollapsed === null ? true : savedCollapsed);
-      document.body.classList.toggle("sidebar-collapsed", collapsed);
-      document.body.classList.remove("sidebar-open");
-    };
-    applySavedCollapse();
-    const syncSidebar = () => {
-      const compact = document.body.classList.contains("sidebar-collapsed");
-      const open = isMobile() ? document.body.classList.contains("sidebar-open") : !compact;
-      toggle?.setAttribute("aria-expanded", String(open));
-      toggle?.setAttribute("aria-label", isMobile()
-        ? (open ? "Close navigation" : "Open navigation")
-        : (compact ? "Expand navigation" : "Collapse navigation"));
-      const currentSidebar = document.querySelector("body.dashboard-page .sidebar");
-      if (currentSidebar) currentSidebar.inert = !open;
-    };
-    document.addEventListener("apr:sidebar-lock-changed", event => {
-      if (!isMobile()) document.body.classList.toggle("sidebar-collapsed", !event.detail?.locked);
-      syncSidebar();
-    });
-    if (toggle && !toggle.dataset.navigationBound) {
-      toggle.dataset.navigationBound = "true";
-      toggle.addEventListener("click", () => {
-        if (isMobile()) document.body.classList.toggle("sidebar-open");
-        else {
-          document.body.classList.toggle("sidebar-collapsed");
-          try { localStorage.setItem(collapseKey, String(document.body.classList.contains("sidebar-collapsed"))); } catch (error) {
-            console.warn("Could not save sidebar state:", error);
-          }
-        }
-        syncSidebar();
-      });
-      backdrop?.addEventListener("click", () => {
-        document.body.classList.remove("sidebar-open");
-        syncSidebar();
-      });
-      document.addEventListener("click", event => {
-        const groupButton = event.target.closest(".sidebar[data-dashboard-canonical='true'] .nav-grp");
-        if (groupButton) {
-          const group = groupButton.closest(".nav-group");
-          const open = !group.classList.contains("open");
-          group.classList.toggle("open", open);
-          groupButton.setAttribute("aria-expanded", String(open));
-          try {
-            const state = JSON.parse(localStorage.getItem("apr-nav-open") || "{}");
-            state[group.dataset.group] = open;
-            localStorage.setItem("apr-nav-open", JSON.stringify(state));
-          } catch (error) {
-            console.warn("Could not save navigation state:", error);
-          }
-          return;
-        }
-        if (event.target.closest(".sidebar a.nav-link")) {
-          if (isMobile()) {
-            document.body.classList.remove("sidebar-open");
-          } else if (!isLocked()) {
-            document.body.classList.add("sidebar-collapsed");
-            try { localStorage.setItem(collapseKey, "true"); } catch (error) {
-              console.warn("Could not save collapsed navigation state:", error);
-            }
-          }
-          syncSidebar();
-        }
-      });
-      document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) {
-          document.body.classList.remove("sidebar-open");
-          syncSidebar();
-        }
-      });
-      window.addEventListener("resize", () => {
-        if (!isMobile()) document.body.classList.remove("sidebar-open");
-        applySavedCollapse();
-        syncSidebar();
-      }, { passive: true });
-    }
-    syncSidebar();
-  }
-
-  const currentFile = pageName(window.location.pathname);
-  sidebar.querySelectorAll(".apr-drawer-head, .drawer-head").forEach(element => element.remove());
-
-  if (!document.body.classList.contains("dashboard-workshop")) {
-    const nav = document.createElement("nav");
-    nav.className = "ftbar";
-    nav.setAttribute("aria-label", "Main");
-    primaryLinks.forEach(link => nav.append(buildPrimaryLink(link, currentFile)));
-    document.body.append(nav);
-  }
-  if (!document.body.classList.contains("dashboard-workshop")) sidebar.inert = true;
-  if (window.lucide) window.lucide.createIcons();
-  initializeSharedHeader();
 }
 
 function ensureSidebarAccount(sidebar) {
@@ -802,7 +660,7 @@ function ensureSidebarNotifications(sidebar) {
   window.lucide?.createIcons();
 }
 
-async function initializeAfterAccess() {
+async async function initializeAfterAccess() {
   if (document.body.dataset.role) {
     try {
       localStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({
@@ -815,22 +673,13 @@ async function initializeAfterAccess() {
     document.addEventListener("apr:access-ready", initializeAfterAccess, { once: true });
     return;
   }
-  await normalizeDashboardSidebar(document.querySelector("body.dashboard-page .sidebar"));
-  ensureSidebarNotifications(document.querySelector("body.dashboard-page .sidebar"));
   syncAccountLabel();
   initializeNavigation();
 }
 
-// Render the cached canonical shell immediately, using the last verified role
-// until the current session's access check supplies an authoritative role.
-if (!isDashboardHome()) {
-  const initialSidebar = document.querySelector("body.dashboard-page .sidebar");
-  if (initialSidebar) normalizeDashboardSidebar(initialSidebar);
-}
-
+// The legacy application chrome is retired. No cached shell or replacement
+// header/sidebar is rendered while the new glass navigation is being prepared.
 initializePageChrome();
-startSharedDashboardHeaderClock();
-watchSharedNotificationBell();
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializeAfterAccess, { once: true });
