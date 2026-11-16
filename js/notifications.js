@@ -66,7 +66,7 @@ function injectBellUI() {
       max-height: min(70vh, 560px);
     }
     #global-notif-panel.open { display: block; }
-    #global-notif-panel .global-notif-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:4px 8px 8px; }\n    #global-notif-panel h4 { margin:0; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted,#9a9690); }\n    #global-notif-mark-read { border:0; background:transparent; color:var(--accent,#ff9d3d); font:600 .72rem inherit; cursor:pointer; padding:5px 0; }\n    #global-notif-mark-read:disabled { opacity:.4; cursor:default; }
+    #global-notif-panel .global-notif-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:4px 8px 8px; }\n    #global-notif-panel h4 { margin:0; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted,#9a9690); }\n    #global-notif-mark-read { border:0; background:transparent; color:var(--accent,#ff9d3d); font:600 .72rem system-ui,sans-serif; cursor:pointer; padding:5px 0; }\n    #global-notif-mark-read:disabled { opacity:.4; cursor:default; }
     .global-notif-item {
       display: flex; gap: 10px; padding: 10px 8px; border-radius: 8px; text-decoration: none; color: inherit;
       align-items: flex-start; font-size: .84rem; line-height: 1.35;
