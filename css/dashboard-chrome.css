@@ -1477,6 +1477,13 @@ body.dashboard-page .sidebar a[href*="analytics.html"] > svg { --module-icon:#06
 body.dashboard-page .sidebar a[href*="customers.html"] > svg { --module-icon:#f472b6; --module-icon-bg:rgba(244,114,182,.14); }
 body.dashboard-page .sidebar a[href*="settings.html"] > svg { --module-icon:#94a3b8; --module-icon-bg:rgba(148,163,184,.16); }
 
+/* Apply the per-module colour tokens to each existing Lucide module icon. */
+body.dashboard-page .sidebar .nav-group .nav-grpwrap .nav-link > svg,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group .nav-grpwrap .nav-link > svg {
+  color: var(--module-icon, #94a3b8) !important;
+  background: var(--module-icon-bg, rgba(148,163,184,.12)) !important;
+  stroke: currentColor !important;
+}
 /* The active module keeps its own coloured icon while the active row stays highlighted. */
 body.dashboard-page .sidebar .nav-grpwrap .nav-link.active > svg,
 body.dashboard-page .sidebar .nav-grpwrap .nav-link[aria-current="page"] > svg {
