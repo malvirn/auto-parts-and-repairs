@@ -176,3 +176,59 @@ body.dashboard-home .dash-content .global-search__results {
 :root[data-theme="light"] body.dashboard-home .tiles .tile {
   color: var(--cam-content-text) !important;
 }
+
+
+/* Shared glass coverage for the full sidebar module set.
+   Several modules use their own legacy surface class names, so cover those
+   explicitly without changing their layout, spacing, or behaviour. */
+body.dashboard-page .main :is(
+  .rc,.rc-tabs,.rc-stats,.rc-form,.rc-build,.st,.jm-grid,.jc-wrap,
+  .jc-left,.jc-right,.pane-switch,.pos-catalogue,.pos-cart-panel,
+  .pos-payment-panel,.payroll-banner,.payroll-table-wrap,.dept-grid > *,
+  .inspection-diagram-panel,.inspection-side-panel,.inspection-summary,
+  .customer-account-summary,.customer-account-stat,.customer-directory-detail,
+  .customer-directory-search,.payment-summary,.payment-grid,.landed-summary,
+  .module-card,.module-grid > *, .card-grid > *, .analytics-grid > *,
+  .sg,.sr,.settings-welcome,.settings-card,.tier-row,.tier-head,
+  .online-search-panel,.suppliers-toolbar,.parts-filter-panel,
+  .stock-summary-grid > *,.alert-card,.chart-card,.report-card,
+  .dashboard-table-panel,.job-part-purchase-table,.customer-accounts-table-wrap,
+  .customer-directory-layout,.customer-directory,.supplier-form,
+  .inspection-strip,.inspection-layout,.inspection-side-panel,
+  .checklist-page .card
+) {
+  color: var(--cam-content-text) !important;
+  background: linear-gradient(150deg,var(--cam-content-glass-a),var(--cam-content-glass-b)) !important;
+  border: 1px solid var(--cam-content-glass-edge) !important;
+  box-shadow: var(--cam-content-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+  backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+}
+body.dashboard-page .main :is(
+  .rc,.rc-tabs,.rc-stats,.rc-form,.rc-build,.st,.jm-grid,.jc-wrap,
+  .jc-left,.jc-right,.pos-catalogue,.pos-cart-panel,.pos-payment-panel,
+  .payroll-banner,.inspection-diagram-panel,.inspection-side-panel,
+  .inspection-summary,.customer-account-summary,.customer-account-stat,
+  .payment-summary,.landed-summary,.module-card,.chart-card,.report-card,
+  .sg,.sr,.settings-welcome,.tier-row,.tier-head,.online-search-panel,
+  .parts-filter-panel,.alert-card,.job-part-purchase-table
+) :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,td,th,li,dt,dd) {
+  color: var(--cam-content-text);
+}
+body.dashboard-page .main :is(.page-section,.module-tabs,.module-grid,.card-grid,.analytics-grid) {
+  background: transparent !important;
+}
+body.dashboard-page .main :is(.page-intro,.section-heading,.section-kicker,.section-note) {
+  background: transparent !important;
+}
+:root[data-theme="light"] body.dashboard-page .main :is(
+  .rc,.rc-tabs,.rc-stats,.rc-form,.rc-build,.st,.jm-grid,.jc-wrap,
+  .jc-left,.jc-right,.pos-catalogue,.pos-cart-panel,.pos-payment-panel,
+  .payroll-banner,.inspection-diagram-panel,.inspection-side-panel,
+  .inspection-summary,.customer-account-summary,.customer-account-stat,
+  .payment-summary,.landed-summary,.module-card,.chart-card,.report-card,
+  .sg,.sr,.settings-welcome,.tier-row,.tier-head,.online-search-panel,
+  .parts-filter-panel,.alert-card,.job-part-purchase-table
+) {
+  color: #18212b !important;
+}
