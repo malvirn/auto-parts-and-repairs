@@ -293,6 +293,32 @@
  .customer-inline-payment>*{grid-column:1!important}
  .customer-inline-payment-actions>*{flex:1 1 130px}
 }
+
+    /* Customer Accounts intro and heading icon must remain legible in light mode. */
+    #customer-accounts > .page-intro {
+      color: #344457 !important;
+      opacity: 1 !important;
+      font-weight: 500;
+      line-height: 1.65;
+    }
+    #customer-accounts-heading .section-heading-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 9px;
+      vertical-align: -3px;
+      color: #b45309 !important;
+      stroke: currentColor !important;
+      opacity: 1 !important;
+      filter: none !important;
+    }
+    :root[data-theme="dark"] #customer-accounts > .page-intro {
+      color: #d5e0e8 !important;
+    }
+    :root[data-theme="dark"] #customer-accounts-heading .section-heading-icon {
+      color: #ffad62 !important;
+    }
+  
 </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
