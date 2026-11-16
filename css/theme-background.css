@@ -57,7 +57,7 @@ body.dashboard-home .dash-content :is(
   backdrop-filter: blur(22px) saturate(165%);
 }
 /* Shared header and navigation remain legible while allowing the photo to show through. */
-body.dashboard-page :is(.main__header,.dashboard-topbar,.hdr,.header,.topbar) {
+body.dashboard-page :is(.main__header,.dashboard-topbar,.app-header,.hdr,.header,.topbar) {
   background: rgba(16, 29, 32, .48) !important;
   border-color: rgba(255,255,255,.14) !important;
   -webkit-backdrop-filter: blur(20px) saturate(155%);
@@ -69,7 +69,7 @@ body.dashboard-page .sidebar {
   -webkit-backdrop-filter: blur(24px) saturate(155%);
   backdrop-filter: blur(24px) saturate(155%);
 }
-:root[data-theme="light"] body.dashboard-page :is(.main__header,.dashboard-topbar,.hdr,.header,.topbar) {
+:root[data-theme="light"] body.dashboard-page :is(.main__header,.dashboard-topbar,.app-header,.hdr,.header,.topbar) {
   background: rgba(247,250,252,.62) !important;
   border-color: rgba(24,33,43,.12) !important;
 }
