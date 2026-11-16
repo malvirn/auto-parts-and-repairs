@@ -105,3 +105,115 @@ body.dashboard-page .filter-more-grid { background:var(--surface)!important;colo
 body.dashboard-page .quotation-modal,body.dashboard-page .quotation-modal-header,body.dashboard-page .quotation-modal-footer { background:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important; }
 body.dashboard-page .quotation-line-list .quotation-line { background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--line)!important; }
 body.dashboard-page .quotation-line-list .amend-price,body.dashboard-page .quotation-line-list .amend-qty { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
+
+
+/* Centric Auto system-wide typography and dual-theme surface system. */
+:root {
+  --font-heading: "Sora", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --cam-glass-blur: 24px;
+  --cam-glass-shadow: 0 22px 50px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.16);
+}
+:root[data-theme="dark"] {
+  --text: #f8faf9;
+  --text-muted: #d0d9d4;
+  --text-faint: #b3beb8;
+  --text-link: #ffb066;
+  --ok: #5fe0a0;
+  --warn: #f5b020;
+  --danger: #ff8d85;
+  --surface: rgba(26,35,42,.64);
+  --surface-2: rgba(14,20,24,.5);
+  --line: rgba(255,255,255,.15);
+  --input-bg: rgba(255,255,255,.08);
+  --input-text: #f8faf9;
+  --placeholder: #b3beb8;
+  --cam-glass-a: rgba(26,35,42,.64);
+  --cam-glass-b: rgba(14,20,24,.5);
+  --cam-glass-edge: rgba(255,255,255,.17);
+  --cam-glass-line: rgba(255,255,255,.15);
+  --cam-glass-shadow: 0 22px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.24);
+  --cam-input: rgba(255,255,255,.08);
+  --cam-hover: rgba(255,255,255,.08);
+  --cam-card-a: rgba(255,255,255,.13);
+  --cam-card-b: rgba(255,255,255,.05);
+  --cam-card-edge: rgba(255,255,255,.2);
+}
+:root[data-theme="light"] {
+  --text: #07090b;
+  --text-muted: #2e373e;
+  --text-faint: #4a555d;
+  --text-link: #a84300;
+  --ok: #0a7a40;
+  --warn: #9a4a05;
+  --danger: #b4231b;
+  --surface: rgba(255,255,255,.84);
+  --surface-2: rgba(255,255,255,.66);
+  --line: rgba(7,9,11,.14);
+  --input-bg: rgba(255,255,255,.72);
+  --input-text: #07090b;
+  --placeholder: #4a555d;
+  --cam-glass-a: rgba(255,255,255,.84);
+  --cam-glass-b: rgba(255,255,255,.66);
+  --cam-glass-edge: rgba(255,255,255,.95);
+  --cam-glass-line: rgba(7,9,11,.14);
+  --cam-glass-shadow: 0 18px 44px rgba(22,34,46,.16), inset 0 1px 0 #fff;
+  --cam-input: rgba(255,255,255,.72);
+  --cam-hover: rgba(7,9,11,.06);
+  --cam-card-a: #fff;
+  --cam-card-b: rgba(255,255,255,.86);
+  --cam-card-edge: #fff;
+}
+body.dashboard-page {
+  font-family: var(--font-body) !important;
+  color: var(--text) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body.dashboard-page :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.stat-value,.stat-card__value,.kpi-value) {
+  font-family: var(--font-heading) !important;
+}
+body.dashboard-page :is(input,select,textarea) {
+  font-family: var(--font-body);
+}
+body.dashboard-page :is(code,pre,kbd,.plate,.license-plate,[data-mono="true"]) {
+  font-family: var(--font-mono) !important;
+}
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) {
+  background: linear-gradient(160deg,var(--cam-glass-a),var(--cam-glass-b)) !important;
+  color: var(--text) !important;
+  border-color: var(--cam-glass-edge) !important;
+  box-shadow: var(--cam-glass-shadow);
+  -webkit-backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
+}
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,td,th,li,div) {
+  color: var(--text);
+}
+body.dashboard-page :is(.muted,.section-note,.text-muted,.help-text,.form-hint,.field-hint,small) {
+  color: var(--text-muted);
+}
+body.dashboard-page :is(input,select,textarea,.hs-bar,#hs-input) {
+  background-color: var(--cam-input);
+  color: var(--input-text);
+  border-color: var(--cam-glass-line);
+}
+body.dashboard-page :is(input,textarea)::placeholder { color: var(--placeholder); opacity: 1; }
+body.dashboard-page :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) {
+  background: linear-gradient(160deg,var(--cam-glass-a),var(--cam-glass-b)) !important;
+  color: var(--text) !important;
+  border-color: var(--cam-glass-edge) !important;
+  -webkit-backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
+  backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
+}
+body.dashboard-page :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) :is(h1,h2,h3,h4,p,span,label,small,strong,a,li) {
+  color: var(--text);
+}
+body.dashboard-page :is(.nav-link,.glass-nav-link,.it):hover { background: var(--cam-hover); }
+body.dashboard-page :is(.glass-nav-heading,.nav-grp,.section-label) { color: var(--text-muted); }
+body.dashboard-page :is(.plate,.license-plate) { background: #fdd835 !important; color: #12171b !important; border-color: #12171b !important; }
+body.dashboard-page :is(.status-ready,.status-success,.s-ok) { color: var(--ok); }
+body.dashboard-page :is(.status-warning,.status-progress,.s-w) { color: var(--warn); }
+body.dashboard-page :is(.status-danger,.status-error,.s-b) { color: var(--danger); }
+/* Intentionally no button selectors: existing custom button styling is preserved. */
