@@ -1415,3 +1415,78 @@ body.dashboard-page:not(.dashboard-workshop) .app-header .hdr-header-actions>*{
     flex-basis:30px!important;width:30px!important;min-width:30px!important;height:30px!important;
   }
 }
+
+/* Sidebar module tree: indented rail, distinct module icon colours, collapsible groups. */
+body.dashboard-page .sidebar .nav-group .nav-grpwrap,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group .nav-grpwrap {
+  position: relative !important;
+  margin: 2px 0 5px 9px !important;
+  padding: 4px 0 5px 14px !important;
+  border-left: 1px solid rgba(148,163,184,.34) !important;
+}
+body.dashboard-page .sidebar .nav-group .nav-grpwrap .nav-link,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group .nav-grpwrap .nav-link {
+  position: relative !important;
+  margin-left: 5px !important;
+  padding-left: 10px !important;
+  min-height: 37px !important;
+}
+body.dashboard-page .sidebar .nav-group .nav-grpwrap .nav-link::before,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group .nav-grpwrap .nav-link::before {
+  content: "" !important;
+  position: absolute !important;
+  left: -14px !important;
+  top: 50% !important;
+  width: 8px !important;
+  height: 1px !important;
+  background: rgba(148,163,184,.42) !important;
+}
+body.dashboard-page .sidebar .nav-group .nav-grpwrap .nav-link > svg,
+body.dashboard-page.dashboard-workshop .sidebar .nav-group .nav-grpwrap .nav-link > svg {
+  width: 17px !important;
+  height: 17px !important;
+  padding: 3px !important;
+  box-sizing: content-box !important;
+  border-radius: 7px !important;
+  background: var(--module-icon-bg, rgba(148,163,184,.12)) !important;
+  color: var(--module-icon, #94a3b8) !important;
+  stroke: currentColor !important;
+}
+
+/* Workshop */
+body.dashboard-page .sidebar a[href*="repairs.html"] > svg { --module-icon:#22c55e; --module-icon-bg:rgba(34,197,94,.13); }
+body.dashboard-page .sidebar a[href*="checklist.html"] > svg { --module-icon:#14b8a6; --module-icon-bg:rgba(20,184,166,.13); }
+body.dashboard-page .sidebar a[href*="technicians.html"] > svg { --module-icon:#38bdf8; --module-icon-bg:rgba(56,189,248,.13); }
+body.dashboard-page .sidebar a[href*="commissions.html"] > svg { --module-icon:#a78bfa; --module-icon-bg:rgba(167,139,250,.14); }
+/* Inventory */
+body.dashboard-page .sidebar a[href*="shop.html"] > svg { --module-icon:#f59e0b; --module-icon-bg:rgba(245,158,11,.15); }
+body.dashboard-page .sidebar a[href*="suppliers.html"] > svg { --module-icon:#0ea5e9; --module-icon-bg:rgba(14,165,233,.14); }
+body.dashboard-page .sidebar a[href*="landed-cost.html"] > svg { --module-icon:#f97316; --module-icon-bg:rgba(249,115,22,.14); }
+/* Finance */
+body.dashboard-page .sidebar a[href*="quotations.html"] > svg { --module-icon:#8b5cf6; --module-icon-bg:rgba(139,92,246,.14); }
+body.dashboard-page .sidebar a[href*="receipts.html"] > svg { --module-icon:#10b981; --module-icon-bg:rgba(16,185,129,.14); }
+body.dashboard-page .sidebar a[href*="cashbook.html"] > svg { --module-icon:#06b6d4; --module-icon-bg:rgba(6,182,212,.14); }
+body.dashboard-page .sidebar a[href*="payables.html"] > svg { --module-icon:#f97316; --module-icon-bg:rgba(249,115,22,.14); }
+body.dashboard-page .sidebar a[href*="ledger.html"] > svg { --module-icon:#3b82f6; --module-icon-bg:rgba(59,130,246,.14); }
+body.dashboard-page .sidebar a[href*="accounting.html"] > svg { --module-icon:#64748b; --module-icon-bg:rgba(100,116,139,.16); }
+body.dashboard-page .sidebar a[href*="fixed-assets.html"] > svg { --module-icon:#d97706; --module-icon-bg:rgba(217,119,6,.14); }
+body.dashboard-page .sidebar a[href*="financial-statements.html"] > svg { --module-icon:#ec4899; --module-icon-bg:rgba(236,72,153,.14); }
+/* Intelligence and administration */
+body.dashboard-page .sidebar a[href*="centric-intelligence.html"] > svg { --module-icon:#a855f7; --module-icon-bg:rgba(168,85,247,.15); }
+body.dashboard-page .sidebar a[href*="analytics.html"] > svg { --module-icon:#06b6d4; --module-icon-bg:rgba(6,182,212,.14); }
+body.dashboard-page .sidebar a[href*="customers.html"] > svg { --module-icon:#f472b6; --module-icon-bg:rgba(244,114,182,.14); }
+body.dashboard-page .sidebar a[href*="settings.html"] > svg { --module-icon:#94a3b8; --module-icon-bg:rgba(148,163,184,.16); }
+
+/* The active module keeps its own coloured icon while the active row stays highlighted. */
+body.dashboard-page .sidebar .nav-grpwrap .nav-link.active > svg,
+body.dashboard-page .sidebar .nav-grpwrap .nav-link[aria-current="page"] > svg {
+  color: #fff !important;
+  background: rgba(255,255,255,.16) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-group .nav-grpwrap {
+  border-left-color: rgba(71,85,105,.28) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-group .nav-grpwrap .nav-link::before {
+  background: rgba(71,85,105,.35) !important;
+}
+
