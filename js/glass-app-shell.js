@@ -23,7 +23,8 @@ const NAV = [
     { label: "Fixed Assets", href: "pages/fixed-assets.html", icon: "landmark", page: "fixed-assets", roles: ["super_admin","accounting"] },
     { label: "Financial Statements", href: "pages/financial-statements.html", icon: "chart-no-axes-combined", page: "financial-statements", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Centric Intelligence", items: [
+  { title: "Intelligence", items: [
+    { label: "Centric Intelligence", href: "pages/centric-intelligence.html", icon: "brain-circuit", page: "centric-intelligence", roles: ["super_admin","accounting"] },
     { label: "Analytics", href: "pages/analytics.html", icon: "chart-no-axes-combined", page: "analytics", roles: ["super_admin","accounting"] }
   ]},
   { title: "Administration", items: [

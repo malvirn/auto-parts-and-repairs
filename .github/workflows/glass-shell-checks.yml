@@ -1,0 +1,57 @@
+name: Centric glass shell checks
+on:
+  push:
+    branches: [main, feature/glass-app-shell]
+    paths:
+      - 'js/glass-app-shell.js'
+      - 'js/centric-intelligence.js'
+      - 'js/notifications.js'
+      - 'js/auth.js'
+      - 'pages/centric-intelligence.html'
+      - 'css/glass-app-shell.css'
+      - '.github/workflows/glass-shell-checks.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/glass-app-shell.js'
+      - 'js/centric-intelligence.js'
+      - 'js/notifications.js'
+      - 'js/auth.js'
+      - 'pages/centric-intelligence.html'
+      - 'css/glass-app-shell.css'
+      - '.github/workflows/glass-shell-checks.yml'
+jobs:
+  syntax-and-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript modules
+        run: |
+          node --check js/glass-app-shell.js
+          node --check js/centric-intelligence.js
+          node --check js/notifications.js
+          node --check js/auth.js
+      - name: Check the Intelligence page integration
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class PageCheck(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.scripts=[]; self.styles=[]; self.body=None
+              def handle_starttag(self, tag, attrs):
+                  attrs=dict(attrs)
+                  if tag == "script" and attrs.get("src"): self.scripts.append(attrs["src"])
+                  if tag == "link" and attrs.get("rel") == "stylesheet": self.styles.append(attrs.get("href",""))
+                  if tag == "body": self.body=attrs.get("class","")
+          page=Path("pages/centric-intelligence.html")
+          parser=PageCheck(); parser.feed(page.read_text(encoding="utf-8"))
+          assert "dashboard-page" in parser.body, "Intelligence page must use the authenticated dashboard shell"
+          for required in ("../css/glass-app-shell.css","../js/auth.js","../js/repair-pages-navigation.js","../js/dashboard-search.js","../js/centric-intelligence.js"):
+              assert any(item.startswith(required) for item in parser.styles + parser.scripts), f"Missing {required}"
+          assert Path("img/engine-bay-bg.webp").exists(), "Shared shell background asset is missing"
+          print("Centric Intelligence page and shared shell integration checks passed")
+          PY
