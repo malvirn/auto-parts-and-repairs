@@ -66,7 +66,7 @@ function injectBellUI() {
       max-height: min(70vh, 560px);
     }
     #global-notif-panel.open { display: block; }
-    #global-notif-panel h4 { margin: 4px 8px 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted, #9a9690); }
+    #global-notif-panel .global-notif-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:4px 8px 8px; }\n    #global-notif-panel h4 { margin:0; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted,#9a9690); }\n    #global-notif-mark-read { border:0; background:transparent; color:var(--accent,#ff9d3d); font:600 .72rem inherit; cursor:pointer; padding:5px 0; }\n    #global-notif-mark-read:disabled { opacity:.4; cursor:default; }
     .global-notif-item {
       display: flex; gap: 10px; padding: 10px 8px; border-radius: 8px; text-decoration: none; color: inherit;
       align-items: flex-start; font-size: .84rem; line-height: 1.35;
@@ -97,10 +97,10 @@ function injectBellUI() {
 
   const panel = document.createElement("div");
   panel.id = "global-notif-panel";
-  panel.innerHTML = `<h4>Notifications</h4><div id="global-notif-list"></div>`;
+  panel.innerHTML = `<div class="global-notif-heading"><h4>Notifications</h4><button type="button" id="global-notif-mark-read">Mark all read</button></div><div id="global-notif-list"></div>`;
   document.body.appendChild(panel);
 
-  bell.addEventListener("click", (e) => {
+  panel.querySelector("#global-notif-mark-read").addEventListener("click", () => {\n    const keys = (window.__centricCurrentNotifications || []).map(notificationKey);\n    try { localStorage.setItem("centric-read-notifications", JSON.stringify([...new Set([...readNotificationKeys(), ...keys])].slice(-500))); } catch (_) {}\n    renderNotifications(window.__centricCurrentNotifications || []);\n  });\n\n  bell.addEventListener("click", (e) => {
     e.stopPropagation();
     panel.classList.toggle("open");
     if (panel.classList.contains("open") && (dashboardActions || dashboardTopbar)) {
@@ -119,27 +119,38 @@ function injectBellUI() {
   if (window.lucide) lucide.createIcons();
 }
 
+function notificationKey(item) {
+  return encodeURIComponent(String(item.link || "") + "|" + String(item.message || ""));
+}
+function readNotificationKeys() {
+  try {
+    const value = JSON.parse(localStorage.getItem("centric-read-notifications") || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch (_) { return []; }
+}
 function renderNotifications(items) {
   const badge = document.getElementById("global-notif-badge");
   const list = document.getElementById("global-notif-list");
+  const markRead = document.getElementById("global-notif-mark-read");
   if (!badge || !list) return;
-
-  if (items.length > 0) {
-    badge.textContent = items.length > 9 ? "9+" : String(items.length);
+  window.__centricCurrentNotifications = items;
+  const read = new Set(readNotificationKeys());
+  const unread = items.filter(item => !read.has(notificationKey(item)));
+  if (unread.length) {
+    badge.textContent = unread.length > 9 ? "9+" : String(unread.length);
     badge.style.display = "flex";
   } else {
     badge.style.display = "none";
   }
-
-  list.innerHTML = items.length
-    ? items.map(n => `
-        <a class="global-notif-item ${n.severity}" href="${n.link}">
+  if (markRead) markRead.disabled = unread.length === 0;
+  list.innerHTML = unread.length
+    ? unread.map(n => `
+        <a class="global-notif-item ${escapeHtml(n.severity)}" href="${escapeHtml(n.link)}">
           <span class="dot"></span>
-          <span>${n.message}</span>
+          <span>${escapeHtml(n.message)}</span>
         </a>
       `).join("")
-    : `<div class="global-notif-empty">All caught up — nothing needs attention right now.</div>`;
-
+    : `<div class="global-notif-empty">You're all caught up. New alerts will appear here.</div>`;
   if (window.lucide) lucide.createIcons();
 }
 
