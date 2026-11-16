@@ -28,7 +28,8 @@ const PAGE_ACCESS = {
   "customers": ["super_admin", "staff"], // accounting has no reason to see customer PII
   "repairs": ["super_admin", "staff"], // accounting has no reason to edit repair jobs directly
   "suppliers": ["super_admin", "staff"], // accounting still reads the suppliers TABLE fine (for Payables/Landed Cost dropdowns) — this only hides the management PAGE
-  "analytics": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
+  "analytics": ["super_admin", "accounting"],
+  "centric-intelligence": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
 };
 
 // Where each role lands instead of the generic dashboard, since "their
