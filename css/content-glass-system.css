@@ -122,3 +122,42 @@ body.dashboard-page .main :is(.divider,.table-divider,hr) { border-color: var(--
 @media (prefers-reduced-motion: reduce) {
   body.dashboard-page .main :is(button,.btn,[role="button"]) { transition: none; }
 }
+
+
+/* Home dashboard: use the same glass surfaces and content rhythm as module pages. */
+body.dashboard-home .dash-content {
+  color: var(--cam-content-text);
+  background: transparent !important;
+  font-family: var(--cam-content-font);
+}
+body.dashboard-home .dash-content .dashboard-section {
+  min-width: 0;
+}
+body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card,.chart-card,.report-card,.metric-card,.activity-card,.insight-card,.inventory-card) {
+  color: var(--cam-content-text) !important;
+  background: linear-gradient(150deg,var(--cam-content-glass-a),var(--cam-content-glass-b)) !important;
+  border: 1px solid var(--cam-content-glass-edge) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--cam-content-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+  backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+}
+body.dashboard-home .dash-content :is(h2,h3,h4,.stat-card__value) {
+  color: var(--cam-content-text) !important;
+  font-family: var(--cam-content-heading) !important;
+}
+body.dashboard-home .dash-content :is(p,.section-note,.stat-card__label,.attention-empty,.ov-empty,.muted) {
+  color: var(--cam-content-muted) !important;
+}
+body.dashboard-home .dash-content .section-kicker {
+  color: #f58220 !important;
+}
+body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card) {
+  padding: clamp(16px,2.2vw,22px);
+}
+body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card) :is(a,button) {
+  font-family: var(--cam-content-font);
+}
+:root[data-theme="light"] body.dashboard-home .dash-content h2 {
+  color: #18212b !important;
+}
