@@ -200,3 +200,13 @@ body.dashboard-page.glass-app-shell::before {
 .glass-search .hs-item small,.glass-search .hs-empty { color:var(--text-muted); }
 :root[data-theme="light"] .glass-sidebar-backdrop { background:rgba(7,9,11,.24); }
 :root[data-theme="dark"] .glass-sidebar-backdrop { background:rgba(0,0,0,.5); }
+
+/* Keep the home page on the same shared workshop image as every glass surface. */
+body.dashboard-page.glass-app-shell .dash-content { background: transparent !important; }
+body.dashboard-page.glass-app-shell .hero-bg { display: none !important; }
+:root[data-theme="dark"] body.dashboard-page.glass-app-shell .hero::after {
+  background: linear-gradient(90deg,rgba(5,9,12,.64),rgba(5,9,12,.24)),linear-gradient(0deg,rgba(5,9,12,.52),transparent 55%);
+}
+:root[data-theme="light"] body.dashboard-page.glass-app-shell .hero::after {
+  background: linear-gradient(90deg,rgba(247,249,250,.78),rgba(247,249,250,.34)),linear-gradient(0deg,rgba(240,244,246,.58),transparent 55%);
+}
