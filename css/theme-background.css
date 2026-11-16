@@ -1,54 +1,97 @@
-/* Shared engine-bay background. Keep page content above the fixed image and tint layers. */
+/* Centric Auto Mobile shared photographic background.
+   Keep one continuous image behind every module and both colour themes. */
+:root {
+  --cam-bg-image: url("../assets/dashboard-hero.jpeg");
+  --cam-bg-wash: rgba(5, 10, 13, .48);
+}
+:root[data-theme="light"] {
+  --cam-bg-wash: rgba(245, 248, 250, .42);
+}
 html {
   min-height: 100%;
-  background: #0b1220;
+  background-color: #10191c !important;
+  background-image: linear-gradient(var(--cam-bg-wash), var(--cam-bg-wash)), var(--cam-bg-image) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
 }
 body {
   position: relative;
-  isolation: isolate;
   min-height: 100vh;
   background: transparent !important;
+  background-color: transparent !important;
 }
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
+/* Prevent page-level wrappers from painting an opaque sheet over the image. */
+body.dashboard-page,
+body.dashboard-page .app-shell,
+body.dashboard-page .main,
+body.dashboard-page .main-content,
+body.dashboard-page .page-content,
+body.dashboard-page .dash-content,
+body.dashboard-page .dashboard-content {
+  background-color: transparent !important;
+  background-image: none !important;
 }
-body::before {
-  background: url("../img/engine-bay-bg.webp") center / cover no-repeat;
-}
-body::after {
-  background: rgba(5, 8, 10, .72);
-}
-body.dashboard-page::after {
-  display: block !important;
-}
-:root[data-theme="light"] body::after {
-  background: rgba(255, 255, 255, .88);
-}
-/* Keep working surfaces readable above the photo in both themes. */
-body.dashboard-page :is(
-  .card, .stat-card, .panel, .panel-card, .content-card, .section-card,
-  .form-card, form, .table-container, .table-wrap, .table-responsive,
-  .modal-content, .modal-card, .customer-form, .quote-modal,
-  .repair-card, .report-card, .kpi-card
+/* Glass content surfaces. Keep these inside the page content, not the chrome. */
+body.dashboard-page .main :is(
+  .card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,
+  .table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,
+  .repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,
+  .modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,
+  .lane,.job-card,.jc,.ci-card,.ci-panel,.chart-card,.report-card,.module-card,
+  .settings-card,.stock-summary-card,.summary-card,.info-card,.metric-card,
+  .kpi-card,.activity-card,.dashboard-card,.insight-card,.inventory-card,
+  .dashboard-table-panel,.alert-card,.dept-card,.payroll-banner,
+  .objective-card,.gauge-card,.form-grid.panel,form.panel
 ) {
-  background-color: color-mix(in srgb, var(--cam-surface, var(--mh-card, #17202c)) 92%, transparent) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
 }
-body.dashboard-page :is(.table-container, .table-wrap, .table-responsive) table {
-  background-color: color-mix(in srgb, var(--cam-surface, var(--mh-card, #17202c)) 92%, transparent);
+/* Home dashboard surfaces use the same glass treatment. */
+body.dashboard-home .dash-content :is(
+  .panel,.stat-card,.objective-card,.chart-card,.report-card,.metric-card,
+  .activity-card,.insight-card,.inventory-card
+) {
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+}
+/* Shared header and navigation remain legible while allowing the photo to show through. */
+body.dashboard-page :is(.main__header,.dashboard-topbar,.hdr,.header,.topbar) {
+  background: rgba(16, 29, 32, .48) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
+  backdrop-filter: blur(20px) saturate(155%);
+}
+body.dashboard-page .sidebar {
+  background: linear-gradient(180deg, rgba(13,27,29,.78), rgba(8,18,20,.72)) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+}
+:root[data-theme="light"] body.dashboard-page :is(.main__header,.dashboard-topbar,.hdr,.header,.topbar) {
+  background: rgba(247,250,252,.62) !important;
+  border-color: rgba(24,33,43,.12) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar {
+  background: linear-gradient(180deg, rgba(245,248,250,.88), rgba(230,237,241,.82)) !important;
+  border-color: rgba(24,33,43,.12) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link {
+  color: #253342 !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-grp {
+  color: #526171 !important;
 }
 body.login-page .sync {
   background: rgba(5, 8, 10, .72);
 }
+@media (max-width: 720px) {
+  html { background-attachment: scroll !important; }
+}
 @media print {
   html, body {
     background: #fff !important;
-  }
-  body::before, body::after {
-    display: none !important;
+    background-image: none !important;
   }
 }
