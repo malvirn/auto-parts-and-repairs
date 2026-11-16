@@ -49,12 +49,6 @@ body a { color:var(--mh-al); }
 body :focus-visible { outline:2px solid var(--mh-ac); outline-offset:2px; }
 body ::selection { background:color-mix(in srgb,var(--mh-ac) 30%,transparent); }
 
-/* MaternityHelp watermark */
-body::after {
-  content:'MALVIRN GOMO'; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-28deg);
-  font:800 clamp(44px,9vw,130px)/1 'Inter',system-ui,sans-serif; letter-spacing:.14em; color:var(--mh-tx);
-  opacity:.03; pointer-events:none; user-select:none; -webkit-user-select:none; z-index:70; white-space:nowrap;
-}
 
 /* ---------- 3. Sidebar (MH .side / .nv) ---------- */
 body.dashboard-page .sidebar {
