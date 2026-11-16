@@ -349,6 +349,22 @@ async function normalizeDashboardSidebar(sidebar) {
       group.classList.toggle("open", shouldOpen);
       group.querySelector(".nav-grp")?.setAttribute("aria-expanded", String(shouldOpen));
     });
+
+    // The sidebar is cloned from Index, so reconnect its collapsible group controls.
+    canonical.querySelectorAll(".nav-group").forEach(group => {
+      const button = group.querySelector(".nav-grp");
+      if (!button || button.dataset.collapseBound === "true") return;
+      button.dataset.collapseBound = "true";
+      button.addEventListener("click", () => {
+        const open = !group.classList.contains("open");
+        group.classList.toggle("open", open);
+        button.setAttribute("aria-expanded", String(open));
+        const state = {};
+        try { Object.assign(state, JSON.parse(localStorage.getItem("apr-nav-open") || "{}")); } catch (_) {}
+        state[group.dataset.group] = open;
+        try { localStorage.setItem("apr-nav-open", JSON.stringify(state)); } catch (_) {}
+      });
+    });
     canonical.dataset.dashboardCanonical = "true";
     sidebar.replaceWith(canonical);
 
