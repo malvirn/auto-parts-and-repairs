@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
 /* Shared theme foundation. Phase 1: canonical colour tokens only. */
 :root,
 :root[data-theme="light"] {
