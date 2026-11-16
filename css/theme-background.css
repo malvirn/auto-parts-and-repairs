@@ -95,3 +95,42 @@ body.login-page .sync {
     background-image: none !important;
   }
 }
+
+
+/* Universal module background fallback.
+   Do not depend on the JavaScript shell class: every dashboard module gets
+   the same workshop image even if the shell mounts late or a legacy page
+   uses a different wrapper. */
+body.dashboard-page {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body.dashboard-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--cam-bg-wash), var(--cam-bg-wash)),
+    var(--cam-bg-image);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+body.dashboard-page > .app-shell,
+body.dashboard-page .app-shell,
+body.dashboard-page .main,
+body.dashboard-page .main-content,
+body.dashboard-page .page-content,
+body.dashboard-page .dash-content,
+body.dashboard-page .dashboard-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body.dashboard-page > .app-shell {
+  position: relative;
+  z-index: 1;
+}
