@@ -675,9 +675,39 @@ body.dashboard-workshop .rc .pill.status-unclaimed{background:#fff0ed!important;
 </style>
   <link rel="stylesheet" href="../css/workshop-buttons.css?v=phase5">
 
-  <link rel="stylesheet" href="../css/content-glass-system.css?v=20261116-bgfix1">
+<style id="module-design-repairs">
+
+/* Job cards and repairs: individual page styling, scoped to this module's content only. */
+body.dashboard-page.module-repairs { --module-accent:#f58220; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+:root[data-theme="light"] body.dashboard-page.module-repairs { --module-glass:rgba(250,252,254,.86); --module-edge:rgba(255,255,255,.92); --module-ink:#172431; --module-muted:#5c6b79; }
+body.dashboard-page.module-repairs .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
+body.dashboard-page.module-repairs .main :is(.page-section) { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
+:root[data-theme="light"] body.dashboard-page.module-repairs .main .page-section { background:rgba(255,255,255,.24); border-color:rgba(26,45,60,.08); }
+body.dashboard-page.module-repairs .main :is(.section-heading,.page-intro) { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:15px; }
+body.dashboard-page.module-repairs .main :is(.section-heading h1,.section-heading h2,.page-title,h1) { color:var(--module-ink); font-weight:750; letter-spacing:-.035em; }
+body.dashboard-page.module-repairs .main .section-kicker { color:var(--module-accent); font-size:.7rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+body.dashboard-page.module-repairs .main :is(.section-note,.muted,.empty-state,.help-text) { color:var(--module-muted); }
+body.dashboard-page.module-repairs .main :is(.jc-wrap,.jc-left,.jc-right,.job-card,.repair-card,.repair-panel,.panel,.lane,.job-card-panel) { background:linear-gradient(145deg,var(--module-glass),color-mix(in srgb,var(--module-glass) 72%,transparent)) !important; border:1px solid var(--module-edge) !important; border-radius:16px !important; box-shadow:0 14px 34px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.08) !important; color:var(--module-ink); -webkit-backdrop-filter:blur(18px) saturate(145%); backdrop-filter:blur(18px) saturate(145%); }
+body.dashboard-page.module-repairs .main :is(table,thead,tbody,tfoot,tr) { background:transparent !important; }
+body.dashboard-page.module-repairs .main :is(th,td) { border-color:var(--module-edge) !important; color:var(--module-ink); }
+body.dashboard-page.module-repairs .main th { color:var(--module-muted); font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+body.dashboard-page.module-repairs .main tbody tr:hover { background:color-mix(in srgb,var(--module-accent) 10%,transparent) !important; }
+body.dashboard-page.module-repairs .main :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { background:rgba(3,13,20,.28) !important; border:1px solid var(--module-edge) !important; border-radius:10px; color:var(--module-ink) !important; min-height:40px; }
+:root[data-theme="light"] body.dashboard-page.module-repairs .main :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { background:rgba(255,255,255,.78) !important; }
+body.dashboard-page.module-repairs .main :is(input,textarea)::placeholder { color:var(--module-muted) !important; }
+body.dashboard-page.module-repairs .main :is(button,.btn,[role="button"]) { border-radius:10px; }
+body.dashboard-page.module-repairs .main :is(.btn--primary,.btn-primary,.button-primary,button[type=submit]) { background:linear-gradient(135deg,var(--module-accent),color-mix(in srgb,var(--module-accent) 72%,#182633)) !important; border-color:var(--module-accent) !important; color:#fff !important; box-shadow:0 7px 18px color-mix(in srgb,var(--module-accent) 22%,transparent); }
+body.dashboard-page.module-repairs .main :is(.status-badge,.badge,.pill,.tag) { border-radius:999px; }
+body.dashboard-page.module-repairs .main :is(.table-wrap,.table-container,.table-responsive) { overflow-x:auto; }
+@media(max-width:720px) {
+ body.dashboard-page.module-repairs .main .page-section { padding:13px; border-radius:14px; margin-bottom:15px; }
+ body.dashboard-page.module-repairs .main :is(.section-heading h1,.section-heading h2,.page-title,h1) { font-size:1.2rem; }
+ body.dashboard-page.module-repairs .main :is(.jc-wrap,.jc-left,.jc-right,.job-card,.repair-card,.repair-panel,.panel,.lane,.job-card-panel) { border-radius:13px !important; }
+}
+
+</style>
 </head>
-<body class="dashboard-page dashboard-workshop">
+<body class="dashboard-page dashboard-workshop" module-repairs>
 <div class="app-shell">
 
 <main class="main">
