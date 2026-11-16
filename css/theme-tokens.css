@@ -218,3 +218,10 @@ body.dashboard-page :is(.status-ready,.status-success,.s-ok) { color: var(--ok);
 body.dashboard-page :is(.status-warning,.status-progress,.s-w) { color: var(--warn); }
 body.dashboard-page :is(.status-danger,.status-error,.s-b) { color: var(--danger); }
 /* Intentionally no button selectors: existing custom button styling is preserved. */
+
+/* Compatibility with older module styles that reference the shared --font token. */
+body.dashboard-page { --font: var(--font-body) !important; }
+body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) :is(h1,h2,h3,h4,h5,h6,p,label,td,th,li) { color: var(--text) !important; }
+body.dashboard-page :is(.status-ready,.status-success,.s-ok,.text-success) { color: var(--ok) !important; }
+body.dashboard-page :is(.status-warning,.status-progress,.s-w,.text-warning) { color: var(--warn) !important; }
+body.dashboard-page :is(.status-danger,.status-error,.s-b,.text-danger) { color: var(--danger) !important; }
