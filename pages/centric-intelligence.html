@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Centric Auto Mobile | Centric Intelligence</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="../css/theme-tokens.css">
+  <link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-2">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="stylesheet" href="../css/repair-pages.css">
+  <link rel="stylesheet" href="../css/ui-consistency.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/theme.js"></script>
+  <style>
+    body.centric-intelligence-page{background:transparent!important;color:#f4f7f7;font-family:Inter,system-ui,sans-serif}
+    .ci-main{max-width:1500px;margin:0 auto;padding:24px clamp(16px,3vw,42px) 48px;display:grid;gap:22px}
+    .ci-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:24px;border:1px solid rgba(255,255,255,.15);border-radius:18px;background:linear-gradient(120deg,rgba(10,30,40,.86),rgba(14,37,45,.58));backdrop-filter:blur(14px)}
+    .ci-kicker{margin:0 0 8px;color:#ff9b4a;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    .ci-hero h1{margin:0;font-size:clamp(27px,4vw,42px);letter-spacing:-.04em}
+    .ci-hero p:last-child{margin:9px 0 0;max-width:720px;color:rgba(239,247,246,.72);font-size:13px;line-height:1.6}
+    .ci-refresh{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.08);color:#fff;font:600 12px Inter,system-ui;cursor:pointer}
+    .ci-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .ci-card,.ci-panel{border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(9,27,36,.72);backdrop-filter:blur(14px);box-shadow:0 14px 36px rgba(0,0,0,.14)}
+    .ci-card{padding:18px;min-height:132px}.ci-card-top{display:flex;justify-content:space-between;align-items:center;color:rgba(236,245,243,.7);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}.ci-card-top i{color:#ff9b4a}.ci-value{margin-top:18px;font-size:clamp(25px,3vw,34px);font-weight:800;letter-spacing:-.04em}.ci-note{margin-top:5px;color:rgba(236,245,243,.58);font-size:11px}
+    .ci-columns{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.ci-panel{padding:20px}.ci-panel h2{margin:0 0 15px;font-size:15px}.ci-insights{display:grid;gap:10px}.ci-insight{display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045)}.ci-insight>i{color:#ff9b4a;flex:none}.ci-insight strong{display:block;font-size:12px}.ci-insight p{margin:4px 0 0;color:rgba(236,245,243,.68);font-size:11px;line-height:1.5}.ci-insight a{display:inline-block;margin-top:7px;color:#ffad68;font-size:11px;text-decoration:none;font-weight:700}.ci-list{display:grid;gap:10px}.ci-list-row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:12px}.ci-list-row:last-child{border-bottom:0}.ci-list-row span:last-child{color:#fff;font-weight:700;text-align:right}.ci-status{padding:12px 14px;border-radius:11px;background:rgba(255,255,255,.06);color:rgba(239,247,246,.7);font-size:12px}.ci-status[data-kind="error"]{color:#ffb4a7}.ci-status[data-kind="success"]{color:#9be6bd}
+    @media(max-width:980px){.ci-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ci-columns{grid-template-columns:1fr}.ci-main{padding-top:20px}}
+    @media(max-width:520px){.ci-grid{grid-template-columns:1fr 1fr;gap:9px}.ci-card{padding:13px;min-height:118px}.ci-main{padding-left:12px;padding-right:12px}.ci-hero{padding:18px}.ci-refresh{width:100%;justify-content:center}}
+  </style>
+</head>
+<body class="dashboard-page system-page dashboard-workshop centric-intelligence-page">
+  <div class="app-shell">
+    <main class="main ci-main">
+      <section class="ci-hero">
+        <div><p class="ci-kicker">Management intelligence</p><h1>Centric Intelligence</h1><p>Live operational signals from your workshop, inventory and finance records. Spot pressure points early and move directly to the records that need attention.</p></div>
+        <button class="ci-refresh" id="ci-refresh" type="button"><i data-lucide="refresh-cw"></i> Refresh insights</button>
+      </section>
+      <div class="ci-status" id="ci-status" role="status" aria-live="polite">Connecting to live workshop data…</div>
+      <section class="ci-grid" aria-label="Key business indicators">
+        <article class="ci-card"><div class="ci-card-top"><span>Open jobs</span><i data-lucide="wrench"></i></div><div class="ci-value" id="ci-open-jobs">—</div><div class="ci-note">Jobs not yet completed</div></article>
+        <article class="ci-card"><div class="ci-card-top"><span>Completed · 30 days</span><i data-lucide="check-circle-2"></i></div><div class="ci-value" id="ci-completed">—</div><div class="ci-note">Based on completion date</div></article>
+        <article class="ci-card"><div class="ci-card-top"><span>Collected · 30 days</span><i data-lucide="wallet"></i></div><div class="ci-value" id="ci-collected">—</div><div class="ci-note">Receipts issued in the last 30 days</div></article>
+        <article class="ci-card"><div class="ci-card-top"><span>Low-stock parts</span><i data-lucide="package-alert"></i></div><div class="ci-value" id="ci-low-stock">—</div><div class="ci-note">Fewer than 3 units in stock</div></article>
+      </section>
+      <section class="ci-columns">
+        <article class="ci-panel"><h2>Signals that need attention</h2><div class="ci-insights" id="ci-insights"><div class="ci-status">Loading signals…</div></div></article>
+        <article class="ci-panel"><h2>Financial exposure</h2><div class="ci-list" id="ci-financial"><div class="ci-status">Loading financial records…</div></div></article>
+      </section>
+      <section class="ci-panel"><h2>Inventory watchlist</h2><div class="ci-list" id="ci-inventory"><div class="ci-status">Loading stock records…</div></div></section>
+    </main>
+  </div>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=glass-shell-2"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  <script type="module" src="../js/centric-intelligence.js"></script>
+</body>
+</html>
