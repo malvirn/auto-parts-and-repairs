@@ -52,6 +52,6 @@ jobs:
           assert "dashboard-page" in parser.body, "Intelligence page must use the authenticated dashboard shell"
           for required in ("../css/glass-app-shell.css","../js/auth.js","../js/repair-pages-navigation.js","../js/dashboard-search.js","../js/centric-intelligence.js"):
               assert any(item.startswith(required) for item in parser.styles + parser.scripts), f"Missing {required}"
-          assert Path("img/engine-bay-bg.webp").exists(), "Shared shell background asset is missing"
+          assert Path("assets/dashboard-hero.jpeg").exists(), "Shared shell background asset is missing"
           print("Centric Intelligence page and shared shell integration checks passed")
           PY
