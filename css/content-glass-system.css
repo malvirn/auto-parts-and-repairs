@@ -161,3 +161,18 @@ body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card) :is(a,b
 :root[data-theme="light"] body.dashboard-home .dash-content h2 {
   color: #18212b !important;
 }
+
+
+/* Dashboard quick-action tiles should let the shared workshop image show through. */
+body.dashboard-home .tiles .tile,
+body.dashboard-home .dash-content .global-search__results {
+  color: var(--cam-content-text) !important;
+  background: linear-gradient(150deg,var(--cam-content-glass-a),var(--cam-content-glass-b)) !important;
+  border: 1px solid var(--cam-content-glass-edge) !important;
+  box-shadow: var(--cam-content-shadow) !important;
+  -webkit-backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+  backdrop-filter: blur(var(--cam-content-blur)) saturate(165%);
+}
+:root[data-theme="light"] body.dashboard-home .tiles .tile {
+  color: var(--cam-content-text) !important;
+}
