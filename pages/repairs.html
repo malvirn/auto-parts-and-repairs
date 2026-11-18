@@ -705,6 +705,34 @@ body.dashboard-page.module-repairs .main :is(.table-wrap,.table-container,.table
  body.dashboard-page.module-repairs .main :is(.jc-wrap,.jc-left,.jc-right,.job-card,.repair-card,.repair-panel,.panel,.lane,.job-card-panel) { border-radius:13px !important; }
 }
 
+
+/* ===== job cards: filter bar + mobile fit (no sideways drift, no auto-zoom on inputs) ===== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:hidden}
+body.module-repairs{touch-action:manipulation}
+body.module-repairs :is(.main,.dash-content,.panel,.rc-row>div){min-width:0;max-width:100%}
+body.module-repairs :is(img,video,canvas){max-width:100%;height:auto}
+.rc-row small{overflow-wrap:anywhere}
+.jc-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,240px);gap:10px;margin:16px 0 0}
+.jc-search{position:relative;display:block;margin:0}
+.jc-search>svg,.jc-search>i{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.jc-search input{width:100%;height:46px;padding:0 14px 0 42px;border-radius:12px;font-size:16px}
+.jc-cat select{width:100%;height:46px;padding:0 12px;border-radius:12px;font-size:16px}
+.chips{flex-wrap:nowrap;overflow-x:auto;margin:12px 0;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chips .seg{flex:none;white-space:nowrap;min-height:40px}
+@media(max-width:760px){
+  .jc-filters{grid-template-columns:minmax(0,1fr)}
+  body.dashboard-page.module-repairs .main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){font-size:16px!important}
+  .rc-tabs{flex-wrap:nowrap}.rc-tabs h2{font-size:1.15rem;margin:0}
+  #new-job{white-space:nowrap}
+  .rc-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .rc-stats .stat-card{padding:10px 8px}
+  .job-board-grid{grid-auto-flow:row;grid-auto-columns:auto;grid-template-columns:minmax(0,1fr);overflow-x:visible;scroll-snap-type:none;padding:2px 0 8px}
+  .job-board-column{padding:10px}
+  body.module-repairs :is(.btn,button.btn,.seg){min-height:44px}
+  .rc-row{flex-wrap:wrap}
+}
 </style>
   <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
@@ -717,6 +745,10 @@ body.dashboard-page.module-repairs .main :is(.table-wrap,.table-container,.table
   <section class="panel" id="v-list" data-no-progressive>
     <div class="rc-tabs"><h2>Job Cards</h2><span class="grow"></span><button class="btn btn--primary" id="new-job"><i data-lucide="plus"></i> New job card</button></div>
     <div class="rc-stats" style="margin-top:16px" id="stats"></div>
+    <div class="jc-filters">
+      <label class="jc-search"><span class="sr-only">Search job cards</span><i data-lucide="search" aria-hidden="true"></i><input id="jc-search" type="search" placeholder="Search job no, customer, plate, fault…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></label>
+      <label class="jc-cat"><span class="sr-only">Category</span><select id="jc-category" aria-label="Category"><option value="all">All</option></select></label>
+    </div>
     <div class="chips" id="chips"></div>
     <div id="list" data-no-progressive><div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Fetching vehicle, customer, and workshop status details…</p></div></div></div>
   </section>
@@ -1220,21 +1252,27 @@ async function load(){
  const h=new URLSearchParams(location.search).get("highlight");render();
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
- const q=( $("hs-input")?.value || "" ).toLowerCase(),sts=statuses();
- const L=jobs.filter(j=>(filter==="all"||j.status===filter)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported].join(" ").toLowerCase().includes(q)));
+ const q=( $("jc-search")?.value || $("hs-input")?.value || "" ).trim().toLowerCase(),sts=statuses();
+ const cat=$("jc-category")?.value||"all";
+ const catMatch=j=>cat==="all"||(cat==="active"&&!stClass(j.status))||(cat==="completed"&&!!stClass(j.status));
+ const L=cat==="checklists"?[]:jobs.filter(j=>(filter==="all"||j.status===filter)&&catMatch(j)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.customers?.email,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported,j.work_done,j.status,techs[j.technician_id]].join(" ").toLowerCase().includes(q)));
  const active=jobs.filter(j=>!stClass(j.status)).length;
+ const filtering=!!q||cat!=="all";
+ const catSel=$("jc-category");
+ if(catSel){catSel.innerHTML=[["all","All · "+jobs.length],["active","Active · "+active],["completed","Completed · "+(jobs.length-active)],["checklists","Checklists · "+pendingChecklists.length]].map(([v,t])=>`<option value="${v}">${t}</option>`).join("");catSel.value=cat}
  $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
  $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
- const boardStatuses=filter==="all"?sts:[filter];
+ const boardStatuses=cat==="checklists"?[]:filter==="all"?sts:[filter];
  const boardHtml=boardStatuses.map(status=>{
   const rows=L.map((j,i)=>({j,i})).filter(({j})=>(j.status||"Draft")===status);
+  if(filtering&&!rows.length)return "";
   const cards=rows.map(({j,i})=>`<div class="rc-row ${isClosed(j)?"rc-row--closed":""}" data-i="${i}"><div><b>${jn(j)}</b> <span class="pill ${isClosed(j)?"status-closed":stClass(j.status)+" status-"+statusTone(j.status)}">${isClosed(j)?"Job card closed":esc(j.status||"open")}</span>${needsDailyUpdate(j)?'<span class="pill overdue">Needs daily update</span>':""}<small>${esc(j.customers?.company_name||j.customers?.full_name||"—")} · ${esc(veh(j.vehicles))} ${esc(j.vehicles?.license_plate||"")}</small><small>Customer ID: ${esc(j.customers?.customer_code||"—")}${j.customers?.is_company&&j.customers?.company_name?" · Company: "+esc(j.customers.company_name):""}</small><small>${esc((j.fault_reported||"").slice(0,90))}</small></div><div class="rc-amt"><small>${dt(j.created_at)}</small></div></div>`).join("");
   return `<section class="job-board-column"><header class="job-board-heading"><span>${esc(status)}</span><b>${rows.length}</b></header><div class="job-board-cards">${cards||'<p class="job-board-empty">No cards in this stage.</p>'}</div></section>`;
  }).join("");
  $("list").innerHTML=`<div class="job-board-grid">${boardHtml}</div>`;
  $("list").querySelectorAll('.rc-row[data-i]').forEach(el=>el.onclick=()=>open(L[Number(el.dataset.i)]));
- const CL=filter==="all"?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
+ const CL=filter==="all"&&(cat==="all"||cat==="checklists")?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
  const draftCL=CL.filter(c=>c.status==="draft");
  const readyCL=CL.filter(c=>c.status!=="draft");
  const appendChecklistBoard=(items,kind,title,emptyText)=>{
@@ -1250,7 +1288,10 @@ function render(){
   el.onclick=go;
   el.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();go();}};
  });
-
+ if(filtering&&!L.length&&!CL.length){
+  $("list").innerHTML='<div class="apr-state"><div class="apr-state__copy"><strong>No job cards match</strong><p>Try a different search, or switch the category back to All.</p></div><button type="button" class="btn apr-state__action" id="jc-clear">Clear filters</button></div>';
+  $("jc-clear").onclick=()=>{if($("jc-search"))$("jc-search").value="";if($("hs-input"))$("hs-input").value="";if($("jc-category"))$("jc-category").value="all";filter="all";render()};
+ }
 }
 
 /* ---------- job card document ---------- */
@@ -2430,6 +2471,8 @@ $("f-customer-cid-copy").onclick=async()=>{const code=$("f-customer-cid").textCo
 $("f-customer-cid-whatsapp").onclick=()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim(),phone=String($("f-phone").value||"").replace(/[^0-9]/g,"");if(!code)return;const message="Hello "+($("f-company-name").value.trim()||$("f-name").value.trim()||"Customer")+", your Centric Auto Mobile Customer ID is "+code+". Please keep it for future visits.";window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener")};
 $("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
 $("hs-input")?.addEventListener("input",render);
+{let t;$("jc-search")?.addEventListener("input",()=>{clearTimeout(t);t=setTimeout(render,120)})}
+$("jc-category")?.addEventListener("change",render);
 load().then(()=>{
  const params=new URLSearchParams(location.search);
  if(params.get("quote")||(params.get("new")==="1"&&(params.get("customer")||params.get("plate"))))openBuilder();
