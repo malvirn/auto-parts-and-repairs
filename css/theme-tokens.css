@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap");
 
 /* Marva Technologies palette. Legacy names stay available to existing modules. */
 :root,:root[data-theme="dark"] {
@@ -9,8 +9,8 @@
  --bg:var(--background);--line:var(--border);--text-muted:var(--muted);--text-faint:var(--muted);--text-link:var(--accent);
  --ok:#568A70;--warn:#B18A55;--danger:#B96C68;--success:#568A70;--success-rgb:86,138,112;--warning:#B18A55;--warning-rgb:177,138,85;--danger-rgb:185,108,104;
  --input-bg:#101010;--input-text:var(--text);--placeholder:var(--muted);--ink:var(--text);--panel:var(--surface);--card:var(--surface);--input:var(--input-bg);--toolbar-button-bg:var(--surface-2);
- --font-heading:"Sora",Arial,sans-serif;--font-body:"Inter",Arial,sans-serif;--font:"Inter",Arial,sans-serif;--font-mono:"Inter",Arial,sans-serif;
- --cam-content-font:"Inter",Arial,sans-serif;--cam-content-heading:"Sora",Arial,sans-serif;--cam-content-mono:"Inter",Arial,sans-serif;
+ --font-heading:"Sora",Arial,sans-serif;--font-body:"Inter",Arial,sans-serif;--font:"Inter",Arial,sans-serif;--font-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+ --cam-content-font:"Inter",Arial,sans-serif;--cam-content-heading:"Sora",Arial,sans-serif;--cam-content-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
  --cam-content-text:var(--text);--cam-content-muted:var(--muted);--cam-content-line:var(--border);--cam-content-glass-a:var(--surface);--cam-content-glass-b:var(--surface);--cam-content-glass-edge:var(--border);--cam-content-shadow:none;--cam-content-control:var(--input-bg);--cam-content-hover:var(--soft);
  --cam-surface:var(--surface);--cam-surface-2:var(--surface-2);--cam-glass-a:var(--surface);--cam-glass-b:var(--surface);--cam-glass-edge:var(--border);--cam-glass-line:var(--border);--cam-glass-shadow:none;--cam-glass-blur:0px;--cam-input:var(--input-bg);--cam-hover:var(--soft);--cam-card-a:var(--surface);--cam-card-b:var(--surface);--cam-card-edge:var(--border);
  --radius:14px;--radius-sm:10px;--radius-lg:18px;--shadow:0 8px 30px rgba(0,0,0,.22);

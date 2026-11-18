@@ -1,6 +1,6 @@
 /* Marva Technologies visual reskin for Auto Parts & Repairs.
    Presentation only. Existing markup, IDs, data attributes and JavaScript hooks stay intact. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap');
 
 :root {
   color-scheme: dark;
@@ -43,10 +43,10 @@
   --font: "Inter", Arial, sans-serif;
   --font-body: "Inter", Arial, sans-serif;
   --font-heading: "Sora", Arial, sans-serif;
-  --font-mono: "Inter", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cam-content-font: "Inter", Arial, sans-serif;
   --cam-content-heading: "Sora", Arial, sans-serif;
-  --cam-content-mono: "Inter", Arial, sans-serif;
+  --cam-content-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cam-content-text: var(--text);
   --cam-content-muted: var(--muted);
   --cam-content-line: var(--border);
@@ -1480,4 +1480,19 @@ body.dashboard-page.glass-app-shell .glass-sidebar-backdrop {
     bottom: calc(100% + 10px) !important;
     width: auto !important;
   }
+}
+
+
+/* ---- Marva type system: Sora headings, Inter body, JetBrains Mono for labels and numbers ---- */
+body :is(.section-kicker,.stat-card__label,.portal-kicker,.jc-kicker,.quotation-paper-kicker,.quotation-category-label,.quotation-status-pill,.sys-tag,.objective-chip,.global-search__group-label,.sidebar-account__role,.eyebrow,.badge,.pill,.chip,.status-pill,.stat-label,.kpi-label,table th,.table th),
+body.dashboard-page .main :is(.section-kicker,.stat-card__label,.eyebrow,.badge,.pill,.chip,.status-pill,.stat-label,.kpi-label,table th) {
+  font-family: var(--font-mono) !important;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
+body :is(.stat-card__value,.stat-value,.kpi-value,.ci-value,.quotation-total strong,.quotation-summary-total,.quotation-footer-total,.quick-sale-total,.part-price-output,.job-money,.close-job-money,.checklist-number,.amount,.money,.price,.num,td.num,td.text-right,.gauge-info .value,input[type="number"]),
+body.dashboard-page .main :is(.stat-card__value,.stat-value,.kpi-value,.ci-value,.amount,.money,.price,.num) {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
 }

@@ -1,5 +1,5 @@
 /* ========= CRMS Base Styles — Instrument Cluster theme ========= */
-@import url('https://fonts.googleapis.com/css2?family=Inter+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap');
 
 :root {
   --bg: #0e0d0c;
@@ -1417,7 +1417,7 @@ body.system-page :is(input:not([type="checkbox"]):not([type="radio"]), select, t
   .system-page .module-tabs .btn { flex: 0 0 auto; }
 }
 /* ========= CRMS Base Styles — Instrument Cluster theme ========= */
-@import url('https://fonts.googleapis.com/css2?family=Inter+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap');
 
 :root {
   --bg: #0e0d0c;
@@ -2298,7 +2298,7 @@ body.dashboard-page[data-theme="light"] {
   --danger: #b32c2c;
 }
 /* ========= CRMS Base Styles — Instrument Cluster theme ========= */
-@import url('https://fonts.googleapis.com/css2?family=Inter+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap');
 
 :root {
   --bg: #0e0d0c;

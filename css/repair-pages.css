@@ -75,7 +75,7 @@ body.dashboard-page .main__header::before {
   z-index: -2;
   inset: 0;
   content: "";
-  background: url("../assets/dashboard-hero.jpeg") center right / cover no-repeat;
+  background: url("../assets/night-sky.webp") center right / cover no-repeat;
 }
 
 body.dashboard-page .main__header::after {

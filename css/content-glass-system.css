@@ -3,7 +3,7 @@
 :root {
   --cam-content-font: "Inter", Inter, system-ui, sans-serif;
   --cam-content-heading: "Sora", "Inter", system-ui, sans-serif;
-  --cam-content-mono: "Inter", ui-monospace, monospace;
+  --cam-content-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --cam-content-blur: 22px;
 }
 :root[data-theme="dark"] {

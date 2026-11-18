@@ -1,15 +1,15 @@
 /* Centric Auto Mobile shared photographic background.
    Keep one continuous image behind every module and both colour themes. */
 :root {
-  --cam-bg-image: url("../assets/dashboard-hero.jpeg");
-  --cam-bg-wash: rgba(5, 10, 13, .48);
+  --cam-bg-image: url("../assets/night-sky.webp");
+  --cam-bg-wash: rgba(5, 7, 13, .10);
 }
 :root[data-theme="light"] {
-  --cam-bg-wash: rgba(245, 248, 250, .42);
+  --cam-bg-wash: rgba(238, 242, 248, .88);
 }
 html {
   min-height: 100%;
-  background-color: #10191c !important;
+  background-color: #05070d !important;
   background-image: linear-gradient(var(--cam-bg-wash), var(--cam-bg-wash)), var(--cam-bg-image) !important;
   background-position: center center !important;
   background-size: cover !important;

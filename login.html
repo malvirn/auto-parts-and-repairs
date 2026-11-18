@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="css/theme-tokens.css?v=theme-v5">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="css/login-sync.css?v=theme-v5">
   <link rel="stylesheet" href="css/theme-background.css?v=theme-v5">
@@ -36,18 +36,10 @@
     .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     .stage{position:relative;isolation:isolate;width:100%;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
-      background:radial-gradient(circle at 15% 85%,rgba(var(--success-rgb),.12),transparent 45%),
-                 radial-gradient(circle at 85% 15%,rgba(var(--warning-rgb),.14),transparent 40%),
-                 linear-gradient(160deg,#131a22,var(--bg) 60%,#090d11)}
-    .photo{position:absolute;z-index:-3;left:0;bottom:0;width:min(86vw,1800px);aspect-ratio:1672/941;
-      background:url("assets/login-bg.jpeg") center/cover no-repeat;opacity:.45;
-      -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 50%),linear-gradient(90deg,#000 60%,transparent 100%);
-      -webkit-mask-composite:source-in;
-      mask-image:linear-gradient(180deg,transparent 0,#000 50%),linear-gradient(90deg,#000 60%,transparent 100%);mask-composite:intersect;
-      transform-origin:left bottom;
-      transform:translate3d(calc(var(--px)*-14px),calc(var(--py)*-10px + 5vh),0) scale(1.03)}
+      background:transparent}
+    .photo{position:fixed;z-index:-3;inset:0;background:#05070d url("assets/night-sky.webp") center/cover no-repeat}
     .stage::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
-      background:linear-gradient(90deg,rgba(13,18,23,.7),rgba(13,18,23,.2) 55%,transparent)}
+      background:linear-gradient(90deg,rgba(5,7,13,.45),rgba(5,7,13,.1) 55%,transparent)}
 
     .scene{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);gap:clamp(24px,4vw,64px);
       align-items:center;padding:clamp(32px,5vw,64px) clamp(20px,5vm,72px);width:100%;max-width:1440px;margin:0 auto;perspective:1400px}
@@ -87,7 +79,7 @@
     body.login-page .login-logo{display:grid;place-items:center;margin:0 0 8px;transform:translateZ(60px)}
     body.login-page .login-logo img{height:auto;width:clamp(90px,10vw,130px);filter:drop-shadow(0 12px 16px rgba(0,0,0,.5))}
     body.login-page .login-sys{display:none}
-    body.login-page .login-title{margin:2px 0 4px;text-align:center;font-family:var(--font);font-weight:800;letter-spacing:-.025em;font-size:clamp(24px,2.5vw,34px);color:#fff;transform:translateZ(46px)}
+    body.login-page .login-title{margin:2px 0 4px;text-align:center;font-family:"Sora","Inter",Arial,sans-serif;font-weight:800;letter-spacing:-.025em;font-size:clamp(24px,2.5vw,34px);color:#fff;transform:translateZ(46px)}
     body.login-page .login-subtitle{margin:0 0 22px;text-align:center;color:var(--muted);font-size:14px;transform:translateZ(30px)}
 
     body.login-page .login-field{margin:0 0 16px;transform:translateZ(26px)}
@@ -148,7 +140,7 @@
     }
 
     @media (max-width:980px){
-      .photo{display:none}
+      
       .scene{grid-template-columns:minmax(0,1fr);padding:24px 16px;}
       .hero{display:none}
       .card-wrap{width:min(100%,430px);}
