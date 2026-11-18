@@ -1511,3 +1511,24 @@ body.dashboard-page .main :is(.panel:has(>table),.table-wrap,.table-container,.t
   body.dashboard-page :is(.btn,button.btn){min-height:44px}
   body.dashboard-page .modal{max-width:calc(100vw - 24px)!important}
 }
+
+
+/* ---- Dark mode = black (replaces the blue-slate palette). Light theme untouched. ---- */
+:root:not([data-theme="light"]):not(#mh),
+:root:not([data-theme="light"]):not(#mh) body {
+  --mh-bg:#000000; --mh-card:#0b0b0b; --mh-bd:#2e2e2e; --mh-in:#181818; --mh-tx:#f5f5f5; --mh-mu:#a3a3a3;
+  --mh-sh2:0 12px 32px rgba(0,0,0,.6);
+}
+/* Text boxes: a step lighter than the black card, with a clear border so they stay easy to see. */
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea) {
+  background:#1a1a1a !important;
+  border:1px solid #4a4a4a !important;
+  color:#f5f5f5 !important;
+}
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input,textarea)::placeholder { color:#8a8a8a !important; }
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input,select,textarea):focus {
+  border-color:#9a9a9a !important; box-shadow:0 0 0 3px rgba(255,255,255,.12) !important; outline:none;
+}
+/* Job cards page buttons/chips were blue in dark mode */
+:root[data-theme="dark"] body.dashboard-workshop .rc :is(.btn,.seg) { background:#161616 !important; border-color:#3a3a3a !important; color:#f5f5f5 !important; }
+:root[data-theme="dark"] body.dashboard-workshop .rc .seg[aria-pressed="true"] { background:#2a2a2a !important; border-color:#6a6a6a !important; color:#fff !important; }
