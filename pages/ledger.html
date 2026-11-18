@@ -80,7 +80,7 @@
     }
     #jb-payment-modal .payment-summary span { display:block; color:var(--text-muted); font-size:.76rem; }
     #jb-payment-modal .payment-summary strong { display:block; margin-top:3px; font-variant-numeric:tabular-nums; }
-    #jb-payment-modal .change-due { color:var(--success,#16834a); }
+    #jb-payment-modal .change-due { color:var(--success,var(--success)); }
     #jb-load-more-wrap { display:flex; justify-content:center; margin-top:12px; }
     #jb-load-more-wrap[hidden] { display:none; }
     @media(max-width:560px) {
@@ -152,7 +152,7 @@
       transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
     }
     .jb-job:hover{border-color:var(--accent,#64748b);box-shadow:0 3px 10px rgba(15,23,42,.09)}
-    .jb-job.flash{outline:3px solid #1fc467}
+    .jb-job.flash{outline:3px solid var(--success)}
     .jb-head{
       display:grid;grid-template-columns:1.2fr 1.4fr auto auto;
       gap:10px;align-items:center;padding:12px 14px;cursor:pointer;
@@ -165,7 +165,7 @@
       font-size:.72rem;padding:4px 10px;border-radius:999px;font-weight:700;
       white-space:nowrap;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;
     }
-    .jb-pill.paid{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+    .jb-pill.paid{background:var(--soft);color:var(--success);border-color:var(--success)}
     .jb-body{display:none;padding:4px 14px 14px;border-top:1px solid var(--border,#e2e8f0);background:var(--surface,#fff)}
     .jb-job.open .jb-body{display:block}
     .jb-lines{width:100%;border-collapse:collapse;margin:8px 0;color:var(--text,#0f172a)}
@@ -261,7 +261,7 @@
 /* Customer Accounts: tap a customer row to expand its activity inline. */
 #customer-accounts-table .customer-account-main-row{cursor:pointer;transition:background .15s ease}
 #customer-accounts-table .customer-account-main-row:hover,
-#customer-accounts-table .customer-account-main-row[aria-expanded="true"]{background:rgba(31,196,103,.09)}
+#customer-accounts-table .customer-account-main-row[aria-expanded="true"]{background:rgba(var(--success-rgb),.09)}
 #customer-accounts-table .account-detail-count{display:inline-flex;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:.78rem;font-weight:700}
 #customer-accounts-table .customer-account-detail-row>td{padding:0!important;background:rgba(0,0,0,.12)}
 .customer-transaction-list{display:grid;gap:10px;padding:14px!important;min-width:0}
@@ -322,7 +322,7 @@
 </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
@@ -349,7 +349,7 @@ body.dashboard-page .main{min-width:0}
 <style id="module-design-ledger">
 
 /* General ledger: individual page styling, scoped to this module's content only. */
-body.dashboard-page.module-ledger { --module-accent:#63b6d8; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+body.dashboard-page.module-ledger { --module-accent:var(--accent); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
 :root[data-theme="light"] body.dashboard-page.module-ledger { --module-glass:rgba(250,252,254,.86); --module-edge:rgba(255,255,255,.92); --module-ink:#172431; --module-muted:#5c6b79; }
 body.dashboard-page.module-ledger .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
 body.dashboard-page.module-ledger .main :is(.page-section) { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
@@ -377,6 +377,7 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
 }
 
 </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop module-ledger">
   <div class="app-shell">

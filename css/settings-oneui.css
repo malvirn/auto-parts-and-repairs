@@ -2,21 +2,21 @@ body.dashboard-page .settings-welcome {
   width: min(1120px, 100% - clamp(28px, 8vw, 116px));
   margin: 0 auto 18px;
   padding: 18px 22px;
-  border: 1px solid rgba(31, 196, 103, .22);
+  border: 1px solid rgba(var(--success-rgb), .22);
   border-radius: 22px;
-  background: linear-gradient(145deg, rgba(31, 196, 103, .1), rgba(12, 18, 16, .96));
+  background: linear-gradient(145deg, rgba(var(--success-rgb), .1), rgba(12, 18, 16, .96));
 }
 
 body.dashboard-page .settings-welcome h1 {
   margin: 0;
-  color: #eef3ef;
-  font: 700 clamp(25px, 3vw, 34px)/1.15 Manrope, Inter, system-ui, sans-serif;
+  color: var(--text);
+  font: 700 clamp(25px, 3vw, 34px)/1.15 Sora, Inter, system-ui, sans-serif;
 }
 
 body.dashboard-page .settings-welcome p:last-child {
   max-width: 66ch;
   margin: 7px 0 0;
-  color: #9fb0a6;
+  color: var(--muted);
 }
 
 body.dashboard-page .sjump {
@@ -32,7 +32,7 @@ body.dashboard-page .sjump a {
   flex: 0 0 auto;
   min-height: 40px;
   padding: 10px 15px;
-  border: 1px solid rgba(31, 196, 103, .2);
+  border: 1px solid rgba(var(--success-rgb), .2);
   border-radius: 999px;
   background: rgba(17, 27, 24, .9);
 }
@@ -50,7 +50,7 @@ body.dashboard-page .sg {
 }
 
 body.dashboard-page .sg:target {
-  border-color: #1fc467;
+  border-color: var(--success);
 }
 
 body.dashboard-page .sg > header {
@@ -65,10 +65,10 @@ body.dashboard-page .sg > header > svg {
   height: 42px;
   place-items: center;
   padding: 10px;
-  border: 1px solid rgba(31, 196, 103, .22);
+  border: 1px solid rgba(var(--success-rgb), .22);
   border-radius: 15px;
-  background: rgba(31, 196, 103, .1);
-  color: #1fc467;
+  background: rgba(var(--success-rgb), .1);
+  color: var(--success);
   flex: none;
 }
 

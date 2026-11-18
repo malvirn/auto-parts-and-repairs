@@ -1,9 +1,9 @@
 /* Centric Auto Mobile content design system.
    Reference styling only: header and sidebar are intentionally excluded. */
 :root {
-  --cam-content-font: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
-  --cam-content-heading: "Sora", "Plus Jakarta Sans", system-ui, sans-serif;
-  --cam-content-mono: "JetBrains Mono", ui-monospace, monospace;
+  --cam-content-font: "Inter", Inter, system-ui, sans-serif;
+  --cam-content-heading: "Sora", "Inter", system-ui, sans-serif;
+  --cam-content-mono: "Inter", ui-monospace, monospace;
   --cam-content-blur: 22px;
 }
 :root[data-theme="dark"] {
@@ -18,7 +18,7 @@
   --cam-content-hover: rgba(255,255,255,.075);
 }
 :root[data-theme="light"] {
-  --cam-content-text: #18212b;
+  --cam-content-text: var(--surface);
   --cam-content-muted: #536170;
   --cam-content-line: rgba(24,33,43,.13);
   --cam-content-glass-a: rgba(255,255,255,.82);
@@ -112,7 +112,7 @@ body.dashboard-page .main .btn:not([class*="primary"]):not([class*="danger"]):no
 }
 body.dashboard-page .main :is(button,.btn,[role="button"]):focus-visible,
 body.dashboard-page .main :is(input,select,textarea):focus-visible {
-  outline: 2px solid rgba(245,130,32,.78);
+  outline: 2px solid rgba(var(--warning-rgb),.78);
   outline-offset: 2px;
 }
 body.dashboard-page .main :is(.btn--primary,.btn-primary,.button-primary,[class*="btn-primary"]) {
@@ -150,7 +150,7 @@ body.dashboard-home .dash-content :is(p,.section-note,.stat-card__label,.attenti
   color: var(--cam-content-muted) !important;
 }
 body.dashboard-home .dash-content .section-kicker {
-  color: #f58220 !important;
+  color: var(--accent) !important;
 }
 body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card) {
   padding: clamp(16px,2.2vw,22px);
@@ -159,7 +159,7 @@ body.dashboard-home .dash-content :is(.panel,.stat-card,.objective-card) :is(a,b
   font-family: var(--cam-content-font);
 }
 :root[data-theme="light"] body.dashboard-home .dash-content h2 {
-  color: #18212b !important;
+  color:var(--text) !important;
 }
 
 
@@ -230,5 +230,5 @@ body.dashboard-page .main :is(.page-intro,.section-heading,.section-kicker,.sect
   .sg,.sr,.settings-welcome,.tier-row,.tier-head,.online-search-panel,
   .parts-filter-panel,.alert-card,.job-part-purchase-table
 ) {
-  color: #18212b !important;
+  color:var(--text) !important;
 }

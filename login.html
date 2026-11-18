@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <style>html{background:#0d1217;color-scheme:dark}</style>
+  <style>html{background:var(--background);color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Centric Auto Mobile — Sign In</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/login-sync.css?v=theme-v5">
   <link rel="stylesheet" href="css/theme-background.css?v=theme-v5">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0d1217">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Centric Auto Mobile">
@@ -25,7 +25,7 @@
     html{width:100%;height:100%;overflow-x:hidden}
     html body.login-page{width:100%;min-height:100vh;min-height:100svh;padding:0!important;overflow-y:auto!important;overflow-x:hidden!important}
     body.login-page{
-      --bg:#0d1217; --panel-bg:#161d24; --accent-teal:#00a884; --teal-bright:#00c49a; --orange:#ff7a12;
+      --bg:var(--background); --panel-bg:#161d24; --accent-teal:var(--success); --teal-bright:var(--success); --orange:var(--warning);
       --font:"Inter","Segoe UI",system-ui,sans-serif;
       --ease:cubic-bezier(.2,.78,.2,1);
       --rx:0deg; --ry:0deg; --gx:50%; --gy:50%; --px:0; --py:0;
@@ -36,8 +36,8 @@
     .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     .stage{position:relative;isolation:isolate;width:100%;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
-      background:radial-gradient(circle at 15% 85%,rgba(0,168,132,.12),transparent 45%),
-                 radial-gradient(circle at 85% 15%,rgba(255,122,18,.14),transparent 40%),
+      background:radial-gradient(circle at 15% 85%,rgba(var(--success-rgb),.12),transparent 45%),
+                 radial-gradient(circle at 85% 15%,rgba(var(--warning-rgb),.14),transparent 40%),
                  linear-gradient(160deg,#131a22,var(--bg) 60%,#090d11)}
     .photo{position:absolute;z-index:-3;left:0;bottom:0;width:min(86vw,1800px);aspect-ratio:1672/941;
       background:url("assets/login-bg.jpeg") center/cover no-repeat;opacity:.45;
@@ -67,9 +67,9 @@
     .feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin:0;padding:0;list-style:none;transform-style:preserve-3d}
     .feat{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:rgba(22,29,36,.6);border:1px solid var(--line);
       transition:transform 450ms var(--ease),background 300ms,border-color 300ms,box-shadow 450ms var(--ease)}
-    .feat:hover{transform:translateZ(46px) translateY(-6px);background:rgba(27,37,47,.85);border-color:rgba(0,168,132,.4);box-shadow:0 20px 30px rgba(0,0,0,.5)}
-    .ico{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;color:var(--teal-bright);background:rgba(0,168,132,.12);border:1px solid rgba(0,168,132,.25)}
-    .ico.o{color:var(--orange);background:rgba(255,122,18,.12);border-color:rgba(255,122,18,.25)}
+    .feat:hover{transform:translateZ(46px) translateY(-6px);background:rgba(27,37,47,.85);border-color:rgba(var(--success-rgb),.4);box-shadow:0 20px 30px rgba(0,0,0,.5)}
+    .ico{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;color:var(--teal-bright);background:rgba(var(--success-rgb),.12);border:1px solid rgba(var(--success-rgb),.25)}
+    .ico.o{color:var(--orange);background:rgba(var(--warning-rgb),.12);border-color:rgba(var(--warning-rgb),.25)}
     .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .feat h3{margin:0 0 2px;font-size:13px;font-weight:700;color:#fff}
     .feat p{margin:0;color:var(--muted);font-size:11px;line-height:1.35}
@@ -79,7 +79,7 @@
     body.login-page .login-card{position:relative;overflow:visible;width:100%;max-width:none;margin:0;
       padding:clamp(24px,3vw,38px);border-radius:20px;transform-style:preserve-3d;
       background:linear-gradient(160deg,rgba(24,33,42,.95),rgba(16,23,30,.98));border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05) inset,0 0 40px rgba(0,168,132,.1);
+      box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05) inset,0 0 40px rgba(var(--success-rgb),.1);
       transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform 140ms linear}
     body.login-page .login-card::before{display:none}
     body.login-page .login-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
@@ -97,7 +97,7 @@
       background:rgba(13,18,23,.75);border:1.5px solid var(--line);border-radius:10px;outline:0;
       transition:border-color 200ms,box-shadow 300ms,transform 400ms var(--ease)}
     body.login-page .login-input-wrap input::placeholder{color:#6e7681}
-    body.login-page .login-input-wrap input:focus{border-color:var(--accent-teal);box-shadow:0 0 0 3px rgba(0,168,132,.2),0 10px 20px rgba(0,0,0,.3);transform:translateZ(15px) translateY(-1px)}
+    body.login-page .login-input-wrap input:focus{border-color:var(--accent-teal);box-shadow:0 0 0 3px rgba(var(--success-rgb),.2),0 10px 20px rgba(0,0,0,.3);transform:translateZ(15px) translateY(-1px)}
     body.login-page .login-input-wrap .toggle-password{position:absolute;right:10px;width:38px;height:38px;display:grid;place-items:center;
       background:none;border:0;border-radius:50%;color:var(--muted);cursor:pointer}
     body.login-page .login-input-wrap .toggle-password:hover{color:#fff;background:rgba(255,255,255,.06)}
@@ -106,16 +106,16 @@
     body.login-page .login-submit{width:100%;height:50px;margin:6px 0 0;padding:0;border:0;border-radius:10px;cursor:pointer;color:#fff;
       font:inherit;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;
       background:linear-gradient(180deg,var(--teal-bright),var(--accent-teal));
-      box-shadow:0 6px 0 #007a60,0 18px 24px rgba(0,0,0,.35);transform:translateZ(40px);
+      box-shadow:0 6px 0 var(--success),0 18px 24px rgba(0,0,0,.35);transform:translateZ(40px);
       transition:transform 160ms var(--ease),box-shadow 160ms var(--ease),filter 200ms}
     body.login-page .login-submit:hover{filter:brightness(1.08);transform:translateZ(50px) translateY(-2px)}
-    body.login-page .login-submit:active{transform:translateZ(40px) translateY(5px);box-shadow:0 1px 0 #007a60,0 6px 10px rgba(0,0,0,.4)}
+    body.login-page .login-submit:active{transform:translateZ(40px) translateY(5px);box-shadow:0 1px 0 var(--success),0 6px 10px rgba(0,0,0,.4)}
     body.login-page .login-submit:disabled{opacity:.7;cursor:not-allowed;filter:grayscale(.3)}
     body.login-page .login-submit svg{width:20px;height:20px}
     body.login-page .login-submit .spin{animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     body.login-page .login-message{margin:14px 0 0;min-height:1.2em;font-size:.88rem;text-align:center}
-    body.login-page .login-message[data-tone="error"]{color:#ff6b6b}
+    body.login-page .login-message[data-tone="error"]{color:var(--danger)}
     body.login-page .login-message[data-tone="info"]{color:var(--muted)}
     body.login-page .forgot-link{padding:0;border:0;background:none;color:var(--teal-bright);font:inherit;text-decoration:none;cursor:pointer;font-weight:500}
     body.login-page .forgot-link:hover{color:#fff;text-decoration:underline}
@@ -126,7 +126,7 @@
     body.login-page .fp-btn{width:100%;display:flex;align-items:center;gap:14px;padding:10px 14px;text-align:left;cursor:pointer;color:#fff;font:inherit;
       background:rgba(13,18,23,.75);border:1.5px solid var(--line);border-radius:10px;transition:transform 300ms var(--ease),border-color 200ms,box-shadow 300ms}
     body.login-page .fp-btn:hover{border-color:var(--accent-teal);transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.3)}
-    body.login-page .fp-ic{display:grid;place-items:center;width:38px;height:38px;border-radius:8px;border:1px solid rgba(0,168,132,.3);color:var(--teal-bright);background:rgba(0,168,132,.1);flex:none}
+    body.login-page .fp-ic{display:grid;place-items:center;width:38px;height:38px;border-radius:8px;border:1px solid rgba(var(--success-rgb),.3);color:var(--teal-bright);background:rgba(var(--success-rgb),.1);flex:none}
     body.login-page .fp-ic svg{width:18px;height:18px}
     body.login-page .fp-tx{display:grid;gap:2px}
     body.login-page .fp-tx b{font-size:13px}
@@ -143,7 +143,7 @@
     body.login-page .login-title{text-wrap:balance;line-height:1.15}
     @media (hover:none),(pointer:coarse){
       body.login-page .login-submit,body.login-page .login-submit:hover{transform:none}
-      body.login-page .login-submit:active{transform:translateY(4px);box-shadow:0 1px 0 #007a60,0 6px 10px rgba(0,0,0,.4)}
+      body.login-page .login-submit:active{transform:translateY(4px);box-shadow:0 1px 0 var(--success),0 6px 10px rgba(0,0,0,.4)}
       body.login-page .login-card,body.login-page .hero{transform:none!important}
     }
 
@@ -166,6 +166,7 @@
       .stage{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
     }
   </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="login-page">
   <main class="stage">

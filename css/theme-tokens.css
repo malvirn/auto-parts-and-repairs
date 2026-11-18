@@ -1,227 +1,37 @@
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
-/* Shared theme foundation. Phase 1: canonical colour tokens only. */
-:root,
-:root[data-theme="light"] {
-  --bg: #eef1f3;
-  --surface: #ffffff;
-  --surface-2: #f4f6f7;
-  --line: #c5ccd1;
-  --text: #07090b;
-  --text-muted: #2e373e;
-  --text-faint: #4a555d;
-  --text-link: #b84a00;
-  --accent: #f58220;
-  --ok: #0a7a40;
-  --warn: #b45309;
-  --danger: #b4231b;
-  --input-bg: #ffffff;
-  --input-text: #07090b;
-  --placeholder: #4a555d;
-}
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap");
 
-:root[data-theme="dark"] {
-  --bg: #0b1012;
-  --surface: #121a1f;
-  --surface-2: #18222a;
-  --line: #33424b;
-  --text: #f8faf9;
-  --text-muted: #d0d9d4;
-  --text-faint: #b3beb8;
-  --text-link: #ffb066;
-  --accent: #f58220;
-  --ok: #5fe0a0;
-  --warn: #f5b020;
-  --danger: #ff8d85;
-  --input-bg: #18222a;
-  --input-text: #f8faf9;
-  --placeholder: #b3beb8;
-}
-
-/* Backward-compatible aliases for existing components. */
-:root {
-  --muted: var(--text-muted);
-  --ink: var(--text);
-  --panel: var(--surface);
-  --card: var(--surface);
-  --input: var(--input-bg);
-  --toolbar-button-bg: var(--surface-2);
-}
-
-/* Phase 3: readable defaults for application text and form controls. */
-body,
-h1, h2, h3, h4, h5, h6,
-p, li, td, th, label, legend, summary, strong, small, span, dt, dd {
-  color: var(--text);
-}
-label, .muted, .section-note, small, th { color: var(--text-muted); }
-input, select, textarea {
-  color: var(--input-text);
-  background: var(--input-bg);
-  border-color: var(--line);
-}
-input::placeholder, textarea::placeholder {
-  color: var(--placeholder);
-  opacity: 1;
-}
-a { color: var(--text-link); }
-
-/* Printed and customer-facing documents remain white with black text. */
-#doc, #doc *,
-.quotation-paper, .quotation-paper *,
-.receipt-modal-card, .receipt-modal-card * {
-  color: #111111;
-  background-color: #ffffff;
-}
-@media print {
-  #doc, #doc *,
-  .quotation-paper, .quotation-paper *,
-  .receipt-modal-card, .receipt-modal-card * {
-    color: #111111;
-    background-color: #ffffff;
-  }
-}
-
-
-/* Phase 4: theme-aware application surfaces and navigation. */
-:root { --cam-surface: var(--surface); }
-:root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"] { color-scheme: dark; }
-body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.hs-chips,.filter-more-grid,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal,.settings-welcome,.sjump a,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog) { background-color:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important; }
-body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal,.modal-content,.modal-card,.modal-dialog) :is(h1,h2,h3,h4,h5,p,span,label,small,strong,a,button,li) { color:var(--text)!important; }
-body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(.muted,small,.section-note) { color:var(--text-muted)!important; }
-body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(input,select,textarea) { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
-body.dashboard-page :is(.sidebar,.hdr-menu,.hs-panel,.dropdown-menu,.dropdown-content,.popover,.popover-content,.quick-sale-popup,.quick-sale-modal) :is(input,textarea)::placeholder { color:var(--placeholder)!important;opacity:1; }
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) { background-color:color-mix(in srgb,var(--surface) 94%,transparent)!important;color:var(--text)!important;border-color:var(--line)!important; }
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) :is(h1,h2,h3,h4,h5,p,span,label,small,strong,td,th) { color:var(--text)!important; }
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel) :is(.muted,.section-note,small) { color:var(--text-muted)!important; }
-body.dashboard-page .app-header,body.dashboard-page .dashboard-topbar { background:color-mix(in srgb,var(--surface) 96%,transparent)!important;color:var(--text)!important;border-color:var(--line)!important; }
-body.dashboard-page .sidebar .nav-link,body.dashboard-page .hdr-menu a,body.dashboard-page .hdr-menu .m-grp { color:var(--text)!important; }
-body.dashboard-page .sidebar .nav-link:hover,body.dashboard-page .hdr-menu a:hover,body.dashboard-page .hdr-menu .m-grp:hover { background:var(--surface-2)!important;color:var(--text)!important; }
-body.dashboard-page .sidebar .nav-link.active { background:var(--ok)!important;color:#fff!important; }
-body.dashboard-page .sidebar .nav-grp,body.dashboard-page .hdr-menu .m-head { color:var(--text-muted)!important; }
-body.dashboard-page .hs-bar { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
-body.dashboard-page .hs-bar input,body.dashboard-page #hs-input { color:var(--input-text)!important; }
-body.dashboard-page .hs-bar input::placeholder,body.dashboard-page #hs-input::placeholder { color:var(--placeholder)!important;opacity:1; }
-body.dashboard-page .filter-more-grid { background:var(--surface)!important;color:var(--text-muted)!important; }
-body.dashboard-page .quotation-modal,body.dashboard-page .quotation-modal-header,body.dashboard-page .quotation-modal-footer { background:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important; }
-body.dashboard-page .quotation-line-list .quotation-line { background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--line)!important; }
-body.dashboard-page .quotation-line-list .amend-price,body.dashboard-page .quotation-line-list .amend-qty { background:var(--input-bg)!important;color:var(--input-text)!important;border-color:var(--line)!important; }
-
-
-/* Centric Auto system-wide typography and dual-theme surface system. */
-:root {
-  --font-heading: "Sora", system-ui, sans-serif;
-  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-  --cam-glass-blur: 24px;
-  --cam-glass-shadow: 0 22px 50px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.16);
-}
-:root[data-theme="dark"] {
-  --text: #f8faf9;
-  --text-muted: #d0d9d4;
-  --text-faint: #b3beb8;
-  --text-link: #ffb066;
-  --ok: #5fe0a0;
-  --warn: #f5b020;
-  --danger: #ff8d85;
-  --surface: rgba(26,35,42,.64);
-  --surface-2: rgba(14,20,24,.5);
-  --line: rgba(255,255,255,.15);
-  --input-bg: rgba(255,255,255,.08);
-  --input-text: #f8faf9;
-  --placeholder: #b3beb8;
-  --cam-glass-a: rgba(26,35,42,.64);
-  --cam-glass-b: rgba(14,20,24,.5);
-  --cam-glass-edge: rgba(255,255,255,.17);
-  --cam-glass-line: rgba(255,255,255,.15);
-  --cam-glass-shadow: 0 22px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.24);
-  --cam-input: rgba(255,255,255,.08);
-  --cam-hover: rgba(255,255,255,.08);
-  --cam-card-a: rgba(255,255,255,.13);
-  --cam-card-b: rgba(255,255,255,.05);
-  --cam-card-edge: rgba(255,255,255,.2);
+/* Marva Technologies palette. Legacy names stay available to existing modules. */
+:root,:root[data-theme="dark"] {
+ color-scheme:dark;
+ --background:#0A0A0A;--surface:#141414;--surface-2:#1C1C1C;--text:#F5F5F5;--muted:#A3A3A3;
+ --border:rgba(255,255,255,.14);--accent:#E8E2D9;--accent-rgb:232,226,217;--header-bg:rgba(10,10,10,.55);--header-solid:rgba(10,10,10,.85);--soft:rgba(255,255,255,.06);
+ --pure:#fff;--pure-inv:#000;--deep:#08090b;--ink-rgb:255,255,255;--shade-rgb:0,0,0;--bg-rgb:10,10,10;
+ --bg:var(--background);--line:var(--border);--text-muted:var(--muted);--text-faint:var(--muted);--text-link:var(--accent);
+ --ok:#568A70;--warn:#B18A55;--danger:#B96C68;--success:#568A70;--success-rgb:86,138,112;--warning:#B18A55;--warning-rgb:177,138,85;--danger-rgb:185,108,104;
+ --input-bg:#101010;--input-text:var(--text);--placeholder:var(--muted);--ink:var(--text);--panel:var(--surface);--card:var(--surface);--input:var(--input-bg);--toolbar-button-bg:var(--surface-2);
+ --font-heading:"Sora",Arial,sans-serif;--font-body:"Inter",Arial,sans-serif;--font:"Inter",Arial,sans-serif;--font-mono:"Inter",Arial,sans-serif;
+ --cam-content-font:"Inter",Arial,sans-serif;--cam-content-heading:"Sora",Arial,sans-serif;--cam-content-mono:"Inter",Arial,sans-serif;
+ --cam-content-text:var(--text);--cam-content-muted:var(--muted);--cam-content-line:var(--border);--cam-content-glass-a:var(--surface);--cam-content-glass-b:var(--surface);--cam-content-glass-edge:var(--border);--cam-content-shadow:none;--cam-content-control:var(--input-bg);--cam-content-hover:var(--soft);
+ --cam-surface:var(--surface);--cam-surface-2:var(--surface-2);--cam-glass-a:var(--surface);--cam-glass-b:var(--surface);--cam-glass-edge:var(--border);--cam-glass-line:var(--border);--cam-glass-shadow:none;--cam-glass-blur:0px;--cam-input:var(--input-bg);--cam-hover:var(--soft);--cam-card-a:var(--surface);--cam-card-b:var(--surface);--cam-card-edge:var(--border);
+ --radius:14px;--radius-sm:10px;--radius-lg:18px;--shadow:0 8px 30px rgba(0,0,0,.22);
 }
 :root[data-theme="light"] {
-  --text: #07090b;
-  --text-muted: #2e373e;
-  --text-faint: #4a555d;
-  --text-link: #a84300;
-  --ok: #0a7a40;
-  --warn: #9a4a05;
-  --danger: #b4231b;
-  --surface: rgba(255,255,255,.84);
-  --surface-2: rgba(255,255,255,.66);
-  --line: rgba(7,9,11,.14);
-  --input-bg: rgba(255,255,255,.72);
-  --input-text: #07090b;
-  --placeholder: #4a555d;
-  --cam-glass-a: rgba(255,255,255,.84);
-  --cam-glass-b: rgba(255,255,255,.66);
-  --cam-glass-edge: rgba(255,255,255,.95);
-  --cam-glass-line: rgba(7,9,11,.14);
-  --cam-glass-shadow: 0 18px 44px rgba(22,34,46,.16), inset 0 1px 0 #fff;
-  --cam-input: rgba(255,255,255,.72);
-  --cam-hover: rgba(7,9,11,.06);
-  --cam-card-a: #fff;
-  --cam-card-b: rgba(255,255,255,.86);
-  --cam-card-edge: #fff;
+ color-scheme:light;
+ --background:#F6F4EF;--surface:#FFFFFF;--surface-2:#F2F0EB;--text:#0E1116;--muted:#5A606B;--border:rgba(14,17,22,.14);--accent:#7A5230;--accent-rgb:122,82,48;
+ --header-bg:rgba(246,244,239,.7);--header-solid:rgba(246,244,239,.9);--soft:rgba(14,17,22,.05);--pure:#000;--pure-inv:#fff;--deep:#ECE8E0;--ink-rgb:14,17,22;--shade-rgb:40,50,80;--bg-rgb:246,244,239;
+ --bg:var(--background);--line:var(--border);--text-muted:var(--muted);--text-faint:var(--muted);--text-link:var(--accent);
+ --ok:#477A60;--warn:#8A684B;--danger:#A34F47;--success:#477A60;--success-rgb:71,122,96;--warning:#8A684B;--warning-rgb:138,104,75;--danger-rgb:163,79,71;
+ --input-bg:#FFFFFF;--input-text:var(--text);--placeholder:var(--muted);--ink:var(--text);--panel:var(--surface);--card:var(--surface);--input:var(--input-bg);--toolbar-button-bg:var(--surface-2);
+ --cam-content-text:var(--text);--cam-content-muted:var(--muted);--cam-content-line:var(--border);--cam-content-glass-a:var(--surface);--cam-content-glass-b:var(--surface);--cam-content-glass-edge:var(--border);--cam-content-control:var(--input-bg);--cam-content-hover:var(--soft);
+ --cam-surface:var(--surface);--cam-surface-2:var(--surface-2);--cam-glass-a:var(--surface);--cam-glass-b:var(--surface);--cam-glass-edge:var(--border);--cam-glass-line:var(--border);--cam-glass-shadow:none;--cam-glass-blur:0px;--cam-input:var(--input-bg);--cam-hover:var(--soft);--cam-card-a:var(--surface);--cam-card-b:var(--surface);--cam-card-edge:var(--border);
+ --shadow:0 8px 30px rgba(40,50,80,.08);
 }
-body.dashboard-page {
-  font-family: var(--font-body) !important;
-  color: var(--text) !important;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-body.dashboard-page :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.stat-value,.stat-card__value,.kpi-value) {
-  font-family: var(--font-heading) !important;
-}
-body.dashboard-page :is(input,select,textarea) {
-  font-family: var(--font-body);
-}
-body.dashboard-page :is(code,pre,kbd,.plate,.license-plate,[data-mono="true"]) {
-  font-family: var(--font-mono) !important;
-}
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) {
-  background: linear-gradient(160deg,var(--cam-glass-a),var(--cam-glass-b)) !important;
-  color: var(--text) !important;
-  border-color: var(--cam-glass-edge) !important;
-  box-shadow: var(--cam-glass-shadow);
-  -webkit-backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
-  backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
-}
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,td,th,li,div) {
-  color: var(--text);
-}
-body.dashboard-page :is(.muted,.section-note,.text-muted,.help-text,.form-hint,.field-hint,small) {
-  color: var(--text-muted);
-}
-body.dashboard-page :is(input,select,textarea,.hs-bar,#hs-input) {
-  background-color: var(--cam-input);
-  color: var(--input-text);
-  border-color: var(--cam-glass-line);
-}
-body.dashboard-page :is(input,textarea)::placeholder { color: var(--placeholder); opacity: 1; }
-body.dashboard-page :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) {
-  background: linear-gradient(160deg,var(--cam-glass-a),var(--cam-glass-b)) !important;
-  color: var(--text) !important;
-  border-color: var(--cam-glass-edge) !important;
-  -webkit-backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
-  backdrop-filter: blur(var(--cam-glass-blur)) saturate(170%);
-}
-body.dashboard-page :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) :is(h1,h2,h3,h4,p,span,label,small,strong,a,li) {
-  color: var(--text);
-}
-body.dashboard-page :is(.nav-link,.glass-nav-link,.it):hover { background: var(--cam-hover); }
-body.dashboard-page :is(.glass-nav-heading,.nav-grp,.section-label) { color: var(--text-muted); }
-body.dashboard-page :is(.plate,.license-plate) { background: #fdd835 !important; color: #12171b !important; border-color: #12171b !important; }
-body.dashboard-page :is(.status-ready,.status-success,.s-ok) { color: var(--ok); }
-body.dashboard-page :is(.status-warning,.status-progress,.s-w) { color: var(--warn); }
-body.dashboard-page :is(.status-danger,.status-error,.s-b) { color: var(--danger); }
-/* Intentionally no button selectors: existing custom button styling is preserved. */
-
-/* Compatibility with older module styles that reference the shared --font token. */
-body.dashboard-page { --font: var(--font-body) !important; }
-body.dashboard-page :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc) :is(h1,h2,h3,h4,h5,h6,p,label,td,th,li) { color: var(--text) !important; }
-body.dashboard-page :is(.status-ready,.status-success,.s-ok,.text-success) { color: var(--ok) !important; }
-body.dashboard-page :is(.status-warning,.status-progress,.s-w,.text-warning) { color: var(--warn) !important; }
-body.dashboard-page :is(.status-danger,.status-error,.s-b,.text-danger) { color: var(--danger) !important; }
+*{box-sizing:border-box}
+html{background:var(--background)}
+body{margin:0;background:var(--background);color:var(--text);font-family:"Inter",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4,h5,h6{font-family:"Sora",Arial,sans-serif}
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+:focus-visible{outline-color:var(--accent)}
+input,select,textarea{color:var(--input-text);background:var(--input-bg);border-color:var(--border)}
+input::placeholder,textarea::placeholder{color:var(--placeholder);opacity:1}
