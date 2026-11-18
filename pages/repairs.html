@@ -709,6 +709,7 @@ body.dashboard-page.module-repairs .main :is(.table-wrap,.table-container,.table
 /* ===== job cards: filter bar + mobile fit (no sideways drift, no auto-zoom on inputs) ===== */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{max-width:100%;overflow-x:hidden}
+@supports(overflow:clip){html,body{overflow-x:clip}}
 body.module-repairs{touch-action:manipulation}
 body.module-repairs :is(.main,.dash-content,.panel,.rc-row>div){min-width:0;max-width:100%}
 body.module-repairs :is(img,video,canvas){max-width:100%;height:auto}

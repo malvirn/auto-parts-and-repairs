@@ -1496,3 +1496,18 @@ body.dashboard-page .main :is(.stat-card__value,.stat-value,.kpi-value,.ci-value
   font-variant-numeric: tabular-nums;
   letter-spacing: -.01em;
 }
+
+
+/* ---- Mobile fit for every page: no sideways drift, no auto-zoom when tapping inputs ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:hidden}
+@supports(overflow:clip){html,body{overflow-x:clip}}
+body.dashboard-page{touch-action:manipulation}
+body.dashboard-page :is(.main,.dash-content,.panel){min-width:0;max-width:100%}
+body.dashboard-page :is(img,video,canvas){max-width:100%;height:auto}
+body.dashboard-page .main :is(.panel:has(>table),.table-wrap,.table-container,.table-responsive){overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:760px){
+  body.dashboard-page :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){font-size:16px!important}
+  body.dashboard-page :is(.btn,button.btn){min-height:44px}
+  body.dashboard-page .modal{max-width:calc(100vw - 24px)!important}
+}
