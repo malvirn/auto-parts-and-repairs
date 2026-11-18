@@ -665,3 +665,260 @@ body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) :is(button,
 body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="error"] { color:var(--danger)!important; }
 body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="success"] { color:var(--success)!important; }
 body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="info"] { color:var(--muted)!important; }
+
+/* =====================================================================
+MARVA HEADER (header only)
+Target: the shared app header built by js/glass-app-shell.js (#glass-header).
+Source of truth: marvatechnologies .site-header, .brand-lockup, .wordmark-main,
+.menu-button, .header-cta and .theme-icon-btn.
+CSS only. No markup, ID, JS or layout-offset changes. No animation.
+===================================================================== */
+
+/* ---- Bar: fixed beside the sidebar (restores the shell geometry), Marva pill ---- */
+body.dashboard-page.glass-app-shell #glass-header {
+position: fixed;
+top: 12px;
+left: calc(var(--glass-sidebar-width) + 18px);
+right: 18px;
+width: auto;
+max-width: none;
+height: 66px;
+min-height: 0;
+margin: 0;
+padding: 0 14px 0 16px;
+display: flex;
+align-items: center;
+gap: 12px;
+z-index: 1520;
+transform: none;
+color: var(--text) !important;
+border: 1px solid rgba(var(--ink-rgb), .16) !important;
+border-radius: 999px !important;
+background: rgba(var(--bg-rgb), .9) !important;
+background-image: none !important;
+-webkit-backdrop-filter: blur(14px) !important;
+backdrop-filter: blur(14px) !important;
+box-shadow: 0 8px 30px rgba(var(--shade-rgb), .28) !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-header { left: 100px; }
+
+/* ---- Brand lockup: Sora wordmark + circular monogram ---- */
+#glass-header .glass-header-brand { display: flex; align-items: center; gap: 11px; flex: none; min-width: 0; }
+#glass-header .glass-header-brand .glass-brand-mark {
+display: grid; place-items: center; flex: none;
+width: 42px; height: 42px; border-radius: 50%;
+border: 1px solid rgba(var(--ink-rgb), .3);
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+color: var(--text) !important;
+box-shadow: none !important;
+font: 700 19px/1 "Sora", Arial, sans-serif !important;
+letter-spacing: 0;
+}
+#glass-header .glass-header-brand strong {
+color: var(--text) !important;
+font: 700 19px/1 "Sora", Arial, sans-serif !important;
+letter-spacing: .06em;
+text-transform: uppercase;
+white-space: nowrap;
+}
+
+/* ---- Menu button: Marva .menu-button (42px ring, two hairlines) ---- */
+#glass-header .glass-icon-button.glass-menu-toggle {
+position: relative; display: grid; place-items: center; flex: none;
+width: 42px !important; height: 42px !important; min-height: 0 !important; padding: 0 !important;
+border: 1px solid rgba(var(--ink-rgb), .35) !important;
+border-radius: 50% !important;
+background: transparent !important;
+color: var(--text) !important;
+box-shadow: none !important;
+}
+#glass-header .glass-menu-toggle > * { display: none !important; }
+#glass-header .glass-menu-toggle::before,
+#glass-header .glass-menu-toggle::after {
+content: ""; position: absolute; left: 50%; width: 16px; height: 1px; margin-left: -8px;
+background: currentColor;
+}
+#glass-header .glass-menu-toggle::before { top: 17px; }
+#glass-header .glass-menu-toggle::after { top: 23px; }
+#glass-header .glass-menu-toggle:hover { border-color: var(--text) !important; background: rgba(var(--ink-rgb), .08) !important; }
+
+/* ---- Search: ONE layer. The pill is the only box; the input inside is flat. ---- */
+#glass-header .glass-search {
+position: relative; display: flex; align-items: center; gap: 10px;
+flex: 1 1 auto; min-width: 0; max-width: 620px; height: 42px; margin: 0 auto; padding: 0 16px;
+border: 1px solid rgba(var(--ink-rgb), .16) !important;
+border-radius: 999px !important;
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+box-shadow: none !important;
+color: var(--muted) !important;
+}
+#glass-header .glass-search:focus-within {
+border-color: rgba(var(--ink-rgb), .5) !important;
+box-shadow: 0 0 0 3px rgba(var(--ink-rgb), .1) !important;
+}
+#glass-header .glass-search > i,
+#glass-header .glass-search > .lucide-stub { flex: none; display: inline-flex; color: var(--muted) !important; }
+#glass-header .glass-search > i svg,
+#glass-header .glass-search > .lucide-stub svg { width: 17px; height: 17px; stroke: currentColor; }
+#glass-header .glass-search input#hs-input {
+flex: 1 1 auto; width: 100%; min-width: 0; height: 100%; min-height: 0 !important;
+margin: 0; padding: 0 !important;
+border: 0 !important; border-radius: 0 !important;
+outline: 0 !important; box-shadow: none !important;
+background: transparent !important; background-image: none !important;
+color: var(--text) !important;
+font: 500 13px/1 "Inter", Arial, sans-serif !important;
+-webkit-appearance: none; appearance: none;
+}
+#glass-header .glass-search input#hs-input:focus,
+#glass-header .glass-search input#hs-input:focus-visible {
+border: 0 !important; outline: 0 !important; box-shadow: none !important; background: transparent !important;
+}
+#glass-header .glass-search input#hs-input::placeholder { color: var(--muted) !important; opacity: 1; }
+#glass-header .glass-search input#hs-input::-webkit-search-cancel-button,
+#glass-header .glass-search input#hs-input::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+#glass-header .glass-search kbd {
+flex: none; padding: 0; border: 0 !important; background: none !important; box-shadow: none !important;
+color: var(--muted) !important; font: 500 12px/1 "Inter", Arial, sans-serif;
+}
+
+/* Search results panel: Marva menu card */
+#glass-header .glass-search .hs-panel {
+top: calc(100% + 10px); left: 0; right: 0; padding: 12px;
+border: 1px solid var(--border) !important;
+border-radius: 22px !important;
+background: rgba(var(--bg-rgb), .97) !important;
+background-image: none !important;
+color: var(--text) !important;
+-webkit-backdrop-filter: blur(14px) !important;
+backdrop-filter: blur(14px) !important;
+box-shadow: 0 18px 45px rgba(var(--shade-rgb), .45) !important;
+}
+#glass-header .glass-search .hs-chip {
+min-height: 0 !important; padding: 6px 12px !important;
+border: 1px solid var(--border) !important; border-radius: 999px !important;
+background: transparent !important; color: var(--muted) !important;
+font: 500 12px/1.2 "Inter", Arial, sans-serif !important;
+}
+#glass-header .glass-search .hs-chip[aria-pressed="true"] {
+background: var(--text) !important; border-color: var(--text) !important; color: var(--background) !important;
+}
+#glass-header .glass-search .hs-item { border-radius: 14px; color: var(--text) !important; }
+#glass-header .glass-search .hs-item:hover { background: rgba(var(--ink-rgb), .08); }
+#glass-header .glass-search .hs-item small,
+#glass-header .glass-search .hs-empty { color: var(--muted) !important; }
+
+/* ---- Actions ---- */
+#glass-header .glass-header-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+
+/* Primary action: Marva .header-cta (solid inverted pill) */
+#glass-header .glass-job-action {
+display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none;
+height: 40px; min-height: 40px; padding: 0 15px; white-space: nowrap;
+border: 1px solid var(--text) !important;
+border-radius: 999px !important;
+background: var(--text) !important;
+background-image: none !important;
+color: var(--background) !important;
+box-shadow: none !important;
+font: 600 12px/1 "Inter", Arial, sans-serif !important;
+text-decoration: none;
+}
+#glass-header .glass-job-action span,
+#glass-header .glass-job-action svg { color: var(--background) !important; stroke: currentColor; }
+#glass-header .glass-job-action:hover { background: var(--text) !important; opacity: .88; }
+
+/* Circle icon buttons (shop, notifications, theme): Marva .theme-icon-btn */
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell {
+position: relative; display: grid; place-items: center; flex: none;
+width: 42px !important; height: 42px !important; min-height: 0 !important; padding: 0 !important;
+border: 1px solid rgba(var(--ink-rgb), .3) !important;
+border-radius: 50% !important;
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+color: var(--text) !important;
+box-shadow: none !important;
+}
+#glass-header .glass-header-actions .glass-icon-button svg,
+#glass-header .glass-header-actions #global-notif-bell svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; }
+#glass-header .glass-header-actions .glass-icon-button:hover,
+#glass-header .glass-header-actions #global-notif-bell:hover {
+border-color: #D97757 !important;
+background: rgba(var(--ink-rgb), .08) !important;
+box-shadow: 0 0 22px rgba(217, 119, 87, .45) !important;
+}
+
+/* Theme icon: drawn in CSS so it always shows (the injected SVG is hidden).
+Dark mode shows the sun (#FFC857), light mode shows the moon (#3B4FD8), as on Marva. */
+#glass-header .theme-toggle {
+--ti: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E");
+--ti-color: #FFC857;
+overflow: hidden;
+border-color: rgba(var(--ink-rgb), .4) !important;
+}
+html[data-theme="light"] #glass-header .theme-toggle {
+--ti: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'/%3E%3C/svg%3E");
+--ti-color: #3B4FD8;
+}
+#glass-header .theme-toggle > * { display: none !important; }
+#glass-header .theme-toggle::before {
+content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+background-color: var(--ti-color);
+-webkit-mask: var(--ti) center / contain no-repeat;
+mask: var(--ti) center / contain no-repeat;
+}
+
+/* Notification slot keeps the bell on the same baseline */
+#glass-header .glass-notification-slot { display: flex; align-items: center; flex: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1180px) {
+#glass-header .glass-header-brand strong { display: none; }
+}
+@media (max-width: 1024px) {
+#glass-header .glass-job-action { width: 42px; height: 42px; padding: 0; border-radius: 50% !important; }
+#glass-header .glass-job-action span { display: none; }
+#glass-header .glass-job-action svg { width: 18px; height: 18px; }
+}
+@media (max-width: 900px) {
+body.dashboard-page.glass-app-shell #glass-header { top: 8px; left: 8px; right: 8px; height: 58px; gap: 8px; padding: 0 9px; }
+#glass-header .glass-search kbd { display: none; }
+#glass-header .glass-header-brand .glass-brand-mark { width: 38px; height: 38px; font-size: 17px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 38px !important; height: 38px !important; }
+#glass-header .glass-job-action { min-height: 0; }
+#glass-header .glass-menu-toggle::before { top: 14px; }
+#glass-header .glass-menu-toggle::after { top: 20px; }
+#glass-header .glass-search { height: 38px; padding: 0 12px; gap: 8px; }
+#glass-header .glass-search input#hs-input { font-size: 12px !important; }
+#glass-header .glass-header-actions { gap: 6px; }
+#glass-header .theme-toggle::before { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
+}
+@media (max-width: 480px) {
+#glass-header .glass-header-brand { display: none; }
+body.dashboard-page.glass-app-shell #glass-header { gap: 6px; padding: 0 7px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 36px !important; height: 36px !important; }
+#glass-header .glass-menu-toggle::before { top: 13px; }
+#glass-header .glass-menu-toggle::after { top: 19px; }
+#glass-header .glass-search { padding: 0 10px; gap: 6px; }
+#glass-header .glass-header-actions { gap: 4px; }
+}
+@media (max-width: 360px) {
+body.dashboard-page.glass-app-shell #glass-header { gap: 4px; padding: 0 5px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 34px !important; height: 34px !important; }
+#glass-header .glass-menu-toggle::before { top: 12px; }
+#glass-header .glass-menu-toggle::after { top: 18px; }
+#glass-header .glass-search > i,
+#glass-header .glass-search > .lucide-stub { display: none; }
+}
