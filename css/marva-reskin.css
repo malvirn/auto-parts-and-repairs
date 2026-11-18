@@ -1559,3 +1559,79 @@ body.dashboard-page .main :is(.panel:has(>table),.table-wrap,.table-container,.t
 body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner) { color:var(--accent); }
 .apr-state--loading .apr-state__icon { color:var(--accent); }
 .boot-fill,.sync-fill { background:linear-gradient(90deg,var(--accent),var(--accent-hover),var(--accent))!important; background-size:200% 100%; }
+
+/* ---- Light-mode versions of the credit-note / voucher panel (its own styles are dark-only). Generated. ---- */
+:root[data-theme="light"] .customer-credit-panel-scope .credit-detail-row>span{color:#3b4858!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-brand-header{border-bottom:1px solid #cdd0d5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-narrative p{color:#1b2635!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-narrative p strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-voucher-modal-qr{border:1px solid var(--line,#c8cbd0)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record){background:linear-gradient(145deg,#f6f8f7 0%,#f8f9f9 100%)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-id{color:#1cb15c!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer strong{color:#18231a!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer small{color:#516458!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance strong{color:#1d9f52!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance small{color:#4a5b50!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .customer-credit-document{background:#f7f9f8!important}
+:root[data-theme="light"] #voucher-redeem-video{background:#fcfcfc!important}
+:root[data-theme="light"] .rc-tabs .seg[aria-pressed="true"]{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary>div,:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-actions,:root[data-theme="light"] .customer-credit-panel-scope .credit-available-card,:root[data-theme="light"] .customer-credit-panel-scope .credit-details-card,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-facts,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-totals,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-job-link{background:#f2f4f5!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-id,:root[data-theme="light"] .customer-credit-panel-scope .credit-note-status,:root[data-theme="light"] .customer-credit-panel-scope .credit-modal-title h3,:root[data-theme="light"] .customer-credit-panel-scope .credit-job-balance{color:#1c2631!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-apply,:root[data-theme="light"] .customer-credit-panel-scope .btn--primary,:root[data-theme="light"] .customer-credit-panel-scope .credit-modal-close{background:#eceeef!important;border-color:#cbced2!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary{border-color:#ced1d5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{background:#f5f6f7!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet{background:#f5f6f7!important;border-color:#cbced2!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-modal-title h3{color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-available-card,:root[data-theme="light"] .credit-modal-sheet .credit-details-card,:root[data-theme="light"] .credit-modal-sheet .credit-doc-heading,:root[data-theme="light"] .credit-modal-sheet .credit-doc-facts,:root[data-theme="light"] .credit-modal-sheet .credit-doc-totals,:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions{background:#f2f4f5!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .customer-credit-apply,:root[data-theme="light"] .credit-modal-sheet .credit-modal-close{background:#eceeef!important;border-color:#cbced2!important;color:#141414!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-note-status,:root[data-theme="light"] .credit-modal-sheet .credit-unused-badge{background:#eff0f1!important;border-color:#cbced2!important;color:#1c2631!important}
+:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions input,:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions select{background:#f6f7f8!important;border-color:#cbced2!important;color:#161e27!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-partial{color:#c98711!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-refunded{color:#920000!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-applied{color:#003692!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading{background:#edeff2!important;color:#0e1928!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading small{color:#d36200!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading h3{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{background:#f7f9f8!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary strong{color:#18231a!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body{background:#f8faf9!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary>div{border:1px solid #c6d1db!important;background:linear-gradient(145deg,#f0f3f6,#f2f5f8)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary small{color:#284b6b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{border:1px solid #c3ced9!important;background:#f4f6f8!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary{background:linear-gradient(115deg,#ecf0f5 0%,#f0f3f6 65%,#eff2f5 100%)!important;border-bottom:1px solid #c6d1db!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary:hover,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary:hover{background:linear-gradient(115deg,#e8eef3,#edf1f5)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-id{background:#f1f5f8!important;color:#0075aa!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer small,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child small{color:#284157!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-available{color:#0f6535!important;background:#f1f7f6!important;border:1px solid #c3ded4!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-partial{color:#7e5500!important;background:#f6f3ef!important;border:1px solid #ded3bf!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-refunded{color:#620000!important;background:#f4efef!important;border:1px solid #d6c2c5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-applied{color:#004169!important;background:#ecf1f5!important;border:1px solid #bdced9!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#0075aa!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance small,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong small{color:#253e55!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading{background:linear-gradient(110deg,#e4eef5,#ebf0f5)!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading small{color:#00688f!important}
+:root[data-theme="light"] .customer-credit-confirm-modal{border:1px solid #ced2d7!important;background:#f2f3f5!important;color:#14202c!important}
+:root[data-theme="light"] .customer-credit-confirm-heading p{color:#404e62!important}
+:root[data-theme="light"] .customer-credit-confirm-form label small{color:#404e62!important}
+:root[data-theme="light"] .customer-credit-confirm-form input{border:1px solid #cbcfd3!important;background:#f4f6f7!important;color:#121d29!important}
+:root[data-theme="light"] .customer-credit-confirm-form input:focus{border-color:#bcdfcd!important}
+:root[data-theme="light"] .customer-credit-confirm-actions button{border:1px solid #cbcfd3!important}
+:root[data-theme="light"] .customer-credit-confirm-submit{border-color:#c0e2d0!important;background:#e3f2ea!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-confirm-submit:hover{background:#e7f4ed!important}
+
+/* ---- Light-mode readability fixes ---- */
+/* repair-pages.css gives .page-intro near-white text for the dark hero; inside page sections on a light page it vanished. */
+:root[data-theme="light"] body.dashboard-page .main :is(.page-section,.dashboard-section,.panel) .page-intro { color:var(--muted)!important; opacity:1!important; }
+/* Technicians re-confirm card was dark-only. */
+:root[data-theme="light"] .technicians-reconfirm { background:rgba(246,244,239,.88)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card { background:var(--surface)!important; color:var(--text)!important; border-color:var(--border)!important; box-shadow:0 24px 80px rgba(14,17,22,.18)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card :is(h1,label) { color:var(--text)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card p { color:var(--muted)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card input { background:var(--input-bg)!important; color:var(--text)!important; border-color:var(--border)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card a { color:var(--accent)!important; }
+:root[data-theme="light"] .technicians-reconfirm__icon { color:var(--accent)!important; background:rgba(var(--accent-rgb),.1)!important; border-color:rgba(var(--accent-rgb),.28)!important; }
+:root[data-theme="light"] #technicians-reconfirm-message { color:var(--danger)!important; }
