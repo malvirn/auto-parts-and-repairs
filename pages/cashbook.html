@@ -29,7 +29,7 @@
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
@@ -56,7 +56,7 @@ body.dashboard-page .main{min-width:0}
 <style id="module-design-cashbook">
 
 /* Cash book: page-specific Centric surface design. Header and sidebar remain owned by the app shell. */
-body.dashboard-page.module-cashbook { --module-accent:#65c7b0; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+body.dashboard-page.module-cashbook { --module-accent:var(--success); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
 :root[data-theme="light"] body.dashboard-page.module-cashbook { --module-glass:rgba(250,252,254,.84); --module-edge:rgba(255,255,255,.9); --module-ink:#172431; --module-muted:#5c6b79; }
 body.dashboard-page.module-cashbook .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
 body.dashboard-page.module-cashbook .main .page-section { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
@@ -85,6 +85,7 @@ body.dashboard-page.module-cashbook .main :is(.table-wrap,.table-container,.tabl
 @media(prefers-reduced-motion:reduce) { body.dashboard-page.module-cashbook .main * { scroll-behavior:auto; } }
 
 </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop module-cashbook">
   <div class="app-shell">

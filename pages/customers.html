@@ -15,7 +15,7 @@
   <script src="../js/theme.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0a1120">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
@@ -27,9 +27,9 @@
 
   <style id="customers-design">
     /* ===== shared look: same blue palette as the dashboard ===== */
-    html { background: #0a1120; }
+    html { background: var(--background); }
     body.customer-page {
-      --green: #2a6fdb; --green-bright: #4da3ff; --orange: #ff7a12;
+      --green: var(--accent); --green-bright: var(--accent); --orange: var(--warning);
       --bg: var(--ink); --surface: var(--panel); --surface-2: #0b1426;
       --accent: var(--green-bright); --accent-dim: var(--green);
       --font: "Inter","Segoe UI",system-ui,sans-serif;
@@ -89,7 +89,7 @@
     body.customer-page table th { color: var(--muted); border-bottom: 1px solid var(--line); }
 
     body.customer-page .customer-kind-field { grid-column:1 / -1 !important; }
-    body.customer-page .customer-kind-field select { min-height:48px; border:1.5px solid rgba(255,122,18,.72); }
+    body.customer-page .customer-kind-field select { min-height:48px; border:1.5px solid rgba(var(--warning-rgb),.72); }
     body.customer-page .customer-form { background:linear-gradient(145deg,rgba(12,24,45,.88),rgba(9,17,33,.91)) !important; backdrop-filter:blur(5px); }
     body.customer-page .customer-form .field[hidden] { display:none !important; }
     :root[data-theme="light"] body.customer-page .customer-form { background:rgba(255,255,255,.91) !important; }
@@ -125,10 +125,10 @@
     }
     body.customer-page .customer-form__saved-actions[hidden] { display: none; }
     body.customer-page .customer-toggle-label{display:flex;align-items:center;gap:9px;min-height:44px;color:var(--text);font-size:.9rem;font-weight:700}
-    body.customer-page .customer-toggle-label input{width:18px;height:18px;accent-color:#1fc467}
-    body.customer-page .customer-cid-result{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px;border:1px solid rgba(31,196,103,.28);border-radius:12px;background:rgba(31,196,103,.07)}
+    body.customer-page .customer-toggle-label input{width:18px;height:18px;accent-color:var(--success)}
+    body.customer-page .customer-cid-result{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px;border:1px solid rgba(var(--success-rgb),.28);border-radius:12px;background:rgba(var(--success-rgb),.07)}
     body.customer-page .customer-cid-result[hidden]{display:none}
-    body.customer-page .customer-cid-pill{display:inline-flex;padding:7px 12px;border-radius:999px;background:#dcfce7;color:#166534;font:800 .88rem ui-monospace,monospace;letter-spacing:.04em}
+    body.customer-page .customer-cid-pill{display:inline-flex;padding:7px 12px;border-radius:999px;background:#dcfce7;color:var(--success);font:800 .88rem ui-monospace,monospace;letter-spacing:.04em}
     body.customer-page .customer-directory-search{display:grid;gap:5px;min-width:min(100%,280px);color:var(--text-muted);font-size:.75rem;font-weight:700}
     body.customer-page .customer-directory-search input{min-height:40px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit}
     body.customer-page .customer-optional {
@@ -164,8 +164,8 @@
       white-space: nowrap;
     }
     body.customer-page .customer-type[data-type="company"] {
-      border-color: rgba(255,122,18,.26);
-      background: rgba(255,122,18,.1);
+      border-color: rgba(var(--warning-rgb),.26);
+      background: rgba(var(--warning-rgb),.1);
       color: #ffd0a8;
     }
     body.customer-page .customer-repeat.is-new {
@@ -247,9 +247,9 @@
     body.customer-page .apr-bottom-nav > a,
     body.customer-page .apr-more-toggle { position: relative; display: grid; min-width: 0; height: 100%; place-items: center; align-content: center; gap: 4px; border: 0; background: none; color: #c7d2e6; font: 600 11px Inter,"Segoe UI",system-ui,sans-serif; text-decoration: none; cursor: pointer; }
     body.customer-page .apr-bottom-nav > a:hover,
-    body.customer-page .apr-bottom-nav [aria-current="page"] { color: #4da3ff; }
+    body.customer-page .apr-bottom-nav [aria-current="page"] { color: var(--accent); }
     body.customer-page .apr-bottom-nav svg { width: 23px; height: 23px; }
-    body.customer-page .apr-bottom-nav [aria-current="page"]::after { position: absolute; top: 0; left: 50%; width: 42px; height: 3px; border-radius: 0 0 3px 3px; background: #4da3ff; content: ""; transform: translateX(-50%); }
+    body.customer-page .apr-bottom-nav [aria-current="page"]::after { position: absolute; top: 0; left: 50%; width: 42px; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); content: ""; transform: translateX(-50%); }
     body.customer-page .apr-more-wrap { display: none !important; }
 
     /* ===== light mode ===== */
@@ -330,7 +330,7 @@
 <style id="module-design-customers">
 
 /* Customer management: individual page styling, scoped to this module's content only. */
-body.dashboard-page.module-customers { --module-accent:#6bbf9a; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+body.dashboard-page.module-customers { --module-accent:var(--success); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
 :root[data-theme="light"] body.dashboard-page.module-customers { --module-glass:rgba(250,252,254,.86); --module-edge:rgba(255,255,255,.92); --module-ink:#172431; --module-muted:#5c6b79; }
 body.dashboard-page.module-customers .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
 body.dashboard-page.module-customers .main :is(.page-section) { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
@@ -358,6 +358,7 @@ body.dashboard-page.module-customers .main :is(.table-wrap,.table-container,.tab
 }
 
 </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="dashboard-page system-page customer-page dashboard-workshop module-customers">
   <div class="app-shell">

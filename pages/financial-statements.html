@@ -27,7 +27,7 @@
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
@@ -54,7 +54,7 @@ body.dashboard-page .main{min-width:0}
 <style id="module-design-financial-statements">
 
 /* Financial statements: individual page styling, scoped to this module's content only. */
-body.dashboard-page.module-financial-statements { --module-accent:#67a9e8; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+body.dashboard-page.module-financial-statements { --module-accent:var(--accent); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
 :root[data-theme="light"] body.dashboard-page.module-financial-statements { --module-glass:rgba(250,252,254,.86); --module-edge:rgba(255,255,255,.92); --module-ink:#172431; --module-muted:#5c6b79; }
 body.dashboard-page.module-financial-statements .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
 body.dashboard-page.module-financial-statements .main :is(.page-section) { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
@@ -82,6 +82,7 @@ body.dashboard-page.module-financial-statements .main :is(.table-wrap,.table-con
 }
 
 </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop module-financial-statements">
   <div class="app-shell">

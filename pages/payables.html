@@ -38,10 +38,10 @@
     .payable-actions{min-width:170px}
     .payable-actions .btn{display:inline-flex;align-items:center;gap:6px;margin:3px 4px 3px 0}
     .payable-actions .btn svg{width:15px;height:15px}
-    .reverse-payment-btn{border-color:rgba(251,113,133,.4)!important;color:#fb7185!important}
+    .reverse-payment-btn{border-color:rgba(251,113,133,.4)!important;color:var(--danger)!important}
     .reverse-payment-btn:hover{background:rgba(251,113,133,.1)!important}
     .reversal-status{display:inline-flex;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;background:rgba(148,163,184,.12);color:var(--text-muted);font-size:.76rem;white-space:nowrap}
-    .payment-history-error{display:block;color:#fb7185;font-size:.75rem;max-width:250px;overflow-wrap:anywhere}
+    .payment-history-error{display:block;color:var(--danger);font-size:.75rem;max-width:250px;overflow-wrap:anywhere}
     .payables-overdue{margin:0 0 16px;padding:14px 16px;border:1px solid rgba(178,59,59,.45);border-left:4px solid var(--danger,#b23b3b);border-radius:10px;background:rgba(178,59,59,.1);color:var(--text)}
     .payables-overdue[hidden]{display:none}
     .payable-row{cursor:pointer}
@@ -75,7 +75,7 @@
   </style>
   <link rel="stylesheet" href="../css/mh-theme.css">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220">
+  <meta name="theme-color" content="#0A0A0A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Auto Parts">
@@ -85,11 +85,11 @@
 
 
   <style>
-    .payables-intro{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(31,196,103,.12),rgba(12,18,16,.96))}
+    .payables-intro{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(var(--success-rgb),.12),rgba(12,18,16,.96))}
     .payables-intro h1{margin:0;color:var(--text);font-size:clamp(25px,3vw,36px)}
     .payables-intro p{max-width:76ch;margin:8px 0 0;color:var(--muted)}
     .payables-intro__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-    .payables-help{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:14px 18px;border-left:4px solid var(--green-bright);border-radius:8px;background:rgba(31,196,103,.08);color:var(--text)}
+    .payables-help{width:min(1500px,100% - clamp(28px,8vw,116px));margin:0 auto 24px;padding:14px 18px;border-left:4px solid var(--green-bright);border-radius:8px;background:rgba(var(--success-rgb),.08);color:var(--text)}
     .payables-help strong{color:var(--green-bright)}
   </style>
 
@@ -110,7 +110,7 @@ body.dashboard-page .main{min-width:0}
 <style id="module-design-payables">
 
 /* Supplier payables: page-specific Centric surface design. Header and sidebar remain owned by the app shell. */
-body.dashboard-page.module-payables { --module-accent:#e47777; --module-glass:rgba(15,27,36,.72); --module-edge:rgba(255,255,255,.16); --module-ink:#f3f7fa; --module-muted:#b5c2cc; }
+body.dashboard-page.module-payables { --module-accent:var(--danger); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
 :root[data-theme="light"] body.dashboard-page.module-payables { --module-glass:rgba(250,252,254,.84); --module-edge:rgba(255,255,255,.9); --module-ink:#172431; --module-muted:#5c6b79; }
 body.dashboard-page.module-payables .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
 body.dashboard-page.module-payables .main .page-section { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
@@ -139,6 +139,7 @@ body.dashboard-page.module-payables .main :is(.table-wrap,.table-container,.tabl
 @media(prefers-reduced-motion:reduce) { body.dashboard-page.module-payables .main * { scroll-behavior:auto; } }
 
 </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=1">
 </head>
 <body class="dashboard-page system-page dashboard-workshop module-payables">
   <div class="app-shell">
