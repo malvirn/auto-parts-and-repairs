@@ -1,0 +1,667 @@
+/* Marva Technologies visual reskin for Auto Parts & Repairs.
+   Presentation only. Existing markup, IDs, data attributes and JavaScript hooks stay intact. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+:root {
+  color-scheme: dark;
+  --background: #0A0A0A;
+  --surface: #141414;
+  --text: #F5F5F5;
+  --muted: #A3A3A3;
+  --border: rgba(255,255,255,.14);
+  --accent: #E8E2D9;
+  --accent-rgb: 232,226,217;
+  --header-bg: rgba(10,10,10,.55);
+  --header-solid: rgba(10,10,10,.85);
+  --soft: rgba(255,255,255,.06);
+  --pure: #fff;
+  --pure-inv: #000;
+  --deep: #08090b;
+  --ink-rgb: 255,255,255;
+  --shade-rgb: 0,0,0;
+  --bg-rgb: 10,10,10;
+
+  /* Compatibility aliases used by the existing application styles. */
+  --bg: var(--background);
+  --surface-2: #1C1C1C;
+  --surface-alt: var(--surface);
+  --line: var(--border);
+  --text-muted: var(--muted);
+  --text-faint: var(--muted);
+  --text-link: var(--accent);
+  --input-bg: #101010;
+  --input-text: var(--text);
+  --placeholder: var(--muted);
+  --ok: #A3A3A3;
+  --warn: #C9BBA8;
+  --success: #568A70;
+  --success-rgb: 86,138,112;
+  --warning: #B18A55;
+  --warning-rgb: 177,138,85;
+  --danger: #B96C68;
+  --danger-rgb: 185,108,104;
+  --font: "Inter", Arial, sans-serif;
+  --font-body: "Inter", Arial, sans-serif;
+  --font-heading: "Sora", Arial, sans-serif;
+  --font-mono: "Inter", Arial, sans-serif;
+  --cam-content-font: "Inter", Arial, sans-serif;
+  --cam-content-heading: "Sora", Arial, sans-serif;
+  --cam-content-mono: "Inter", Arial, sans-serif;
+  --cam-content-text: var(--text);
+  --cam-content-muted: var(--muted);
+  --cam-content-line: var(--border);
+  --cam-content-glass-a: var(--surface);
+  --cam-content-glass-b: var(--surface);
+  --cam-content-glass-edge: var(--border);
+  --cam-content-shadow: none;
+  --cam-content-control: var(--input-bg);
+  --cam-content-hover: var(--soft);
+  --cam-glass-blur: 0px;
+  --cam-glass-shadow: none;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 18px;
+  --shadow: 0 8px 30px rgba(0,0,0,.22);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --background: #F6F4EF;
+  --surface: #FFFFFF;
+  --text: #0E1116;
+  --muted: #5A606B;
+  --border: rgba(14,17,22,.14);
+  --accent: #7A5230;
+  --accent-rgb: 122,82,48;
+  --header-bg: rgba(246,244,239,.7);
+  --header-solid: rgba(246,244,239,.9);
+  --soft: rgba(14,17,22,.05);
+  --pure: #000;
+  --pure-inv: #fff;
+  --deep: #ECE8E0;
+  --ink-rgb: 14,17,22;
+  --shade-rgb: 40,50,80;
+  --bg-rgb: 246,244,239;
+  --bg: var(--background);
+  --surface-2: #F2F0EB;
+  --surface-alt: var(--surface);
+  --line: var(--border);
+  --text-muted: var(--muted);
+  --text-faint: var(--muted);
+  --text-link: var(--accent);
+  --input-bg: #FFFFFF;
+  --input-text: var(--text);
+  --placeholder: var(--muted);
+  --ok: #5A606B;
+  --warn: #8A684B;
+  --success: #477A60;
+  --success-rgb: 71,122,96;
+  --warning: #8A684B;
+  --warning-rgb: 138,104,75;
+  --danger: #A34F47;
+  --danger-rgb: 163,79,71;
+  --cam-content-text: var(--text);
+  --cam-content-muted: var(--muted);
+  --cam-content-line: var(--border);
+  --cam-content-glass-a: var(--surface);
+  --cam-content-glass-b: var(--surface);
+  --cam-content-glass-edge: var(--border);
+  --cam-content-control: var(--input-bg);
+  --cam-content-hover: var(--soft);
+  --cam-glass-blur: 0px;
+  --cam-glass-shadow: none;
+  --shadow: 0 8px 30px rgba(40,50,80,.08);
+}
+
+/* Global motion removal. No visual movement on hover, focus, load or scroll. */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+  caret-color: auto;
+}
+
+html, body {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body, body.dashboard-page, body.system-page {
+  --bg: var(--background) !important;
+  --line: var(--border) !important;
+  --text-muted: var(--muted) !important;
+  --green: var(--success) !important;
+  --green-bright: var(--success) !important;
+  --orange: var(--warning) !important;
+  --grey: var(--muted) !important;
+  --cam-green: var(--success) !important;
+  --cam-green-deep: var(--success) !important;
+  --cam-orange: var(--warning) !important;
+  --cam-border: var(--border) !important;
+  --cam-surface: var(--surface) !important;
+  --cam-surface-2: var(--surface-2) !important;
+  --cam-text: var(--text) !important;
+  --cam-muted: var(--muted) !important;
+  --font: "Inter", Arial, sans-serif !important;
+  --font-body: "Inter", Arial, sans-serif !important;
+  --font-heading: "Sora", Arial, sans-serif !important;
+  background-color: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-heading h2,.stat-value,.stat-card__value,.kpi-value,.hdr-name) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+  letter-spacing: -.025em;
+}
+body :is(p,li,td,th,label,legend,small,button,input,select,textarea,a,span,div) {
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body :is(.muted,.text-muted,.section-note,.help-text,.form-hint,.field-hint,small,.hdr-sub,.hdr-hello) {
+  color: var(--muted);
+}
+body a { color: inherit; }
+body :is(hr,.divider,.table-divider) { border-color: var(--border) !important; }
+
+/* Shared Marva floating header treatment, preserving the app's existing controls. */
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead,.main__header.app-header) {
+  position: sticky;
+  top: 10px;
+  z-index: 1200;
+  min-height: 66px;
+  margin: 10px 10px 22px;
+  padding: 8px 16px;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--header-bg) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead).scrolled {
+  background: var(--header-solid) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(a,button,span,strong,small,p) {
+  color: var(--text);
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.hdr-name,.glass-brand-name,#dashboard-greeting) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.hdr-sub,.hdr-hello,#dashboard-date,.glass-search kbd) {
+  color: var(--muted) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(button,.dashboard-toolbar-button,.glass-icon-button,#global-notif-bell,.theme-toggle,.hdr-more) {
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(svg,i) {
+  color: currentColor;
+  stroke: currentColor;
+}
+body.dashboard-page :is(.glass-search,.hs-bar,#hs-input) {
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page :is(.glass-search,.hs-bar) input {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-search,.hs-bar) input::placeholder { color: var(--muted) !important; }
+
+/* Sidebar remains a sidebar. Its visual language follows Marva's surfaces and type. */
+body.dashboard-page :is(.glass-sidebar,.sidebar) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(a,button,span,strong,small,p,h1,h2,h3,h4) {
+  font-family: "Inter", Arial, sans-serif !important;
+  color: var(--text);
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(.glass-brand-name,.sidebar__brand) {
+  font-family: "Sora", Arial, sans-serif !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-nav-heading,.nav-grp,.glass-profile-copy small,.sidebar .nav-grp) {
+  color: var(--muted) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body.dashboard-page :is(.glass-nav-link,.sidebar .nav-link,.nav-link) {
+  min-height: 42px;
+  margin: 2px 8px;
+  padding: 10px 12px;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 500 14px/1.35 "Inter", Arial, sans-serif !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-page :is(.glass-nav-link,.sidebar .nav-link,.nav-link):hover {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-nav-link.is-active,.sidebar .nav-link.active,.nav-link.active) {
+  background: var(--soft) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+body.dashboard-page :is(.glass-nav-link.is-active,.sidebar .nav-link.active)::before {
+  background: var(--accent) !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(.glass-sidebar-brand,.sidebar__brand) {
+  border-bottom: 1px solid var(--border) !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(img,.brand-logo) {
+  box-shadow: none !important;
+}
+
+/* Consistent flat Marva surfaces, no gradients or glass cards. */
+body :is(.card,.stat-card,.objective-card,.panel,.panel-card,.content-card,.section-card,.form-card,
+.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,
+.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,
+.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc,.ci-card,.ci-panel,.chart-card,
+.report-card,.module-card,.settings-card,.stock-summary-card,.summary-card,.info-card,
+.metric-card,.kpi-card,.activity-card,.dashboard-card,.insight-card,.inventory-card,
+.rc,.rc-tabs,.rc-stats,.rc-form,.rc-build,.st,.jm-grid,.jc-wrap,.jc-left,.jc-right,
+.pos-catalogue,.pos-cart-panel,.pos-payment-panel,.payroll-banner,.payroll-table-wrap,
+.inspection-diagram-panel,.inspection-side-panel,.inspection-summary,.customer-account-summary,
+.customer-account-stat,.payment-summary,.landed-summary,.online-search-panel,.parts-filter-panel,
+.alert-card,.dashboard-table-panel,.settings-card) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.modal-content,.modal-card,.modal-dialog,.quotation-modal) :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,td,th,li) {
+  color: var(--text);
+}
+body :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.modal-content,.modal-card,.modal-dialog,.quotation-modal) :is(.muted,.text-muted,.section-note,small) {
+  color: var(--muted);
+}
+body :is(.page-section,.dashboard-section,.dash-content,.main,.app-shell) {
+  background: transparent !important;
+  color: var(--text);
+}
+body :is(.hero,.hero-bg,.dashboard-hero,.dashboard-hero::before) {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+body.dashboard-page .main { font-family: "Inter", Arial, sans-serif !important; }
+body.dashboard-page .main :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-heading h2,.stat-value,.stat-card__value,.kpi-value) {
+  font-family: "Sora", Arial, sans-serif !important;
+}
+
+/* Inputs, selects and textareas. */
+body :is(input:not([type=checkbox]):not([type=radio]),select,textarea,.form-control,.form-select) {
+  min-height: 40px;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  font: 400 14px/1.4 "Inter", Arial, sans-serif !important;
+  box-shadow: none !important;
+}
+body :is(input,textarea)::placeholder { color: var(--placeholder) !important; opacity: 1; }
+body :is(input,select,textarea):focus {
+  border-color: var(--accent) !important;
+  outline: 2px solid color-mix(in srgb,var(--accent) 22%,transparent) !important;
+  outline-offset: 1px;
+  box-shadow: none !important;
+}
+
+/* Marva button treatment without overriding compact controls or layout transforms. */
+body :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):not(.pos-keypad button):not(.pos-key):not(.keypad-key):not(.qty-step):not(.stepper-btn):not(.quotation-qty-step):not(.icon-btn):not(.btn-icon):not(.table-icon-btn):not(.table-action-icon) {
+  border:1px solid var(--border)!important;
+  background:var(--surface)!important;
+  background-image:none!important;
+  color:var(--text)!important;
+  font:600 13px/1.2 "Inter",Arial,sans-serif!important;
+  text-shadow:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+body :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):not(.pos-keypad button):not(.pos-key):not(.keypad-key):not(.qty-step):not(.stepper-btn):not(.quotation-qty-step):not(.icon-btn):not(.btn-icon):not(.table-icon-btn):not(.table-action-icon):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:var(--soft)!important;
+  border-color:var(--border)!important;
+  color:var(--text)!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+body :is(.btn:not(.btn-sm):not(.btn-icon):not(.icon-btn):not(.quotation-qty-step):not(.qty-step):not(.stepper-btn):not(.keypad-key):not(.pos-key):not(.table-icon-btn):not(.table-action-icon):not(.pos-keypad button),a.btn:not(.btn-sm):not(.btn-icon):not(.icon-btn):not(.table-icon-btn):not(.table-action-icon),button[type="submit"]:not(.pos-keypad button):not(.keypad-key):not(.table-icon-btn):not(.table-action-icon)) {
+  border-radius:999px!important;
+}
+body :is(.btn--primary,.btn-primary,.button-primary,.btn.primary,[data-variant="primary"],button[type="submit"]) {
+  background:var(--text)!important;border-color:var(--text)!important;color:var(--background)!important;
+}
+body :is(.btn--success,.btn-success,[data-variant="success"]) {
+  color:var(--success)!important;border-color:color-mix(in srgb,var(--success) 45%,var(--border))!important;
+  background:color-mix(in srgb,var(--success) 12%,var(--surface))!important;
+}
+body :is(.btn--warning,.btn-warning,[data-variant="warning"]) {
+  color:var(--warning)!important;border-color:color-mix(in srgb,var(--warning) 45%,var(--border))!important;
+  background:color-mix(in srgb,var(--warning) 12%,var(--surface))!important;
+}
+body :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.delete-btn,[data-variant="danger"],[data-action*="delete"]) {
+  color:var(--danger)!important;border-color:color-mix(in srgb,var(--danger) 55%,var(--border))!important;
+  background:color-mix(in srgb,var(--danger) 16%,var(--surface))!important;
+}
+body :is(button,.btn,[role="button"]):disabled,body :is(button,.btn,[role="button"])[aria-disabled="true"] {
+  opacity:.45!important;cursor:not-allowed!important;box-shadow:none!important;
+}
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner,.sync-go i,.sync-step[data-state="active"] .sync-ico) {
+  animation:marva-spinner .8s linear infinite!important;
+}
+@keyframes marva-spinner { to { transform:rotate(360deg); } }
+
+/* Tables, tabs, badges, menus, dialogs and notifications. */
+body table { border-collapse: collapse; color: var(--text); font-variant-numeric: tabular-nums; }
+body :is(th,td) { border-color: var(--border) !important; }
+body th {
+  color: var(--muted) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+body tbody tr:hover { background: var(--soft) !important; }
+body :is(.badge,.pill,.status-badge,.type-badge,.tag,.chip,.filter-chip) {
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,
+.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel,
+.modal,.modal-content,.modal-card,.modal-dialog,.dialog,.toast,.toast-container) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,
+.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) :is(a,button,span,p,small,strong,label) {
+  color: var(--text);
+}
+
+/* Login and customer portal share the same typography, palette and restrained panels. */
+body:is(.login-page,.portal-page,.auth-page) {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(h1,h2,h3,h4,.brand-title,.login-title,.portal-title) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(.login-card,.login-panel,.auth-card,.portal-card,.portal-panel,.login-container,.portal-container) {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(input,select,textarea) {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border) !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(button,.btn,[role="button"]) {
+  border-radius: 999px !important;
+}
+
+/* Printed quotations and receipts retain the original main-branch styles. */
+@media (max-width: 900px) {
+  body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) {
+    top: 8px;
+    margin: 8px 8px 18px;
+    min-height: 58px;
+    padding: 6px 10px;
+  }
+}
+
+
+/* Customer repair portal uses portal-shell rather than a body theme class. */
+body:has(.portal-shell) {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body:has(.portal-shell) :is(.portal-shell,.portal-hero,.portal-panel,.portal-result,.portal-card) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body:has(.portal-shell) :is(h1,h2,h3,.portal-title) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body:has(.portal-shell) :is(p,span,label,small) { color: var(--muted); }
+body:has(.portal-shell) input {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border) !important;
+}
+body:has(.portal-shell) .portal-button {
+  background: var(--text) !important;
+  color: var(--background) !important;
+  border-color: var(--text) !important;
+}
+
+
+/* The workshop's compact utility header is generated by existing scripts. */
+body.dashboard-workshop .dashboard-topbar {
+  position: fixed !important;
+  top: 10px !important;
+  left: 10px !important;
+  right: 10px !important;
+  width: auto !important;
+  max-width: 1200px !important;
+  height: 66px !important;
+  margin: 0 auto !important;
+  padding: 7px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--header-bg) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a,.hs-bar,#hs-input) {
+  border-color: var(--border) !important;
+  border-radius: 999px !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a) {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a):hover {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar .hs-bar {
+  background: var(--soft) !important;
+  border: 1px solid var(--border) !important;
+}
+body.dashboard-workshop .dashboard-topbar .hs-bar input,
+body.dashboard-workshop .dashboard-topbar #hs-input {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+body.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions {
+  gap: 8px !important;
+}
+@media (max-width: 900px) {
+  body.dashboard-workshop .dashboard-topbar {
+    top: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    height: 58px !important;
+    padding: 6px 9px !important;
+  }
+}
+
+
+/* Repoint legacy dashboard accent variables and text accents to Marva's neutral accent. */
+body.dashboard-page :is(.hdr-name em,.hero-title em,.section-kicker,.section-kicker strong,
+.page-section .section-kicker,.accent-bar,.glass-nav-link.is-active,.nav-link.active) {
+  color: var(--accent) !important;
+}
+body.dashboard-page .accent-bar {
+  background: var(--accent) !important;
+}
+body.dashboard-page :is(.tile,.cs-chip[aria-pressed="true"],.nav-link.active) {
+  border-color: var(--border) !important;
+}
+
+/* Keep the reference header's scrolled state and compact controls static. */
+body.dashboard-page .dashboard-topbar.scrolled,body.dashboard-workshop .dashboard-topbar.scrolled { background:rgba(var(--bg-rgb),.9)!important; border-color:rgba(var(--ink-rgb),.22)!important; box-shadow:0 8px 30px rgba(var(--shade-rgb),.48)!important; }
+body.dashboard-page .dashboard-topbar .dashboard-topbar-actions { gap:8px!important; }
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner,.sync-go i) { animation:marva-spinner .8s linear infinite!important; }
+@keyframes marva-spinner { to { transform:rotate(360deg); } }
+
+
+/* Login: flat Marva canvas, no garage photo, overlays, gradients or pointer-driven movement. */
+body.login-page { --bg:var(--background); --panel-bg:var(--surface); --accent-teal:var(--accent); --teal-bright:var(--accent); --orange:var(--accent); background:var(--background)!important; color:var(--text)!important; }
+body.login-page .stage { background:var(--background)!important; }
+body.login-page .photo,body.login-page .stage::before { display:none!important;content:none!important; }
+body.login-page .hero,body.login-page .brand,body.login-page .tag,body.login-page .lede,body.login-page .login-logo,body.login-page .login-title,body.login-page .login-subtitle,body.login-page .login-field,body.login-page .login-submit,body.login-page .fp-box { transform:none!important; }
+body.login-page .login-card { background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:none!important;transform:none!important; }
+body.login-page .login-card::after { display:none!important; }
+body.login-page .brand-name,body.login-page .tag,body.login-page .feat h3,body.login-page .login-title { color:var(--text)!important; }
+body.login-page .brand-name em,body.login-page .brand-sub,body.login-page .tag b,body.login-page .tag::after,body.login-page .ico,body.login-page .ico.o,body.login-page .forgot-link,body.login-page .fp-ic { color:var(--accent)!important; }
+body.login-page .tag::after { background:var(--accent)!important; }
+body.login-page .lede,body.login-page .brand-sub,body.login-page .feat p { color:var(--muted)!important; }
+body.login-page .feat,body.login-page .ico,body.login-page .ico.o,body.login-page .fp-btn,body.login-page .fp-ic { background:var(--soft)!important;border-color:var(--border)!important; }
+body.login-page .login-input-wrap input,body.login-page .fp-btn { background:var(--input-bg)!important;color:var(--text)!important;border-color:var(--border)!important; }
+body.login-page .login-input-wrap input::placeholder { color:var(--muted)!important; }
+body.login-page .login-input-wrap input:focus { border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)!important; }
+body.login-page .login-submit { background:var(--text)!important;color:var(--background)!important;border:1px solid var(--text)!important;border-radius:999px!important;box-shadow:none!important; }
+body.login-page .login-submit:active { transform:none!important;box-shadow:none!important; }
+body.login-page .login-message[data-tone="error"] { color:var(--danger)!important; }
+body.login-page .login-message[data-tone="info"],body.login-page .forgot { color:var(--muted)!important; }
+body.login-page .login-submit .spin { animation:marva-spinner .8s linear infinite!important; }
+@media(prefers-color-scheme:light) {
+ html:not([data-theme="dark"]) body.login-page { --background:#F6F4EF;--surface:#fff;--text:#0E1116;--muted:#5A606B;--border:rgba(14,17,22,.14);--accent:#7A5230;--soft:rgba(14,17,22,.05);--input-bg:#fff;--input-text:#0E1116; }
+}
+
+/* Marva reference header: 62px mobile, 66px desktop, 10px offset, 1200px max, 14px blur. */
+body.dashboard-page .dashboard-topbar,body.dashboard-workshop .dashboard-topbar { position:fixed!important;z-index:1200!important;min-height:62px!important;height:62px!important;max-width:1200px!important;top:10px!important;left:10px!important;right:10px!important;margin:0 auto!important;padding:7px 10px 7px 16px!important;gap:12px!important;border-radius:999px!important;border:1px solid rgba(var(--ink-rgb),.16)!important;background:rgba(var(--bg-rgb),.6)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important; }
+body.dashboard-page .dashboard-topbar.scrolled { background:rgba(var(--bg-rgb),.9)!important;border-color:rgba(var(--ink-rgb),.22)!important;box-shadow:0 8px 30px rgba(var(--shade-rgb),.48)!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-link,.glass-nav-link) { border-radius:999px!important;padding:12px 11px!important;color:var(--muted)!important;background:transparent!important;font-size:12px!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-link,.glass-nav-link):is(:hover,.active,[aria-current="page"]) { color:var(--text)!important;background:rgba(var(--ink-rgb),.08)!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-pill,.active-pill,.nav-indicator) { border-radius:999px!important;background:rgba(var(--ink-rgb),.1)!important;border:1px solid rgba(var(--ink-rgb),.2)!important;box-shadow:0 0 18px rgba(var(--ink-rgb),.08)!important; }
+@media(min-width:900px) {
+ body.dashboard-page .dashboard-topbar,body.dashboard-workshop .dashboard-topbar { left:50%!important;right:auto!important;width:calc(100% - 40px)!important;transform:translateX(-50%)!important;min-height:66px!important;height:66px!important;padding-inline:18px 14px!important;gap:16px!important; }
+}
+
+
+/* Login sync overlay follows the same flat Marva surfaces and semantic status tones. */
+.sync { background:rgba(var(--shade-rgb),.72)!important;color:var(--text)!important;font-family:"Inter",Arial,sans-serif!important;animation:none!important; }
+.sync-card { background:var(--surface)!important;background-image:none!important;border:1px solid var(--border)!important;box-shadow:none!important; }
+.sync-title,.sync-result h2 { color:var(--text)!important;font-family:"Sora",Arial,sans-serif!important; }
+.sync-sub,.sync-result p,.sync-step,.sync-go { color:var(--muted)!important; }
+.sync-bar { background:var(--soft)!important; }
+.sync-fill { background:var(--accent)!important; }
+.sync-step { background:var(--soft)!important;border-color:var(--border)!important; }
+.sync-step[data-state="active"] { color:var(--text)!important;background:var(--soft)!important;border-color:var(--border)!important; }
+.sync-step[data-state="active"] .sync-ico { border-color:var(--border)!important;border-top-color:var(--accent)!important;animation:marva-spinner .8s linear infinite!important; }
+.sync-step[data-state="done"] { color:var(--success)!important; }
+.sync-step[data-state="done"] .sync-ico,.sync-badge.ok { background:var(--success)!important;border-color:var(--success)!important;color:#fff!important; }
+.sync-step[data-state="error"] { color:var(--danger)!important;background:color-mix(in srgb,var(--danger) 12%,var(--surface))!important;border-color:var(--danger)!important; }
+.sync-step[data-state="error"] .sync-ico,.sync-badge.bad { background:var(--danger)!important;border-color:var(--danger)!important;color:#fff!important; }
+.sync-badge { animation:none!important;box-shadow:none!important; }
+.sync-level { background:color-mix(in srgb,var(--success) 12%,var(--surface))!important;border-color:color-mix(in srgb,var(--success) 45%,var(--border))!important; }
+.sync-level strong { color:var(--success)!important; }
+.sync-areas li { background:var(--soft)!important;color:var(--muted)!important;animation:none!important; }
+.sync-note { color:var(--warning)!important; }
+.sync-btn { background:var(--text)!important;color:var(--background)!important;border:1px solid var(--text)!important;box-shadow:none!important;border-radius:999px!important; }
+.sync-btn.ghost { background:var(--soft)!important;color:var(--text)!important;border-color:var(--border)!important; }
+.sync-btn:focus-visible { outline-color:var(--accent)!important; }
+.sync-go i { border-color:var(--border)!important;border-top-color:var(--accent)!important;animation:marva-spinner .8s linear infinite!important; }
+
+/* Portal content stays on the flat page canvas; only its actual panels use the surface token. */
+body:has(.portal-shell) :is(.portal-shell,.portal-hero) {
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body:has(.portal-shell) :is(.portal-panel,.portal-result,.portal-card) {
+  background:var(--surface)!important;
+  background-image:none!important;
+  border:1px solid var(--border)!important;
+  box-shadow:none!important;
+}
+body:has(.portal-shell) { background:var(--background)!important; }
+
+
+/* Disable pointer-hover motion without touching modal/popup centering transforms. */
+body.login-page *:hover { transform:none!important; }
+body.dashboard-page :is(button,a,.btn,[role="button"],.module-card,.quick-action,.quick-action--job,.quick-action--customer,.quick-action--quote,.quick-action--receipt,.quick-action--analytics,.card,.stat-card,.panel,#quotation-list .quote-action,#quotation-list .quotation-load-more):hover {
+ transform:none!important;filter:none!important;
+}
+body.dashboard-page .module-card:hover,body.dashboard-page .quick-action:hover,body.dashboard-page button.btn:hover:not(:disabled),body.dashboard-page #quotation-list .quote-action:hover:not(:disabled),body.dashboard-page #quotation-list .quotation-load-more:hover { box-shadow:none!important; }
+
+body.dashboard-page :is(.quick-action,.quick-action--job,.quick-action--customer,.quick-action--quote,.quick-action--receipt,.quick-action--analytics,.module-card):hover {
+ border-color:var(--border)!important;background:var(--soft)!important;
+}
+
+
+/* The password-reset route has no dashboard body class, so give its standalone card the same Marva surface treatment. */
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) {
+ background:var(--surface)!important;background-image:none!important;color:var(--text)!important;
+ border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:none!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) :is(h1,h2,h3,h4) {
+ color:var(--text)!important;font-family:"Sora",Arial,sans-serif!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) p,
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) label { color:var(--muted)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) :is(button,.back) {
+ border:1px solid var(--text)!important;border-radius:999px!important;
+ background:var(--text)!important;background-image:none!important;color:var(--background)!important;
+ box-shadow:none!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="error"] { color:var(--danger)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="success"] { color:var(--success)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="info"] { color:var(--muted)!important; }

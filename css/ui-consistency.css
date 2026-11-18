@@ -7,16 +7,16 @@
   --cam-border:#394554;
   --cam-text:#edf1f7;
   --cam-muted:#adb8c7;
-  --cam-green:#1fc467;
-  --cam-green-deep:#12a150;
-  --cam-orange:#ff7a12;
+  --cam-green:var(--success);
+  --cam-green-deep:var(--success);
+  --cam-orange:var(--warning);
 }
 :root[data-theme="light"] {
   --cam-bg:#edf0f3;
   --cam-surface:#ffffff;
-  --cam-surface-2:#f5f7fa;
+  --cam-surface-2:var(--soft);
   --cam-border:#d7dde5;
-  --cam-text:#18212b;
+  --cam-text:var(--surface);
   --cam-muted:#596779;
   --cam-green:#12884a;
   --cam-green-deep:#0e713d;
@@ -257,7 +257,7 @@ body.system-page :is(button,.btn,a.btn,[role="button"],input[type="button"],inpu
   border:1px solid #718096 !important;
   border-radius:11px !important;
   background:linear-gradient(180deg,#405166 0%,#303e50 100%) !important;
-  color:#f7f9fc !important;
+  color:var(--soft) !important;
   font-weight:700 !important;
   text-shadow:0 1px 1px rgba(0,0,0,.2);
   box-shadow:0 3px 0 #202b38,0 6px 14px rgba(0,0,0,.24) !important;
@@ -284,7 +284,7 @@ body.system-page :is(.btn--primary,.btn-primary,.button-primary,.btn.primary,[da
 }
 body.dashboard-page :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.btn-dangerous,[data-variant="danger"]),
 body.system-page :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.btn-dangerous,[data-variant="danger"]) {
-  border:1px solid #ff8585 !important;
+  border:1px solid var(--danger) !important;
   background:linear-gradient(180deg,#ff666d 0%,#c92f3b 100%) !important;
   color:#fff !important;
   box-shadow:0 3px 0 #8f202b,0 7px 16px rgba(0,0,0,.25) !important;
