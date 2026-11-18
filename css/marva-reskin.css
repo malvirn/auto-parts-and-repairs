@@ -1324,7 +1324,7 @@ body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu button[da
 
 /* ---- Collapsed icon rail: keep the established 82px shell geometry ---- */
 body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar {
-  width: 70px !important;
+  width: 82px !important;
   padding: 10px 8px !important;
   align-items: center !important;
 }
