@@ -922,3 +922,562 @@ body.dashboard-page.glass-app-shell #glass-header { gap: 4px; padding: 0 5px; }
 #glass-header .glass-search > i,
 #glass-header .glass-search > .lucide-stub { display: none; }
 }
+
+
+/* =====================================================================
+MARVA SIDEBAR
+Premium companion treatment for #glass-sidebar.
+CSS only. Preserves the shell geometry, DOM hooks, drawer states and all
+navigation/profile behavior. No motion or hover transforms.
+===================================================================== */
+
+/* ---- Floating surface and fixed shell geometry ---- */
+body.dashboard-page.glass-app-shell {
+  --glass-sidebar-width: 264px !important;
+}
+body.dashboard-page.glass-app-shell.glass-sidebar-collapsed {
+  --glass-sidebar-width: 82px !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar {
+  position: fixed !important;
+  top: 12px !important;
+  bottom: 12px !important;
+  left: 12px !important;
+  width: 252px !important;
+  max-width: calc(100vw - 24px) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  overflow: visible !important;
+  padding: 12px !important;
+  border: 1px solid rgba(var(--ink-rgb), .16) !important;
+  border-radius: 28px !important;
+  background: rgba(var(--bg-rgb), .9) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 8px 30px rgba(var(--shade-rgb), .28) !important;
+  z-index: 1500 !important;
+  isolation: isolate;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar,
+body.dashboard-page.glass-app-shell #glass-sidebar * {
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar :is(a,button) {
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar :is(a,button):focus-visible {
+  outline: 2px solid rgba(var(--ink-rgb), .5) !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+
+/* ---- Brand lockup: same monogram and wordmark as the header ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  min-height: 66px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  margin: 0 2px 12px !important;
+  padding: 2px 4px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(var(--ink-rgb), .14) !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-mark {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 42px !important;
+  border: 1px solid rgba(var(--ink-rgb), .3) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .05) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  font: 700 19px/1 "Sora", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-name {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: var(--text) !important;
+  font: 700 19px/1 "Sora", Arial, sans-serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close {
+  display: none !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  margin-left: auto !important;
+  padding: 0 !important;
+  place-items: center !important;
+  border: 1px solid rgba(var(--ink-rgb), .3) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .05) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+
+/* ---- Navigation: independently scrollable, pinned brand and account ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 15px !important;
+  margin: 0 !important;
+  padding: 8px 0 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav:hover {
+  scrollbar-color: rgba(var(--ink-rgb), .24) transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--ink-rgb), .24);
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-group {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-heading {
+  min-height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 8px 12px 4px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 600 10px/1.2 "Inter", Arial, sans-serif !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link {
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 13px !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > .lucide-stub {
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  display: inline-flex !important;
+  flex: 0 0 20px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > i svg,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > .lucide-stub svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link:hover {
+  border-color: transparent !important;
+  background: rgba(var(--ink-rgb), .06) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link:hover > i {
+  color: var(--text) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] {
+  border-color: rgba(var(--ink-rgb), .2) !important;
+  background: rgba(var(--ink-rgb), .1) !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 18px rgba(var(--ink-rgb), .08) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active::before,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"]::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 7px !important;
+  top: 50% !important;
+  width: 3px !important;
+  height: 17px !important;
+  border-radius: 99px !important;
+  background: var(--accent) !important;
+  transform: translateY(-50%) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] > i {
+  color: var(--accent) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active > span,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] > span {
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+
+/* ---- Account card and profile menu ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-wrap {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin: 8px 0 0 !important;
+  padding: 12px 0 0 !important;
+  border-top: 1px solid rgba(var(--ink-rgb), .14) !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(var(--ink-rgb), .16) !important;
+  border-radius: 20px !important;
+  background: rgba(var(--ink-rgb), .045) !important;
+  color: var(--text) !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-avatar {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  display: grid !important;
+  flex: 0 0 38px !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--ink-rgb), .28) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .08) !important;
+  color: var(--text) !important;
+  font: 700 12px/1 "Sora", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text) !important;
+  font: 600 13px/1.2 "Sora", Arial, sans-serif !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy small {
+  color: var(--muted) !important;
+  font: 500 11px/1.2 "Inter", Arial, sans-serif !important;
+  text-transform: capitalize !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > .lucide-stub {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > i svg,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > .lucide-stub svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: calc(100% + 10px) !important;
+  z-index: 1550 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  padding: 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 22px !important;
+  background: rgba(var(--bg-rgb), .97) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 18px 45px rgba(var(--shade-rgb), .45) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu[hidden] {
+  display: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button) {
+  width: 100% !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button):hover {
+  background: rgba(var(--ink-rgb), .07) !important;
+  color: var(--text) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button) svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: currentColor !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu button[data-glass-signout] {
+  margin-top: 3px !important;
+  border-top-color: rgba(var(--ink-rgb), .12) !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu button[data-glass-signout]:hover {
+  background: rgba(var(--ink-rgb), .06) !important;
+  color: var(--text) !important;
+}
+
+/* ---- Collapsed icon rail: keep the established 82px shell geometry ---- */
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar {
+  width: 70px !important;
+  padding: 10px 8px !important;
+  align-items: center !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+  width: 100% !important;
+  justify-content: center !important;
+  margin: 0 0 10px !important;
+  padding: 2px 0 12px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-brand-name,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > span,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-copy,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile > i {
+  display: none !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-sidebar-nav {
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 6px 0 10px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-group {
+  width: 100% !important;
+  gap: 5px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading {
+  display: block !important;
+  width: 28px !important;
+  min-height: 1px !important;
+  height: 1px !important;
+  margin: 8px auto !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: rgba(var(--ink-rgb), .18) !important;
+  font-size: 0 !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link {
+  width: 46px !important;
+  min-width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 999px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > i {
+  width: 20px !important;
+  min-width: 20px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link.is-active::before,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"]::before {
+  left: 3px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-wrap {
+  display: flex !important;
+  justify-content: center !important;
+  padding-top: 10px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile {
+  width: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  justify-content: center !important;
+  padding: 4px !important;
+  border-radius: 50% !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-avatar {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-menu {
+  left: calc(100% + 10px) !important;
+  right: auto !important;
+  bottom: 0 !important;
+  width: 220px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link[title] {
+  cursor: pointer;
+}
+
+/* ---- Drawer: preserve the existing open/closed transform and visibility rules ---- */
+body.dashboard-page.glass-app-shell .glass-sidebar-backdrop {
+  background: rgba(var(--shade-rgb), .5) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+@media (max-width: 900px) {
+  body.dashboard-page.glass-app-shell #glass-sidebar {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 12px !important;
+    border-radius: 0 28px 28px 0 !important;
+    z-index: 1600 !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close {
+    display: grid !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+    min-height: 58px !important;
+    padding-bottom: 12px !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-name {
+    font-size: 17px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar {
+    width: min(320px, calc(100vw - 24px)) !important;
+    padding: 12px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-brand-name,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > span,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-copy,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile > i {
+    display: initial !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading {
+    width: auto !important;
+    min-height: 22px !important;
+    height: auto !important;
+    margin: 8px 12px 4px !important;
+    background: transparent !important;
+    font-size: 10px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 0 13px !important;
+    margin: 0 !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 60px !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    padding: 8px 10px !important;
+    border-radius: 20px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-menu {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(100% + 10px) !important;
+    width: auto !important;
+  }
+}
