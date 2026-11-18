@@ -1532,3 +1532,30 @@ body.dashboard-page .main :is(.panel:has(>table),.table-wrap,.table-container,.t
 /* Job cards page buttons/chips were blue in dark mode */
 :root[data-theme="dark"] body.dashboard-workshop .rc :is(.btn,.seg) { background:#161616 !important; border-color:#3a3a3a !important; color:#f5f5f5 !important; }
 :root[data-theme="dark"] body.dashboard-workshop .rc .seg[aria-pressed="true"] { background:#2a2a2a !important; border-color:#6a6a6a !important; color:#fff !important; }
+
+
+/* ---- Canonical accent tokens (loaded last). Several older sheets define --accent/--success in terms of each
+   other, which the browser treats as a reference cycle and drops to "empty". These values are plain colours.
+   Dark = green, light = brown. Every loading state reads --accent / --accent-rgb. ---- */
+:root[data-theme="dark"]:not(#mh),
+:root[data-theme="dark"]:not(#mh) body {
+  --accent:#5FE0A0; --accent-rgb:95,224,160; --accent-hover:#7BEBB4; --accent-dim:rgba(95,224,160,.35); --primary:#5FE0A0;
+  --ok:#5FE0A0; --success:#5FE0A0; --success-rgb:95,224,160;
+  --warning:#B18A55; --warning-rgb:177,138,85; --danger:#B96C68; --danger-rgb:185,108,104;
+  --mh-ac:#5FE0A0; --mh-ah:#7BEBB4; --mh-al:#5FE0A0; --mh-vi:#5FE0A0; --mh-gr:#5FE0A0; --mh-tl:#5FE0A0; --mh-am:#B18A55; --mh-rs:#B96C68;
+  --on-accent:#06281a;
+}
+:root[data-theme="light"]:not(#mh),
+:root[data-theme="light"]:not(#mh) body {
+  --accent:#7A5230; --accent-rgb:122,82,48; --accent-hover:#8F6340; --accent-dim:rgba(122,82,48,.3); --primary:#7A5230;
+  --ok:#477A60; --success:#477A60; --success-rgb:71,122,96;
+  --warning:#8A684B; --warning-rgb:138,104,75; --danger:#A34F47; --danger-rgb:163,79,71;
+  --mh-ac:#7A5230; --mh-ah:#8F6340; --mh-al:#7A5230; --mh-vi:#7A5230; --mh-gr:#477A60; --mh-tl:#477A60; --mh-am:#8A684B; --mh-rs:#A34F47;
+  --on-accent:#fff;
+}
+/* Light text on a bright green fill is unreadable, so filled accent buttons use dark ink in dark mode. */
+:root[data-theme="dark"] .apr-network-banner button { color:var(--on-accent); }
+/* Spinners and progress bars follow the theme accent. */
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner) { color:var(--accent); }
+.apr-state--loading .apr-state__icon { color:var(--accent); }
+.boot-fill,.sync-fill { background:linear-gradient(90deg,var(--accent),var(--accent-hover),var(--accent))!important; background-size:200% 100%; }

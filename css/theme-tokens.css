@@ -4,10 +4,10 @@
 :root,:root[data-theme="dark"] {
  color-scheme:dark;
  --background:#0A0A0A;--surface:#141414;--surface-2:#1C1C1C;--text:#F5F5F5;--muted:#A3A3A3;
- --border:rgba(255,255,255,.14);--accent:#E8E2D9;--accent-rgb:232,226,217;--header-bg:rgba(10,10,10,.55);--header-solid:rgba(10,10,10,.85);--soft:rgba(255,255,255,.06);
+ --border:rgba(255,255,255,.14);--accent:#5FE0A0;--accent-rgb:95,224,160;--header-bg:rgba(10,10,10,.55);--header-solid:rgba(10,10,10,.85);--soft:rgba(255,255,255,.06);
  --pure:#fff;--pure-inv:#000;--deep:#08090b;--ink-rgb:255,255,255;--shade-rgb:0,0,0;--bg-rgb:10,10,10;
  --bg:var(--background);--line:var(--border);--text-muted:var(--muted);--text-faint:var(--muted);--text-link:var(--accent);
- --ok:#568A70;--warn:#B18A55;--danger:#B96C68;--success:#568A70;--success-rgb:86,138,112;--warning:#B18A55;--warning-rgb:177,138,85;--danger-rgb:185,108,104;
+ --ok:#5FE0A0;--warn:#B18A55;--danger:#B96C68;--success:#5FE0A0;--success-rgb:95,224,160;--warning:#B18A55;--warning-rgb:177,138,85;--danger-rgb:185,108,104;
  --input-bg:#101010;--input-text:var(--text);--placeholder:var(--muted);--ink:var(--text);--panel:var(--surface);--card:var(--surface);--input:var(--input-bg);--toolbar-button-bg:var(--surface-2);
  --font-heading:"Sora",Arial,sans-serif;--font-body:"Inter",Arial,sans-serif;--font:"Inter",Arial,sans-serif;--font-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
  --cam-content-font:"Inter",Arial,sans-serif;--cam-content-heading:"Sora",Arial,sans-serif;--cam-content-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;

@@ -210,3 +210,18 @@ body.dashboard-page.glass-app-shell .hero-bg { display: none !important; }
 :root[data-theme="light"] body.dashboard-page.glass-app-shell .hero::after {
   background: linear-gradient(90deg,rgba(247,249,250,.78),rgba(247,249,250,.34)),linear-gradient(0deg,rgba(240,244,246,.58),transparent 55%);
 }
+
+
+/* ---- Header and sidebar stay put when moving between pages ---- */
+#glass-notification-slot { min-width: 40px; min-height: 40px; }
+@view-transition { navigation: auto; }
+#glass-header { view-transition-name: glass-header; }
+.glass-sidebar { view-transition-name: glass-sidebar; }
+::view-transition-group(glass-header),
+::view-transition-group(glass-sidebar),
+::view-transition-old(glass-header),
+::view-transition-new(glass-header),
+::view-transition-old(glass-sidebar),
+::view-transition-new(glass-sidebar) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .12s; }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

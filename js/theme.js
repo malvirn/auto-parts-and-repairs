@@ -75,3 +75,46 @@
     else if (mq.addListener) mq.addListener(apply);
   }
 })();
+
+// Put the header and sidebar back before the first paint when moving between pages, so they never reload.
+// js/glass-app-shell.js saves the finished shell for this tab and adopts it again once the page's scripts load.
+(function restoreShell() {
+  var saved = null;
+  try {
+    var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    saved = JSON.parse(sessionStorage.getItem("apr-shell:" + theme) || "null");
+  } catch (e) {}
+  if (!saved || !saved.html) return;
+  var style = document.createElement("style");
+  // The page content stays hidden while sign-in is checked; the shell itself is allowed to show.
+  style.textContent = "#glass-app-chrome[data-cached]{visibility:visible}";
+  document.head.appendChild(style);
+  function samePath(a, b) { return a.replace(/\/$/, "/index.html") === b.replace(/\/$/, "/index.html"); }
+  function inject() {
+    var body = document.body;
+    if (!body) return false;
+    if (!body.classList.contains("dashboard-page") || document.getElementById("glass-app-chrome")) return true;
+    var root = document.createElement("div");
+    root.id = "glass-app-chrome";
+    root.setAttribute("data-cached", "1");
+    root.setAttribute("data-sig", saved.sig || "");
+    root.innerHTML = saved.html;
+    root.querySelectorAll("a.glass-nav-link").forEach(function (a) {
+      var on = false;
+      try { on = samePath(new URL(a.getAttribute("href"), location.href).pathname, location.pathname); } catch (e) {}
+      a.classList.toggle("is-active", on);
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    body.classList.add("glass-app-shell");
+    try {
+      var narrow = window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+      if (!narrow && localStorage.getItem("centric-glass-sidebar") === "collapsed") body.classList.add("glass-sidebar-collapsed");
+    } catch (e) {}
+    body.insertBefore(root, body.firstChild);
+    return true;
+  }
+  if (!inject()) {
+    var watcher = new MutationObserver(function () { if (inject()) watcher.disconnect(); });
+    watcher.observe(document.documentElement, { childList: true });
+  }
+})();

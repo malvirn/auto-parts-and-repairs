@@ -43,8 +43,8 @@ const initials = value => String(value || "CA").trim().split(/\s+/).slice(0,2).m
 
 function icon(name) { return '<i data-lucide="' + name + '" aria-hidden="true"></i>'; }
 
-function buildSidebar(current) {
-  const groups = NAV.map(group => {
+function navGroups(current) {
+  return NAV.map(group => {
     const items = group.items.filter(item => !item.roles || item.roles.includes(role()));
     if (!items.length) return "";
     return '<section class="glass-nav-group" aria-label="' + esc(group.title) + '">' +
@@ -54,7 +54,10 @@ function buildSidebar(current) {
         icon(item.icon) + '<span>' + esc(item.label) + '</span></a>').join("") +
       '</section>';
   }).join("");
+}
 
+function buildSidebar(current) {
+  const groups = navGroups(current);
   const accountName = document.body.dataset.accountName || "Centric Auto User";
   const accountRole = (role() || "staff").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   return '<aside class="glass-sidebar" id="glass-sidebar" aria-label="Main navigation">' +
@@ -78,6 +81,48 @@ function buildHeader() {
     '<a class="glass-icon-button glass-shop-action" href="' + esc(hrefFor("pages/shop.html")) + '" aria-label="Open shop" title="Shop">' + icon("shopping-cart") + '</a>' +
     '<button class="glass-icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"></button>' +
     '<div class="glass-notification-slot" id="glass-notification-slot"></div></div></header>';
+}
+
+
+/* ---- Keep the header and sidebar from reloading between pages ----
+   The finished shell is saved for this tab. The next page puts that copy back before the first paint
+   (see js/theme.js), then this module just wires it up instead of rebuilding it. */
+const CACHE_PREFIX = "apr-shell:";
+const canon = html => String(html)
+  .replace(/ is-active/g, "").replace(/ aria-current="page"/g, "")
+  .replace(/href="([^"]*)"/g, (m, h) => {
+    try { return 'href="' + new URL(h.replace(/&amp;/g, "&"), location.href).href + '"'; } catch (_) { return m; }
+  });
+const themeName = () => document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+const samePath = (a, b) => a.replace(/\/$/, "/index.html") === b.replace(/\/$/, "/index.html");
+
+function markActive(root) {
+  root.querySelectorAll("a.glass-nav-link").forEach(a => {
+    let on = false;
+    try { on = samePath(new URL(a.getAttribute("href"), location.href).pathname, location.pathname); } catch (_) {}
+    a.classList.toggle("is-active", on);
+    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+}
+
+function cacheShell(root, sig) {
+  try {
+    const clone = root.cloneNode(true);
+    clone.querySelectorAll("a[href]").forEach(a => a.setAttribute("href", new URL(a.getAttribute("href"), location.href).href));
+    clone.querySelectorAll(".is-active").forEach(a => a.classList.remove("is-active"));
+    clone.querySelectorAll("[aria-current]").forEach(a => a.removeAttribute("aria-current"));
+    clone.querySelectorAll("#global-notif-bell, #global-notif-panel").forEach(n => n.remove());
+    clone.querySelectorAll("#glass-profile-menu, #hs-panel").forEach(n => n.setAttribute("hidden", ""));
+    clone.querySelectorAll("[aria-expanded]").forEach(n => n.setAttribute("aria-expanded", "false"));
+    clone.removeAttribute("data-cached");
+    sessionStorage.setItem(CACHE_PREFIX + themeName(), JSON.stringify({ sig, html: clone.innerHTML }));
+  } catch (_) {}
+}
+
+function clearShellCache() {
+  try {
+    Object.keys(sessionStorage).filter(k => k.startsWith(CACHE_PREFIX)).forEach(k => sessionStorage.removeItem(k));
+  } catch (_) {}
 }
 
 function bindShell(root) {
@@ -131,6 +176,7 @@ function bindShell(root) {
   sidebar.querySelector("[data-glass-signout]").addEventListener("click", async event => {
     const button = event.currentTarget;
     button.disabled = true;
+    clearShellCache();
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -164,15 +210,27 @@ function bindShell(root) {
 
 export function initializeGlassAppShell() {
   if (!document.body?.classList.contains("dashboard-page")) return;
-  if (document.getElementById("glass-sidebar") && document.getElementById("glass-header")) return;
+  const existing = document.getElementById("glass-app-chrome");
+  if (existing && !existing.dataset.cached && document.getElementById("glass-sidebar") && document.getElementById("glass-header")) return;
   document.body.classList.add("glass-app-shell");
   const current = page();
-  const root = document.createElement("div");
-  root.id = "glass-app-chrome";
-  root.innerHTML = buildHeader() + buildSidebar(current) +
-    '<button class="glass-sidebar-backdrop" type="button" aria-label="Close navigation"></button>';
-  document.body.prepend(root);
+  const sig = canon(buildHeader() + navGroups(current));
+  let root = existing;
+  if (root && root.dataset.cached && root.dataset.sig === sig && root.querySelector("#glass-sidebar") && root.querySelector("#glass-header")) {
+    // The shell was already painted from the saved copy: keep those elements, just wire them up.
+    root.removeAttribute("data-cached");
+    markActive(root);
+  } else {
+    root = document.createElement("div");
+    root.id = "glass-app-chrome";
+    root.innerHTML = buildHeader() + buildSidebar(current) +
+      '<button class="glass-sidebar-backdrop" type="button" aria-label="Close navigation"></button>';
+    if (existing) existing.replaceWith(root); else document.body.prepend(root);
+  }
+  root.dataset.sig = sig;
   bindShell(root);
+  if (window.lucide) window.lucide.createIcons();
+  cacheShell(root, sig);
   // Resolve the signed-in account label from Supabase without blocking shell rendering.
   supabase.auth.getUser().then(({ data }) => {
     const user = data?.user;
@@ -189,6 +247,6 @@ export function initializeGlassAppShell() {
       photo.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:inherit";
       avatar.textContent = ""; avatar.append(photo);
     }
+    cacheShell(root, sig);
   }).catch(error => console.warn("Profile details unavailable:", error));
-  if (window.lucide) window.lucide.createIcons();
 }

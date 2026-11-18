@@ -17,8 +17,7 @@
   /* the names this app's stylesheets and scripts already read */
   --bg:var(--mh-bg); --surface:var(--mh-card); --surface-2:var(--mh-in); --surface-alt:var(--mh-in);
   --border:var(--mh-bd); --text-dim:var(--mh-mu);
-  --accent:var(--mh-ac); --accent-hover:var(--mh-ah); --accent-dim:var(--mh-bd); --primary:var(--mh-ac);
-  --success:var(--mh-gr); --warning:var(--mh-am); --danger:var(--mh-rs);
+  --accent-hover:var(--accent); --accent-dim:var(--mh-bd); --primary:var(--accent);
   --radius:var(--mh-r);
   --font-heading:'Inter', system-ui, sans-serif; --font-body:'Inter', system-ui, sans-serif;
   color-scheme:dark;
@@ -433,8 +432,8 @@ html body.login-page {
 html body.login-page::before {
   content:''; position:fixed; inset:-20%; pointer-events:none; z-index:0;
   background:
-    radial-gradient(380px 380px at 15% 15%,rgba(56,189,248,.55),transparent 70%),
-    radial-gradient(320px 320px at 85% 80%,rgba(45,212,191,.55),transparent 70%),
+    radial-gradient(380px 380px at 15% 15%,rgba(var(--accent-rgb),.55),transparent 70%),
+    radial-gradient(320px 320px at 85% 80%,rgba(var(--accent-rgb),.55),transparent 70%),
     radial-gradient(260px 260px at 55% 50%,rgba(129,140,248,.35),transparent 70%);
   filter:blur(40px); animation:mhOrb 16s ease-in-out infinite;
 }
@@ -1111,7 +1110,7 @@ body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px so
 .boot-fill {
   width:0; height:100%; border-radius:inherit;
   background:linear-gradient(90deg,var(--accent),var(--success),var(--accent)); background-size:200% 100%;
-  box-shadow:0 0 14px rgba(56,189,248,.7); animation:bootFlow 1.4s linear infinite;
+  box-shadow:0 0 14px rgba(var(--accent-rgb),.7); animation:bootFlow 1.4s linear infinite;
 }
 .boot-pct { margin:8px 0 0; font-size:12.5px; font-weight:600; opacity:.8; font-variant-numeric:tabular-nums; }
 
@@ -1149,7 +1148,7 @@ body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px so
 .boot-areas { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
 .boot-areas li {
   font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px;
-  background:rgba(45,212,191,.2); border:1px solid rgba(45,212,191,.45); color:#ccfbf1;
+  background:rgba(var(--accent-rgb),.2); border:1px solid rgba(var(--accent-rgb),.45); color:var(--text);
   animation:bootPop .35s calc(.25s + var(--i) * 45ms) ease-out both;
 }
 .boot-open { margin:16px 0 0; font-size:13px; opacity:.8; display:inline-flex; align-items:center; gap:6px; }
@@ -1161,7 +1160,7 @@ body.dashboard-page .receipt-document h3 { font-weight:700; border-bottom:1px so
 @keyframes bootUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
 @keyframes bootSlide { from { opacity:0; transform:translateX(-18px); } to { opacity:1; transform:none; } }
 @keyframes bootLetter { from { opacity:0; transform:translateY(18px) rotateX(80deg); filter:blur(4px); } to { opacity:1; transform:none; filter:none; } }
-@keyframes bootGlow { 0%,100% { text-shadow:0 0 0 rgba(56,189,248,0); } 50% { text-shadow:0 0 14px rgba(56,189,248,.85); } }
+@keyframes bootGlow { 0%,100% { text-shadow:0 0 0 rgba(var(--accent-rgb),0); } 50% { text-shadow:0 0 14px rgba(var(--accent-rgb),.85); } }
 @keyframes bootPop { from { opacity:0; transform:scale(.6); } to { opacity:1; transform:none; } }
 @keyframes spin { to { transform:rotate(360deg); } }
 @media (prefers-reduced-motion:reduce) {
@@ -1186,14 +1185,14 @@ body.login-page.booting .login-card { visibility:hidden; }
 .login-sys .sys-tag { color:var(--mh-ac); }
 body.login-page .login-sys + .login-title { font-size:20px; margin-top:6px; }
 .boot-sys .sys-name { color:#fff; font-size:20px; }
-.boot-sys .sys-tag { color:#a5f3fc; }
+.boot-sys .sys-tag { color:var(--accent); }
 body.login-page .login-logo img { animation:sysFloat 4.5s ease-in-out infinite; }
 .boot-logo { position:relative; display:inline-block; }
 .boot-logo::after {
-  content:""; position:absolute; inset:-8px; border-radius:24px; border:2px solid rgba(56,189,248,.55);
+  content:""; position:absolute; inset:-8px; border-radius:24px; border:2px solid rgba(var(--accent-rgb),.55);
   animation:sysPulse 2s ease-out infinite; pointer-events:none;
 }
-@keyframes sysWave { 0%,100% { transform:none; text-shadow:none; } 8% { transform:translateY(-3px); text-shadow:0 0 12px rgba(56,189,248,.8); } 16% { transform:none; text-shadow:none; } }
+@keyframes sysWave { 0%,100% { transform:none; text-shadow:none; } 8% { transform:translateY(-3px); text-shadow:0 0 12px rgba(var(--accent-rgb),.8); } 16% { transform:none; text-shadow:none; } }
 @keyframes sysTag { from { opacity:0; letter-spacing:.6em; } to { opacity:1; letter-spacing:.18em; } }
 @keyframes sysFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
 @keyframes sysPulse { from { opacity:.9; transform:scale(.92); } to { opacity:0; transform:scale(1.18); } }

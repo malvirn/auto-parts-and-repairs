@@ -181,16 +181,16 @@ function hidePage() {
         align-content: start;
         gap: 17px;
         padding: 20px;
-        border: 1px solid rgba(31, 196, 103, .2);
+        border: 1px solid rgba(var(--accent-rgb), .22);
         border-radius: 18px;
-        background: linear-gradient(155deg, #111b18, #0c1210);
+        background: var(--surface);
       }
       body.auth-loading .auth-skeleton__card--wide { grid-column: 1 / -1; min-height: 190px; }
       body.auth-loading .auth-skeleton__bar {
         display: block;
         height: 12px;
         border-radius: 999px;
-        background: linear-gradient(90deg, rgba(159, 176, 166, .08), rgba(159, 176, 166, .2), rgba(159, 176, 166, .08));
+        background: linear-gradient(90deg, rgba(var(--accent-rgb), .08), rgba(var(--accent-rgb), .26), rgba(var(--accent-rgb), .08));
         background-size: 220% 100%;
         animation: auth-skeleton-shimmer 1.4s ease-in-out infinite;
       }
