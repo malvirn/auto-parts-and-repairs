@@ -94,7 +94,8 @@ const canon = html => String(html)
     try { return 'href="' + new URL(h.replace(/&amp;/g, "&"), location.href).href + '"'; } catch (_) { return m; }
   });
 const themeName = () => document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-const samePath = (a, b) => a.replace(/\/$/, "/index.html") === b.replace(/\/$/, "/index.html");
+const normPath = p => { p = String(p).replace(/\.html$/i, "").replace(/\/+$/, ""); return p.replace(/\/index$/, "") || "/"; };
+const samePath = (a, b) => normPath(a) === normPath(b);
 
 function markActive(root) {
   root.querySelectorAll("a.glass-nav-link").forEach(a => {
