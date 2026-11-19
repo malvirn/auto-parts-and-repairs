@@ -100,7 +100,13 @@ function injectBellUI() {
   panel.innerHTML = `<div class="global-notif-heading"><h4>Notifications</h4><button type="button" id="global-notif-mark-read">Mark all read</button></div><div id="global-notif-list"></div>`;
   document.body.appendChild(panel);
 
-  panel.querySelector("#global-notif-mark-read").addEventListener("click", () => {\n    const keys = (window.__centricCurrentNotifications || []).map(notificationKey);\n    try { localStorage.setItem("centric-read-notifications", JSON.stringify([...new Set([...readNotificationKeys(), ...keys])].slice(-500))); } catch (_) {}\n    renderNotifications(window.__centricCurrentNotifications || []);\n  });\n\n  bell.addEventListener("click", (e) => {
+  panel.querySelector("#global-notif-mark-read").addEventListener("click", () => {
+    const keys = (window.__centricCurrentNotifications || []).map(notificationKey);
+    try { localStorage.setItem("centric-read-notifications", JSON.stringify([...new Set([...readNotificationKeys(), ...keys])].slice(-500))); } catch (_) {}
+    renderNotifications(window.__centricCurrentNotifications || []);
+  });
+
+  bell.addEventListener("click", (e) => {
     e.stopPropagation();
     panel.classList.toggle("open");
     if (panel.classList.contains("open") && (dashboardActions || dashboardTopbar)) {
