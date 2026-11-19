@@ -1,0 +1,101 @@
+/* System-wide neumorphism: surfaces and controls only, never dense data or documents. */
+body.dashboard-page:not(.module-shop) {
+  --neo-surface: var(--background);
+  --neo-light: rgba(var(--ink-rgb), .075);
+  --neo-dark: rgba(var(--shade-rgb), .34);
+  --neo-raised: 7px 7px 16px var(--neo-dark), -7px -7px 16px var(--neo-light);
+  --neo-inset: inset 4px 4px 9px var(--neo-dark), inset -4px -4px 9px var(--neo-light);
+  --neo-pressed: inset 3px 3px 7px var(--neo-dark), inset -3px -3px 7px var(--neo-light);
+}
+:root[data-theme="dark"] body.dashboard-page:not(.module-shop) {
+  --neo-light: rgba(255,255,255,.045);
+  --neo-dark: rgba(0,0,0,.62);
+}
+:root[data-theme="light"] body.dashboard-page:not(.module-shop) {
+  --neo-light: rgba(255,255,255,.95);
+  --neo-dark: rgba(40,50,80,.16);
+}
+/* Main shell: one consistent soft surface, no competing glass blur. */
+body.dashboard-page:not(.module-shop) :is(.app-header,.site-masthead,#glass-sidebar,.dashboard-header,.page-toolbar) {
+  background: var(--neo-surface) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--neo-raised) !important;
+}
+/* Raised containers and summary tiles. */
+body.dashboard-page:not(.module-shop) :is(.stat-card,.summary-card,.metric-card,.summary-tile,.dashboard-stat,
+  .page-section > .panel,.page-section > .card,.content-card,.settings-card,.module-card,.form-panel,
+  .dashboard-card,.account-card,.report-card,.quick-action-card) {
+  background: var(--neo-surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--neo-raised) !important;
+}
+/* Raised controls. Preserve explicit semantic status colours. */
+body.dashboard-page:not(.module-shop) :is(button,.btn,a.btn,[role="button"],.tab-button,.nav-tab,.filter-chip,
+  .toggle-switch,.switch) {
+  box-shadow: var(--neo-raised);
+  transition: box-shadow .16s ease, transform .16s ease, border-color .16s ease;
+}
+body.dashboard-page:not(.module-shop) :is(button,.btn,a.btn,[role="button"],.tab-button,.nav-tab,.filter-chip):active {
+  box-shadow: var(--neo-pressed) !important;
+  transform: translateY(1px);
+}
+body.dashboard-page:not(.module-shop) :is(button,.btn,a.btn,[role="button"],.tab-button,.nav-tab,.filter-chip):focus-visible,
+body.dashboard-page:not(.module-shop) :is(input,select,textarea):focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px;
+}
+/* Recessed form fields, search boxes and filters. */
+body.dashboard-page:not(.module-shop) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,textarea,.search-box,.search-input,.filter-control,.form-control) {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--neo-inset) !important;
+}
+body.dashboard-page:not(.module-shop) :is(input,textarea)::placeholder { color: var(--placeholder); opacity: 1; }
+body.dashboard-page:not(.module-shop) input[type="checkbox"],
+body.dashboard-page:not(.module-shop) input[type="radio"],
+body.dashboard-page:not(.module-shop) input[type="range"] { accent-color: var(--accent); }
+/* Sidebar folders and active navigation. Active state has both inset depth and accent marker. */
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink,.glass-nav-folder-btn) {
+  background: transparent;
+  box-shadow: none !important;
+}
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink,.glass-nav-folder-btn):hover {
+  background: var(--neo-surface) !important;
+  box-shadow: var(--neo-raised) !important;
+}
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink).is-active,
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink)[aria-current="page"] {
+  background: var(--neo-surface) !important;
+  border-color: rgba(var(--accent-rgb),.38) !important;
+  box-shadow: var(--neo-inset) !important;
+}
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink).is-active::before,
+body.dashboard-page:not(.module-shop) #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink)[aria-current="page"]::before {
+  background: var(--accent) !important;
+}
+/* Dense data, ledgers, receipts and status messages stay flat and easy to scan. */
+body.dashboard-page:not(.module-shop) :is(table,thead,tbody,tr,th,td,.table-wrap,.data-table,.ledger,.ledger-table,
+  .receipt,.receipt-paper,.invoice-paper,.print-document,.statement-document) {
+  box-shadow: none !important;
+}
+body.dashboard-page:not(.module-shop) :is(.badge,.status-badge,.status-pill,.alert,.alert-message,.toast,
+  [role="alert"],.success-message,.error-message,.warning-message,.validation-message) {
+  box-shadow: none !important;
+}
+body.dashboard-page:not(.module-shop) :is(.modal,.modal-content,.dialog) {
+  background: var(--surface) !important;
+  border: 1px solid var(--border);
+  box-shadow: 10px 10px 28px var(--neo-dark), -5px -5px 16px var(--neo-light) !important;
+}
+@media (max-width: 760px) {
+  body.dashboard-page:not(.module-shop) :is(.app-header,.site-masthead,#glass-sidebar) {
+    box-shadow: 3px 3px 9px var(--neo-dark), -3px -3px 9px var(--neo-light) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page:not(.module-shop) :is(button,a,input,select,textarea) { transition: none !important; }
+}
