@@ -1,6 +1,6 @@
 do $$
 declare
-  fn record_row;
+  fn record;
   function_source text;
 begin
   for fn in
@@ -17,7 +17,7 @@ begin
       )
   loop
     function_source := pg_get_functiondef(fn.oid);
-    if function_source !~* 'auth\.uid\(\)' then
+    if function_source !~* 'auth\.uid\(\)\s+is\s+null' then
       function_source := regexp_replace(
         function_source,
         E'\nBEGIN\n',
