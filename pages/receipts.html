@@ -1139,6 +1139,72 @@ if(!inv&&!isCreditNote){
   <footer class="cr-foot">Centric Auto Mobile · ${esc(CO.email||"")}<br>Thank you for your business.</footer>
  </article>`;
 }
+if(inv){
+ const customer=o.customer||{};
+ const status=String(o.status||"unpaid").toUpperCase().replace(/_/g," ");
+ const paid=Number(o.amountPaid||0);
+ const balanceDue=Math.max(0,t.total-paid);
+ const invoiceCurrency=esc(o.currency||"USD");
+ const money=n=>invoiceCurrency+" "+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ const itemRows=(o.items||[]).map((item,index)=>`<tr><td class="ci-no">${index+1}</td><td>${esc(item.d||"Item / service")}</td><td class="ci-num">${Number(item.q||0).toLocaleString("en-US",{maximumFractionDigits:2})}</td><td class="ci-num">${money(item.p)}</td><td class="ci-num">${money(Number(item.q||0)*Number(item.p||0))}</td></tr>`).join("");
+ return `<style>
+ .centric-invoice{width:100%;max-width:900px;margin:0 auto;padding:34px;background:#fff;color:#202a33;border:1px solid #d6dadd;border-radius:4px;font:13px/1.45 Inter,Arial,sans-serif}
+ .centric-invoice *{box-sizing:border-box}.centric-invoice .ci-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;border-bottom:4px solid #b3392b;padding-bottom:20px}
+ .centric-invoice .ci-brand{display:flex;align-items:center;gap:13px}.centric-invoice .ci-brand img{width:76px;height:76px;object-fit:contain}
+ .centric-invoice .ci-brand-name{font-size:23px;font-weight:900;letter-spacing:.02em;line-height:1.05}.centric-invoice .ci-brand-name small{display:block;margin-top:5px;color:#b3392b;font-size:12px;letter-spacing:.08em}
+ .centric-invoice .ci-title{text-align:right}.centric-invoice .ci-title h1{margin:0;color:#b3392b;font-size:30px;line-height:1.1;letter-spacing:.04em}.centric-invoice .ci-title strong{display:block;margin-top:9px;font-size:15px}
+ .centric-invoice .ci-title .ci-date{margin-top:3px;color:#626b73}
+ .centric-invoice .ci-status{display:inline-block;margin-top:9px;padding:4px 10px;border:1px solid #b3392b;color:#b3392b;font-size:10px;font-weight:850;letter-spacing:.08em}
+ .centric-invoice .ci-status.paid{border-color:#25804b;color:#25804b}.centric-invoice .ci-status.void{border-color:#b3392b;background:#fff1ef}
+ .centric-invoice .ci-fiscal{margin:14px 0;padding:8px 11px;background:#f0f1f2;border-left:3px solid #b3392b;color:#626b73;font-size:10px;font-weight:750;letter-spacing:.04em}
+ .centric-invoice .ci-meta{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+ .centric-invoice .ci-panel{border:1px solid #d6dadd;min-height:112px}.centric-invoice .ci-panel h2{margin:0;padding:8px 12px;background:#eef0f2;color:#202a33;font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+ .centric-invoice .ci-panel-body{padding:12px}.centric-invoice .ci-panel-body strong{display:block;margin-bottom:5px;font-size:15px}.centric-invoice .ci-muted{color:#626b73;font-size:11px}
+ .centric-invoice .ci-reference{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.centric-invoice .ci-reference span{display:block;color:#626b73;font-size:10px;text-transform:uppercase;font-weight:750;letter-spacing:.05em}.centric-invoice .ci-reference b{display:block;margin-top:2px;font-size:12px}
+ .centric-invoice .ci-job{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 16px;padding:11px 13px;background:#f7f8f9;border:1px solid #d6dadd}
+ .centric-invoice .ci-job div{min-width:110px;flex:1}.centric-invoice .ci-job small{display:block;color:#626b73;font-size:9px;font-weight:750;text-transform:uppercase}.centric-invoice .ci-job b{display:block;margin-top:3px;font-size:11px}
+ .centric-invoice table{width:100%;border-collapse:collapse;table-layout:fixed;margin:12px 0 0}
+ .centric-invoice th{padding:10px 8px;background:#b3392b;color:#fff;text-align:left;font-size:10px;letter-spacing:.04em}
+ .centric-invoice td{padding:10px 8px;border-bottom:1px solid #d6dadd;vertical-align:top;overflow-wrap:anywhere}
+ .centric-invoice tbody tr:nth-child(even){background:#f7f8f9}.centric-invoice .ci-no{width:34px;color:#626b73}.centric-invoice .ci-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+ .centric-invoice .ci-totals{width:min(100%,390px);margin:18px 0 0 auto;border:1px solid #d6dadd}
+ .centric-invoice .ci-totals div{display:flex;justify-content:space-between;gap:16px;padding:9px 12px;border-bottom:1px solid #e0e2e4}
+ .centric-invoice .ci-totals div:last-child{border-bottom:0}.centric-invoice .ci-totals .ci-grand{background:#b3392b;color:#fff;font-size:16px;font-weight:900;padding:13px 12px}
+ .centric-invoice .ci-totals .ci-balance{font-weight:850;background:#f0f1f2}
+ .centric-invoice .ci-notes{margin-top:20px;padding:12px;border:1px solid #d6dadd;min-height:54px}.centric-invoice .ci-notes small{display:block;margin-bottom:5px;color:#626b73;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+ .centric-invoice .ci-sign{display:flex;justify-content:space-between;gap:28px;margin-top:42px}.centric-invoice .ci-sign div{width:42%;border-top:1px solid #202a33;padding-top:7px;color:#626b73;font-size:10px}
+ .centric-invoice .ci-foot{margin-top:25px;padding-top:12px;border-top:2px solid #b3392b;text-align:center;color:#626b73;font-size:10px}
+ @media(max-width:620px){.centric-invoice{padding:16px}.centric-invoice .ci-top{gap:12px}.centric-invoice .ci-brand img{width:48px;height:48px}.centric-invoice .ci-brand-name{font-size:16px}.centric-invoice .ci-title h1{font-size:21px}.centric-invoice .ci-meta{grid-template-columns:1fr}.centric-invoice table{font-size:10px}.centric-invoice th,.centric-invoice td{padding:7px 5px}.centric-invoice .ci-totals{width:100%}}
+ @page{size:A4 portrait;margin:0}
+ @media print{.centric-invoice{width:210mm;max-width:none;min-height:297mm;margin:0;padding:12mm;border:0;border-radius:0;print-color-adjust:exact;-webkit-print-color-adjust:exact}.centric-invoice .ci-sign{margin-top:30px}}
+ </style>
+ <article class="centric-invoice" aria-label="Customer invoice">
+  <header class="ci-top">
+   <div class="ci-brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div class="ci-brand-name">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div></div>
+   <div class="ci-title"><h1>TAX INVOICE</h1><strong>${esc(o.number||"—")}</strong><div class="ci-date">Issued: ${dt(o.date)}</div><div class="ci-date">Due: ${dt(o.due)}</div><span class="ci-status ${o.voidedAt?"void":o.status==="paid"?"paid":""}">${o.voidedAt?"VOID":status}</span></div>
+  </header>
+  <div class="ci-fiscal">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
+  ${o.voidedAt?`<div class="ci-fiscal">VOID REASON: ${esc(o.voidReason||"Not provided")}</div>`:""}
+  <section class="ci-meta">
+   <div class="ci-panel"><h2>Bill to</h2><div class="ci-panel-body"><strong>${esc(customer.company_name||customer.name||"Walk-in customer")}</strong><div class="ci-muted">Customer ID: ${esc(customer.customer_code||"—")}</div>${customer.is_company&&customer.company_name?`<div class="ci-muted">Company: ${esc(customer.company_name)}</div>`:""}<div>${esc(customer.phone||"")}</div><div>${esc(customer.email||"")}</div></div></div>
+   <div class="ci-panel"><h2>Invoice details</h2><div class="ci-panel-body ci-reference"><div><span>Invoice date</span><b>${dt(o.date)}</b></div><div><span>Due date</span><b>${dt(o.due)}</b></div><div><span>Reference</span><b>${esc(o.ref||"—")}</b></div><div><span>Currency</span><b>${invoiceCurrency}</b></div></div></div>
+  </section>
+  ${o.jobCard?`<section class="ci-job">${o.jobCard.vehicle?`<div><small>Vehicle</small><b>${esc(o.jobCard.vehicle)}</b></div>`:""}${o.jobCard.checklistNumber?`<div><small>Job card</small><b>#${esc(o.jobCard.checklistNumber)}</b></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><b>${esc(o.jobCard.chassis)}</b></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><b>${esc(o.jobCard.odometer)}</b></div>`:""}</section>`:""}
+  <table><thead><tr><th style="width:34px">#</th><th>Description</th><th style="width:62px;text-align:right">Qty</th><th style="width:105px;text-align:right">Unit price</th><th style="width:115px;text-align:right">Amount</th></tr></thead><tbody>${itemRows||'<tr><td colspan="5" style="color:#626b73">No invoice items recorded</td></tr>'}</tbody></table>
+  <section class="ci-totals">
+   <div><span>Subtotal</span><b>${money(t.sub)}</b></div>
+   ${t.disc?`<div><span>Discount</span><b>−${money(t.disc)}</b></div>`:""}
+   <div><span>VAT (${Number(o.vat??0)}%)</span><b>${money(t.vat)}</b></div>
+   <div class="ci-grand"><span>Invoice total</span><strong>${money(t.total)}</strong></div>
+   <div><span>Paid to date</span><b>${money(paid)}</b></div>
+   <div class="ci-balance"><span>Balance due</span><b>${money(balanceDue)}</b></div>
+   ${customerCredit?`<div><span>Customer credit</span><b>${money(customerCredit)}</b></div>`:""}
+  </section>
+  ${o.notes?`<section class="ci-notes"><small>Notes</small>${esc(o.notes)}</section>`:""}
+  <div class="ci-sign"><div>Prepared by</div><div>Authorised signature</div></div>
+  <footer class="ci-foot">Centric Auto Mobile · ${esc(CO.email||"")}<br>Thank you for choosing Centric Auto Mobile.</footer>
+ </article>`;
+}
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
 <div><h1>${inv?"INVOICE":isCreditNote?"CUSTOMER CREDIT NOTE":isRefundReceipt?"REFUND RECEIPT":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
 <div class="fiscal-warning">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
