@@ -74,10 +74,6 @@ async function loadIntelligence() {
   const overdueTotal = overdue.reduce((sum, bill) => sum + Number(bill.amount || 0) - Number(bill.amount_paid || 0), 0);
   const payableTotal = payables.reduce((sum, bill) => sum + Math.max(0, Number(bill.amount || 0) - Number(bill.amount_paid || 0)), 0);
   intelligenceSnapshot = { jobs, openJobs, delayedJobs, receipts, recentReceipts, collectedByCurrency, parts, lowStock, payables, overdue, overdueTotal, invoices, recentInvoices, outstandingInvoices, highDiscountInvoices, recentExpenses, expenseTotal, invoicedTotal, voidedReceipts, voidedReceiptGroups, voidedPayables };
-  const today = dateInHarare(new Date());
-  const overdue = payables.filter(bill => bill.due_date && bill.due_date < today && Number(bill.amount || 0) - Number(bill.amount_paid || 0) > 0.01);
-  const overdueTotal = overdue.reduce((sum, bill) => sum + Number(bill.amount || 0) - Number(bill.amount_paid || 0), 0);
-  const payableTotal = payables.reduce((sum, bill) => sum + Math.max(0, Number(bill.amount || 0) - Number(bill.amount_paid || 0)), 0);
 
   $("ci-open-jobs").textContent = jobsResult.error ? "—" : String(openJobs.length);
   $("ci-completed").textContent = jobsResult.error ? "—" : String(recentCompleted.length);
