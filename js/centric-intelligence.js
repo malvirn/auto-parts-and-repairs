@@ -17,14 +17,70 @@ function status(message, kind = "info") {
   const node = $("ci-status");
   if (node) { node.textContent = message; node.dataset.kind = kind; }
 }
+function detailKeyForLabel(label) {
+  const value = String(label || "").toLowerCase();
+  if (value.includes("invoice")) return "invoices";
+  if (value.includes("receipt") || value.includes("collection")) return "receipts";
+  if (value.includes("expense")) return "expenses";
+  if (value.includes("supplier") || value.includes("payable") || value.includes("bill")) return "payables";
+  if (value.includes("stock") || value.includes("part")) return "parts";
+  if (value.includes("job") || value.includes("workshop")) return "jobs";
+  return "overview";
+}
 function listRows(target, rows, empty) {
   const node = $(target);
   if (!node) return;
-  node.innerHTML = rows.length ? rows.map(row => '<div class="ci-list-row"><span>' + escapeHtml(row.label) + '</span><span>' + escapeHtml(row.value) + '</span></div>').join("") : '<div class="ci-status">' + escapeHtml(empty) + '</div>';
+  node.innerHTML = rows.length ? rows.map(row => '<button type="button" class="ci-list-row" data-ci-detail="' + escapeHtml(row.detailKey || detailKeyForLabel(row.label)) + '"><span>' + escapeHtml(row.label) + '</span><span>' + escapeHtml(row.value) + ' <i data-lucide="chevron-right"></i></span></button>').join("") : '<div class="ci-status">' + escapeHtml(empty) + '</div>';
 }
 function insight(title, detail, href, icon = "activity") {
-  return '<article class="ci-insight"><i data-lucide="' + icon + '"></i><div><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(detail) + '</p><a href="' + href + '">Review records →</a></div></article>';
+  const key = /shop|repair|job/i.test(href) ? "jobs" : /receipt/i.test(href) ? "receipts" : /payable/i.test(href) ? "payables" : /shop/i.test(href) ? "parts" : "overview";
+  return '<article class="ci-insight" role="button" tabindex="0" data-ci-detail="' + key + '"><i data-lucide="' + icon + '"></i><div><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(detail) + '</p><span class="ci-modal-hint">View matching records <i data-lucide="arrow-up-right"></i></span></div></article>';
 }
+function detailRows(key) {
+  const d = intelligenceSnapshot || {};
+  const configs = {
+    invoices: { title:"Invoices issued in the last 30 days", rows:d.recentInvoices || [], columns:[["Invoice","invoice_number"],["Issued","issued_at"],["Status","status"],["Total","total"],["Paid","amount_paid"],["Discount","discount"]] },
+    receipts: { title:"Receipts and collections", rows:d.recentReceipts || [], columns:[["Receipt","receipt_number"],["Issued","issued_at"],["Currency","currency_code"],["Amount","tender_amount"],["Recorded amount","amount"]] },
+    expenses: { title:"Expenses recorded in the last 30 days", rows:d.recentExpenses || [], columns:[["Date","expense_date"],["Category","category"],["Description","description"],["Amount","amount"]] },
+    payables: { title:"Supplier bills", rows:d.payables || [], columns:[["Bill","bill_number"],["Due date","due_date"],["Status","status"],["Amount","amount"],["Paid","amount_paid"]] },
+    parts: { title:"Inventory and low-stock parts", rows:d.parts || [], columns:[["Part","name"],["In stock","quantity_in_stock"],["Minimum stock","minimum_stock"]] },
+    jobs: { title:"Workshop jobs", rows:d.jobs || [], columns:[["Job","job_number"],["CRO","cro_number"],["Status","status"],["Created","created_at"],["Completed","completed_at"],["Total","total_cost"]] },
+    review: { title:"Transaction review signals", rows:[...(d.voidedReceipts||[]),...(d.highDiscountInvoices||[]),...(d.voidedPayables||[])], columns:[["Record","receipt_number"],["Invoice","invoice_number"],["Bill","bill_number"],["Reason","void_reason"],["Date","issued_at"],["Amount","amount"]] },
+    overview: { title:"Centric Intelligence records", rows:[...(d.openJobs||[]),...(d.recentInvoices||[])], columns:[["Job","job_number"],["Invoice","invoice_number"],["Status","status"],["Date","created_at"],["Total","total"]] }
+  };
+  return configs[key] || configs.overview;
+}
+function openDetail(key) {
+  const modal = $("ci-detail-modal");
+  const config = detailRows(key);
+  if (!modal) return;
+  $("ci-detail-title").textContent = config.title;
+  const body = $("ci-detail-body");
+  if (!config.rows.length) {
+    body.innerHTML = '<div class="ci-status">No matching records were found in the data currently loaded.</div>';
+  } else {
+    const columns = config.columns.filter(([,field]) => config.rows.some(row => row[field] !== null && row[field] !== undefined && row[field] !== ""));
+    body.innerHTML = '<div class="ci-detail-count">' + config.rows.length + ' matching records</div><div class="ci-detail-table-wrap"><table class="ci-detail-table"><thead><tr>' + columns.map(([label]) => '<th>' + escapeHtml(label) + '</th>').join("") + '</tr></thead><tbody>' + config.rows.map(row => '<tr>' + columns.map(([,field]) => '<td>' + escapeHtml(row[field] ?? "—") + '</td>').join("") + '</tr>').join("") + '</tbody></table></div>';
+  }
+  modal.hidden = false;
+  document.body.classList.add("ci-modal-open");
+  modal.querySelector(".ci-modal-close")?.focus();
+}
+function closeDetail() {
+  const modal = $("ci-detail-modal");
+  if (modal) modal.hidden = true;
+  document.body.classList.remove("ci-modal-open");
+}
+document.addEventListener("click", event => {
+  const trigger = event.target.closest("[data-ci-detail]");
+  if (trigger) { event.preventDefault(); openDetail(trigger.dataset.ciDetail); }
+  if (event.target.closest("[data-ci-modal-close]")) closeDetail();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeDetail();
+  const trigger = event.target.closest?.("[data-ci-detail]");
+  if (trigger && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); openDetail(trigger.dataset.ciDetail); }
+});
 
 async function loadIntelligence() {
   const refresh = $("ci-refresh");
