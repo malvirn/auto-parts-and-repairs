@@ -98,12 +98,18 @@ import supabase from "./supabaseClient.js";
     const BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
 
     // ---------- search UI ----------
+    // The header is built after this module loads (once sign-in is checked), so binding is retried
+    // until the search box exists. Binding only once on load left the box and its filters dead.
+    function initSearch() {
     const input = document.querySelector(".sidebar-search #hs-input") || $("hs-input");
     const panel = input?.closest(".hs")?.querySelector("#hs-panel") || $("hs-panel");
     const chips = panel?.querySelector("#hs-chips") || $("hs-chips");
     const out = panel?.querySelector("#hs-results") || $("hs-results");
-    if (input && panel && chips && out && !input.dataset.searchBound) {
+    if (!(input && panel && chips && out)) return false;
+    if (input.dataset.searchBound) return true;
+    {
       input.dataset.searchBound = "true";
+      const hsRoot = input.closest(".hs") || panel.parentElement;
       let filter = "all", seq = 0, warmed = false;
       chips.innerHTML = [{ key: "all", label: "All" }, ...SOURCES].map(s => `<button type="button" class="hs-chip" data-f="${s.key}" aria-pressed="${s.key === "all"}">${esc(s.label)}</button>`).join("");
 
@@ -112,6 +118,7 @@ import supabase from "./supabaseClient.js";
       const closePanel = () => { panel.hidden = true; };
 
       function rank(items, tokens) {
+        if (!tokens.length) return items.slice();
         const first = tokens[0], res = [];
         for (const it of items) {
           if (!tokens.every(t => it.hay.includes(t))) continue;
@@ -124,47 +131,52 @@ import supabase from "./supabaseClient.js";
         const single = filter !== "all";
         const total = results.reduce((n, r) => n + r.hits.length, 0);
         if (!total) {
-          out.innerHTML = `<div class="hs-empty">No matches for “${esc(term)}”${single ? ` in ${esc(BY_KEY[filter].label)}` : ""}.${single ? " Try the <b>All</b> filter." : ""}</div>`;
+          out.innerHTML = term
+            ? `<div class="hs-empty">No matches for “${esc(term)}”${single ? ` in ${esc(BY_KEY[filter].label)}` : ""}.${single ? " Try the <b>All</b> filter." : ""}</div>`
+            : `<div class="hs-empty">Nothing in ${esc(BY_KEY[filter].label)} yet.</div>`;
           return;
         }
         const cap = single ? 40 : 5;
         out.innerHTML = results.filter(r => r.hits.length).map(r => {
           const shown = r.hits.slice(0, cap), more = r.hits.length - shown.length;
           return `<div class="hs-group"><span>${esc(r.s.label)} · ${r.hits.length}</span>${more > 0 ? `<button type="button" class="hs-more" data-f="${r.s.key}">Show all</button>` : ""}</div>`
-            + shown.map(i => `<a class="hs-item" href="${esc((() => { const target = new URL(resolveHref(i.href)); target.searchParams.set("search", term); return target.href; })())}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
+            + shown.map(i => `<a class="hs-item" href="${esc((() => { const target = new URL(resolveHref(i.href)); if (term) target.searchParams.set("search", term); return target.href; })())}"><i data-lucide="${r.s.icon}"></i><span><b>${esc(i.title)}</b>${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span></a>`).join("");
         }).join("");
         icons();
       }
       async function run() {
         const term = input.value.trim();
         const my = ++seq;
-        if (term.length < 2) { hint(); return; }
-        const tokens = term.toLowerCase().split(/\s+/).filter(Boolean);
+        // With a category chosen, an empty (or 1-letter) box browses that category.
+        const browse = filter !== "all" && term.length < 2;
+        if (term.length < 2 && !browse) { hint(); return; }
+        const tokens = browse ? [] : term.toLowerCase().split(/\s+/).filter(Boolean);
         const list = filter === "all" ? SOURCES : [BY_KEY[filter]];
         const results = await Promise.all(list.map(async s => ({ s, hits: rank(await s.load(), tokens) })));
         if (my !== seq) return;
-        draw(term, results);
+        draw(browse ? "" : term, results);
       }
       const runDebounced = debounce(run, 250);
       function setFilter(key) {
         filter = key;
         chips.querySelectorAll(".hs-chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === key)));
-        if (input.value.trim().length >= 2) { out.innerHTML = `<div class="hs-empty">Searching…</div>`; run(); } else hint();
+        openPanel();
+        if (input.value.trim().length >= 2 || filter !== "all") { out.innerHTML = `<div class="hs-empty">Searching…</div>`; run(); } else hint();
         input.focus({ preventScroll: true });
       }
       const warm = () => { if (warmed) return; warmed = true; SOURCES.forEach(s => { if (s.key !== "pages") s.load(); }); };
 
       hint();
-      input.addEventListener("focus", () => { openPanel(); warm(); });
+      input.addEventListener("focus", () => { openPanel(); warm(); if (filter !== "all" && input.value.trim().length < 2) run(); });
       input.addEventListener("input", () => {
         openPanel();
-        if (input.value.trim().length < 2) { seq++; hint(); return; }
+        if (input.value.trim().length < 2 && filter === "all") { seq++; hint(); return; }
         out.innerHTML = `<div class="hs-empty">Searching…</div>`;
         runDebounced();
       });
       chips.addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) setFilter(b.dataset.f); });
       out.addEventListener("click", e => { const b = e.target.closest(".hs-more"); if (b) setFilter(b.dataset.f); });
-      document.addEventListener("click", e => { if (!e.target.closest("#hs")) closePanel(); });
+      document.addEventListener("click", e => { if (!e.composedPath().includes(hsRoot)) closePanel(); });
       input.addEventListener("keydown", e => {
         if (e.key === "ArrowDown") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); a.focus(); } }
         else if (e.key === "Enter") { const a = out.querySelector(".hs-item"); if (a) { e.preventDefault(); window.location.href = a.href; } }
@@ -187,6 +199,15 @@ import supabase from "./supabaseClient.js";
         openPanel();
         run();
       }
+    }
+    return true;
+    }
+    if (!initSearch()) {
+      const stop = () => { observer.disconnect(); document.removeEventListener("apr:shell-ready", retry); };
+      const retry = () => { if (initSearch()) stop(); };
+      const observer = new MutationObserver(retry);
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      document.addEventListener("apr:shell-ready", retry);
     }
 
     // ---------- top-right More menu ----------

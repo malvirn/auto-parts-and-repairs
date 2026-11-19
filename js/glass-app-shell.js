@@ -18,7 +18,7 @@ const NAV = [
     { label: "Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts" },
     { label: "Cashbook", href: "pages/cashbook.html", color: "#F58A4B", page: "cashbook", roles: ["super_admin","accounting"] },
     { label: "Payables", href: "pages/payables.html", color: "#A78BFA", page: "payables", roles: ["super_admin","accounting"] },
-    { label: "Ledger", href: "pages/ledger.html", color: "#FB7185", page: "ledger", roles: ["super_admin","accounting"] },
+    { label: "Ledger", href: "pages/ledger.html", color: "#FB7185", page: "ledger", attention: "ledger", roles: ["super_admin","accounting"] },
     { label: "Accounting", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
     { label: "Fixed Assets", href: "pages/fixed-assets.html", color: "#2DD4BF", page: "fixed-assets", roles: ["super_admin","accounting"] },
     { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] }
@@ -63,6 +63,7 @@ function navGroups(current) {
     group.items.map(item => '<a class="glass-nav-link' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
       (item.page === current ? ' aria-current="page"' : '') + ' title="' + esc(item.label) + '">' +
       icon(item.icon) + '<span>' + esc(item.label) + '</span></a>').join("") +
+    (group.title === "Main" ? notificationsItem() : "") +
     '</section>').join("");
   const folders = visible.filter(group => group.icon).map(group => {
     const hasActive = group.items.some(item => item.page === current);
@@ -70,14 +71,129 @@ function navGroups(current) {
     const id = "glass-sub-" + slug(group.title);
     return '<div class="glass-nav-folder' + (open ? ' is-open' : '') + '" data-group="' + esc(group.title) + '"' + (hasActive ? ' data-has-active' : '') + '>' +
       '<button class="glass-nav-folder-btn" type="button" aria-expanded="' + open + '" aria-controls="' + id + '" title="' + esc(group.title) + '">' +
-      icon(group.icon) + '<span>' + esc(group.title) + '</span>' + icon("chevron-down") + '</button>' +
+      icon(group.icon) + '<span>' + esc(group.title) + '</span>' + folderBadge(group) + icon("chevron-down") + '</button>' +
       '<div class="glass-nav-sub" id="' + id + '" role="group" aria-label="' + esc(group.title) + '"><div class="glass-nav-sub-inner">' +
       group.items.map(item => '<a class="glass-nav-sublink' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
         (item.page === current ? ' aria-current="page"' : '') + ' style="--dot:' + esc(item.color || "#8A96A3") + '">' +
-        '<span class="glass-dot" aria-hidden="true"></span><span>' + esc(item.label) + '</span></a>').join("") +
+        '<span class="glass-dot" aria-hidden="true"></span><span>' + esc(item.label) + '</span>' + itemBadge(item) + '</a>').join("") +
       '</div></div></div>';
   }).join("");
   return flat + (folders ? '<section class="glass-nav-group" aria-label="Workspace"><div class="glass-nav-heading">Workspace</div>' + folders + '</section>' : "");
+}
+
+// ---- Sidebar badges: notifications + "needs attention" counts ----
+function notificationsItem() {
+  return '<button class="glass-nav-link glass-notif-link" type="button" data-glass-notifications aria-haspopup="true" aria-label="Open notifications" title="Notifications">' +
+    icon("bell") + '<span>Notifications</span><b class="glass-badge" id="glass-notif-badge" hidden aria-live="polite"></b></button>';
+}
+function itemBadge(item) {
+  return item.attention ? '<b class="glass-badge" data-badge="' + esc(item.attention) + '" hidden></b>' : "";
+}
+function folderBadge(group) {
+  const keys = group.items.map(item => item.attention).filter(Boolean);
+  return keys.length ? '<b class="glass-badge glass-badge--folder" data-badge-group="' + esc(group.title) + '" data-keys="' + esc(keys.join(",")) + '" hidden></b>' : "";
+}
+
+// Counts of things that need a person's attention, by key. Today: typed-in job-card parts that
+// are not in the system yet and still need accounting to price them (shown on Ledger).
+const ATTENTION_KEY = "apr-attention-v1";
+function setBadge(badge, count, noun) {
+  badge.hidden = !(count > 0);
+  badge.textContent = count > 99 ? "99+" : String(count || "");
+  if (count > 0) badge.setAttribute("aria-label", count + " " + noun + (count === 1 ? "" : "s") + " need" + (count === 1 ? "s" : "") + " attention");
+  else badge.removeAttribute("aria-label");
+}
+function paintAttention(root, counts) {
+  root.querySelectorAll("[data-badge]").forEach(badge => setBadge(badge, counts[badge.dataset.badge] || 0, "item"));
+  root.querySelectorAll("[data-badge-group]").forEach(badge => {
+    const total = (badge.dataset.keys || "").split(",").filter(Boolean).reduce((sum, key) => sum + (counts[key] || 0), 0);
+    setBadge(badge, total, "item");
+  });
+}
+async function fetchAttention(root) {
+  const counts = {};
+  // Only accounting / super admin can see Ledger, and only they may call this RPC.
+  if (root.querySelector('[data-badge="ledger"]')) {
+    const { data, error } = await supabase.rpc("get_unpriced_job_parts");
+    if (error) throw error;
+    counts.ledger = (data || []).length;
+  }
+  return counts;
+}
+function startAttentionBadges(root) {
+  if (!root.querySelector("[data-badge]")) return;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(ATTENTION_KEY) || "null");
+    if (saved && saved.role === role() && Date.now() - saved.at < 10 * 60 * 1000) paintAttention(root, saved.counts || {});
+  } catch (_) {}
+  let busy = false;
+  const refresh = async () => {
+    if (busy || document.hidden || !navigator.onLine) return;
+    busy = true;
+    try {
+      const counts = await fetchAttention(root);
+      paintAttention(root, counts);
+      try { sessionStorage.setItem(ATTENTION_KEY, JSON.stringify({ role: role(), at: Date.now(), counts })); } catch (_) {}
+    } catch (error) { console.warn("Could not refresh the attention badges:", error.message || error); }
+    finally { busy = false; }
+  };
+  refresh();
+  window.setInterval(refresh, 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  window.addEventListener("focus", refresh);
+  window.addEventListener("online", refresh);
+  // Pages call this after they change something that affects a count (e.g. Ledger after pricing a part).
+  document.addEventListener("apr:attention-refresh", refresh);
+}
+
+// ---- Network strength (replaces the old header theme button) ----
+const NET_LEVELS = [
+  { max: 250, level: 4, state: "good", label: "Strong" },
+  { max: 600, level: 3, state: "good", label: "Good" },
+  { max: 1200, level: 2, state: "fair", label: "Fair" },
+  { max: Infinity, level: 1, state: "poor", label: "Weak" }
+];
+function startConnectionMonitor(root) {
+  const node = root.querySelector("#glass-connection");
+  if (!node) return;
+  const label = node.querySelector(".glass-connection-label");
+  const paint = (state, level, text, detail) => {
+    node.dataset.state = state;
+    node.dataset.level = String(level);
+    if (label) label.textContent = text;
+    const full = detail ? text + " connection · " + detail : text;
+    node.title = full;
+    node.setAttribute("aria-label", "Network: " + full);
+  };
+  const probeUrl = new URL(inPages() ? "../index.html" : "index.html", location.href);
+  const samples = [];
+  let sequence = 0;
+  const check = async () => {
+    const mine = ++sequence;
+    if (!navigator.onLine) { samples.length = 0; paint("offline", 0, "Offline", ""); return; }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 8000);
+    const started = performance.now();
+    try {
+      const response = await fetch(probeUrl.href, { method: "HEAD", cache: "no-store", credentials: "same-origin", signal: controller.signal });
+      if (!response.ok) throw new Error("Probe failed");
+      if (mine !== sequence) return;
+      samples.push(performance.now() - started);
+      if (samples.length > 3) samples.shift();
+      // The middle of the last few readings, so one slow request doesn't make the bars jump.
+      const ms = [...samples].sort((a, b) => a - b)[Math.floor(samples.length / 2)];
+      const band = NET_LEVELS.find(entry => ms < entry.max);
+      paint(band.state, band.level, band.label, Math.round(ms) + " ms");
+    } catch (_) {
+      if (mine === sequence) paint("offline", 0, navigator.onLine ? "No signal" : "Offline", "");
+    } finally { window.clearTimeout(timer); }
+  };
+  check();
+  window.setInterval(() => { if (!document.hidden) check(); }, 20000);
+  window.addEventListener("online", check);
+  window.addEventListener("offline", () => { samples.length = 0; paint("offline", 0, "Offline", ""); });
+  window.addEventListener("focus", check);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
 }
 
 function buildSidebar(current) {
@@ -92,6 +208,7 @@ function buildSidebar(current) {
     '<span class="glass-avatar">' + esc(initials(accountName)) + '</span><span class="glass-profile-copy"><strong>' + esc(accountName) +
     '</strong><small>' + esc(accountRole) + '</small></span>' + icon("chevron-down") + '</button>' +
     '<div class="glass-profile-menu" id="glass-profile-menu" hidden><a href="' + esc(hrefFor("pages/settings.html")) + '">' + icon("settings") + 'Settings</a>' +
+    '<button type="button" data-glass-theme aria-label="Switch theme"></button>' +
     '<button type="button" data-glass-signout>' + icon("log-out") + 'Sign out</button></div></div></aside>';
 }
 
@@ -103,8 +220,8 @@ function buildHeader() {
     '<div class="hs-panel" id="hs-panel" hidden><div class="hs-chips" id="hs-chips" role="group" aria-label="Search categories"></div><div id="hs-results" aria-live="polite"></div></div></div>' +
     '<div class="glass-header-actions"><a class="glass-job-action" href="' + esc(hrefFor("pages/repairs.html")) + '?new=1">' + icon("plus") + '<span>Job Card</span></a>' +
     '<a class="glass-icon-button glass-shop-action" href="' + esc(hrefFor("pages/shop.html")) + '" aria-label="Open shop" title="Shop">' + icon("shopping-cart") + '</a>' +
-    '<button class="glass-icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"></button>' +
-    '<div class="glass-notification-slot" id="glass-notification-slot"></div></div></header>';
+    '<span class="glass-connection" id="glass-connection" role="status" aria-live="polite" data-state="checking" data-level="0" aria-label="Network: checking" title="Checking connection">' +
+    '<span class="glass-connection-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><small class="glass-connection-label">Checking</small></span></div></header>';
 }
 
 
@@ -153,6 +270,9 @@ function cacheShell(root, sig) {
     clone.querySelectorAll("[data-has-active]").forEach(a => a.removeAttribute("data-has-active"));
     clone.querySelectorAll("[aria-current]").forEach(a => a.removeAttribute("aria-current"));
     clone.querySelectorAll("#global-notif-bell, #global-notif-panel").forEach(n => n.remove());
+    clone.querySelectorAll(".glass-badge").forEach(n => { n.hidden = true; n.textContent = ""; n.removeAttribute("aria-label"); });
+    const net = clone.querySelector("#glass-connection");
+    if (net) { net.dataset.state = "checking"; net.dataset.level = "0"; net.title = "Checking connection"; net.setAttribute("aria-label", "Network: checking"); const l = net.querySelector(".glass-connection-label"); if (l) l.textContent = "Checking"; }
     clone.querySelectorAll("#glass-profile-menu, #hs-panel").forEach(n => n.setAttribute("hidden", ""));
     clone.querySelectorAll("[aria-expanded]:not(.glass-nav-folder-btn)").forEach(n => n.setAttribute("aria-expanded", "false"));
     clone.removeAttribute("data-cached");
@@ -246,21 +366,35 @@ function bindShell(root) {
     }
   });
 
-  header.querySelector(".theme-toggle").addEventListener("click", () => {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  // Theme switch now lives in the profile menu.
+  const themeItem = sidebar.querySelector("[data-glass-theme]");
+  const paintThemeItem = () => {
+    if (!themeItem) return;
+    const dark = document.documentElement.getAttribute("data-theme") === "dark";
+    themeItem.innerHTML = icon(dark ? "sun" : "moon") + (dark ? "Switch to light mode" : "Switch to dark mode");
+    themeItem.title = dark ? "Switch to light mode" : "Switch to dark mode";
+    if (window.lucide) window.lucide.createIcons();
+  };
+  paintThemeItem();
+  window.addEventListener("apr:theme-changed", paintThemeItem);
+  themeItem?.addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     try { localStorage.setItem("apr-theme", next); } catch (_) {}
     window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: next } }));
   });
 
-  // The existing notification module owns the data and alert behaviour.
-  const moveBell = () => {
-    const bell = document.getElementById("global-notif-bell");
-    if (bell && !header.querySelector("#global-notif-bell")) header.querySelector("#glass-notification-slot").append(bell);
-  };
-  moveBell();
-  const observer = new MutationObserver(moveBell);
-  observer.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener("beforeunload", () => observer.disconnect(), { once: true });
+  // Notifications now open from the sidebar. js/notifications.js owns the data and the panel.
+  const notifLink = sidebar.querySelector("[data-glass-notifications]");
+  notifLink?.addEventListener("click", () => {
+    if (mobile()) setCollapsed(true);
+    document.dispatchEvent(new CustomEvent("apr:open-notifications", { detail: { anchor: notifLink, toggle: true } }));
+  });
+
+  if (root.dataset.monitorsBound !== "true") {
+    root.dataset.monitorsBound = "true";
+    startConnectionMonitor(root);
+    startAttentionBadges(root);
+  }
 
   // dashboard-search.js is loaded by each dashboard page and binds to #hs-input.
   if (window.lucide) window.lucide.createIcons();
@@ -289,6 +423,8 @@ export function initializeGlassAppShell() {
   bindShell(root);
   if (window.lucide) window.lucide.createIcons();
   cacheShell(root, sig);
+  window.__centricPaintNotifBadge?.();
+  document.dispatchEvent(new Event("apr:shell-ready"));
   // Resolve the signed-in account label from Supabase without blocking shell rendering.
   supabase.auth.getUser().then(({ data }) => {
     const user = data?.user;

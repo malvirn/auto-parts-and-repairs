@@ -111,6 +111,7 @@ async function loadUnpricedJobParts() {
         return;
       }
       await loadUnpricedJobParts();
+      document.dispatchEvent(new Event("apr:attention-refresh"));
       message.textContent = "Price saved; the job-card total has been updated.";
     });
   });

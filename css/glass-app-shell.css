@@ -225,3 +225,52 @@ body.dashboard-page.glass-app-shell .hero-bg { display: none !important; }
 ::view-transition-new(glass-sidebar) { animation: none; mix-blend-mode: normal; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .12s; }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+
+
+/* ---- Network strength (header), sidebar badges, Notifications item, search filters ---- */
+.glass-connection { display:inline-flex; align-items:center; justify-content:center; gap:7px; height:40px; min-width:40px; padding:0 11px; flex:none; border:1px solid var(--cam-glass-line,rgba(230,245,242,.18)); border-radius:12px; background:var(--cam-input,rgba(255,255,255,.07)); color:var(--text-muted,#9aa7a4); cursor:default; user-select:none; }
+.glass-connection-bars { display:inline-flex; align-items:flex-end; gap:2px; height:16px; }
+.glass-connection-bars i { display:block; width:3px; border-radius:2px; background:currentColor; opacity:.22; transition:opacity .2s; }
+.glass-connection-bars i:nth-child(1) { height:5px; }
+.glass-connection-bars i:nth-child(2) { height:8px; }
+.glass-connection-bars i:nth-child(3) { height:12px; }
+.glass-connection-bars i:nth-child(4) { height:16px; }
+.glass-connection[data-level="1"] i:nth-child(-n+1),
+.glass-connection[data-level="2"] i:nth-child(-n+2),
+.glass-connection[data-level="3"] i:nth-child(-n+3),
+.glass-connection[data-level="4"] i:nth-child(-n+4) { opacity:1; }
+.glass-connection-label { font-size:11px; font-weight:700; letter-spacing:.01em; color:inherit; }
+.glass-connection[data-state="good"] { color:var(--success,#2fbf71); }
+.glass-connection[data-state="fair"] { color:var(--warning,#e0a526); }
+.glass-connection[data-state="poor"] { color:var(--accent,#ff7a12); }
+.glass-connection[data-state="offline"] { color:var(--danger,#d9453d); }
+.glass-connection[data-state="offline"] .glass-connection-bars i:first-child { opacity:.35; }
+
+.glass-badge { display:inline-flex; align-items:center; justify-content:center; flex:none; min-width:18px; height:18px; margin-left:auto; padding:0 5px; border-radius:999px; background:var(--danger,#d9453d); color:#fff; font:800 10px/1 Inter,system-ui,sans-serif; letter-spacing:0; box-shadow:0 0 0 2px rgba(0,0,0,.12); }
+.glass-badge[hidden] { display:none !important; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn > .glass-badge + :last-child { margin-left:6px; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder.is-open > .glass-nav-folder-btn .glass-badge--folder { display:none; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink > span:nth-child(2) { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+button.glass-nav-link { width:100%; background:transparent; font-family:inherit; text-align:left; cursor:pointer; }
+.glass-notif-link, .glass-nav-folder-btn { position:relative; }
+
+/* Collapsed rail: badges sit on the icon's corner instead of the row's right edge. */
+body.dashboard-page.glass-sidebar-collapsed .glass-badge { position:absolute; top:4px; right:7px; margin:0; min-width:16px; height:16px; font-size:9px; }
+body.dashboard-page.glass-sidebar-collapsed #glass-sidebar .glass-nav-folder.is-open > .glass-nav-folder-btn .glass-badge--folder:not([hidden]) { display:inline-flex; }
+
+/* Search filters: one scrollable row of chips, kept visible above the results. */
+.glass-search .hs-chips { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; position:sticky; top:-10px; z-index:1; margin:-10px -10px 6px; padding:10px 10px 9px; background:inherit; }
+.glass-search .hs-chip { flex:none; white-space:nowrap; }
+.glass-search .hs-chip:hover { background:var(--cam-hover,rgba(255,255,255,.09)); }
+.glass-search .hs-group { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 6px 4px; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted,#9aa7a4); }
+.glass-search .hs-more { border:0; background:transparent; color:var(--accent,#ff9d3d); font:700 10px Inter,system-ui,sans-serif; cursor:pointer; }
+.glass-search .hs-empty { padding:16px 8px; text-align:center; font-size:12px; }
+
+@media (max-width:900px) {
+  .glass-connection { height:36px; min-width:36px; padding:0 8px; }
+  .glass-connection-label { display:none; }
+  /* On phones the search box is narrow, so let its results span the whole header. */
+  .glass-search { position:static; }
+  .glass-search .hs-panel { left:0; right:0; top:calc(100% + 8px); }
+}
+@media (max-width:420px) { .glass-connection { height:33px; min-width:33px; padding:0 7px; } }

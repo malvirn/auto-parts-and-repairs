@@ -10,7 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="../css/theme-tokens.css">
-<link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-5">
+<link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-6">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1213,6 +1213,7 @@ import supabase from "../js/supabaseClient.js";
    setMsg("Prices saved and the linked invoice updated. Refreshing the Ledger…");
    modal.classList.add("hidden");modal.style.display="none";
    await loadPricingQueue();
+   document.dispatchEvent(new Event("apr:attention-refresh"));
    const pending=activeParts.filter(p=>p.awaiting_accounting_price).length;
    if(!pending)message.textContent="All part prices saved. The job is now ready for invoicing, subject to your existing invoice checks.";
   }catch(error){console.error("Job part pricing failed:",error);setMsg(error.message||String(error),true)}

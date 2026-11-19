@@ -82,6 +82,8 @@ function injectBellUI() {
   `;
   document.head.appendChild(style);
 
+  // Dashboard pages open notifications from the sidebar item, so no header bell is mounted there.
+  const sidebarMode = document.body.classList.contains("dashboard-page");
   const bell = document.createElement("button");
   bell.id = "global-notif-bell";
   bell.type = "button";
@@ -94,7 +96,8 @@ function injectBellUI() {
   const headerActions = document.querySelector("body.dashboard-page:not(.dashboard-workshop) .hdr-header-actions")
     || document.querySelector("body.dashboard-page:not(.dashboard-workshop) .hdr-menu-wrap");
   const dashboardActions = topbarActions || headerActions;
-  if (topbarActions) topbarActions.append(bell);
+  if (sidebarMode) { /* bell stays detached; the sidebar item is the trigger */ }
+  else if (topbarActions) topbarActions.append(bell);
   else if (headerActions?.classList.contains("hdr-header-actions")) {
     headerActions.insertBefore(bell, headerActions.querySelector(".hdr-menu-wrap"));
   } else if (headerActions) headerActions.insertBefore(bell, headerActions.querySelector("#hdr-menu-btn"));
@@ -112,16 +115,36 @@ function injectBellUI() {
     renderNotifications(window.__centricCurrentNotifications || []);
   });
 
-  const setPanelOpen = open => {
+  let anchor = null;
+  const sidebarLink = () => document.querySelector("[data-glass-notifications]");
+  const setPanelOpen = (open, anchorEl) => {
+    if (anchorEl) anchor = anchorEl;
     panel.classList.toggle("open", Boolean(open));
     bell.setAttribute("aria-expanded", String(Boolean(open)));
+    const link = sidebarLink();
+    link?.setAttribute("aria-expanded", String(Boolean(open)));
     if (!open) return;
-    const rect = bell.getBoundingClientRect();
     const panelWidth = Math.min(340, Math.max(240, window.innerWidth - 24));
-    const right = Math.max(12, window.innerWidth - rect.right);
-    panel.style.top = `${Math.min(window.innerHeight - 120, rect.bottom + 8)}px`;
-    panel.style.right = `${Math.min(right, Math.max(12, window.innerWidth - panelWidth - 12))}px`;
-    panel.style.left = "auto";
+    const fromSidebar = sidebarMode && (anchor || link);
+    if (fromSidebar && window.innerWidth <= 900) {
+      // Phones: the drawer closes first, so centre the panel under the header.
+      panel.style.top = "72px";
+      panel.style.left = `${Math.round((window.innerWidth - panelWidth) / 2)}px`;
+      panel.style.right = "auto";
+    } else if (fromSidebar) {
+      // Desktop: slide out beside the Notifications item.
+      const rect = (anchor || link).getBoundingClientRect();
+      const height = Math.min(panel.offsetHeight || 360, window.innerHeight - 24);
+      panel.style.top = `${Math.max(12, Math.min(rect.top, window.innerHeight - height - 12))}px`;
+      panel.style.left = `${Math.round(rect.right + 12)}px`;
+      panel.style.right = "auto";
+    } else {
+      const rect = bell.getBoundingClientRect();
+      const right = Math.max(12, window.innerWidth - rect.right);
+      panel.style.top = `${Math.min(window.innerHeight - 120, rect.bottom + 8)}px`;
+      panel.style.right = `${Math.min(right, Math.max(12, window.innerWidth - panelWidth - 12))}px`;
+      panel.style.left = "auto";
+    }
   };
   bell.addEventListener("click", event => {
     event.preventDefault();
@@ -129,9 +152,15 @@ function injectBellUI() {
     setPanelOpen(!panel.classList.contains("open"));
   });
   document.addEventListener("click", event => {
-    if (!panel.contains(event.target) && !bell.contains(event.target)) setPanelOpen(false);
+    if (!panel.contains(event.target) && !bell.contains(event.target) && !event.target.closest?.("[data-glass-notifications]")) setPanelOpen(false);
   });
-  document.addEventListener("apr:open-notifications", () => setPanelOpen(true));
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && panel.classList.contains("open")) setPanelOpen(false);
+  });
+  document.addEventListener("apr:open-notifications", event => {
+    if (event.detail?.toggle && panel.classList.contains("open")) setPanelOpen(false);
+    else setPanelOpen(true, event.detail?.anchor || null);
+  });
   window.addEventListener("resize", () => {
     if (panel.classList.contains("open")) setPanelOpen(true);
   });
@@ -141,6 +170,10 @@ function injectBellUI() {
   // Some page-shell transitions replace the header and detach its children.
   // Keep the live bell attached and move it into the active header when available.
   const keepBellMounted = () => {
+    if (sidebarMode) {
+      if (!panel.isConnected) document.body.append(panel);
+      return;
+    }
     if (!bell.isConnected) {
       const slot = document.querySelector("#glass-notification-slot, .dashboard-topbar-actions, .hdr-header-actions");
       (slot || document.body).append(bell);
@@ -154,8 +187,17 @@ function injectBellUI() {
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener("pageshow", keepBellMounted);
   window.addEventListener("apr:shell-ready", keepBellMounted);
+  document.addEventListener("apr:shell-ready", () => { if (window.__centricCurrentNotifications) renderNotifications(window.__centricCurrentNotifications); });
   requestAnimationFrame(keepBellMounted);
 }
+
+// Alerts are written with page-relative links ("shop.html"); make them work from the Home page too.
+function resolveNotificationLink(link) {
+  const value = String(link || "");
+  if (/^(https?:|\/|\.\.?\/|pages\/|#)/.test(value)) return value;
+  return window.location.pathname.includes("/pages/") ? value : "pages/" + value;
+}
+window.__centricPaintNotifBadge = () => { if (window.__centricCurrentNotifications) renderNotifications(window.__centricCurrentNotifications); };
 
 function notificationKey(item) {
   return encodeURIComponent(String(item.link || "") + "|" + String(item.message || ""));
@@ -168,22 +210,28 @@ function readNotificationKeys() {
 }
 function renderNotifications(items) {
   const badge = document.getElementById("global-notif-badge");
+  const sidebarBadge = document.getElementById("glass-notif-badge");
   const list = document.getElementById("global-notif-list");
   const markRead = document.getElementById("global-notif-mark-read");
-  if (!badge || !list) return;
+  if (!list) return;
   window.__centricCurrentNotifications = items;
   const read = new Set(readNotificationKeys());
   const unread = items.filter(item => !read.has(notificationKey(item)));
-  if (unread.length) {
-    badge.textContent = unread.length > 9 ? "9+" : String(unread.length);
-    badge.style.display = "flex";
-  } else {
-    badge.style.display = "none";
+  const countText = unread.length > 9 ? "9+" : String(unread.length);
+  if (badge) {
+    badge.textContent = unread.length ? countText : "";
+    badge.style.display = unread.length ? "flex" : "none";
+  }
+  if (sidebarBadge) {
+    sidebarBadge.hidden = !unread.length;
+    sidebarBadge.textContent = unread.length ? countText : "";
+    if (unread.length) sidebarBadge.setAttribute("aria-label", `${unread.length} unread notification${unread.length === 1 ? "" : "s"}`);
+    else sidebarBadge.removeAttribute("aria-label");
   }
   if (markRead) markRead.disabled = unread.length === 0;
   list.innerHTML = unread.length
     ? unread.map(n => `
-        <a class="global-notif-item ${escapeHtml(n.severity)}" href="${escapeHtml(n.link)}">
+        <a class="global-notif-item ${escapeHtml(n.severity)}" href="${escapeHtml(resolveNotificationLink(n.link))}">
           <span class="dot"></span>
           <span>${escapeHtml(n.message)}</span>
         </a>
