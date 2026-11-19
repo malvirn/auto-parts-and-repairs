@@ -82,7 +82,7 @@
   var saved = null;
   try {
     var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-    saved = JSON.parse(sessionStorage.getItem("apr-shell:" + theme) || "null");
+    saved = JSON.parse(sessionStorage.getItem("apr-shell2:" + theme) || "null");
   } catch (e) {}
   if (!saved || !saved.html) return;
   var style = document.createElement("style");
@@ -100,11 +100,22 @@
     root.setAttribute("data-cached", "1");
     root.setAttribute("data-sig", saved.sig || "");
     root.innerHTML = saved.html;
-    root.querySelectorAll("a.glass-nav-link").forEach(function (a) {
+    root.querySelectorAll("a.glass-nav-link, a.glass-nav-sublink").forEach(function (a) {
       var on = false;
       try { on = samePath(new URL(a.getAttribute("href"), location.href).pathname, location.pathname); } catch (e) {}
       a.classList.toggle("is-active", on);
       if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    var savedGroups = {};
+    try { savedGroups = JSON.parse(localStorage.getItem("centric-glass-groups") || "{}") || {}; } catch (e) {}
+    root.querySelectorAll(".glass-nav-folder").forEach(function (folder) {
+      var hasActive = !!folder.querySelector("a.is-active");
+      if (hasActive) folder.setAttribute("data-has-active", ""); else folder.removeAttribute("data-has-active");
+      var title = folder.getAttribute("data-group");
+      var open = savedGroups[title] !== undefined ? !!savedGroups[title] : hasActive;
+      folder.classList.toggle("is-open", open);
+      var btn = folder.querySelector(".glass-nav-folder-btn");
+      if (btn) btn.setAttribute("aria-expanded", String(open));
     });
     body.classList.add("glass-app-shell");
     try {

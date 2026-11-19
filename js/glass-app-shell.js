@@ -2,34 +2,34 @@ import supabase from "./supabaseClient.js";
 
 const NAV = [
   { title: "Main", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
-  { title: "Workshop", items: [
-    { label: "Repairs / Job Cards", href: "pages/repairs.html", icon: "wrench", page: "repairs", roles: ["super_admin","staff"] },
-    { label: "Vehicle Checklist", href: "pages/checklist.html", icon: "clipboard-check", page: "checklist" },
-    { label: "Technicians", href: "pages/technicians.html", icon: "users", page: "technicians", roles: ["super_admin"] },
-    { label: "Commissions", href: "pages/commissions.html", icon: "wallet", page: "commissions", roles: ["super_admin","accounting"] }
+  { title: "Workshop", icon: "wrench", items: [
+    { label: "Repairs / Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff"] },
+    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist" },
+    { label: "Technicians", href: "pages/technicians.html", color: "#A78BFA", page: "technicians", roles: ["super_admin"] },
+    { label: "Commissions", href: "pages/commissions.html", color: "#FACC15", page: "commissions", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Inventory", items: [
-    { label: "Shop / Parts", href: "pages/shop.html", icon: "package", page: "shop" },
-    { label: "Suppliers", href: "pages/suppliers.html", icon: "truck", page: "suppliers", roles: ["super_admin","staff"] },
-    { label: "Landed Cost", href: "pages/landed-cost.html", icon: "calculator", page: "landed-cost", roles: ["super_admin","accounting"] }
+  { title: "Inventory", icon: "package", items: [
+    { label: "Shop / Parts", href: "pages/shop.html", color: "#34D399", page: "shop" },
+    { label: "Suppliers", href: "pages/suppliers.html", color: "#2DD4BF", page: "suppliers", roles: ["super_admin","staff"] },
+    { label: "Landed Cost", href: "pages/landed-cost.html", color: "#F472B6", page: "landed-cost", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Finance", items: [
-    { label: "Quotations", href: "pages/quotations.html", icon: "file-text", page: "quotations" },
-    { label: "Receipts", href: "pages/receipts.html", icon: "receipt", page: "receipts" },
-    { label: "Cashbook", href: "pages/cashbook.html", icon: "book-open", page: "cashbook", roles: ["super_admin","accounting"] },
-    { label: "Payables", href: "pages/payables.html", icon: "hand-coins", page: "payables", roles: ["super_admin","accounting"] },
-    { label: "Ledger", href: "pages/ledger.html", icon: "book-check", page: "ledger", roles: ["super_admin","accounting"] },
-    { label: "Accounting", href: "pages/accounting.html", icon: "calculator", page: "accounting", roles: ["super_admin","accounting"] },
-    { label: "Fixed Assets", href: "pages/fixed-assets.html", icon: "landmark", page: "fixed-assets", roles: ["super_admin","accounting"] },
-    { label: "Financial Statements", href: "pages/financial-statements.html", icon: "chart-no-axes-combined", page: "financial-statements", roles: ["super_admin","accounting"] }
+  { title: "Finance", icon: "landmark", items: [
+    { label: "Quotations", href: "pages/quotations.html", color: "#60A5FA", page: "quotations" },
+    { label: "Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts" },
+    { label: "Cashbook", href: "pages/cashbook.html", color: "#F58A4B", page: "cashbook", roles: ["super_admin","accounting"] },
+    { label: "Payables", href: "pages/payables.html", color: "#A78BFA", page: "payables", roles: ["super_admin","accounting"] },
+    { label: "Ledger", href: "pages/ledger.html", color: "#FB7185", page: "ledger", roles: ["super_admin","accounting"] },
+    { label: "Accounting", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
+    { label: "Fixed Assets", href: "pages/fixed-assets.html", color: "#2DD4BF", page: "fixed-assets", roles: ["super_admin","accounting"] },
+    { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Intelligence", items: [
-    { label: "Centric Intelligence", href: "pages/centric-intelligence.html", icon: "brain-circuit", page: "centric-intelligence", roles: ["super_admin","accounting"] },
-    { label: "Analytics", href: "pages/analytics.html", icon: "chart-no-axes-combined", page: "analytics", roles: ["super_admin","accounting"] }
+  { title: "Intelligence", icon: "brain-circuit", items: [
+    { label: "Centric Intelligence", href: "pages/centric-intelligence.html", color: "#A78BFA", page: "centric-intelligence", roles: ["super_admin","accounting"] },
+    { label: "Analytics", href: "pages/analytics.html", color: "#60A5FA", page: "analytics", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Administration", items: [
-    { label: "Customers", href: "pages/customers.html", icon: "contact-round", page: "customers", roles: ["super_admin","staff"] },
-    { label: "Settings", href: "pages/settings.html", icon: "settings", page: "settings" }
+  { title: "Administration", icon: "shield-check", items: [
+    { label: "Customers", href: "pages/customers.html", color: "#34D399", page: "customers", roles: ["super_admin","staff"] },
+    { label: "Settings", href: "pages/settings.html", color: "#F58A4B", page: "settings" }
   ]}
 ];
 
@@ -43,17 +43,41 @@ const initials = value => String(value || "CA").trim().split(/\s+/).slice(0,2).m
 
 function icon(name) { return '<i data-lucide="' + name + '" aria-hidden="true"></i>'; }
 
+const GROUPS_KEY = "centric-glass-groups";
+const slug = value => String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function savedGroups() {
+  try { return JSON.parse(localStorage.getItem(GROUPS_KEY) || "{}") || {}; } catch (_) { return {}; }
+}
+function saveGroup(title, open) {
+  try { localStorage.setItem(GROUPS_KEY, JSON.stringify({ ...savedGroups(), [title]: open })); } catch (_) {}
+}
+
+// Plain links go to a page. Folder buttons only open and close their group.
 function navGroups(current) {
-  return NAV.map(group => {
-    const items = group.items.filter(item => !item.roles || item.roles.includes(role()));
-    if (!items.length) return "";
-    return '<section class="glass-nav-group" aria-label="' + esc(group.title) + '">' +
-      '<div class="glass-nav-heading">' + esc(group.title) + '</div>' +
-      items.map(item => '<a class="glass-nav-link' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
-        (item.page === current ? ' aria-current="page"' : '') + ' title="' + esc(item.label) + '">' +
-        icon(item.icon) + '<span>' + esc(item.label) + '</span></a>').join("") +
-      '</section>';
+  const visible = NAV.map(group => ({ ...group, items: group.items.filter(item => !item.roles || item.roles.includes(role())) }))
+    .filter(group => group.items.length);
+  const saved = savedGroups();
+  const flat = visible.filter(group => !group.icon).map(group =>
+    '<section class="glass-nav-group" aria-label="' + esc(group.title) + '">' +
+    '<div class="glass-nav-heading">' + esc(group.title) + '</div>' +
+    group.items.map(item => '<a class="glass-nav-link' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
+      (item.page === current ? ' aria-current="page"' : '') + ' title="' + esc(item.label) + '">' +
+      icon(item.icon) + '<span>' + esc(item.label) + '</span></a>').join("") +
+    '</section>').join("");
+  const folders = visible.filter(group => group.icon).map(group => {
+    const hasActive = group.items.some(item => item.page === current);
+    const open = saved[group.title] !== undefined ? !!saved[group.title] : hasActive;
+    const id = "glass-sub-" + slug(group.title);
+    return '<div class="glass-nav-folder' + (open ? ' is-open' : '') + '" data-group="' + esc(group.title) + '"' + (hasActive ? ' data-has-active' : '') + '>' +
+      '<button class="glass-nav-folder-btn" type="button" aria-expanded="' + open + '" aria-controls="' + id + '" title="' + esc(group.title) + '">' +
+      icon(group.icon) + '<span>' + esc(group.title) + '</span>' + icon("chevron-down") + '</button>' +
+      '<div class="glass-nav-sub" id="' + id + '" role="group" aria-label="' + esc(group.title) + '"><div class="glass-nav-sub-inner">' +
+      group.items.map(item => '<a class="glass-nav-sublink' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
+        (item.page === current ? ' aria-current="page"' : '') + ' style="--dot:' + esc(item.color || "#8A96A3") + '">' +
+        '<span class="glass-dot" aria-hidden="true"></span><span>' + esc(item.label) + '</span></a>').join("") +
+      '</div></div></div>';
   }).join("");
+  return flat + (folders ? '<section class="glass-nav-group" aria-label="Workspace"><div class="glass-nav-heading">Workspace</div>' + folders + '</section>' : "");
 }
 
 function buildSidebar(current) {
@@ -87,9 +111,10 @@ function buildHeader() {
 /* ---- Keep the header and sidebar from reloading between pages ----
    The finished shell is saved for this tab. The next page puts that copy back before the first paint
    (see js/theme.js), then this module just wires it up instead of rebuilding it. */
-const CACHE_PREFIX = "apr-shell:";
+const CACHE_PREFIX = "apr-shell2:";
 const canon = html => String(html)
-  .replace(/ is-active/g, "").replace(/ aria-current="page"/g, "")
+  .replace(/ is-active/g, "").replace(/ is-open/g, "").replace(/ data-has-active/g, "")
+  .replace(/ aria-current="page"/g, "").replace(/ aria-expanded="(true|false)"/g, "")
   .replace(/href="([^"]*)"/g, (m, h) => {
     try { return 'href="' + new URL(h.replace(/&amp;/g, "&"), location.href).href + '"'; } catch (_) { return m; }
   });
@@ -98,11 +123,25 @@ const normPath = p => { p = String(p).replace(/\.html$/i, "").replace(/\/+$/, ""
 const samePath = (a, b) => normPath(a) === normPath(b);
 
 function markActive(root) {
-  root.querySelectorAll("a.glass-nav-link").forEach(a => {
+  root.querySelectorAll("a.glass-nav-link, a.glass-nav-sublink").forEach(a => {
     let on = false;
     try { on = samePath(new URL(a.getAttribute("href"), location.href).pathname, location.pathname); } catch (_) {}
     a.classList.toggle("is-active", on);
     if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  syncGroups(root);
+}
+
+// The marker lives on the page you are on. If its folder is closed (or the rail hides it) the folder carries it instead.
+function syncGroups(root) {
+  const saved = savedGroups();
+  root.querySelectorAll(".glass-nav-folder").forEach(folder => {
+    const hasActive = !!folder.querySelector("a.is-active");
+    folder.toggleAttribute("data-has-active", hasActive);
+    const title = folder.getAttribute("data-group");
+    const open = saved[title] !== undefined ? !!saved[title] : hasActive;
+    folder.classList.toggle("is-open", open);
+    folder.querySelector(".glass-nav-folder-btn")?.setAttribute("aria-expanded", String(open));
   });
 }
 
@@ -111,10 +150,11 @@ function cacheShell(root, sig) {
     const clone = root.cloneNode(true);
     clone.querySelectorAll("a[href]").forEach(a => a.setAttribute("href", new URL(a.getAttribute("href"), location.href).href));
     clone.querySelectorAll(".is-active").forEach(a => a.classList.remove("is-active"));
+    clone.querySelectorAll("[data-has-active]").forEach(a => a.removeAttribute("data-has-active"));
     clone.querySelectorAll("[aria-current]").forEach(a => a.removeAttribute("aria-current"));
     clone.querySelectorAll("#global-notif-bell, #global-notif-panel").forEach(n => n.remove());
     clone.querySelectorAll("#glass-profile-menu, #hs-panel").forEach(n => n.setAttribute("hidden", ""));
-    clone.querySelectorAll("[aria-expanded]").forEach(n => n.setAttribute("aria-expanded", "false"));
+    clone.querySelectorAll("[aria-expanded]:not(.glass-nav-folder-btn)").forEach(n => n.setAttribute("aria-expanded", "false"));
     clone.removeAttribute("data-cached");
     sessionStorage.setItem(CACHE_PREFIX + themeName(), JSON.stringify({ sig, html: clone.innerHTML }));
   } catch (_) {}
@@ -154,7 +194,23 @@ function bindShell(root) {
   });
   sidebar.querySelector(".glass-sidebar-close").addEventListener("click", () => setCollapsed(true));
   backdrop.addEventListener("click", () => setCollapsed(true));
-  sidebar.querySelectorAll("a.glass-nav-link").forEach(a => a.addEventListener("click", () => { if (mobile()) setCollapsed(true); }));
+  sidebar.querySelectorAll("a.glass-nav-link, a.glass-nav-sublink").forEach(a => a.addEventListener("click", () => { if (mobile()) setCollapsed(true); }));
+  // Folder buttons toggle their group. On the narrow rail there is no room for the links, so a folder opens the full sidebar first.
+  sidebar.querySelectorAll(".glass-nav-folder-btn").forEach(button => button.addEventListener("click", () => {
+    const folder = button.closest(".glass-nav-folder");
+    const title = folder.getAttribute("data-group");
+    if (document.body.classList.contains("glass-sidebar-collapsed")) {
+      saveGroup(title, true);
+      syncGroups(root);
+      setCollapsed(false);
+      return;
+    }
+    const open = !folder.classList.contains("is-open");
+    saveGroup(title, open);
+    folder.classList.toggle("is-open", open);
+    button.setAttribute("aria-expanded", String(open));
+  }));
+  syncGroups(root);
   window.addEventListener("resize", () => {
     if (!mobile()) {
       document.body.classList.remove("glass-drawer-open");

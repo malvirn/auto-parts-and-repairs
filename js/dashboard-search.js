@@ -86,8 +86,12 @@ import supabase from "./supabaseClient.js";
       { key: "pages", label: "Pages", icon: "layout-grid", load: async () => {
           const out = [];
           document.querySelectorAll(".glass-nav-group").forEach(g => {
-            const grp = g.querySelector(".glass-nav-heading")?.textContent.trim() || "";
-            g.querySelectorAll("a.glass-nav-link").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
+            const section = g.querySelector(".glass-nav-heading")?.textContent.trim() || "";
+            g.querySelectorAll("a.glass-nav-link").forEach(a => out.push(mk(a.textContent.trim(), section, a.getAttribute("href"))));
+            g.querySelectorAll(".glass-nav-folder").forEach(f => {
+              const grp = f.getAttribute("data-group") || section;
+              f.querySelectorAll("a.glass-nav-sublink").forEach(a => out.push(mk(a.textContent.trim(), grp, a.getAttribute("href"))));
+            });
           });
           return out; } },
     ];
