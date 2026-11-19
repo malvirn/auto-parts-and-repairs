@@ -1,95 +1,38 @@
-/* Glass tiles: blurred image backgrounds for nav items, dashboard cards and toggle buttons.
-   Presentation only. Loaded last on every page. Images live in /assets/tiles/. */
+/* Glass tiles: blurred image backgrounds for toggle buttons inside system modules only.
+   Sidebar and dashboard KPI cards are intentionally NOT styled. Presentation only.
+   Images live in /assets/tiles/. */
 :root{
-  --tile-quotation:url("../assets/tiles/quotation.webp");
-  --tile-new-job:url("../assets/tiles/new-job.webp");
-  --tile-invoice:url("../assets/tiles/invoice.webp");
-  --tile-payments:url("../assets/tiles/payments.webp");
-  --tile-parts:url("../assets/tiles/parts-catalog.webp");
-  --tile-inventory:url("../assets/tiles/inventory.webp");
-  --tile-cart:url("../assets/tiles/cart.webp");
   --tile-customers:url("../assets/tiles/customers.webp");
-  --tile-settings:url("../assets/tiles/settings.webp");
-  --tile-debt:url("../assets/tiles/debt.webp");
   --tile-credits:url("../assets/tiles/credits.webp");
-  --tile-reports:url("../assets/tiles/reports.webp");
   --tile-veil:rgba(4,12,10,.52);
   --tile-veil-active:rgba(4,12,10,.18);
   --tile-border:rgba(255,255,255,.14);
 }
 :root[data-theme="light"]{--tile-veil:rgba(255,255,255,.66);--tile-veil-active:rgba(255,255,255,.28);--tile-border:rgba(20,40,35,.16)}
 
-/* Shared glass look */
-.glass-nav-link,.glass-nav-sublink,.glass-nav-folder-btn,
-a.stat-card,.cs-chip,.rc-tabs .seg,[role="tab"].seg{
+/* Checkbox-like toggle buttons (filter chips, tabs) inside module content: calm image off, emerald glow on */
+main.main .cs-chip,main.main .rc-tabs .seg,main.main [role="tab"].seg{
+  --tile:var(--tile-customers);
   background-color:transparent!important;
-  background-image:linear-gradient(var(--tile-veil),var(--tile-veil)),var(--tile,none)!important;
+  background-image:linear-gradient(var(--tile-veil),var(--tile-veil)),var(--tile)!important;
   background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
   border:1px solid var(--tile-border)!important;
   -webkit-backdrop-filter:blur(6px) saturate(130%);backdrop-filter:blur(6px) saturate(130%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
   text-shadow:0 1px 2px rgba(0,0,0,.45);
 }
-:root[data-theme="light"] .glass-nav-link,:root[data-theme="light"] .glass-nav-sublink,:root[data-theme="light"] .glass-nav-folder-btn,
-:root[data-theme="light"] a.stat-card,:root[data-theme="light"] .cs-chip,:root[data-theme="light"] .rc-tabs .seg{text-shadow:none}
-.glass-nav-link:hover,.glass-nav-sublink:hover,.glass-nav-folder-btn:hover,a.stat-card:hover,.cs-chip:hover,.rc-tabs .seg:hover{
-  background-image:linear-gradient(rgba(4,12,10,.30),rgba(4,12,10,.30)),var(--tile,none)!important;
+:root[data-theme="light"] main.main .cs-chip,:root[data-theme="light"] main.main .rc-tabs .seg,:root[data-theme="light"] main.main [role="tab"].seg{text-shadow:none}
+main.main .cs-chip:hover,main.main .rc-tabs .seg:hover,main.main [role="tab"].seg:hover{
+  background-image:linear-gradient(rgba(4,12,10,.30),rgba(4,12,10,.30)),var(--tile)!important;
 }
-.glass-nav-link.is-active,.glass-nav-sublink.is-active,.cs-chip[aria-pressed="true"],.rc-tabs .seg[aria-pressed="true"],.rc-tabs .seg[aria-selected="true"]{
-  background-image:linear-gradient(var(--tile-veil-active),var(--tile-veil-active)),var(--tile,none)!important;
+main.main .cs-chip[aria-pressed="true"],main.main .rc-tabs .seg[aria-pressed="true"],main.main .rc-tabs .seg[aria-selected="true"],main.main [role="tab"].seg[aria-selected="true"]{
+  --tile:var(--tile-credits);
+  background-image:linear-gradient(var(--tile-veil-active),var(--tile-veil-active)),var(--tile)!important;
   border-color:rgba(52,211,153,.75)!important;
   box-shadow:inset 0 0 0 1px rgba(52,211,153,.55),0 0 14px rgba(52,211,153,.28)!important;
   color:#fff!important;
 }
-.glass-nav-sublink{border-radius:10px;margin:2px 0;min-height:38px}
-
-/* Sidebar: one image per page, matched by link target */
-a[href$="index.html"].glass-nav-link{--tile:var(--tile-credits)}
-a[href$="repairs.html"]{--tile:var(--tile-new-job)}
-a[href$="checklist.html"]{--tile:var(--tile-quotation)}
-a[href$="technicians.html"]{--tile:var(--tile-settings)}
-a[href$="commissions.html"]{--tile:var(--tile-credits)}
-a[href$="shop.html"]{--tile:var(--tile-parts)}
-a[href$="suppliers.html"]{--tile:var(--tile-inventory)}
-a[href$="landed-cost.html"]{--tile:var(--tile-cart)}
-a[href$="quotations.html"]{--tile:var(--tile-quotation)}
-a[href$="receipts.html"]{--tile:var(--tile-invoice)}
-a[href$="cashbook.html"]{--tile:var(--tile-payments)}
-a[href$="payables.html"]{--tile:var(--tile-debt)}
-a[href$="ledger.html"]{--tile:var(--tile-reports)}
-a[href$="accounting.html"]{--tile:var(--tile-payments)}
-a[href$="fixed-assets.html"]{--tile:var(--tile-settings)}
-a[href$="financial-statements.html"]{--tile:var(--tile-reports)}
-a[href$="centric-intelligence.html"]{--tile:var(--tile-customers)}
-a[href$="analytics.html"]{--tile:var(--tile-reports)}
-a[href$="customers.html"]{--tile:var(--tile-customers)}
-a[href$="settings.html"]{--tile:var(--tile-settings)}
-
-/* Sidebar folder buttons */
-.glass-nav-folder[data-group="Workshop"]>.glass-nav-folder-btn{--tile:var(--tile-new-job)}
-.glass-nav-folder[data-group="Inventory"]>.glass-nav-folder-btn{--tile:var(--tile-inventory)}
-.glass-nav-folder[data-group="Finance"]>.glass-nav-folder-btn{--tile:var(--tile-payments)}
-.glass-nav-folder[data-group="Intelligence"]>.glass-nav-folder-btn{--tile:var(--tile-customers)}
-.glass-nav-folder[data-group="Administration"]>.glass-nav-folder-btn{--tile:var(--tile-settings)}
-
-/* Dashboard KPI cards: matched by where they link; unmatched ones rotate through the set */
-a.stat-card{--tile:var(--tile-reports);border-radius:14px;overflow:hidden}
-a.stat-card[href*="repairs"]{--tile:var(--tile-new-job)}
-a.stat-card[href*="receipts"]{--tile:var(--tile-invoice)}
-a.stat-card[href*="customer-statements"]{--tile:var(--tile-debt)}
-a.stat-card[href*="quotations"]{--tile:var(--tile-quotation)}
-a.stat-card[href*="shop"]{--tile:var(--tile-parts)}
-a.stat-card[href*="payables"]{--tile:var(--tile-debt)}
-a.stat-card[href*="customers.html"]{--tile:var(--tile-customers)}
-a.stat-card[href*="suppliers"]{--tile:var(--tile-inventory)}
-a.stat-card[href*="technicians"]{--tile:var(--tile-settings)}
-
-/* Checkbox-like toggle buttons (filters, tabs): calm image off, emerald glow on */
-.cs-chip,.rc-tabs .seg,[role="tab"].seg{--tile:var(--tile-customers)}
-.cs-chip[aria-pressed="true"],.rc-tabs .seg[aria-pressed="true"],.rc-tabs .seg[aria-selected="true"]{--tile:var(--tile-credits)}
-
 @media (prefers-reduced-motion:no-preference){
-  .glass-nav-link,.glass-nav-sublink,a.stat-card,.cs-chip,.rc-tabs .seg{transition:background-image .2s,border-color .2s,box-shadow .2s}
+  main.main .cs-chip,main.main .rc-tabs .seg{transition:background-image .2s,border-color .2s,box-shadow .2s}
 }
-/* No blur on very low-power or print */
-@media print{.glass-nav-link,.glass-nav-sublink,a.stat-card{background-image:none!important;backdrop-filter:none}}
+@media print{main.main .cs-chip,main.main .rc-tabs .seg{background-image:none!important;backdrop-filter:none}}
