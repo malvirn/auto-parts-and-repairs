@@ -1364,7 +1364,10 @@ async function sendStatusEmail(job, status) {
   const { error } = await supabase.functions.invoke("send-status-email", {
     body: { jobId: job.id, status },
   });
-  if (error) console.error("Email send failed:", error);
+  if (error) {
+    console.error("Email send failed:", error);
+    alert("Job status was saved, but the customer email could not be sent. Check the email service configuration.");
+  }
 }
 
 function calculateJobTotal(labour, parts, incidentals, vatRate = 0) {
