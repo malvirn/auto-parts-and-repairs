@@ -114,47 +114,45 @@ function renderReceipt(receipt) {
     customer: source.customer,
   };
 
+  const paidInFull = balanceDue <= 0.005;
   receiptDocument.innerHTML = `
-    <header class="receipt-company">
-      <img src="${SHOP_LOGO_PATH}" alt="Centric Automobile Service logo" class="receipt-logo" />
-      <div class="receipt-company__details">
-        <h2>${SHOP_NAME}</h2>
-        <p>${SHOP_TAGLINE}</p>
-        <p>No. 14387 Galloway, Norton</p>
-        <p>+263 733 656 061</p>
-        <p>+263 716 421 990</p>
+    <style>
+      .centric-modal-receipt{background:#fff;color:#202a33;padding:24px;border:1px solid #d6dadd;font-family:Inter,Arial,sans-serif}
+      .centric-modal-receipt *{box-sizing:border-box}
+      .centric-modal-receipt .cm-head{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:3px solid #b3392b;padding-bottom:14px}
+      .centric-modal-receipt .cm-brand{font-size:22px;font-weight:900}.centric-modal-receipt .cm-brand small{display:block;color:#b3392b;font-size:12px}
+      .centric-modal-receipt h1{font-size:22px;color:#b3392b;text-align:right;margin:0}
+      .centric-modal-receipt .cm-meta,.centric-modal-receipt .cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+      .centric-modal-receipt .cm-box{border:1px solid #d6dadd;padding:12px}.centric-modal-receipt small{display:block;color:#626b73;text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:.06em}
+      .centric-modal-receipt .cm-box strong{display:block;margin-top:5px}
+      .centric-modal-receipt table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+      .centric-modal-receipt th,.centric-modal-receipt td{padding:8px;border:1px solid #d6dadd;text-align:left}
+      .centric-modal-receipt th{background:#eef0f2}.centric-modal-receipt .cm-amount{margin-top:14px;padding:16px;border:2px solid #b3392b;display:flex;justify-content:space-between;align-items:center}
+      .centric-modal-receipt .cm-amount strong{font-size:24px;color:#b3392b}
+      .centric-modal-receipt .cm-balance{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #d6dadd;font-weight:800}
+      .centric-modal-receipt .cm-paid{display:inline-block;border:3px double #b3392b;color:#b3392b;padding:5px 12px;font-weight:900;transform:rotate(-5deg)}
+      .centric-modal-receipt .cm-footer{text-align:center;border-top:1px solid #b3392b;margin-top:18px;padding-top:10px;color:#626b73;font-size:11px}
+      @media(max-width:560px){.centric-modal-receipt{padding:14px}.centric-modal-receipt .cm-meta,.centric-modal-receipt .cm-grid{grid-template-columns:1fr}.centric-modal-receipt h1{font-size:17px}}
+      @media print{.centric-modal-receipt{border:0;padding:8mm}}
+    </style>
+    <article class="centric-modal-receipt">
+      <header class="cm-head"><div class="cm-brand">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div><h1>PAYMENT RECEIPT</h1></header>
+      <div class="cm-meta">
+        <div class="cm-box"><small>Receipt number</small><strong>${escapeHtml(String(receipt.receipt_number).padStart(7,"0"))}</strong></div>
+        <div class="cm-box"><small>Date issued</small><strong>${issuedDate} · ${issuedTime}</strong></div>
+        <div class="cm-box"><small>Payment method</small><strong>${escapeHtml(source.paymentMethod || "Not recorded")}</strong></div>
+        <div class="cm-box"><small>Reference</small><strong>${escapeHtml(source.referenceLabel)}</strong></div>
       </div>
-    </header>
-    <h1 class="receipt-title">PAYMENT RECEIPT</h1>
-    <dl class="receipt-meta">
-      <div><dt>Receipt No</dt><dd>${String(receipt.receipt_number).padStart(7, "0")}</dd></div>
-      <div><dt>Date of Issue</dt><dd>${issuedDate}</dd></div>
-      <div><dt>Time of Issue</dt><dd>${issuedTime}</dd></div>
-      <div><dt>Customer Name</dt><dd>${escapeHtml(source.customer?.full_name || "Walk-in Customer")}</dd></div>
-      <div><dt>Contact</dt><dd>${escapeHtml(source.customer?.phone || "—")}</dd></div>
-      ${source.kind === "job" ? `<div><dt>Vehicle Registration</dt><dd>${escapeHtml(source.plate || "—")}</dd></div>` : ""}
-      <div><dt>${source.kind === "job" ? "Work Order No" : "Sales Order No"}</dt><dd>${escapeHtml(source.referenceLabel)}</dd></div>
-      <div><dt>Payment Method</dt><dd>${escapeHtml(source.paymentMethod || "Not recorded")}</dd></div>
-      <div><dt>Currency</dt><dd>USD</dd></div>
-    </dl>
-    <section class="receipt-items">
-      <table>
-        <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
-        <tbody>${itemRows}</tbody>
-      </table>
-    </section>
-    <section class="receipt-totals" aria-label="Receipt totals">
-      <div><span>Subtotal</span><span>${formatMoney(subtotal)}</span></div>
-      <div><span>Discount</span><span>${formatMoney(discount)}</span></div>
-      <div class="receipt-paid"><span>Amount Paid</span><span>${formatMoney(amountPaid)}</span></div>
-      <div><span>Balance Due</span><span>${formatMoney(balanceDue)}</span></div>
-      <div class="receipt-grand"><strong>TOTAL PAID</strong><strong>${formatMoney(amountPaid)}</strong></div>
-    </section>
-    <p class="receipt-note">Thank you for choosing Centric Automobile Service.<br>Please retain this receipt for your records.</p>
-    <footer class="receipt-footer">
-      <p class="receipt-footer__services">Centric Auto Mobile | Vehicle Diagnostics · Repairs · Servicing · Spare Parts</p>
-      <p class="receipt-footer__copyright">© ${new Date().getFullYear()} Centric Automobile Service. All rights reserved.</p>
-    </footer>`;
+      <div class="cm-grid">
+        <div class="cm-box"><small>Received from</small><strong>${escapeHtml(source.customer?.full_name || "Walk-in Customer")}</strong>${escapeHtml(source.customer?.phone || "")}</div>
+        <div class="cm-box"><small>Payment for</small><strong>${escapeHtml(source.vehicleLabel || (source.kind==="order"?"Parts / shop sale":"Vehicle service and repairs"))}</strong>${escapeHtml(source.plate || "")}</div>
+      </div>
+      <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
+      <div class="cm-amount"><b>Amount paid</b><strong>${formatMoney(amountPaid)}</strong></div>
+      <div class="cm-balance"><span>Balance remaining</span><span>${formatMoney(balanceDue)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span style="font-size:11px;color:#626b73">${paidInFull?"Payment settled in full":"Part payment received"}</span><span class="cm-paid">${paidInFull?"PAID":"PART PAID"}</span></div>
+      <div class="cm-footer">Centric Auto Mobile · +263 71 690 5081<br>Thank you for your business.</div>
+    </article>`;
   receiptModal.classList.remove("hidden");
   receiptModal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
