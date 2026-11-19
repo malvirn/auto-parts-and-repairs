@@ -7,6 +7,19 @@ import { getRate as getBankRate } from "./currency.js";
 import { usdEquivalent } from "./payment-currency.js";
 
 const $ = (id) => document.getElementById(id);
+let BUSINESS_VAT_REGISTERED = false;
+let BUSINESS_VAT_RATE = 15.5;
+async function loadBusinessTaxProfile() {
+  const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
+  if (error) { console.error("Couldn't load business VAT settings:", error); BUSINESS_VAT_REGISTERED = false; }
+  else {
+    BUSINESS_VAT_REGISTERED = Boolean(data?.vat_registered);
+    BUSINESS_VAT_RATE = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+  }
+  const toggle = $("job-vat-enabled");
+  if (toggle) { toggle.checked = BUSINESS_VAT_REGISTERED; toggle.disabled = !BUSINESS_VAT_REGISTERED; }
+  window.CENTRIC_BUSINESS_VAT_RATE = BUSINESS_VAT_RATE;
+}
 
 const tableBody = $("repairs-table");
 const form = $("job-form");
@@ -506,7 +519,7 @@ async function updateNewTotals() {
   const labour = parseFloat(newLabour?.value) || 0;
   const parts = stagedParts.reduce((s, p) => s + p.price * p.qty, 0);
   const inc = stagedIncidentals.reduce((s, x) => s + x.amount, 0);
-  const vatRate = $("job-vat-enabled")?.checked ? 15.5 : 0;
+  const vatRate = BUSINESS_VAT_REGISTERED && $("job-vat-enabled")?.checked ? BUSINESS_VAT_RATE : 0;
   const total = calculateJobTotal(labour, parts, inc, vatRate);
   const vatBase = vatRate === 5 ? parts : labour + parts + inc;
   const vatAmount = Math.round((vatBase * vatRate / 100 + Number.EPSILON) * 100) / 100;
@@ -1864,7 +1877,7 @@ form?.addEventListener("submit", async (e) => {
     }
 
     if (intakePath === "quote") {
-      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}&vat=${$("job-vat-enabled").checked ? 15.5 : 0}`;
+      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}&vat=${BUSINESS_VAT_REGISTERED && $("job-vat-enabled").checked ? BUSINESS_VAT_RATE : 0}`;
       return;
     }
 
@@ -1872,7 +1885,7 @@ form?.addEventListener("submit", async (e) => {
     const jobRow = {
       customer_id,
       vehicle_id,
-      vat_rate: quotedVatRate ?? ($("job-vat-enabled").checked ? 15.5 : 0),
+      vat_rate: quotedVatRate ?? (BUSINESS_VAT_REGISTERED && $("job-vat-enabled").checked ? BUSINESS_VAT_RATE : 0),
       fault_reported,
       status: statusValue,
       fuel_level_in,
@@ -2340,6 +2353,7 @@ function filterTableByStatus(status) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadBusinessTaxProfile();
   initStatusOptions();
   renderStaged();
   await Promise.all([loadRateTiers(), loadCustomers(), loadTechniciansIntoSelect(), loadPartsIntoSelect()]);

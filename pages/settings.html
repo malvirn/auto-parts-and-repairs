@@ -169,6 +169,11 @@ body.dashboard-page.module-settings .main :is(.table-wrap,.table-container,.tabl
               <div class="field"><label for="biz-phone">Phone</label><input type="text" id="biz-phone" maxlength="40" /></div>
               <div class="field"><label for="biz-email">Email</label><input type="text" id="biz-email" maxlength="120" /></div>
               <div class="field full"><label for="biz-hours">Opening hours</label><input type="text" id="biz-hours" maxlength="120" placeholder="e.g. Mon–Sat 8am–5pm" /></div>
+              <div class="field full"><label for="biz-vat-registered"><input id="biz-vat-registered" type="checkbox" /> Business is VAT registered with ZIMRA</label></div>
+              <div class="field"><label for="biz-vat-number">VAT registration number</label><input type="text" id="biz-vat-number" maxlength="80" placeholder="Required when VAT registered" /></div>
+              <div class="field"><label for="biz-vat-rate">VAT rate (%)</label><input type="number" id="biz-vat-rate" min="0" max="100" step="0.1" value="15.5" /></div>
+              <div class="field full"><label for="biz-fdms-device">ZIMRA FDMS device ID</label><input type="text" id="biz-fdms-device" maxlength="120" placeholder="Enter only after ZIMRA assigns a device ID" /></div>
+              <div class="field full"><p id="fdms-status" class="section-note" role="status">FDMS is not connected.</p><p class="section-note">Fiscalisation is not active until the device is approved and secure API credentials are configured. Centric will not label an invoice fiscalised without a verified ZIMRA response.</p></div>
             </div>
             <div class="row"><button id="save-business-btn" class="btn btn--primary" type="button"><i data-lucide="check"></i> Save business details</button></div>
             <p class="smsg" id="m-biz" role="status" aria-live="polite"></p>

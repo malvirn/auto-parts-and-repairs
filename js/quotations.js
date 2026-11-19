@@ -26,6 +26,8 @@ let editingOrder = null;
 let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
+let BUSINESS_VAT_REGISTERED = false;
+let BUSINESS_VAT_RATE = 15.5;
 let quotationRows = [];
 let quotationVisibleCount = 50;
 let quoteSubmissionInProgress = false;
@@ -50,7 +52,7 @@ function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
 function lineTotalOf(item) { return Number((Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)); }
 function totalOf(items) { return items.reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + lineTotalOf(item), 0); }
-function quotationTotals(items, vatRate = 15.5) {
+function quotationTotals(items, vatRate = BUSINESS_VAT_RATE) {
   const subtotal = Number(totalOf(items || []).toFixed(2));
   const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
   const rate = Number(vatRate) || 0;
@@ -58,7 +60,21 @@ function quotationTotals(items, vatRate = 15.5) {
   const vat = Number((taxableSubtotal * rate / 100).toFixed(2));
   return { subtotal, partsSubtotal, vat, total: Number((subtotal + vat).toFixed(2)) };
 }
-function quotationVatRate() { return quoteVatEnabled?.checked ? 15.5 : 0; }
+function quotationVatRate() { return BUSINESS_VAT_REGISTERED && quoteVatEnabled?.checked ? BUSINESS_VAT_RATE : 0; }
+async function loadBusinessTaxProfile() {
+  const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
+  if (error) { console.error("Couldn't load business VAT settings:", error); BUSINESS_VAT_REGISTERED = false; }
+  else {
+    BUSINESS_VAT_REGISTERED = Boolean(data?.vat_registered);
+    BUSINESS_VAT_RATE = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+  }
+  const explicitNoVat = new URLSearchParams(window.location.search).get("vat") === "0";
+  if (quoteVatEnabled) {
+    quoteVatEnabled.checked = BUSINESS_VAT_REGISTERED && !explicitNoVat;
+    quoteVatEnabled.disabled = !BUSINESS_VAT_REGISTERED;
+  }
+  renderDraft();
+}
 async function zigTotal(usd) { return Number((usd * await getRate()).toFixed(2)); }
 function itemType(item) {
   if (item.item_type) return item.item_type;
@@ -667,7 +683,7 @@ quoteForm.addEventListener("submit", async event => {
   if (createdCustomerCode) {
     alert("Customer ID: " + createdCustomerCode);
   }
-  quoteForm.reset(); draftItems = []; renderDraft(); renderJobSummary(null); populateVehicleDetails({}); toggleWalkinFields(); await loadDocuments(); await openQuoteEditor(quote.id);
+  quoteForm.reset(); if (quoteVatEnabled) quoteVatEnabled.checked = BUSINESS_VAT_REGISTERED; draftItems = []; renderDraft(); renderJobSummary(null); populateVehicleDetails({}); toggleWalkinFields(); await loadDocuments(); await openQuoteEditor(quote.id);
   } catch (error) {
     console.error("Quotation save failed:", error);
     alert("Couldn't finish saving the quotation: " + (error.message || String(error)) + ". Refresh the quotation list before retrying if the save may have completed.");
@@ -1576,6 +1592,7 @@ on("order-detail-whatsapp", (e) => editingOrder && sendByWhatsApp("Sales Order",
 
 document.addEventListener("DOMContentLoaded", async () => {
   toggleWalkinFields();
+  await loadBusinessTaxProfile();
   loadBusiness().catch(() => {});
   try {
     await loadBaseData();

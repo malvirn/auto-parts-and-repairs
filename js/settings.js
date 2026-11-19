@@ -169,11 +169,23 @@ async function loadBusinessSettings() {
   set("biz-phone", data.phone);
   set("biz-email", data.email);
   set("biz-hours", data.hours);
+  set("biz-vat-number", data.vat_number);
+  set("biz-vat-rate", data.vat_rate ?? 15.5);
+  set("biz-fdms-device", data.fdms_device_id);
+  const vatToggle = $("biz-vat-registered");
+  if (vatToggle) vatToggle.checked = Boolean(data.vat_registered);
+  const fdmsLabels = { not_configured: "FDMS not connected", pending: "FDMS awaiting ZIMRA approval", active: "FDMS connection marked active", suspended: "FDMS connection suspended" };
+  if ($("fdms-status")) $("fdms-status").textContent = fdmsLabels[data.fdms_status] || "FDMS status unavailable";
 }
 
 $("save-business-btn")?.addEventListener("click", async (e) => {
   const get = (id) => $(id)?.value.trim() || "";
   if (!get("biz-name")) { say("m-biz", "Enter the business name.", false); return; }
+  const vatRegistered = $("biz-vat-registered")?.checked || false;
+  const vatNumber = get("biz-vat-number");
+  const vatRate = Number($("biz-vat-rate")?.value ?? 15.5);
+  if (vatRegistered && !vatNumber) { say("m-biz", "Enter the ZIMRA VAT registration number before enabling VAT.", false); $("biz-vat-number")?.focus(); return; }
+  if (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100) { say("m-biz", "Enter a valid VAT rate between 0 and 100.", false); $("biz-vat-rate")?.focus(); return; }
   busy(e.currentTarget, true);
   const { error } = await supabase.from("business_settings").update({
     business_name: get("biz-name"),
@@ -182,6 +194,10 @@ $("save-business-btn")?.addEventListener("click", async (e) => {
     phone: get("biz-phone"),
     email: get("biz-email"),
     hours: get("biz-hours"),
+    vat_registered: vatRegistered,
+    vat_number: vatRegistered ? vatNumber : null,
+    vat_rate: vatRate,
+    fdms_device_id: get("biz-fdms-device") || null,
   }).eq("id", 1);
   busy(e.currentTarget, false);
   say("m-biz", error ? "Couldn't save: " + error.message : "Business details saved.", !error);

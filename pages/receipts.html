@@ -897,7 +897,7 @@ body.dashboard-page.module-receipts .main :is(.table-wrap,.table-container,.tabl
         <div id="items" style="display:grid;gap:8px"></div>
         <datalist id="parts-dl"></datalist>
         <button class="btn" id="add-li" type="button"><i data-lucide="plus"></i> Add line</button>
-        <div class="two"><input id="f-vat" type="hidden" value="15.5" aria-hidden="true" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
+        <div class="two"><input id="f-vat" type="hidden" value="0" aria-hidden="true" /><input id="f-disc" type="number" min="0" step="0.01" value="0" placeholder="Discount $" title="Discount $" /></div>
         <div class="two"><input id="f-due" type="date" title="Due date" /><input id="f-ref" placeholder="Job card / vehicle reg (optional)" /></div>
         <textarea id="f-notes" rows="2" placeholder="Notes / payment instructions (EcoCash, bank, cash)"></textarea>
         <h3>3 · Save &amp; send</h3>
@@ -1070,6 +1070,13 @@ const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d
 const dt=v=>v?new Date(v).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—";
 const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="263"+d.slice(1);return d};
 const CO={email:"malvirngomo8@gmail.com"};
+let BUSINESS_VAT_REGISTERED=false,BUSINESS_VAT_RATE=15.5;
+async function loadBusinessTaxProfile(){
+ const{data,error}=await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id",1).maybeSingle();
+ if(error){console.error("Could not load business VAT settings:",error);BUSINESS_VAT_REGISTERED=false;}
+ else{BUSINESS_VAT_REGISTERED=Boolean(data?.vat_registered);BUSINESS_VAT_RATE=Math.min(100,Math.max(0,Number(data?.vat_rate??15.5)));}
+ const field=$("f-vat");if(field)field.value=BUSINESS_VAT_REGISTERED?String(BUSINESS_VAT_RATE):"0";
+}
 let tab=new URLSearchParams(location.search).get("tab")==="invoices"?"invoices":"receipts",rows={receipts:[],invoices:[],creditNotes:[]},cur=null,parts=[],invoiceAccounts=[],editingInvoiceId=null,invoiceRepairJobId=null,invoiceVatBase=null,lastPaymentContext=null,payAfterSave=new URLSearchParams(location.search).get("pay")==="1";
 
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
@@ -2698,6 +2705,7 @@ $("receipt-filter-clear").onclick=()=>{["receipt-filter-search","receipt-filter-
 let receiptLoadAttempt=0;
 async function loadReceiptsSafely(){
   window.__centricReceiptBooted = true;
+  await loadBusinessTaxProfile();
  const attempt=++receiptLoadAttempt;
  const params=new URLSearchParams(location.search);
  $("list").innerHTML='<div class="ov-empty">Loading receipts…</div>';

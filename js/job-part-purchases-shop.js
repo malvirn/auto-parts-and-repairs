@@ -7,6 +7,14 @@ const refreshButton = document.getElementById("refresh-job-part-purchase-request
 if (requestBody && message && refreshButton) {
   let stockParts = [];
   let markupRate = 0.15;
+  let businessVatRegistered = false;
+  let businessVatRate = 15.5;
+  async function loadBusinessTaxProfile() {
+    const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
+    if (error) throw new Error("Could not load business VAT settings: " + error.message);
+    businessVatRegistered = Boolean(data?.vat_registered);
+    businessVatRate = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+  }
 
   function escapeHtml(value) {
     const element = document.createElement("span");
@@ -26,7 +34,7 @@ if (requestBody && message && refreshButton) {
     const partOptions = stockParts.map(part =>
       `<option value="${escapeHtml(part.id)}">${escapeHtml(part.name)}${part.part_number ? ` (${escapeHtml(part.part_number)})` : ""}</option>`
     ).join("");
-    const defaultSellingPrice = (Number(request.quoted_unit_cost) * (1 + markupRate) * 1.05).toFixed(2);
+    const defaultSellingPrice = (Number(request.quoted_unit_cost) * (1 + markupRate)).toFixed(2);
     return `
       <a class="btn job-part-purchase-order" href="mailto:${encodeURIComponent(request.supplier_email || "")}?subject=${encodeURIComponent(`Purchase order: ${request.part_name}`)}&body=${encodeURIComponent(`Please supply ${request.quantity} × ${request.part_name} for ${jobReference(request)}. Supplier quote: ${money(request.quoted_unit_cost)} per unit.`)}">Email supplier order</a>
       <form class="job-part-purchase-receive" data-request-id="${escapeHtml(request.id)}">
@@ -144,12 +152,13 @@ if (requestBody && message && refreshButton) {
         if (!existingPartId && (!Number.isFinite(sellingPrice) || sellingPrice <= 0)) {
           throw new Error("Enter a selling price greater than zero for the new inventory item.");
         }
+        await loadBusinessTaxProfile();
         const { error } = await supabase.rpc("receive_job_part_purchase", {
           p_request_id: form.dataset.requestId,
           p_existing_part_id: existingPartId,
           p_part_number: values.get("part_number") || null,
           p_selling_price: existingPartId ? null : sellingPrice,
-          p_vat_rate: 15.5,
+          p_vat_rate: businessVatRegistered ? businessVatRate : 0,
         });
         if (error) throw new Error(error.message);
         message.textContent = "Part received into inventory and linked to its job card. Refreshing Shop stock…";
