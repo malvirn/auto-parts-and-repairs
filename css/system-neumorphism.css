@@ -132,3 +132,21 @@ body.dashboard-page.glass-app-shell .main .quotation-workspace {
     padding-right: 0 !important;
   }
 }
+
+/* Apply to every dashboard page, including pages without the glass shell body class. */
+body.dashboard-page .main {
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body.dashboard-page .main > .page-section,
+body.dashboard-page .main > .quotation-workspace,
+body.dashboard-page .main > .checklist-page,
+body.dashboard-page .main .quotation-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
