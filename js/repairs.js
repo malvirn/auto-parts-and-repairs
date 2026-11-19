@@ -1356,21 +1356,13 @@ async function sendStatusWhatsApp(job, status) {
   if (error) console.error("WhatsApp notification failed:", error);
 }
 
-async function sendStatusEmail(job, status, totalCost) {
-  if (!job?.customers?.email) {
+async function sendStatusEmail(job, status) {
+  if (!job?.customers?.email && !job?.customers?.company_email) {
     console.warn("No email on file for this customer — skipping auto email.");
     return;
   }
   const { error } = await supabase.functions.invoke("send-status-email", {
-    body: {
-      jobId: job.id,
-      to: job.customers.email,
-      customerName: job.customers.full_name,
-      jobNumber: job.job_number,
-      device: [job.vehicles?.make, job.vehicles?.model].filter(Boolean).join(" "),
-      status,
-      totalCost,
-    },
+    body: { jobId: job.id, status },
   });
   if (error) console.error("Email send failed:", error);
 }
