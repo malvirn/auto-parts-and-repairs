@@ -7,6 +7,26 @@ let host = null;
 let lastMsg = "", lastAt = 0;
 
 function ensureHost() {
+  if (!document.getElementById("apr-toast-styles")) {
+    const style = document.createElement("style");
+    style.id = "apr-toast-styles";
+    style.textContent = `
+      .apr-toasts{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:2147483647;display:grid;gap:9px;width:min(440px,calc(100vw - 24px));pointer-events:none}
+      .apr-toast{pointer-events:auto;display:grid;grid-template-columns:34px minmax(0,1fr) 28px;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:14px;background:var(--panel,#17201d);color:var(--text,#f3f7f4);box-shadow:0 14px 38px rgba(0,0,0,.32);font:500 13px/1.35 Inter,system-ui,sans-serif;animation:apr-toast-in .22s ease-out both}
+      .apr-toast-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:rgba(46,160,96,.16);color:#39bd78}
+      .apr-toast-ic svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+      .apr-toast.error .apr-toast-ic{background:rgba(220,70,70,.16);color:#ff7777}
+      .apr-toast.info .apr-toast-ic{background:rgba(90,150,220,.16);color:#7db8f4}
+      .apr-toast-tx{display:grid;gap:2px;min-width:0}.apr-toast-tx b{font-size:13px;font-weight:750}.apr-toast-tx small{color:var(--muted,#aab5af);font-size:11px}
+      .apr-toast-x{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:20px;cursor:pointer}
+      .apr-toast-x:hover{background:rgba(255,255,255,.09)}
+      .apr-toast.out{animation:apr-toast-out .2s ease-in both}
+      @keyframes apr-toast-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes apr-toast-out{to{opacity:0;transform:translateY(-8px)}}
+      @media(prefers-reduced-motion:reduce){.apr-toast,.apr-toast.out{animation:none}}
+    `;
+    document.head.appendChild(style);
+  }
   if (host && document.body.contains(host)) return host;
   host = document.createElement("div");
   host.className = "apr-toasts";

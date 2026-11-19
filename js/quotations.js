@@ -49,13 +49,20 @@ function escapeHtml(value) {
 }
 
 function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
-function lineTotalOf(item) { return Number((Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)); }
+function lineTotalOf(item) {
+  const quantity = Number(item?.quantity);
+  const unitPrice = Number(item?.unit_price_usd);
+  if (!Number.isFinite(quantity) || !Number.isFinite(unitPrice)) return 0;
+  return Number((quantity * unitPrice).toFixed(2));
+}
 function totalOf(items) { return items.reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function quotationTotals(items, vatRate = BUSINESS_VAT_RATE) {
-  const subtotal = Number(totalOf(items || []).toFixed(2));
-  const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
-  const rate = Number(vatRate) || 0;
+  const safeItems = Array.isArray(items) ? items : [];
+  const subtotal = Number(totalOf(safeItems).toFixed(2));
+  const partsSubtotal = Number(partsTotalOf(safeItems).toFixed(2));
+  const rawRate = Number(vatRate);
+  const rate = Number.isFinite(rawRate) ? Math.min(100, Math.max(0, rawRate)) : 0;
   const taxableSubtotal = rate === 5 ? partsSubtotal : subtotal; // Keep legacy 5% quotations unchanged.
   const vat = Number((taxableSubtotal * rate / 100).toFixed(2));
   return { subtotal, partsSubtotal, vat, total: Number((subtotal + vat).toFixed(2)) };

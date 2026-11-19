@@ -66,7 +66,7 @@ function navGroups(current) {
     '</section>').join("");
   const folders = visible.filter(group => group.icon).map(group => {
     const hasActive = group.items.some(item => item.page === current);
-    const open = saved[group.title] !== undefined ? !!saved[group.title] : hasActive;
+    const open = hasActive || (saved[group.title] !== undefined && !!saved[group.title]);
     const id = "glass-sub-" + slug(group.title);
     return '<div class="glass-nav-folder' + (open ? ' is-open' : '') + '" data-group="' + esc(group.title) + '"' + (hasActive ? ' data-has-active' : '') + '>' +
       '<button class="glass-nav-folder-btn" type="button" aria-expanded="' + open + '" aria-controls="' + id + '" title="' + esc(group.title) + '">' +
@@ -139,7 +139,7 @@ function syncGroups(root) {
     const hasActive = !!folder.querySelector("a.is-active");
     folder.toggleAttribute("data-has-active", hasActive);
     const title = folder.getAttribute("data-group");
-    const open = saved[title] !== undefined ? !!saved[title] : hasActive;
+    const open = hasActive || (saved[title] !== undefined && !!saved[title]);
     folder.classList.toggle("is-open", open);
     folder.querySelector(".glass-nav-folder-btn")?.setAttribute("aria-expanded", String(open));
   });
@@ -205,7 +205,8 @@ function bindShell(root) {
       setCollapsed(false);
       return;
     }
-    const open = !folder.classList.contains("is-open");
+    const hasActivePage = folder.hasAttribute("data-has-active");
+    const open = hasActivePage || !folder.classList.contains("is-open");
     saveGroup(title, open);
     folder.classList.toggle("is-open", open);
     button.setAttribute("aria-expanded", String(open));

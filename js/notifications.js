@@ -51,6 +51,8 @@ function injectBellUI() {
       }
     }
     #global-notif-bell:hover { border-color: var(--accent, #ff9d3d); }
+    #global-notif-bell > svg, #global-notif-bell > i { pointer-events:none; }
+    #global-notif-bell:focus-visible { outline:2px solid var(--accent,#ff9d3d); outline-offset:3px; }
     #global-notif-badge {
       position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px;
       border-radius: 999px; background: var(--danger, #b23b3b); color: #fff;
@@ -81,7 +83,10 @@ function injectBellUI() {
 
   const bell = document.createElement("button");
   bell.id = "global-notif-bell";
+  bell.type = "button";
   bell.setAttribute("aria-label", "Notifications");
+  bell.setAttribute("aria-controls", "global-notif-panel");
+  bell.setAttribute("aria-expanded", "false");
   bell.innerHTML = `<i data-lucide="bell"></i><span id="global-notif-badge"></span>`;
   const dashboardTopbar = document.querySelector("body.dashboard-workshop .dashboard-topbar");
   const topbarActions = dashboardTopbar?.querySelector(".dashboard-topbar-actions");
@@ -106,23 +111,31 @@ function injectBellUI() {
     renderNotifications(window.__centricCurrentNotifications || []);
   });
 
-  bell.addEventListener("click", (e) => {
-    e.stopPropagation();
-    panel.classList.toggle("open");
-    if (panel.classList.contains("open") && (dashboardActions || dashboardTopbar)) {
-      const rect = bell.getBoundingClientRect();
-      panel.style.top = `${rect.bottom + 8}px`;
-      panel.style.right = `${Math.max(12, window.innerWidth - rect.right)}px`;
-    }
+  const setPanelOpen = open => {
+    panel.classList.toggle("open", Boolean(open));
+    bell.setAttribute("aria-expanded", String(Boolean(open)));
+    if (!open) return;
+    const rect = bell.getBoundingClientRect();
+    const panelWidth = Math.min(340, Math.max(240, window.innerWidth - 24));
+    const right = Math.max(12, window.innerWidth - rect.right);
+    panel.style.top = `${Math.min(window.innerHeight - 120, rect.bottom + 8)}px`;
+    panel.style.right = `${Math.min(right, Math.max(12, window.innerWidth - panelWidth - 12))}px`;
+    panel.style.left = "auto";
+  };
+  bell.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setPanelOpen(!panel.classList.contains("open"));
   });
-  document.addEventListener("click", (e) => {
-    if (!panel.contains(e.target) && e.target !== bell) panel.classList.remove("open");
+  document.addEventListener("click", event => {
+    if (!panel.contains(event.target) && !bell.contains(event.target)) setPanelOpen(false);
   });
-  document.addEventListener("apr:open-notifications", () => {
-    if (!panel.classList.contains("open")) bell.click();
+  document.addEventListener("apr:open-notifications", () => setPanelOpen(true));
+  window.addEventListener("resize", () => {
+    if (panel.classList.contains("open")) setPanelOpen(true);
   });
 
-  if (window.lucide) lucide.createIcons();
+  window.lucide?.createIcons();
 }
 
 function notificationKey(item) {
@@ -157,7 +170,7 @@ function renderNotifications(items) {
         </a>
       `).join("")
     : `<div class="global-notif-empty">You're all caught up. New alerts will appear here.</div>`;
-  if (window.lucide) lucide.createIcons();
+  window.lucide?.createIcons();
 }
 
 // ---------- Checks ----------
