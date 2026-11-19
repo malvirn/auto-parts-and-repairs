@@ -1357,8 +1357,8 @@ async function sendStatusWhatsApp(job, status) {
 }
 
 async function sendStatusEmail(job, status) {
-  if (!job?.customers?.email && !job?.customers?.company_email) {
-    console.warn("No email on file for this customer — skipping auto email.");
+  if (!job?.id) {
+    console.warn("No job-card reference is available — skipping status email.");
     return;
   }
   const { error } = await supabase.functions.invoke("send-status-email", {
