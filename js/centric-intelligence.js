@@ -65,7 +65,7 @@ async function loadIntelligence() {
   const invoicedTotal = recentInvoices.reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
   const voidedReceiptGroups = voidedReceipts.reduce((groups, receipt) => {
     const currency = String(receipt.currency_code || "USD").toUpperCase();
-    groups[currency] = (groups[currency] || 0) + Number(receipt.amount || 0);
+    groups[currency] = (groups[currency] || 0) + Number(receipt.tender_amount ?? receipt.amount ?? 0);
     return groups;
   }, {});
   const lowStock = parts.filter(part => Number(part.quantity_in_stock || 0) < Math.max(3, Number(part.minimum_stock || 0)));
