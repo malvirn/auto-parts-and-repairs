@@ -1,95 +1,164 @@
-// supabase/functions/send-receipt-email/index.ts
-//
-// Deploy:  supabase functions deploy send-receipt-email
-// Secrets: supabase secrets set RESEND_API_KEY=re_...
-//          supabase secrets set RECEIPT_FROM_EMAIL="Auto Parts and Repairs <receipts@yourdomain.com>"
-//
-// Uses Resend (resend.com) because it's the simplest email API to set up
-// with attachment support. If you already have a different provider wired
-// up for send-status-email, tell Claude which one and this can be rewritten
-// to match instead of running two separate email services.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+const APP_ORIGIN = Deno.env.get("APP_ORIGIN") || "https://centric-auto-mobile.pages.dev";
+const ALLOWED_ORIGINS = new Set([
+  APP_ORIGIN,
+  "https://apandr.netlify.app",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+]);
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_EMAIL = Deno.env.get("RECEIPT_FROM_EMAIL") || "receipts@example.com";
+function corsHeaders(origin: string | null) {
+  return {
+    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : APP_ORIGIN,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+function jsonResponse(body: Record<string, unknown>, status: number, origin: string | null) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
+  });
+}
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed." }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+function validEmail(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(origin) });
   }
+  if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405, origin);
 
   try {
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY secret is not set on this project.");
-
-    const { to, subject, text, fileBase64, imageBase64, fileName, mimeType, jobNumber } = await req.json();
-    const attachment = fileBase64 || imageBase64;
-    if (typeof to !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) || !attachment) {
-      return new Response(JSON.stringify({ error: "A valid recipient email and document attachment are required." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    if (contentLength > 15_000_000) {
+      return jsonResponse({ error: "The document is too large to email" }, 413, origin);
     }
-    if (typeof attachment !== "string" || attachment.length > 14_000_000) {
-      return new Response(JSON.stringify({ error: "The attachment is too large to email." }), {
-        status: 413,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const contentType = mimeType === "application/pdf" ? mimeType : "image/png";
-    const safeFileName = typeof fileName === "string" && /^[\w.-]+$/.test(fileName)
-      ? fileName
-      : `receipt-${String(jobNumber || "").replace(/[^\w.-]/g, "-")}.png`;
-    const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-    })[character]!);
-    const emailText = typeof text === "string" ? text : "Please find your receipt attached. Thank you for choosing us.";
 
-    const response = await fetch("https://api.resend.com/emails", {
+    const authorization = req.headers.get("Authorization") || "";
+    if (!authorization.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Authentication is required" }, 401, origin);
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const fromEmail = Deno.env.get("STATUS_FROM_EMAIL") || Deno.env.get("RECEIPT_FROM_EMAIL");
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return jsonResponse({ error: "The email service is not configured" }, 503, origin);
+    }
+    if (!resendApiKey || !fromEmail) {
+      return jsonResponse({
+        error: "Document email is not configured. Set RESEND_API_KEY and a verified STATUS_FROM_EMAIL sender.",
+      }, 503, origin);
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authorization } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      return jsonResponse({ error: "Your session could not be verified" }, 401, origin);
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role,access_level")
+      .eq("id", userData.user.id)
+      .maybeSingle();
+    if (profileError || !profile ||
+        (profile.role !== "super_admin" && profile.role !== "accounting" && Number(profile.access_level || 0) < 1)) {
+      return jsonResponse({ error: "You are not authorised to email business documents" }, 403, origin);
+    }
+
+    const payload = await req.json();
+    const recipient = typeof payload?.to === "string" ? payload.to.trim().toLowerCase() : "";
+    const attachment = typeof payload?.fileBase64 === "string"
+      ? payload.fileBase64
+      : typeof payload?.imageBase64 === "string" ? payload.imageBase64 : "";
+    const mimeType = payload?.mimeType === "application/pdf" ? "application/pdf" : "image/png";
+    const subject = typeof payload?.subject === "string" ? payload.subject.trim().slice(0, 200) : "Your document from Centric Auto Mobile";
+    const emailText = typeof payload?.text === "string" ? payload.text.slice(0, 12000) : "Please find your document attached.";
+
+    if (!validEmail(recipient) || !attachment) {
+      return jsonResponse({ error: "A valid customer email and document attachment are required" }, 400, origin);
+    }
+    if (attachment.length > 14_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(attachment)) {
+      return jsonResponse({ error: "The attachment is invalid or too large" }, 413, origin);
+    }
+
+    const { data: emailCustomer, error: customerEmailError } = await supabase
+      .from("customers")
+      .select("id")
+      .is("deleted_at", null)
+      .eq("email", recipient)
+      .limit(1)
+      .maybeSingle();
+    if (customerEmailError) {
+      return jsonResponse({ error: "The customer email could not be verified" }, 503, origin);
+    }
+    let verifiedCustomer = emailCustomer;
+    if (!verifiedCustomer) {
+      const { data: companyCustomer, error: companyEmailError } = await supabase
+        .from("customers")
+        .select("id")
+        .is("deleted_at", null)
+        .eq("company_email", recipient)
+        .limit(1)
+        .maybeSingle();
+      if (companyEmailError) {
+        return jsonResponse({ error: "The customer email could not be verified" }, 503, origin);
+      }
+      verifiedCustomer = companyCustomer;
+    }
+    if (!verifiedCustomer) {
+      return jsonResponse({ error: "The recipient must match an email saved on an active customer record" }, 403, origin);
+    }
+
+    const fileName = typeof payload?.fileName === "string" && /^[\w.-]{1,120}$/.test(payload.fileName)
+      ? payload.fileName
+      : "centric-document." + (mimeType === "application/pdf" ? "pdf" : "png");
+
+    const providerResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "content-type": "application/json",
+        Authorization: "Bearer " + resendApiKey,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [to],
-        subject: typeof subject === "string" ? subject.slice(0, 200) : `Your document — ${String(jobNumber || "")}`,
+        from: fromEmail,
+        to: [recipient],
+        subject,
         text: emailText,
-        html: `<p>${escapeHtml(emailText).replace(/\n/g, "<br>")}</p>`,
-        attachments: [
-          {
-            filename: safeFileName,
-            content: attachment,
-            content_type: contentType,
-          },
-        ],
+        html: "<p>" + emailText.replace(/[&<>\\"']/g, character => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        })[character] || character).replace(/\n/g, "<br>") + "</p>",
+        attachments: [{
+          filename: fileName,
+          content: attachment,
+          content_type: mimeType,
+        }],
       }),
+      signal: AbortSignal.timeout(20000),
     });
 
-    if (!response.ok) {
-      throw new Error(`Resend API error (${response.status}): ${await response.text()}`);
+    if (!providerResponse.ok) {
+      console.error("Document email provider rejected the request:", providerResponse.status);
+      return jsonResponse({ error: "The email provider could not send this document" }, 502, origin);
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const providerData = await providerResponse.json().catch(() => ({}));
+    return jsonResponse({ sent: true, id: providerData?.id ?? null }, 200, origin);
+  } catch (error) {
+    console.error("Document email failed:", error);
+    return jsonResponse({ error: "The document email could not be sent" }, 500, origin);
   }
 });
