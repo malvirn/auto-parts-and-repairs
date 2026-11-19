@@ -79,7 +79,11 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "You are not authorised to email business documents" }, 403, origin);
     }
 
-    const payload = await req.json();
+    const rawBody = await req.text();
+    if (rawBody.length > 15_000_000) {
+      return jsonResponse({ error: "The document is too large to email" }, 413, origin);
+    }
+    const payload = JSON.parse(rawBody);
     const recipient = typeof payload?.to === "string" ? payload.to.trim().toLowerCase() : "";
     const attachment = typeof payload?.fileBase64 === "string"
       ? payload.fileBase64
