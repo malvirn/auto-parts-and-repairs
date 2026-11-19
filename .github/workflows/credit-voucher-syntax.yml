@@ -1,4 +1,4 @@
-name: Credit voucher JavaScript syntax
+name: Centric JavaScript and inline syntax checks
 on:
   push:
     branches: [main]
@@ -8,6 +8,13 @@ on:
       - 'js/customers.js'
       - 'js/quotations.js'
       - 'js/repairs.js'
+      - 'js/shop.js'
+      - 'js/settings.js'
+      - 'js/job-part-purchases-shop.js'
+      - 'pages/settings.html'
+      - 'pages/shop.html'
+      - 'pages/quotations.html'
+      - 'pages/ledger.html'
       - 'js/checklist.js'
       - 'js/vehicle-inspection-diagram.js'
       - 'js/prefetch.js'
@@ -40,6 +47,9 @@ jobs:
           node --check js/customers.js
           node --check js/quotations.js
           node --check js/repairs.js
+          node --check js/shop.js
+          node --check js/settings.js
+          node --check js/job-part-purchases-shop.js
           node --check js/checklist.js
           node --check js/vehicle-inspection-diagram.js
           node --check js/prefetch.js
@@ -73,7 +83,7 @@ jobs:
               def handle_endtag(self, tag):
                   if tag == 'script' and self.active:
                       self.items.append(''.join(self.current)); self.active=False
-          for page in ('pages/repairs.html','pages/receipts.html'):
+          for page in ('pages/settings.html','pages/shop.html','pages/quotations.html','pages/repairs.html','pages/receipts.html','pages/ledger.html'):
               parser=Scripts(); parser.feed(Path(page).read_text(encoding='utf-8'))
               for index, source in enumerate(parser.items, 1):
                   if not source.strip(): continue
