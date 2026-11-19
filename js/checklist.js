@@ -377,6 +377,11 @@ async function saveDraft(){
  }catch(error){console.error("Checklist draft save failed:",error);setDetailMessage(error.message||String(error),true);button.disabled=false;}
 }
 function showCreatedModal(title,detail,onClose){
+ if(typeof window.aprToast==="function"){
+  window.aprToast(title,"success",detail);
+  if(onClose)setTimeout(onClose,1500);
+  return;
+ }
  let modal=document.getElementById("centric-created-modal");
  if(!modal){modal=document.createElement("div");modal.id="centric-created-modal";modal.className="modal-overlay";modal.style.zIndex="2147483647";modal.innerHTML='<div class="modal" role="dialog" aria-modal="true" style="text-align:center"><div style="width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:#123b25;color:#71e39b;font-size:34px;font-weight:900">✓</div><h2 id="centric-created-title"></h2><p id="centric-created-detail" style="color:var(--muted)"></p><button type="button" class="btn btn--primary" id="centric-created-ok">Done</button></div>';document.body.appendChild(modal);}
  modal.querySelector("#centric-created-title").textContent=title;modal.querySelector("#centric-created-detail").textContent=detail;modal.classList.remove("hidden");
@@ -646,6 +651,7 @@ async function deleteChecklist(checklistId,button=$("delete-checklist")){
  }
  await loadList();
  showMessage("Checklist deleted.");
+ window.aprToast?.("Checklist deleted","success");
 }
 async function voidChecklist(checklistId,button=$("void-checklist")){
  if(!checklistId)return;
@@ -663,6 +669,7 @@ async function voidChecklist(checklistId,button=$("void-checklist")){
  if(record?.id===checklistId)await showRecord(await loadRecord(checklistId));
  await loadList();
  showMessage("Checklist voided. Its record and reason remain available for review.");
+ window.aprToast?.("Checklist voided","success","Its audit record has been retained.");
 }
 
 function jobRef(job){return job.cro_number||`JC-${String(job.job_number??"").padStart(5,"0")}`}
@@ -694,6 +701,7 @@ $("drafts-list").addEventListener("click",async event=>{
  const{error}=await supabase.rpc("link_draft_job_card_to_checklist",{p_job_id:jobId,p_checklist_number:number});
  if(error){showMessage(`Couldn't link checklist #${number}: ${error.message}`,true);button.disabled=false;return}
  showMessage(`Checklist #${number} linked. The job card is now created.`);
+ window.aprToast?.("Checklist linked","success",`Checklist #${number} linked to the job card.`);
  try{await Promise.all([loadList(),loadDrafts()])}catch(err){showMessage(err.message||String(err),true)}
 });
 
