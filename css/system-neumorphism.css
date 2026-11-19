@@ -99,3 +99,36 @@ body.dashboard-page:not(.module-shop) :is(.modal,.modal-content,.dialog) {
 @media (prefers-reduced-motion: reduce) {
   body.dashboard-page:not(.module-shop) :is(button,a,input,select,textarea) { transition: none !important; }
 }
+
+/* Full-width page layout: remove outer gutters on every device.
+   Content cards and form controls keep their own internal padding. */
+body.dashboard-page.glass-app-shell .main {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body.dashboard-page.glass-app-shell .main > .page-section,
+body.dashboard-page.glass-app-shell .main > .quotation-workspace,
+body.dashboard-page.glass-app-shell .main > .checklist-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body.dashboard-page.glass-app-shell .main .quotation-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+@media (max-width: 900px) {
+  body.dashboard-page.glass-app-shell .main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
