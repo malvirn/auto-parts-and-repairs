@@ -447,12 +447,12 @@ body.dashboard-page.module-shop .main :is(.table-wrap,.table-container,.table-re
           </div>
           <div class="shop-price-fields" style="grid-column:1 / -1;">
             <div class="field">
-              <label for="part-price">Price + VAT ($)</label>
+              <label for="part-price">Selling price before VAT ($)</label>
               <input class="part-price-output" type="number" id="part-price" step="0.01" min="0" placeholder="Enter selling price" required />
             </div>
             <div class="field">
               <label for="part-vat-rate">VAT rate</label>
-              <select id="part-vat-rate" required><option value="5" selected>5%</option></select>
+              <select id="part-vat-rate" required><option value="15.5" selected>15.5%</option></select>
             </div>
             <div class="field">
               <label for="part-markup-rate">Markup (%)</label>
@@ -596,10 +596,10 @@ body.dashboard-page.module-shop .main :is(.table-wrap,.table-container,.table-re
       <div class="field"><label>Description</label><textarea id="edit-part-description" rows="2"></textarea></div>
       <div class="field"><label>Cost per Unit ($)</label><input type="number" id="edit-part-cost" step="0.01" min="0" /></div>
       <div class="shop-price-fields">
-        <div class="field"><label for="edit-part-price">Price + VAT ($)</label><input type="number" id="edit-part-price" step="0.01" min="0" required /></div>
+        <div class="field"><label for="edit-part-price">Selling price before VAT ($)</label><input type="number" id="edit-part-price" step="0.01" min="0" required /></div>
         <div class="field">
           <label for="edit-part-vat-rate">VAT rate</label>
-          <select id="edit-part-vat-rate" required><option value="5">5%</option></select>
+          <select id="edit-part-vat-rate" required><option value="15.5">15.5%</option></select>
         </div>
         <div class="field"><label for="edit-part-markup-rate">Markup (%)</label><input type="number" id="edit-part-markup-rate" step="0.1" min="-100" required /></div>
       </div>

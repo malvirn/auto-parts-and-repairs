@@ -50,13 +50,15 @@ function money(value) { return `$${Number(value || 0).toFixed(2)}`; }
 function lineTotalOf(item) { return Number((Number(item.quantity) * Number(item.unit_price_usd)).toFixed(2)); }
 function totalOf(items) { return items.reduce((sum, item) => sum + lineTotalOf(item), 0); }
 function partsTotalOf(items) { return (items || []).filter(item => itemType(item) === "part").reduce((sum, item) => sum + lineTotalOf(item), 0); }
-function quotationTotals(items, vatRate = 5) {
+function quotationTotals(items, vatRate = 15.5) {
   const subtotal = Number(totalOf(items || []).toFixed(2));
   const partsSubtotal = Number(partsTotalOf(items || []).toFixed(2));
-  const vat = Number((partsSubtotal * Number(vatRate || 0) / 100).toFixed(2));
+  const rate = Number(vatRate) || 0;
+  const taxableSubtotal = rate === 5 ? partsSubtotal : subtotal; // Keep legacy 5% quotations unchanged.
+  const vat = Number((taxableSubtotal * rate / 100).toFixed(2));
   return { subtotal, partsSubtotal, vat, total: Number((subtotal + vat).toFixed(2)) };
 }
-function quotationVatRate() { return quoteVatEnabled?.checked ? 5 : 0; }
+function quotationVatRate() { return quoteVatEnabled?.checked ? 15.5 : 0; }
 async function zigTotal(usd) { return Number((usd * await getRate()).toFixed(2)); }
 function itemType(item) {
   if (item.item_type) return item.item_type;
@@ -370,7 +372,7 @@ function renderDraft() {
   }
   const vatRate = quotationVatRate();
   const totals = quotationTotals(draftItems, vatRate);
-  quoteTotal.textContent = `${money(totals.total)}${vatRate ? ` incl. VAT (${money(totals.vat)} on parts)` : ""} / ZiG ${Number(totals.total * exchangeRate).toFixed(2)}`;
+  quoteTotal.textContent = `${money(totals.total)}${vatRate ? ` incl. VAT (${money(totals.vat)} on taxable items)` : ""} / ZiG ${Number(totals.total * exchangeRate).toFixed(2)}`;
   if (window.lucide) lucide.createIcons();
 }
 
@@ -790,7 +792,7 @@ async function renderEditor(container, totalNode, items, rate = exchangeRate, is
     const qtyInputs = [...container.querySelectorAll(".amend-qty")], priceInputs = [...container.querySelectorAll(".amend-price")];
     const current = items.map((item, index) => ({ ...item, quantity: Number(qtyInputs[index]?.value || 0), unit_price_usd: Number(priceInputs[index]?.value || 0) }));
     const totals = isQuotation ? quotationTotals(current, vatRate) : { subtotal: totalOf(current), vat: 0, total: totalOf(current) };
-    totalNode.textContent = `${money(totals.total)}${totals.vat ? ` incl. VAT (${money(totals.vat)} on parts)` : ""} / ZiG ${Number(totals.total * rate).toFixed(2)}`;
+    totalNode.textContent = `${money(totals.total)}${totals.vat ? ` incl. VAT (${money(totals.vat)} on taxable items)` : ""} / ZiG ${Number(totals.total * rate).toFixed(2)}`;
     const put = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
     put(`edit-${prefix}-subtotal`, money(totals.subtotal));
     put(`edit-${prefix}-vat`, money(totals.vat));

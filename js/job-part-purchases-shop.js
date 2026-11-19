@@ -149,7 +149,7 @@ if (requestBody && message && refreshButton) {
           p_existing_part_id: existingPartId,
           p_part_number: values.get("part_number") || null,
           p_selling_price: existingPartId ? null : sellingPrice,
-          p_vat_rate: 5,
+          p_vat_rate: 15.5,
         });
         if (error) throw new Error(error.message);
         message.textContent = "Part received into inventory and linked to its job card. Refreshing Shop stock…";

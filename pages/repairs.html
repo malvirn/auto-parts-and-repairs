@@ -802,7 +802,7 @@ body.module-repairs :is(img,video,canvas){max-width:100%;height:auto}
       <div class="two"><label for="f-custom-qty">Quantity<input id="f-custom-qty" type="number" min="1" step="1" value="1"></label><button class="btn" id="add-custom-part" type="button">Add typed-in part</button></div>
       <p class="section-note">Typed-in parts are added to the Accounting queue and must be priced there before being billed.</p>
       <div id="build-parts-list" aria-live="polite"></div>
-      <label class="job-vat-option" for="job-vat-enabled"><input id="job-vat-enabled" type="checkbox"> Apply 5% VAT to parts</label>
+      <label class="job-vat-option" for="job-vat-enabled"><input id="job-vat-enabled" type="checkbox"> Apply 15.5% VAT to taxable work</label>
       <div id="build-work-section" hidden aria-hidden="true">
       <h3>5 · Work</h3>
       <label for="f-work-done">Work done</label><textarea id="f-work-done" rows="3" placeholder="Work completed or planned"></textarea>
@@ -1619,72 +1619,18 @@ async function adjustPartStock(partId,delta){
  }
 }
 async function saveEditedParts(draft){
- const originals=curParts.map(part=>({...part}));
  if(isClosed(cur)){
-  const changed=JSON.stringify(draft.map(({job_part_id,part_id,part_name,quantity})=>({job_part_id,part_id,part_name,quantity:Number(quantity)})))!==JSON.stringify(originals.map(part=>({job_part_id:part.id,part_id:part.part_id,part_name:part.part_name,quantity:Number(part.quantity)})));
+  const changed=JSON.stringify(draft.map(({job_part_id,part_id,part_name,quantity})=>({job_part_id,part_id,part_name,quantity:Number(quantity)})))!==JSON.stringify(curParts.map(part=>({job_part_id:part.id,part_id:part.part_id,part_name:part.part_name,quantity:Number(part.quantity)})));
   if(changed)throw new Error("Parts cannot be changed after this job card is closed.");
   return;
  }
- const stockMoves=[],updatedIds=[],deletedRows=[],insertedIds=[];
- try{
-  for(const oldPart of originals.filter(part=>part.part_id)){
-   const next=draft.find(part=>part.job_part_id===oldPart.id);
-   const delta=(next?Number(next.quantity):0)-Number(oldPart.quantity);
-   if(delta){await adjustPartStock(oldPart.part_id,delta);stockMoves.push({partId:oldPart.part_id,delta})}
-  }
-  for(const newPart of draft.filter(part=>!part.job_part_id&&part.part_id)){
-   await adjustPartStock(newPart.part_id,Number(newPart.quantity));
-   stockMoves.push({partId:newPart.part_id,delta:Number(newPart.quantity)});
-  }
-  for(const oldPart of originals){
-   const next=draft.find(part=>part.job_part_id===oldPart.id);
-   if(!next){
-    const{data,error}=await supabase.from("job_parts").delete().eq("id",oldPart.id).select("id");
-    if(error)throw new Error(`Couldn't remove ${oldPart.part_name}: ${error.message}`);
-    if(!data?.length)throw new Error(`Couldn't confirm removal of ${oldPart.part_name}`);
-    deletedRows.push(oldPart);
-   }else if(Number(next.quantity)!==Number(oldPart.quantity)||(!oldPart.part_id&&next.part_name!==oldPart.part_name)){
-    const changes={quantity:Number(next.quantity)};
-    if(!oldPart.part_id)changes.part_name=next.part_name.trim();
-    const{data,error}=await supabase.from("job_parts").update(changes).eq("id",oldPart.id).select("id");
-    if(error)throw new Error(`Couldn't update ${oldPart.part_name}: ${error.message}`);
-    if(!data?.length)throw new Error(`Couldn't confirm update of ${oldPart.part_name}`);
-    updatedIds.push(oldPart.id);
-   }
-  }
-  const newRows=draft.filter(part=>!part.job_part_id).map(part=>({job_id:cur.id,part_id:part.part_id,part_name:part.part_name.trim(),quantity:Number(part.quantity),price_at_time:Number(part.price_at_time)||0,awaiting_accounting_price:Boolean(part.awaiting_accounting_price)}));
-  if(newRows.length){
-   const{data,error}=await supabase.from("job_parts").insert(newRows).select("id");
-   if(error)throw new Error(`Couldn't add job-card parts: ${error.message}`);
-   insertedIds.push(...(data||[]).map(part=>part.id));
-   if(insertedIds.length!==newRows.length)throw new Error("Couldn't confirm all new job-card parts");
-  }
-  const{data:refreshedParts,error:refreshError}=await supabase.from("job_parts").select("id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",cur.id);
-  if(refreshError)throw new Error(`Job parts were changed but could not be reloaded: ${refreshError.message}`);
-  curParts=refreshedParts||[];
-  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
- }catch(error){
-  const rollbackErrors=[];
-  if(insertedIds.length){
-   const{error:rollbackError}=await supabase.from("job_parts").delete().in("id",insertedIds);
-   if(rollbackError)rollbackErrors.push(`could not remove newly added parts: ${rollbackError.message}`);
-  }
-  for(const oldPart of originals.filter(part=>updatedIds.includes(part.id))){
-   const{error:rollbackError}=await supabase.from("job_parts").update({part_name:oldPart.part_name,quantity:oldPart.quantity}).eq("id",oldPart.id);
-   if(rollbackError)rollbackErrors.push(`could not restore ${oldPart.part_name}: ${rollbackError.message}`);
-  }
-  if(deletedRows.length){
-   const{error:rollbackError}=await supabase.from("job_parts").insert(deletedRows.map(part=>({job_id:cur.id,part_id:part.part_id,part_name:part.part_name,quantity:part.quantity,price_at_time:part.price_at_time,awaiting_accounting_price:part.awaiting_accounting_price})));
-   if(rollbackError)rollbackErrors.push(`could not restore removed job parts: ${rollbackError.message}`);
-  }
-  for(const move of stockMoves.reverse()){
-   try{await adjustPartStock(move.partId,-move.delta)}catch(rollbackError){rollbackErrors.push(rollbackError.message||String(rollbackError))}
-  }
-  const{data:rollbackParts,error:reloadError}=await supabase.from("job_parts").select("id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",cur.id);
-  if(reloadError)rollbackErrors.push(`could not reload the restored parts: ${reloadError.message}`);
-  else{curParts=rollbackParts||[];editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));renderEditParts()}
-  throw new Error(`${error.message||String(error)}${rollbackErrors.length?`. Rollback needs attention: ${rollbackErrors.join("; ")}`:""}`);
- }
+ const lines=draft.map(part=>({job_part_id:part.job_part_id||null,part_id:part.part_id||null,part_name:String(part.part_name||"").trim(),quantity:Number(part.quantity),price_at_time:Number(part.price_at_time)||0,awaiting_accounting_price:Boolean(part.awaiting_accounting_price)}));
+ const{error}=await supabase.rpc("replace_job_parts",{p_job_id:cur.id,p_lines:lines});
+ if(error)throw new Error("Couldn't save job-card parts atomically: "+error.message);
+ const{data:refreshedParts,error:refreshError}=await supabase.from("job_parts").select("id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",cur.id);
+ if(refreshError)throw new Error("Parts were saved, but could not be reloaded: "+refreshError.message);
+ curParts=refreshedParts||[];
+ editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
 }
 function validateEditParts(){
  for(const part of editPartsDraft){
@@ -2299,7 +2245,7 @@ $("save").onclick=async()=>{const b=$("save");
   else if(vid){const{error:vehicleError}=await supabase.from("vehicles").update(vehicleDetails).eq("id",vid);if(vehicleError)throw new Error(`Couldn't update vehicle details: ${vehicleError.message}`);}
   const isCompany=$("f-is-company").checked;
   if(isCompany&&(!$("f-driver-name").value.trim()||!$("f-driver-phone").value.trim()))throw new Error("Enter the driver name and phone number for this company vehicle.");
-  const row={status:"Draft",customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),driver_name:isCompany?$("f-driver-name").value.trim():null,driver_phone:isCompany?$("f-driver-phone").value.trim():null,work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,vat_rate:$("job-vat-enabled").checked?5:0,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
+  const row={status:"Draft",customer_id:cid,vehicle_id:vid,fault_reported:$("f-fault").value.trim(),driver_name:isCompany?$("f-driver-name").value.trim():null,driver_phone:isCompany?$("f-driver-phone").value.trim():null,work_done:$("f-work-done").value.trim()||null,work_missing:$("f-work-missing").value.trim()||null,labour_mode:labourMode,labour_cost:labourCost,labour_hours:labourMode==="time_based"?hours:null,rate_tier_id:labourMode==="time_based"?rateTier.id:null,vat_rate:$("job-vat-enabled").checked?15.5:0,fuel_level_in:$("f-fuel-in").value||null,odometer_in:odometer};if($("f-tech").value)row.technician_id=$("f-tech").value;
   let r=await supabase.from("repair_jobs").insert(row).select().single();
   if(r.error&&row.technician_id){delete row.technician_id;r=await supabase.from("repair_jobs").insert(row).select().single();if(!r.error)toast("Saved without technician (column differs)")}
   if(r.error)throw r.error;

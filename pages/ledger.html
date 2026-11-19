@@ -696,10 +696,17 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
       const partsTotal = lines.reduce((s, l) => s + l.total, 0);
       const labour = Number(job.labour_cost || 0);
       const vatRate = Number(job.vat_rate || 0);
-      const vat = Math.round(partsTotal * vatRate) / 100;
       const jobTotal = Number(job.total_cost);
-      const taxableSubtotal = Number.isFinite(jobTotal) ? Math.max(0, jobTotal - vat) : partsTotal + labour;
-      const total = Number.isFinite(jobTotal) ? jobTotal : Math.round((taxableSubtotal + vat) * 100) / 100;
+      const taxableSubtotal = Number.isFinite(jobTotal) && jobTotal > 0
+        ? (vatRate === 5
+          ? Math.max(0, jobTotal - Math.round(partsTotal * vatRate) / 100)
+          : vatRate > 0
+            ? Math.max(0, Math.round((jobTotal / (1 + vatRate / 100)) * 100) / 100)
+            : jobTotal)
+        : partsTotal + labour;
+      const vatBase = vatRate === 5 ? partsTotal : taxableSubtotal;
+      const vat = Math.round(vatBase * vatRate) / 100;
+      const total = Number.isFinite(jobTotal) && jobTotal > 0 ? jobTotal : Math.round((taxableSubtotal + vat) * 100) / 100;
       creditApplied = Number(creditApplied || 0);
       // Invoice amount_paid already includes customer-credit applications.
       // Remove that portion before combining invoice cash with the separate

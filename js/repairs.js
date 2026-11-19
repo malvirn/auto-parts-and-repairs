@@ -506,9 +506,10 @@ async function updateNewTotals() {
   const labour = parseFloat(newLabour?.value) || 0;
   const parts = stagedParts.reduce((s, p) => s + p.price * p.qty, 0);
   const inc = stagedIncidentals.reduce((s, x) => s + x.amount, 0);
-  const vatRate = $("job-vat-enabled")?.checked ? 5 : 0;
+  const vatRate = $("job-vat-enabled")?.checked ? 15.5 : 0;
   const total = calculateJobTotal(labour, parts, inc, vatRate);
-  const vatAmount = Math.round((parts * vatRate / 100 + Number.EPSILON) * 100) / 100;
+  const vatBase = vatRate === 5 ? parts : labour + parts + inc;
+  const vatAmount = Math.round((vatBase * vatRate / 100 + Number.EPSILON) * 100) / 100;
   setText("sum-vat", money(vatAmount));
   setText("sum-labour", money(labour));
   setText("sum-parts", money(parts));
@@ -617,19 +618,11 @@ async function removeJobPart(jobPartId, jobId, { confirm = true, refresh = true 
     throw new Error("This vehicle has been collected. Parts can no longer be changed.");
   }
   if (confirm && !(await confirmTypedDelete("this part from the job card"))) return false;
-  const { data: jp, error: partUseError } = await supabase.from("job_parts").select("part_id, quantity").eq("id", jobPartId).single();
-  if (partUseError) throw partUseError;
-  if (jp?.part_id) {
-    const { data: part, error: stockReadError } = await supabase.from("parts").select("quantity_in_stock").eq("id", jp.part_id).single();
-    if (stockReadError) throw stockReadError;
-    if (part) {
-      const { error: stockUpdateError } = await supabase.from("parts").update({ quantity_in_stock: part.quantity_in_stock + jp.quantity }).eq("id", jp.part_id);
-      if (stockUpdateError) throw stockUpdateError;
-    }
-  }
-  const { data: deletedParts, error: deleteError } = await supabase.from("job_parts").delete().eq("id", jobPartId).select("id");
-  if (deleteError) throw deleteError;
-  if (!deletedParts?.length) throw new Error("The part was not removed. Check your role permissions and try again.");
+  const { data: removed, error: removeError } = await supabase.rpc("remove_job_part_with_stock", {
+    p_job_id: jobId, p_job_part_id: jobPartId,
+  });
+  if (removeError) throw removeError;
+  if (!removed) throw new Error("The part was not removed. Check your role permissions and try again.");
   await syncLinkedInvoice(jobId);
   if (refresh) {
     await loadJobParts(jobId);
@@ -699,21 +692,12 @@ jobPartAddBtn?.addEventListener("click", async () => {
   jobPartSubmissionInProgress = true;
   jobPartAddBtn.disabled = true;
   try {
-    const { data: stockConsumed, error: stockError } = await supabase.rpc("consume_part_stock", { p_part_id: part.id, p_quantity: qty });
-    if (stockError) { alert("Unable to reserve this part: " + stockError.message); return; }
-    if (!stockConsumed) { alert("That part is out of stock or does not have enough units available."); return; }
-
-    const { error: insertError } = await supabase.from("job_parts").insert([{
-      job_id: jobId, part_id: part.id, part_name: part.name, quantity: qty, price_at_time: Number(part.selling_price) || 0,
-    }]);
-    if (insertError) {
-      const { data: stockRestored, error: restoreError } = await supabase.rpc("restore_part_stock", { p_part_id: part.id, p_quantity: qty });
-      const restoreMessage = restoreError || !stockRestored
-        ? ` Stock restoration also failed${restoreError ? `: ${restoreError.message}` : "."}`
-        : "";
-      alert("Failed to add part: " + insertError.message + restoreMessage);
-      return;
-    }
+    const { data: jobPartId, error: addError } = await supabase.rpc("add_job_part_with_stock", {
+      p_job_id: jobId, p_part_id: part.id, p_quantity: qty,
+      p_price_at_time: Number(part.selling_price) || 0,
+    });
+    if (addError) { alert("Unable to add this part: " + addError.message); return; }
+    if (!jobPartId) { alert("The part could not be added to this job card."); return; }
     await syncLinkedInvoice(jobId);
     jobPartQty.value = 1;
     await loadJobParts(jobId);
@@ -1366,6 +1350,7 @@ async function sendStatusEmail(job, status, totalCost) {
   }
   const { error } = await supabase.functions.invoke("send-status-email", {
     body: {
+      jobId: job.id,
       to: job.customers.email,
       customerName: job.customers.full_name,
       jobNumber: job.job_number,
@@ -1383,7 +1368,8 @@ function calculateJobTotal(labour, parts, incidentals, vatRate = 0) {
   const incidentalsValue = Number(incidentals) || 0;
   const rate = Math.min(100, Math.max(0, Number(vatRate) || 0));
   const base = Math.round((labourValue + partsValue + incidentalsValue + Number.EPSILON) * 100) / 100;
-  const vat = Math.round((partsValue * rate / 100 + Number.EPSILON) * 100) / 100;
+  const vatBase = rate === 5 ? partsValue : base; // Preserve the historical 5% job-card calculation.
+  const vat = Math.round((vatBase * rate / 100 + Number.EPSILON) * 100) / 100;
   return Math.max(0, Math.round((base + vat + Number.EPSILON) * 100) / 100);
 }
 
@@ -1878,7 +1864,7 @@ form?.addEventListener("submit", async (e) => {
     }
 
     if (intakePath === "quote") {
-      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}&vat=${$("job-vat-enabled").checked ? 5 : 0}`;
+      window.location.href = `quotations.html?customer=${encodeURIComponent(customer_id)}&vehicle=${encodeURIComponent(vehicle_id)}&fault=${encodeURIComponent(fault_reported)}&vat=${$("job-vat-enabled").checked ? 15.5 : 0}`;
       return;
     }
 
@@ -1886,7 +1872,7 @@ form?.addEventListener("submit", async (e) => {
     const jobRow = {
       customer_id,
       vehicle_id,
-      vat_rate: quotedVatRate ?? ($("job-vat-enabled").checked ? 5 : 0),
+      vat_rate: quotedVatRate ?? ($("job-vat-enabled").checked ? 15.5 : 0),
       fault_reported,
       status: statusValue,
       fuel_level_in,

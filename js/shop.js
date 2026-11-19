@@ -59,7 +59,7 @@ let allSuppliers = [];              // [{id, name}]
 let purchaseAccounts = [];
 let currentPartSuppliers = {};      // part_id -> [{id, name, is_preferred}]
 let MARKUP_RATE = 0.15;
-const DEFAULT_VAT_RATE = 5;
+const DEFAULT_VAT_RATE = 15.5;
 let settingsRowId = null;
 
 function escapeHtml(str) {
@@ -73,8 +73,8 @@ function formatMoney(value) {
 function roundMoney(value) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
-function sellingPriceFor(cost, markupRate = MARKUP_RATE, vatRate = DEFAULT_VAT_RATE) {
-  return (Math.max(0, Number(cost) || 0) * (1 + markupRate) * (1 + vatRate / 100)).toFixed(2);
+function sellingPriceFor(cost, markupRate = MARKUP_RATE) {
+  return (Math.max(0, Number(cost) || 0) * (1 + markupRate)).toFixed(2);
 }
 function updateSellingPrice(costInput, priceInput, markupInput, vatInput) {
   if (costInput && priceInput) {
@@ -86,12 +86,11 @@ function updateSellingPrice(costInput, priceInput, markupInput, vatInput) {
     );
   }
 }
-function updateMarkupFromPrice(costInput, priceInput, markupInput, vatInput) {
+function updateMarkupFromPrice(costInput, priceInput, markupInput) {
   const cost = Number(costInput?.value);
   const price = Number(priceInput?.value);
   if (!markupInput || !Number.isFinite(cost) || cost <= 0 || !Number.isFinite(price)) return;
-  const vat = Number(vatInput?.value || DEFAULT_VAT_RATE);
-  markupInput.value = ((price / (cost * (1 + vat / 100)) - 1) * 100).toFixed(1);
+  markupInput.value = ((price / cost - 1) * 100).toFixed(1);
 }
 
 // ---- Configurable markup ----
@@ -734,10 +733,10 @@ function openEditModal(part) {
   editQty.value = part.quantity_in_stock;
   editMinimumStock.value = part.minimum_stock || 0;
   editCost.value = part.cost_price;
-  editVatRate.value = String(Number(part.vat_rate) || DEFAULT_VAT_RATE);
+  editVatRate.value = String(part.vat_rate ?? DEFAULT_VAT_RATE);
   editPrice.value = Number(part.selling_price || 0).toFixed(2);
   const markup = Number(part.cost_price) > 0
-    ? ((Number(part.selling_price) / (Number(part.cost_price) * (1 + Number(editVatRate.value) / 100)) - 1) * 100)
+    ? ((Number(part.selling_price) / Number(part.cost_price) - 1) * 100)
     : MARKUP_RATE * 100;
   document.getElementById("edit-part-markup-rate").value = Math.max(0, markup).toFixed(1);
 
