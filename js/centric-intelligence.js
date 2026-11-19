@@ -35,7 +35,7 @@ function listRows(target, rows, empty) {
   node.innerHTML = rows.length ? rows.map(row => '<button type="button" class="ci-list-row" data-ci-detail="' + escapeHtml(row.detailKey || detailKeyForLabel(row.label)) + '"><span>' + escapeHtml(row.label) + '</span><span>' + escapeHtml(row.value) + ' <i data-lucide="chevron-right"></i></span></button>').join("") : '<div class="ci-status">' + escapeHtml(empty) + '</div>';
 }
 function insight(title, detail, href, icon = "activity") {
-  const key = /shop|repair|job/i.test(href) ? "jobs" : /receipt/i.test(href) ? "receipts" : /payable/i.test(href) ? "payables" : /shop/i.test(href) ? "parts" : "overview";
+  const key = /repair|job/i.test(href) ? "jobs" : /receipt/i.test(href) ? "receipts" : /payable/i.test(href) ? "payables" : /shop/i.test(href) ? "parts" : "overview";
   return '<article class="ci-insight" role="button" tabindex="0" data-ci-detail="' + key + '"><i data-lucide="' + icon + '"></i><div><strong>' + escapeHtml(title) + '</strong><p>' + escapeHtml(detail) + '</p><span class="ci-modal-hint">View matching records <i data-lucide="arrow-up-right"></i></span></div></article>';
 }
 function detailRows(key) {
