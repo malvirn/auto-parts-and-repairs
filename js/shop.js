@@ -124,7 +124,6 @@ document.getElementById("apply-markup-all-btn")?.addEventListener("click", async
   for (const p of parts || []) {
     const { error: updateError } = await supabase.from("parts").update({
       selling_price: Number(sellingPriceFor(p.cost_price)),
-      vat_rate: DEFAULT_VAT_RATE,
     }).eq("id", p.id);
     if (updateError) { alert(`Failed to update a part's price: ${updateError.message}`); return; }
   }
@@ -497,95 +496,26 @@ function closeRestockModal() {
 }
 
 async function createShopPurchase({ part, quantity, unitCost, supplierId, paymentStatus, cashAccountId, purchaseDate }) {
-  const totalCost = quantity * unitCost;
-  const inventoryAccount = purchaseAccounts.find(account => account.code === "1200");
-  const payableAccount = purchaseAccounts.find(account => account.code === "2000");
   if (!supplierId) return { error: new Error("Select the supplier for this stock purchase.") };
-  if (!Number.isFinite(totalCost) || totalCost <= 0) return { error: new Error("The stock purchase total must be greater than zero.") };
-  if (!inventoryAccount) return { error: new Error("Parts Inventory account (code 1200) is missing from the Chart of Accounts.") };
-  if (paymentStatus === "paid" && !cashAccountId) return { error: new Error("Select the cash or bank account used to pay this supplier.") };
-  if (paymentStatus === "on_credit" && !payableAccount) return { error: new Error("Accounts Payable account (code 2000) is missing from the Chart of Accounts.") };
-
-  const { data: restock, error: restockError } = await supabase.from("restocks").insert([{
-    part_id: part.id,
-    part_name: part.name,
-    supplier_id: supplierId,
-    quantity,
-    unit_cost: unitCost,
-    payment_status: paymentStatus,
-  }]).select("id").single();
-  if (restockError) return { error: restockError };
-
-  const invoiceNumber = `SHOP-${new Date(purchaseDate).getFullYear()}-${String(restock.id).padStart(6, "0")}`;
-  const { error: invoiceError } = await supabase.from("restocks").update({ invoice_number: invoiceNumber }).eq("id", restock.id);
-  if (invoiceError) {
-    await supabase.from("restocks").delete().eq("id", restock.id);
-    return { error: invoiceError };
+  const { data, error } = await supabase.rpc("record_shop_restock_atomic", {
+    p_part_id: part.id,
+    p_supplier_id: supplierId,
+    p_quantity: quantity,
+    p_unit_cost: unitCost,
+    p_payment_status: paymentStatus,
+    p_cash_account_id: paymentStatus === "paid" ? cashAccountId : null,
+    p_purchase_date: purchaseDate,
+  });
+  if (error) return { error };
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result?.restock_id || !result?.invoice_number) {
+    return { error: new Error("The stock purchase was not confirmed by the database.") };
   }
-
-  const supplierName = allSuppliers.find(supplier => supplier.id === supplierId)?.name || "Supplier";
-  const { data: journalEntry, error: journalError } = await supabase.from("journal_entries").insert([{
-    entry_date: purchaseDate,
-    reference: invoiceNumber,
-    description: `Shop stock purchase from ${supplierName}: ${part.name} × ${quantity}`,
-    source_type: "shop_restock",
-  }]).select("id").single();
-  if (journalError) {
-    await supabase.from("restocks").delete().eq("id", restock.id);
-    return { error: journalError };
-  }
-  const { error: linkError } = await supabase.from("restocks").update({ journal_entry_id: journalEntry.id }).eq("id", restock.id);
-  if (linkError) {
-    await supabase.from("journal_entries").delete().eq("id", journalEntry.id);
-    await supabase.from("restocks").delete().eq("id", restock.id);
-    return { error: linkError };
-  }
-
-  const { error: lineError } = await supabase.from("journal_lines").insert([
-    { journal_entry_id: journalEntry.id, account_id: inventoryAccount.id, debit: totalCost, credit: 0 },
-    { journal_entry_id: journalEntry.id, account_id: paymentStatus === "paid" ? cashAccountId : payableAccount.id, debit: 0, credit: totalCost },
-  ]);
-  if (lineError) {
-    await supabase.from("journal_entries").delete().eq("id", journalEntry.id);
-    await supabase.from("restocks").delete().eq("id", restock.id);
-    return { error: lineError };
-  }
-
-  if (paymentStatus === "on_credit") {
-    const supplier = allSuppliers.find(item => item.id === supplierId);
-    const { data: supplierTerms } = await supabase.from("suppliers").select("payment_terms_days").eq("id", supplierId).maybeSingle();
-    const dueDate = new Date(`${purchaseDate}T00:00:00Z`);
-    dueDate.setUTCDate(dueDate.getUTCDate() + Number(supplierTerms?.payment_terms_days ?? 30));
-    const { error: payableError } = await supabase.from("payables").insert([{
-      supplier_id: supplierId,
-      bill_number: invoiceNumber,
-      bill_date: purchaseDate,
-      due_date: dueDate.toISOString().slice(0, 10),
-      amount: totalCost,
-      description: `Shop stock: ${part.name} × ${quantity} @ ${formatMoney(unitCost)}`,
-      journal_entry_id: journalEntry.id,
-      restock_id: restock.id,
-    }]);
-    if (payableError) {
-      await supabase.from("journal_entries").delete().eq("id", journalEntry.id);
-      await supabase.from("restocks").delete().eq("id", restock.id);
-      return { error: payableError };
-    }
-  }
-
-  return { restock, invoiceNumber };
-}
-
-async function rollbackShopPurchase(restockId) {
-  const { data: restock } = await supabase.from("restocks").select("invoice_number, journal_entry_id").eq("id", restockId).maybeSingle();
-  const { data: payable } = await supabase.from("payables").select("id").eq("restock_id", restockId).maybeSingle();
-  if (payable?.id) await supabase.from("payables").delete().eq("id", payable.id);
-  if (restock?.journal_entry_id) await supabase.from("journal_entries").delete().eq("id", restock.journal_entry_id);
-  else if (restock?.invoice_number) {
-    const { data: entry } = await supabase.from("journal_entries").select("id").eq("reference", restock.invoice_number).maybeSingle();
-    if (entry?.id) await supabase.from("journal_entries").delete().eq("id", entry.id);
-  }
-  await supabase.from("restocks").delete().eq("id", restockId);
+  return {
+    restock: { id: result.restock_id },
+    invoiceNumber: result.invoice_number,
+    total: Number(result.total_cost || quantity * unitCost),
+  };
 }
 
 restockCancelBtn?.addEventListener("click", closeRestockModal);
@@ -668,33 +598,6 @@ restockSaveBtn?.addEventListener("click", async () => {
   });
   if (purchase.error) {
     restockMessage.textContent = `Failed to record purchase: ${purchase.error.message}`;
-    restockMessage.dataset.tone = "error";
-    return;
-  }
-
-  // Preserve the value of existing stock using weighted-average unit cost.
-  // Replacing cost_price with the latest supplier price would revalue every
-  // older unit and distort the stock valuation report.
-  const oldQuantity = Number(part.quantity_in_stock || 0);
-  const oldUnitCost = Number(part.cost_price || 0);
-  const newQuantity = oldQuantity + quantity;
-  const weightedAverageCost = roundMoney(
-    ((oldQuantity * oldUnitCost) + (quantity * unitCost)) / newQuantity
-  );
-  const { error: partError } = await supabase.from("parts").update({
-    quantity_in_stock: newQuantity,
-    cost_price: weightedAverageCost,
-    selling_price: Number(sellingPriceFor(weightedAverageCost)),
-    vat_rate: DEFAULT_VAT_RATE,
-  }).eq("id", part.id);
-  if (partError) {
-    try {
-      await rollbackShopPurchase(purchase.restock.id);
-      restockMessage.textContent = "Purchase failed and was rolled back: " + partError.message;
-    } catch (rollbackError) {
-      console.error("Shop restock rollback failed:", rollbackError);
-      restockMessage.textContent = `Purchase stock update failed: ${partError.message}. Its ledger records also need attention: ${rollbackError.message || String(rollbackError)}. Contact an administrator before retrying.`;
-    }
     restockMessage.dataset.tone = "error";
     return;
   }
