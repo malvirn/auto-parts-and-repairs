@@ -19,6 +19,8 @@ function status(message, kind = "info") {
 }
 function detailKeyForLabel(label) {
   const value = String(label || "").toLowerCase();
+  if (value.includes("void") || value.includes("discount") || value.includes("review")) return "review";
+  if (value.includes("outstanding customer")) return "outstanding";
   if (value.includes("invoice")) return "invoices";
   if (value.includes("receipt") || value.includes("collection")) return "receipts";
   if (value.includes("expense")) return "expenses";
@@ -40,10 +42,11 @@ function detailRows(key) {
   const d = intelligenceSnapshot || {};
   const configs = {
     invoices: { title:"Invoices issued in the last 30 days", rows:d.recentInvoices || [], columns:[["Invoice","invoice_number"],["Issued","issued_at"],["Status","status"],["Total","total"],["Paid","amount_paid"],["Discount","discount"]] },
+    outstanding: { title:"Outstanding customer invoices", rows:d.outstandingInvoices || [], columns:[["Invoice","invoice_number"],["Issued","issued_at"],["Due date","due_date"],["Status","status"],["Total","total"],["Paid","amount_paid"]] },
     receipts: { title:"Receipts and collections", rows:d.recentReceipts || [], columns:[["Receipt","receipt_number"],["Issued","issued_at"],["Currency","currency_code"],["Amount","tender_amount"],["Recorded amount","amount"]] },
     expenses: { title:"Expenses recorded in the last 30 days", rows:d.recentExpenses || [], columns:[["Date","expense_date"],["Category","category"],["Description","description"],["Amount","amount"]] },
     payables: { title:"Supplier bills", rows:d.payables || [], columns:[["Bill","bill_number"],["Due date","due_date"],["Status","status"],["Amount","amount"],["Paid","amount_paid"]] },
-    parts: { title:"Inventory and low-stock parts", rows:d.parts || [], columns:[["Part","name"],["In stock","quantity_in_stock"],["Minimum stock","minimum_stock"]] },
+    parts: { title:"Low-stock parts", rows:d.lowStock || [], columns:[["Part","name"],["In stock","quantity_in_stock"],["Minimum stock","minimum_stock"]] },
     jobs: { title:"Workshop jobs", rows:d.jobs || [], columns:[["Job","job_number"],["CRO","cro_number"],["Status","status"],["Created","created_at"],["Completed","completed_at"],["Total","total_cost"]] },
     review: { title:"Transaction review signals", rows:[...(d.voidedReceipts||[]),...(d.highDiscountInvoices||[]),...(d.voidedPayables||[])], columns:[["Record","receipt_number"],["Invoice","invoice_number"],["Bill","bill_number"],["Reason","void_reason"],["Date","issued_at"],["Amount","amount"]] },
     overview: { title:"Centric Intelligence records", rows:[...(d.openJobs||[]),...(d.recentInvoices||[])], columns:[["Job","job_number"],["Invoice","invoice_number"],["Status","status"],["Date","created_at"],["Total","total"]] }
@@ -155,7 +158,8 @@ async function loadIntelligence() {
   ], "No financial records to summarise.");
   listRows("ci-inventory", lowStock.slice(0,10).map(part => ({
     label:part.name || "Unnamed part",
-    value:String(Number(part.quantity_in_stock || 0)) + " in stock"
+    value:String(Number(part.quantity_in_stock || 0)) + " in stock",
+    detailKey:"parts"
   })), partsResult.error ? "Inventory records could not be loaded." : "No parts are below the low-stock threshold.");
 
   const invoiceBalance = outstandingInvoices.reduce((sum, invoice) => sum + Math.max(0, Number(invoice.total || 0) - Number(invoice.amount_paid || 0)), 0);
@@ -167,9 +171,9 @@ async function loadIntelligence() {
   ], "No financial records to summarise.");
 
   const reviewRows = [];
-  if (!receiptsResult.error) reviewRows.push({ label:"Voided receipts · last 30 days", value:String(voidedReceipts.length) + " · " + groupMoney(voidedReceiptGroups) });
-  if (!invoicesResult.error) reviewRows.push({ label:"Invoices with discounts ≥20%", value:String(highDiscountInvoices.length) });
-  if (!voidedPayablesResult.error) reviewRows.push({ label:"Voided supplier bills", value:String(voidedPayables.length) });
+  if (!receiptsResult.error) reviewRows.push({ label:"Voided receipts · last 30 days", value:String(voidedReceipts.length) + " · " + groupMoney(voidedReceiptGroups), detailKey:"review" });
+  if (!invoicesResult.error) reviewRows.push({ label:"Invoices with discounts ≥20%", value:String(highDiscountInvoices.length), detailKey:"review" });
+  if (!voidedPayablesResult.error) reviewRows.push({ label:"Voided supplier bills", value:String(voidedPayables.length), detailKey:"review" });
   listRows("ci-review", reviewRows, "No transaction review signals were found in the available records.");
 
   if (errors.length) status("Some data sources could not be read. Available figures are shown; check your role permissions and database connectivity. " + errors.join(" · "), "error");
