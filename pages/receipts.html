@@ -1095,123 +1095,135 @@ function normalizeInvoiceItems(items){
 const calc=o=>{const sub=Number(normalizeInvoiceItems(o.items).reduce((s,i)=>s+i.q*i.p,0).toFixed(2)),disc=Math.min(+o.discount||0,sub),vatBase=Math.max(0,Number(o.vatBase??sub)-disc),vat=Number((vatBase*(+o.vat||0)/100).toFixed(2));return{sub,disc,vat,total:o.total!=null&&Number.isFinite(Number(o.total))?Number(o.total):Number((sub-disc+vat).toFixed(2))}};
 const totalPaid=o=>o.kind==="receipt"?Number(o.receiptAmount??calc(o).total):calc(o).total;
 
+/* ---------- Centric document look (receipt, invoice, credit note) ---------- */
+Object.assign(CO,{phones:["+263 71 690 5081","+263 71 147 8580"],address:"123 Enterprise Road, Harare, Zimbabwe",website:"www.centricautomobile.co.zw",bank:{/* fill in to print banking details on invoices: bank:"",accountName:"",accountNumber:"",branch:"",swift:"" */}});
+const CM_SWOOSH='<svg class="cm-swoosh" viewBox="0 0 200 18" preserveAspectRatio="none" aria-hidden="true"><path d="M0 16C50 4 120 0 200 3C130 5 60 9 0 16Z" fill="#c8372d"/></svg>';
+const CM_PHONE='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1z"/></svg>';
+const CM_PIN='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
+const CM_CSS=`
+#doc:has(.cm-doc){padding:0!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;overflow:visible!important}
+#doc:has(.cm-doc)::before{display:none!important}
+.cm-doc{--red:#c8372d;--navy:#1f2d3d;--soft:#eceef0;--line:#c9cdd1;--pad:34px;width:100%;max-width:794px;margin:0 auto;padding:var(--pad) var(--pad) 0;background:#fff;color:var(--navy);font:14px/1.4 Inter,Arial,sans-serif;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.cm-doc *{box-sizing:border-box}
+.cm-head{display:flex;align-items:center;gap:18px;padding-bottom:14px;border-bottom:3px solid var(--red)}
+.cm-logo{font-size:46px;font-weight:800;line-height:.95;letter-spacing:-.02em;white-space:nowrap}.cm-logo span{display:block;color:var(--red);font-size:34px;letter-spacing:-.01em}
+.cm-sub{border-left:3px solid var(--red);padding-left:16px;font-size:20px;font-weight:600;line-height:1.2}
+.cm-tag{margin-left:auto;text-align:right;font-style:italic;font-weight:600;font-size:14px}.cm-tag b{font-weight:800}
+.cm-swoosh{display:block;width:150px;height:14px;margin:2px 0 0 auto}
+.cm-title{margin-left:auto;text-align:right}.cm-title h1{margin:0;font-size:40px;line-height:1.05;font-weight:850;letter-spacing:.01em}
+.cm-title dl{display:grid;grid-template-columns:auto auto;gap:3px 14px;justify-content:end;margin:8px 0 0;font-size:14px}.cm-title dt{font-weight:800}.cm-title dd{margin:0;text-align:left}
+.cm-status{display:inline-block;margin-top:6px;padding:2px 10px;border:2px solid var(--red);color:var(--red);font-size:11px;font-weight:850;letter-spacing:.08em;border-radius:4px}
+.cm-banner{margin:16px 0;background:var(--red);color:#fff;text-align:center;font-size:44px;font-weight:850;line-height:1.15;padding:4px 10px;border-radius:8px}
+.cm-row{display:flex;justify-content:space-between;gap:24px;margin:0 0 16px}
+.cm-kv{align-content:start;display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0;font-size:16px}.cm-kv dt{font-weight:600}.cm-kv dd{margin:0}.cm-kv dd.b{font-weight:800}
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}.cm-row .cm-grid{margin:0}
+.cm-panel{border:1px solid var(--line);border-radius:8px;overflow:hidden;min-height:96px}
+.cm-panel h2{margin:0;background:var(--red);color:#fff;font-size:17px;font-weight:700;padding:6px 12px}
+.cm-panel>div{padding:10px 12px;font-size:15px;line-height:1.5;overflow-wrap:anywhere}.cm-panel strong{font-weight:800}.cm-panel small{color:#626b73;font-size:12px}
+.cm-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0;border:1px solid var(--line)}
+.cm-table th{background:var(--red);color:#fff;text-align:left;padding:8px;font-size:13px;font-weight:700}
+.cm-table td{padding:8px;border:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere;font-size:14px}
+.cm-table tbody tr:nth-child(even){background:#f4f5f6}.cm-table .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cm-tot{width:min(100%,340px);margin:12px 0 0 auto;border:1px solid var(--line)}
+.cm-tot div{display:flex;justify-content:space-between;gap:12px;padding:7px 12px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px}
+.cm-tot div:last-child{border-bottom:0}.cm-tot .s{background:var(--soft)}.cm-tot .g{background:var(--red);color:#fff;font-size:18px;font-weight:800}
+.cm-sec{margin:14px 0 0;border:1px solid var(--line);border-radius:6px;overflow:hidden}.cm-sec h3{margin:0;background:var(--red);color:#fff;font-size:16px;padding:5px 12px}
+.cm-sec p{margin:0;padding:8px 12px;background:var(--soft);font-size:14px;white-space:pre-line}
+.cm-h{margin:16px 0 4px;color:var(--red);font-size:18px;font-weight:800}.cm-plain{margin:0;font-size:13px;white-space:pre-line}
+.cm-fiscal{margin:12px 0 0;color:#626b73;font-size:10px;font-weight:700;letter-spacing:.04em}
+.cm-amount{display:flex;align-items:center;gap:18px;border:2px solid var(--red);border-radius:8px;background:var(--soft);padding:14px 18px;margin:0 0 14px}
+.cm-amount span{font-size:22px;font-weight:600;padding-right:18px;border-right:2px solid var(--red)}.cm-amount strong{font-size:40px;font-weight:850;font-variant-numeric:tabular-nums}
+.cm-bal{display:flex;align-items:center;justify-content:space-between;gap:16px}.cm-bal div{font-size:22px;font-weight:600}.cm-bal b{margin-left:14px;padding-left:14px;border-left:2px solid var(--red);font-weight:800}
+.cm-stamp{border:4px solid var(--red);color:var(--red);font-size:48px;font-weight:900;letter-spacing:.04em;line-height:1.1;padding:0 16px;border-radius:8px;transform:rotate(-6deg);opacity:.9;white-space:nowrap}
+.cm-void{width:max-content;max-width:90%;margin:18px auto 6px;padding:6px 30px;border:4px double #b71c1c;border-radius:4px;color:#b71c1c;font:italic 900 30px/1.2 Georgia,serif;letter-spacing:.2em;transform:rotate(-5deg)}.cm-voidr{margin:0 0 10px;color:#8f1d1d;font-weight:700}
+.cm-note{margin:8px 0 0;color:#626b73;font-size:13px}
+.cm-sign{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-top:38px}.cm-sign>div:first-child{width:46%;border-top:1.5px solid var(--navy);padding-top:4px;text-align:center;font-weight:600;font-size:14px}
+.cm-thanks{font-style:italic;font-weight:700;font-size:20px;text-align:right}
+.cm-foot{margin:22px calc(var(--pad)*-1) 0}.cm-contact{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:3px solid var(--red);padding:12px var(--pad);font-size:14px;font-weight:500}
+.cm-contact span{display:flex;align-items:center;gap:6px}.cm-contact svg{color:var(--red);flex:none}
+.cm-web{background:var(--navy);color:#fff;text-align:center;padding:10px;font-size:17px;font-weight:600}
+@media(max-width:620px){.cm-doc{--pad:14px;font-size:12px}.cm-head{flex-wrap:wrap;gap:10px}.cm-logo{font-size:30px}.cm-logo span{font-size:22px}.cm-sub{font-size:14px}.cm-tag,.cm-title{margin-left:0;text-align:left;width:100%}.cm-swoosh{margin-left:0}.cm-title dl{justify-content:start}.cm-title h1{font-size:28px}.cm-banner{font-size:26px}.cm-row{flex-direction:column;gap:10px}.cm-kv{font-size:13px}.cm-grid{grid-template-columns:1fr}.cm-amount span{font-size:15px;padding-right:10px}.cm-amount strong{font-size:24px}.cm-bal div{font-size:15px}.cm-stamp{font-size:26px}.cm-thanks{font-size:14px}.cm-contact{flex-wrap:wrap;font-size:11px}.cm-web{font-size:12px}.cm-table th,.cm-table td{padding:5px;font-size:11px}}
+@media print{.cm-doc{break-inside:avoid}}`;
+const cmHead=(right)=>`<header class="cm-head"><div class="cm-logo">Centric<span>Auto Mobile</span></div><div class="cm-sub">Auto Parts<br>&amp; Repairs</div>${right||`<div class="cm-tag">Drive Smooth. <b>Repair Smart.</b>${CM_SWOOSH}</div>`}</header>`;
+const cmFoot=()=>`<footer class="cm-foot"><div class="cm-contact">${(CO.phones||[]).map(p=>`<span>${CM_PHONE}${esc(p)}</span>`).join("")}<span>${CM_PIN}${esc(CO.address||"")}</span></div><div class="cm-web">Centric Auto Mobile &nbsp;|&nbsp; ${esc(CO.website||"")}</div></footer>`;
+const cmMoney=cur=>n=>esc(cur||"USD")+" "+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const cmVoid=o=>o.voidedAt?`<div class="cm-void">VOID</div><p class="cm-voidr"><b>Void reason:</b> ${esc(o.voidReason||"Not provided")}</p>`:"";
+
 /* ---------- the document (invoice or receipt) ---------- */
 function docHTML(o){const t=calc(o),inv=o.kind==="invoice",isCreditNote=o.kind==="credit_note",isRefundReceipt=Boolean(o.creditRefundReceipt),balance=Math.max(0,t.total-Number(o.amountPaid||0)),customerCredit=Math.max(0,Number(o.amountPaid||0)-t.total),showSubtotal=inv||isCreditNote||Boolean(o.salesOrderId)||Boolean(o.invoicePaymentReceipt)||Boolean(o.jobCard);
 if(!inv&&!isCreditNote){
  const received=Number(o.receiptAmount??o.jobPayment?.received??totalPaid(o))||0;
  const remaining=Number(o.jobPayment?.balance??Math.max(0,t.total-totalPaid(o)))||0;
  const paid=remaining<=0.005;
- const currency=esc(o.currency||"USD");
- const money=n=>currency+" "+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
- return `<style>
- .centric-payment-receipt{max-width:760px;margin:0 auto;padding:30px;background:#fff;color:#202a33;border:1px solid #d6dadd;border-radius:4px;font-family:Inter,Arial,sans-serif}
- .centric-payment-receipt *{box-sizing:border-box}.centric-payment-receipt .cr-head{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:3px solid #b3392b;padding-bottom:18px}
- .centric-payment-receipt .cr-brand{font-size:22px;font-weight:850;line-height:1.05}.centric-payment-receipt .cr-brand small{display:block;color:#b3392b;font-size:14px;margin-top:4px}
- .centric-payment-receipt .cr-title{text-align:right;font-size:25px;font-weight:900;color:#b3392b;letter-spacing:.02em}
- .centric-payment-receipt .cr-meta{display:flex;justify-content:space-between;gap:12px;margin:18px 0;padding:12px;background:#f0f1f2;border:1px solid #d6dadd}
- .centric-payment-receipt .cr-meta span,.centric-payment-receipt .cr-block small{display:block;color:#626b73;font-size:11px;text-transform:uppercase;font-weight:750;letter-spacing:.06em}
- .centric-payment-receipt .cr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.centric-payment-receipt .cr-block{border:1px solid #d6dadd;padding:13px;min-height:88px}
- .centric-payment-receipt .cr-block strong{display:block;margin:6px 0;font-size:15px}.centric-payment-receipt .cr-amount{margin:18px 0;padding:18px;border:2px solid #b3392b;display:flex;align-items:center;justify-content:space-between;gap:12px}
- .centric-payment-receipt .cr-amount strong{font-size:27px;color:#b3392b;font-variant-numeric:tabular-nums}
- .centric-payment-receipt .cr-balance{display:flex;align-items:center;justify-content:space-between;font-weight:750;padding:10px 0;border-bottom:1px solid #d6dadd}
- .centric-payment-receipt .cr-stamp{display:inline-block;border:3px double #b3392b;color:#b3392b;padding:5px 13px;font-size:17px;font-weight:950;letter-spacing:.08em;transform:rotate(-5deg)}
- .centric-payment-receipt .cr-sign{width:45%;margin:36px 0 0;border-top:1px solid #202a33;padding-top:7px;font-size:11px;text-align:center}
- .centric-payment-receipt .cr-foot{border-top:1px solid #b3392b;margin-top:20px;padding-top:10px;text-align:center;color:#626b73;font-size:11px}
- @media(max-width:600px){.centric-payment-receipt{padding:16px}.centric-payment-receipt .cr-head{align-items:flex-start}.centric-payment-receipt .cr-title{font-size:18px}.centric-payment-receipt .cr-grid{grid-template-columns:1fr}.centric-payment-receipt .cr-amount strong{font-size:21px}}
- @media print{.centric-payment-receipt{max-width:none;border:0;padding:8mm;border-radius:0}.centric-payment-receipt .cr-sign{margin-top:22px}}
- </style>
- <article class="centric-payment-receipt" aria-label="Payment receipt">
-  <header class="cr-head"><div class="cr-brand">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div><div class="cr-title">PAYMENT RECEIPT</div></header>
-  <div class="cr-meta"><div><span>Receipt number</span><strong>${esc(o.number||"—")}</strong></div><div style="text-align:right"><span>Date</span><strong>${dt(o.date)}</strong></div><div style="text-align:right"><span>Payment method</span><strong>${esc(o.paymentMethod||"Not recorded")}</strong></div></div>
-  <div class="cr-grid">
-   <section class="cr-block"><small>Received from</small><strong>${esc(o.customer?.company_name||o.customer?.name||"Walk-in customer")}</strong>${esc(o.customer?.phone||"")}</section>
-   <section class="cr-block"><small>Payment for</small><strong>${esc(o.ref||"Customer payment")}</strong>${o.jobCard?.checklistNumber?"Job card: "+esc(o.jobCard.checklistNumber):""}${o.paymentItemsLabel?" · "+esc(o.paymentItemsLabel):""}</section>
+ const money=cmMoney(o.currency),cust=o.customer||{};
+ const forLine=[o.jobCard?.checklistNumber?"Job card: "+o.jobCard.checklistNumber:"",o.paymentItemsLabel||""].filter(Boolean).join(" · ");
+ return `<style>${CM_CSS}</style><article class="cm-doc" aria-label="Payment receipt">${cmHead()}
+  <div class="cm-banner">PAYMENT RECEIPT</div>
+  <div class="cm-row"><dl class="cm-kv"><dt>Receipt No:</dt><dd class="b">${esc(o.number||"—")}</dd><dt>Date:</dt><dd>${dt(o.date)}</dd></dl><dl class="cm-kv"><dt>Payment Method:</dt><dd class="b">${esc(o.paymentMethod||"Not recorded")}</dd></dl></div>
+  <div class="cm-grid">
+   <section class="cm-panel"><h2>Received from</h2><div><strong>${esc(cust.company_name||cust.name||"Walk-in customer")}</strong><br>${esc(cust.phone||"")}</div></section>
+   <section class="cm-panel"><h2>Payment for</h2><div>Reference: <strong>${esc(o.ref||"Customer payment")}</strong>${forLine?`<br>${esc(forLine)}`:""}</div></section>
   </div>
-  <div class="cr-amount"><b>Amount paid</b><strong>${money(received)}</strong></div>
-  <div class="cr-balance"><span>Balance remaining</span><span>${money(remaining)}</span></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span style="font-size:12px;color:#626b73">${o.voidedAt?"This receipt has been voided":paid?"Payment settled in full":"Part payment received"}</span><span class="cr-stamp">${o.voidedAt?"VOID":paid?"PAID":"PART PAID"}</span></div>
-  ${o.voidedAt?`<p><b>Void reason:</b> ${esc(o.voidReason||"Not provided")}</p>`:""}
-  <div class="cr-sign">Authorised signature</div>
-  <footer class="cr-foot">Centric Auto Mobile · ${esc(CO.email||"")}<br>Thank you for your business.</footer>
- </article>`;
+  <div class="cm-amount"><span>Amount Paid</span><strong>${money(received)}</strong></div>
+  <div class="cm-bal"><div>Balance Remaining<b>${money(remaining)}</b></div><span class="cm-stamp">${o.voidedAt?"VOID":paid?"PAID":"PART PAID"}</span></div>
+  <p class="cm-note">${o.voidedAt?"This receipt has been voided":paid?"Payment settled in full":"Part payment received"}</p>
+  ${cmVoid(o)}
+  <div class="cm-sign"><div>Authorised Signature</div><div class="cm-thanks">Thank you for your payment!${CM_SWOOSH}</div></div>
+  ${cmFoot()}</article>`;
 }
 if(inv){
- const customer=o.customer||{};
+ const customer=o.customer||{},jc=o.jobCard||{};
  const status=String(o.status||"unpaid").toUpperCase().replace(/_/g," ");
- const paid=Number(o.amountPaid||0);
- const balanceDue=Math.max(0,t.total-paid);
- const invoiceCurrency=esc(o.currency||"USD");
- const money=n=>invoiceCurrency+" "+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
- const itemRows=(o.items||[]).map((item,index)=>`<tr><td class="ci-no">${index+1}</td><td>${esc(item.d||"Item / service")}</td><td class="ci-num">${Number(item.q||0).toLocaleString("en-US",{maximumFractionDigits:2})}</td><td class="ci-num">${money(item.p)}</td><td class="ci-num">${money(Number(item.q||0)*Number(item.p||0))}</td></tr>`).join("");
- return `<style>
- .centric-invoice{width:100%;max-width:900px;margin:0 auto;padding:34px;background:#fff;color:#202a33;border:1px solid #d6dadd;border-radius:4px;font:13px/1.45 Inter,Arial,sans-serif}
- .centric-invoice *{box-sizing:border-box}.centric-invoice .ci-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;border-bottom:4px solid #b3392b;padding-bottom:20px}
- .centric-invoice .ci-brand{display:flex;align-items:center;gap:13px}.centric-invoice .ci-brand img{width:76px;height:76px;object-fit:contain}
- .centric-invoice .ci-brand-name{font-size:23px;font-weight:900;letter-spacing:.02em;line-height:1.05}.centric-invoice .ci-brand-name small{display:block;margin-top:5px;color:#b3392b;font-size:12px;letter-spacing:.08em}
- .centric-invoice .ci-title{text-align:right}.centric-invoice .ci-title h1{margin:0;color:#b3392b;font-size:30px;line-height:1.1;letter-spacing:.04em}.centric-invoice .ci-title strong{display:block;margin-top:9px;font-size:15px}
- .centric-invoice .ci-title .ci-date{margin-top:3px;color:#626b73}
- .centric-invoice .ci-status{display:inline-block;margin-top:9px;padding:4px 10px;border:1px solid #b3392b;color:#b3392b;font-size:10px;font-weight:850;letter-spacing:.08em}
- .centric-invoice .ci-status.paid{border-color:#25804b;color:#25804b}.centric-invoice .ci-status.void{border-color:#b3392b;background:#fff1ef}
- .centric-invoice .ci-fiscal{margin:14px 0;padding:8px 11px;background:#f0f1f2;border-left:3px solid #b3392b;color:#626b73;font-size:10px;font-weight:750;letter-spacing:.04em}
- .centric-invoice .ci-meta{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
- .centric-invoice .ci-panel{border:1px solid #d6dadd;min-height:112px}.centric-invoice .ci-panel h2{margin:0;padding:8px 12px;background:#eef0f2;color:#202a33;font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
- .centric-invoice .ci-panel-body{padding:12px}.centric-invoice .ci-panel-body strong{display:block;margin-bottom:5px;font-size:15px}.centric-invoice .ci-muted{color:#626b73;font-size:11px}
- .centric-invoice .ci-reference{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.centric-invoice .ci-reference span{display:block;color:#626b73;font-size:10px;text-transform:uppercase;font-weight:750;letter-spacing:.05em}.centric-invoice .ci-reference b{display:block;margin-top:2px;font-size:12px}
- .centric-invoice .ci-job{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 16px;padding:11px 13px;background:#f7f8f9;border:1px solid #d6dadd}
- .centric-invoice .ci-job div{min-width:110px;flex:1}.centric-invoice .ci-job small{display:block;color:#626b73;font-size:9px;font-weight:750;text-transform:uppercase}.centric-invoice .ci-job b{display:block;margin-top:3px;font-size:11px}
- .centric-invoice table{width:100%;border-collapse:collapse;table-layout:fixed;margin:12px 0 0}
- .centric-invoice th{padding:10px 8px;background:#b3392b;color:#fff;text-align:left;font-size:10px;letter-spacing:.04em}
- .centric-invoice td{padding:10px 8px;border-bottom:1px solid #d6dadd;vertical-align:top;overflow-wrap:anywhere}
- .centric-invoice tbody tr:nth-child(even){background:#f7f8f9}.centric-invoice .ci-no{width:34px;color:#626b73}.centric-invoice .ci-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
- .centric-invoice .ci-totals{width:min(100%,390px);margin:18px 0 0 auto;border:1px solid #d6dadd}
- .centric-invoice .ci-totals div{display:flex;justify-content:space-between;gap:16px;padding:9px 12px;border-bottom:1px solid #e0e2e4}
- .centric-invoice .ci-totals div:last-child{border-bottom:0}.centric-invoice .ci-totals .ci-grand{background:#b3392b;color:#fff;font-size:16px;font-weight:900;padding:13px 12px}
- .centric-invoice .ci-totals .ci-balance{font-weight:850;background:#f0f1f2}
- .centric-invoice .ci-notes{margin-top:20px;padding:12px;border:1px solid #d6dadd;min-height:54px}.centric-invoice .ci-notes small{display:block;margin-bottom:5px;color:#626b73;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
- .centric-invoice .ci-sign{display:flex;justify-content:space-between;gap:28px;margin-top:42px}.centric-invoice .ci-sign div{width:42%;border-top:1px solid #202a33;padding-top:7px;color:#626b73;font-size:10px}
- .centric-invoice .ci-foot{margin-top:25px;padding-top:12px;border-top:2px solid #b3392b;text-align:center;color:#626b73;font-size:10px}
- @media(max-width:620px){.centric-invoice{padding:16px}.centric-invoice .ci-top{gap:12px}.centric-invoice .ci-brand img{width:48px;height:48px}.centric-invoice .ci-brand-name{font-size:16px}.centric-invoice .ci-title h1{font-size:21px}.centric-invoice .ci-meta{grid-template-columns:1fr}.centric-invoice table{font-size:10px}.centric-invoice th,.centric-invoice td{padding:7px 5px}.centric-invoice .ci-totals{width:100%}}
- @page{size:A4 portrait;margin:0}
- @media print{.centric-invoice{width:210mm;max-width:none;min-height:297mm;margin:0;padding:12mm;border:0;border-radius:0;print-color-adjust:exact;-webkit-print-color-adjust:exact}.centric-invoice .ci-sign{margin-top:30px}}
- </style>
- <article class="centric-invoice" aria-label="Customer invoice">
-  <header class="ci-top">
-   <div class="ci-brand"><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div class="ci-brand-name">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div></div>
-   <div class="ci-title"><h1>TAX INVOICE</h1><strong>${esc(o.number||"—")}</strong><div class="ci-date">Issued: ${dt(o.date)}</div><div class="ci-date">Due: ${dt(o.due)}</div><span class="ci-status ${o.voidedAt?"void":o.status==="paid"?"paid":""}">${o.voidedAt?"VOID":status}</span></div>
-  </header>
-  <div class="ci-fiscal">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
-  ${o.voidedAt?`<div class="ci-fiscal">VOID REASON: ${esc(o.voidReason||"Not provided")}</div>`:""}
-  <section class="ci-meta">
-   <div class="ci-panel"><h2>Bill to</h2><div class="ci-panel-body"><strong>${esc(customer.company_name||customer.name||"Walk-in customer")}</strong><div class="ci-muted">Customer ID: ${esc(customer.customer_code||"—")}</div>${customer.is_company&&customer.company_name?`<div class="ci-muted">Company: ${esc(customer.company_name)}</div>`:""}<div>${esc(customer.phone||"")}</div><div>${esc(customer.email||"")}</div></div></div>
-   <div class="ci-panel"><h2>Invoice details</h2><div class="ci-panel-body ci-reference"><div><span>Invoice date</span><b>${dt(o.date)}</b></div><div><span>Due date</span><b>${dt(o.due)}</b></div><div><span>Reference</span><b>${esc(o.ref||"—")}</b></div><div><span>Currency</span><b>${invoiceCurrency}</b></div></div></div>
+ const paid=Number(o.amountPaid||0),balanceDue=Math.max(0,t.total-paid);
+ const money=cmMoney(o.currency),bank=CO.bank||{};
+ const itemRows=(o.items||[]).map((item,i)=>`<tr><td>${i+1}</td><td>${esc(item.d||"Item / service")}</td><td class="n">${Number(item.q||0).toLocaleString("en-US",{maximumFractionDigits:2})}</td><td class="n">${money(item.p)}</td><td class="n">${money(Number(item.q||0)*Number(item.p||0))}</td></tr>`).join("");
+ const vehicleLines=[jc.vehicle,jc.checklistNumber?"Job card: #"+jc.checklistNumber:"",jc.chassis?"VIN / Chassis: "+jc.chassis:"",jc.engine?"Engine: "+jc.engine:"",jc.odometer?"Mileage: "+jc.odometer:"",jc.fuel?"Fuel level: "+jc.fuel:""].filter(Boolean);
+ return `<style>${CM_CSS}</style><article class="cm-doc" aria-label="Customer invoice">
+  ${cmHead(`<div class="cm-title"><h1>TAX INVOICE</h1><dl><dt>Invoice No:</dt><dd>${esc(o.number||"—")}</dd><dt>Issue Date:</dt><dd>${dt(o.date)}</dd><dt>Due Date:</dt><dd>${dt(o.due)}</dd></dl><span class="cm-status">${o.voidedAt?"VOID":status}</span></div>`)}
+  ${cmVoid(o)}
+  <section class="cm-grid">
+   <div class="cm-panel"><h2>Bill to</h2><div><strong>${esc(customer.company_name||customer.name||"Walk-in customer")}</strong><br><small>Customer ID: ${esc(customer.customer_code||"—")}</small>${customer.phone?`<br>${esc(customer.phone)}`:""}${customer.email?`<br>${esc(customer.email)}`:""}</div></div>
+   <div class="cm-panel"><h2>${vehicleLines.length?"Vehicle":"Invoice details"}</h2><div>${vehicleLines.length?vehicleLines.map((l,i)=>i?esc(l):`<strong>${esc(l)}</strong>`).join("<br>"):`Reference: <strong>${esc(o.ref||"—")}</strong><br>Currency: ${esc(o.currency||"USD")}`}</div></div>
   </section>
-  ${o.jobCard?`<section class="ci-job">${o.jobCard.vehicle?`<div><small>Vehicle</small><b>${esc(o.jobCard.vehicle)}</b></div>`:""}${o.jobCard.checklistNumber?`<div><small>Job card</small><b>#${esc(o.jobCard.checklistNumber)}</b></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><b>${esc(o.jobCard.chassis)}</b></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><b>${esc(o.jobCard.odometer)}</b></div>`:""}</section>`:""}
-  <table><thead><tr><th style="width:34px">#</th><th>Description</th><th style="width:62px;text-align:right">Qty</th><th style="width:105px;text-align:right">Unit price</th><th style="width:115px;text-align:right">Amount</th></tr></thead><tbody>${itemRows||'<tr><td colspan="5" style="color:#626b73">No invoice items recorded</td></tr>'}</tbody></table>
-  <section class="ci-totals">
-   <div><span>Subtotal</span><b>${money(t.sub)}</b></div>
-   ${t.disc?`<div><span>Discount</span><b>−${money(t.disc)}</b></div>`:""}
+  ${vehicleLines.length&&o.ref?`<p class="cm-note" style="margin:0 0 10px">Reference: ${esc(o.ref)}</p>`:""}
+  <table class="cm-table"><thead><tr><th style="width:34px">#</th><th>Description</th><th style="width:62px;text-align:right">Qty</th><th style="width:110px;text-align:right">Unit price</th><th style="width:120px;text-align:right">Line total</th></tr></thead><tbody>${itemRows||'<tr><td colspan="5" style="color:#626b73">No invoice items recorded</td></tr>'}</tbody></table>
+  <section class="cm-tot">
+   <div class="s"><span>Subtotal (excl. VAT)</span><b>${money(t.sub)}</b></div>
    <div><span>VAT (${Number(o.vat??0)}%)</span><b>${money(t.vat)}</b></div>
-   <div class="ci-grand"><span>Invoice total</span><strong>${money(t.total)}</strong></div>
+   <div><span>Discount</span><b>${t.disc?"−"+money(t.disc):money(0)}</b></div>
+   <div class="g"><span>Total Due</span><b>${money(t.total)}</b></div>
    <div><span>Paid to date</span><b>${money(paid)}</b></div>
-   <div class="ci-balance"><span>Balance due</span><b>${money(balanceDue)}</b></div>
+   <div class="s"><span>Balance due</span><b>${money(balanceDue)}</b></div>
    ${customerCredit?`<div><span>Customer credit</span><b>${money(customerCredit)}</b></div>`:""}
   </section>
-  ${o.notes?`<section class="ci-notes"><small>Notes</small>${esc(o.notes)}</section>`:""}
-  <div class="ci-sign"><div>Prepared by</div><div>Authorised signature</div></div>
-  <footer class="ci-foot">Centric Auto Mobile · ${esc(CO.email||"")}<br>Thank you for choosing Centric Auto Mobile.</footer>
- </article>`;
+  ${bank.accountNumber?`<h3 class="cm-h">Banking Details</h3><p class="cm-plain">Bank Name: ${esc(bank.bank||"")}\nAccount Name: ${esc(bank.accountName||"")}\nAccount Number: ${esc(bank.accountNumber)}\nBranch: ${esc(bank.branch||"")}${bank.swift?"\nSwift Code: "+esc(bank.swift):""}</p>`:""}
+  ${o.notes?`<h3 class="cm-h">Notes</h3><p class="cm-plain">${esc(o.notes)}</p>`:""}
+  <div class="cm-fiscal">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
+  <div class="cm-sign"><div>Authorised Signature</div><div class="cm-thanks">Thank you for your business${CM_SWOOSH}</div></div>
+  ${cmFoot()}</article>`;
 }
-return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
-<div><h1>${inv?"INVOICE":isCreditNote?"CUSTOMER CREDIT NOTE":isRefundReceipt?"REFUND RECEIPT":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
-<div class="fiscal-warning">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
-${o.voidedAt?`<div class="void-banner">VOID</div><p class="void-reason">Reason: ${esc(o.voidReason||"Not provided")}</p>`:""}
-${o.checklistNumber||o.jobCard?.checklistNumber?`<div style="display:inline-block;margin:8px 0;padding:7px 12px;border:2px solid #14823b;border-radius:6px;color:#126b32;font-size:16px;font-weight:850;letter-spacing:.04em">VEHICLE CHECKLIST #${esc(o.checklistNumber||o.jobCard.checklistNumber)}</div>`:""}
-<div class="meta"><div><small>${inv?"Billed to":isCreditNote?"Issued to":isRefundReceipt?"Paid to":"Received from"}</small><b>${esc(o.customer.company_name||o.customer.name||"Walk-in customer")}</b><br>Customer ID: ${esc(o.customer.customer_code||"—")}${o.customer.is_company&&o.customer.company_name?"<br>Company: "+esc(o.customer.company_name):""}<br>${esc(o.customer.phone||"")}<br>${esc(o.customer.email||"")}</div>
-<div style="text-align:right"><small>${inv?"Due":"Reference"}</small><b>${inv?dt(o.due):esc(o.ref||"—")}</b>${inv&&o.ref?`<br>Ref: ${esc(o.ref)}`:""}${!inv&&!isCreditNote?`<br>Payment method: ${esc(o.paymentMethod||"Not recorded")}${o.tenderAmount!=null?`<br>Received: ${esc(o.currency||"USD")} ${Number(o.tenderAmount).toFixed(2)}`:""}`:""}${!o.voidedAt&&(inv?o.status==="paid":o.jobPayment?.status==="paid"||(!o.jobPayment&&o.status==="paid"))?'<br><span class="stamp">PAID</span>':!inv&&o.jobPayment?.status==="partially_paid"?'<br><span class="stamp">PARTIALLY PAID</span>':!inv&&o.jobPayment?.status==="unpaid"?'<br><span class="stamp">UNPAID</span>':""}</div></div>
-${o.jobCard?`<section class="job-meta">${o.jobCard.vehicle?`<div><small>Vehicle</small><p>${esc(o.jobCard.vehicle)}</p></div>`:""}${o.jobCard.chassis?`<div><small>Chassis</small><p>${esc(o.jobCard.chassis)}</p></div>`:""}${o.jobCard.engine?`<div><small>Engine</small><p>${esc(o.jobCard.engine)}</p></div>`:""}${o.jobCard.odometer?`<div><small>Odometer</small><p>${esc(o.jobCard.odometer)}</p></div>`:""}${o.jobCard.fuel?`<div><small>Fuel level</small><p>${esc(o.jobCard.fuel)}</p></div>`:""}${o.jobCard.driver?`<div><small>Driver</small><p>${esc(o.jobCard.driver)}</p></div>`:""}${o.jobCard.fault?`<div><small>Customer concern</small><p>${esc(o.jobCard.fault)}</p></div>`:""}${o.jobCard.work?`<div><small>Work / diagnosis</small><p>${esc(o.jobCard.work)}</p></div>`:""}</section>`:""}
-<table><thead><tr><th>Description</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${usd(i.p)}</td><td class="n">${usd(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#999">No items yet</td></tr>'}</tbody></table>
-<div class="tot">${showSubtotal?`<div><span>${inv?"Subtotal":isCreditNote?"Original invoice subtotal":o.paymentItemsLabel||(o.invoicePaymentReceipt?"Invoice items":o.jobCard?"Job total":o.salesOrderId?"Sale items":"Items total")}</span><span>${usd(t.sub)}</span></div>`:""}${t.disc?`<div><span>Discount</span><span>−${usd(t.disc)}</span></div>`:""}${inv||o.invoicePaymentReceipt||isCreditNote?`<div><span>VAT (${Number(o.vat??5)}%)</span><span>${usd(t.vat)}</span></div>`:""}<div class="g"><span>${inv?"Invoice total":isCreditNote?"Credit note amount":o.voidedAt?"Voided amount":isRefundReceipt?"Refund paid":o.invoicePaymentReceipt?"Amount received":"Total paid"}</span><span>${usd(inv?t.total:isCreditNote?o.carriedForward:totalPaid(o))}</span></div>${inv?`<div><span>Paid so far</span><span>${usd(o.amountPaid)}</span></div><div class="g"><span>Balance due</span><span>${usd(balance)}</span></div>${customerCredit?`<div><span>Customer credit</span><span>${usd(customerCredit)}</span></div>`:""}`:""}${isCreditNote?`<div><span>Original invoice total</span><span>${usd(o.invoiceTotal||t.total)}</span></div><div class="g"><span>Amount carried forward</span><span>${usd(o.availableAmount??o.carriedForward)}</span></div>${o.linkedChecklist?`<div><span>Linked job checklist</span><span>#${esc(o.linkedChecklist)}</span></div>`:""}`:""}${!inv&&o.jobPayment?`<div><span>${esc(o.jobPayment.totalLabel||"Original job / invoice total")}</span><span>${usd(o.jobPayment.jobTotal)}</span></div><div><span>${esc(o.jobPayment.previousLabel||"Previous payments")}</span><span>${usd(o.jobPayment.previousPaid)}</span></div><div><span>Amount received</span><span>${usd(o.jobPayment.received??o.jobPayment.currentPaid)}</span></div>${Number(o.jobPayment.creditApplied||0)>0?`<div><span>Credit note applied${o.jobPayment.creditNoteReferences?.length?` · ${esc(o.jobPayment.creditNoteReferences.join(", "))}`:""}</span><span>${usd(o.jobPayment.creditApplied)}</span></div>`:""}<div><span>Cash applied to invoice</span><span>${usd(o.jobPayment.currentPaid)}</span></div><div><span>Total applied to date</span><span>${usd(o.jobPayment.totalPaid)}</span></div>${Number(o.jobPayment.customerCredit||0)>0?'<div><span>Amount carried forward</span><span>'+usd(o.jobPayment.customerCredit)+'</span></div>':""}<div class="g"><span>${esc(o.jobPayment.balanceLabel||"Remaining balance")}</span><span>${usd(o.jobPayment.balance)}</span></div><div><span>Payment status</span><span>${esc(o.jobPayment.status.toUpperCase().replace("_"," "))}</span></div>`:""}</div>
-${o.notes?`<p style="margin-top:16px">${esc(o.notes)}</p>`:""}<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
+{ /* credit note */
+ const money=cmMoney(o.currency),cust=o.customer||{};
+ const rows=(o.items||[]).map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${money(i.p)}</td><td class="n">${money(i.q*i.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:#626b73">No items recorded</td></tr>';
+ return `<style>${CM_CSS}</style><article class="cm-doc" aria-label="Credit note">${cmHead()}
+  <div class="cm-banner">CREDIT NOTE</div>
+  <div class="cm-row"><dl class="cm-kv"><dt>Credit Note No:</dt><dd class="b">${esc(o.number||"—")}</dd><dt>Date:</dt><dd>${dt(o.date)}</dd><dt>Original Invoice:</dt><dd>${esc(o.ref||"—")}</dd></dl>
+   <section class="cm-panel" style="min-width:46%"><h2>Customer</h2><div><strong>${esc(cust.company_name||cust.name||"Walk-in customer")}</strong><br><small>Customer ID: ${esc(cust.customer_code||"—")}</small>${cust.phone?`<br>${esc(cust.phone)}`:""}${cust.email?`<br>${esc(cust.email)}`:""}</div></section></div>
+  ${cmVoid(o)}
+  <table class="cm-table"><thead><tr><th>Description</th><th style="width:60px;text-align:right">Qty</th><th style="width:115px;text-align:right">Unit price</th><th style="width:125px;text-align:right">Credit amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <section class="cm-tot">
+   <div class="s"><span>Original invoice subtotal</span><b>${money(t.sub)}</b></div>
+   ${t.disc?`<div><span>Discount</span><b>−${money(t.disc)}</b></div>`:""}
+   <div><span>VAT (${Number(o.vat??5)}%)</span><b>${money(t.vat)}</b></div>
+   <div class="g"><span>Total Credit</span><b>${money(o.carriedForward)}</b></div>
+   <div><span>Original invoice total</span><b>${money(o.invoiceTotal||t.total)}</b></div>
+   <div class="s"><span>Amount carried forward</span><b>${money(o.availableAmount??o.carriedForward)}</b></div>
+   ${o.linkedChecklist?`<div><span>Linked job checklist</span><b>#${esc(o.linkedChecklist)}</b></div>`:""}
+  </section>
+  ${o.notes?`<section class="cm-sec"><h3>Reason for Credit</h3><p>${esc(o.notes)}</p></section>`:""}
+  <div class="cm-sign"><div>Authorised Signature</div><div class="cm-thanks">Thank you for your business${CM_SWOOSH}</div></div>
+  ${cmFoot()}</article>`;
+}}
 
 /* ---------- load lists ---------- */
 const RECEIPT_INITIAL_BATCH=1000;
