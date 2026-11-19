@@ -564,7 +564,7 @@ body.dashboard-page.module-shop .main :is(.table-wrap,.table-container,.table-re
       <div class="field"><label for="restock-unit-cost">Unit Cost ($)</label><input type="number" id="restock-unit-cost" step="0.01" min="0" required /></div>
       <div class="field"><label for="restock-payment-status">Purchase payment</label><select id="restock-payment-status"><option value="paid">Paid now</option><option value="on_credit">Buy on credit</option></select></div>
       <div class="field" id="restock-payment-account-field"><label for="restock-payment-account">Paid from</label><select id="restock-payment-account"></select></div>
-      <p id="restock-invoice-note" class="section-note">Paid purchases are posted to cash/bank. Credit purchases create a supplier invoice in Payables.</p>
+      <p id="restock-invoice-note" class="section-note">Paid purchases are posted to cash/bank. Credit purchases create a supplier invoice in Payables. The full supplier unit cost is currently capitalised. Input VAT is not separated automatically.</p>
       <p id="restock-message" class="form-message" role="status"></p>
       <div class="restock-modal-actions">
         <button id="restock-email-order" type="button" class="btn"><i data-lucide="mail"></i> Email parts order</button>
