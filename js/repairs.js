@@ -1895,11 +1895,9 @@ form?.addEventListener("submit", async (e) => {
       driver_name: driverName,
       driver_phone: driverPhone,
     };
-    const { data: job, error: jobError } = await supabase.from("repair_jobs").insert([jobRow]).select("id, cro_number, job_number").single();
-    if (jobError) throw new Error("Couldn't create the job: " + jobError.message);
     let quoteLinkWarning = "";
 
-    // Prepare every quoted/staged part and incidental before changing stock.
+    // Validate every quoted/staged part and incidental before creating the job record.
     const skipped = [];
     let quotedLabourCost = 0;
     let quotedLabourHours = 0;
@@ -1958,6 +1956,9 @@ form?.addEventListener("submit", async (e) => {
 
     const labour_cost = labourValue + quotedLabourCost;
     const labour_hours = (labourHours || 0) + quotedLabourHours;
+    const { data: job, error: jobError } = await supabase.from("repair_jobs").insert([jobRow]).select("id, cro_number, job_number").single();
+    if (jobError) throw new Error("Couldn't create the job: " + jobError.message);
+
     const { data: intakeResult, error: intakeError } = await supabase.rpc("finalize_repair_job_intake", {
       p_job_id: job.id,
       p_parts: jobPartItems,
