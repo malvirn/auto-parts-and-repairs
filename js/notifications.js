@@ -51,6 +51,7 @@ function injectBellUI() {
       }
     }
     #global-notif-bell:hover { border-color: var(--accent, #ff9d3d); }
+    #global-notif-bell { visibility:visible!important; opacity:1!important; pointer-events:auto!important; }
     #global-notif-bell > svg, #global-notif-bell > i { pointer-events:none; }
     #global-notif-bell:focus-visible { outline:2px solid var(--accent,#ff9d3d); outline-offset:3px; }
     #global-notif-badge {
@@ -136,6 +137,24 @@ function injectBellUI() {
   });
 
   window.lucide?.createIcons();
+
+  // Some page-shell transitions replace the header and detach its children.
+  // Keep the live bell attached and move it into the active header when available.
+  const keepBellMounted = () => {
+    if (!bell.isConnected) {
+      const slot = document.querySelector("#glass-notification-slot, .dashboard-topbar-actions, .hdr-header-actions");
+      (slot || document.body).append(bell);
+    }
+    if (!panel.isConnected) document.body.append(panel);
+    if (bell.isConnected && !bell.querySelector("svg") && window.lucide) window.lucide.createIcons();
+  };
+  const observer = new MutationObserver(() => {
+    keepBellMounted();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  window.addEventListener("pageshow", keepBellMounted);
+  window.addEventListener("apr:shell-ready", keepBellMounted);
+  requestAnimationFrame(keepBellMounted);
 }
 
 function notificationKey(item) {
