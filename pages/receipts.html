@@ -1101,6 +1101,44 @@ const totalPaid=o=>o.kind==="receipt"?Number(o.receiptAmount??calc(o).total):cal
 
 /* ---------- the document (invoice or receipt) ---------- */
 function docHTML(o){const t=calc(o),inv=o.kind==="invoice",isCreditNote=o.kind==="credit_note",isRefundReceipt=Boolean(o.creditRefundReceipt),balance=Math.max(0,t.total-Number(o.amountPaid||0)),customerCredit=Math.max(0,Number(o.amountPaid||0)-t.total),showSubtotal=inv||isCreditNote||Boolean(o.salesOrderId)||Boolean(o.invoicePaymentReceipt)||Boolean(o.jobCard);
+if(!inv&&!isCreditNote){
+ const received=Number(o.receiptAmount??o.jobPayment?.received??totalPaid(o))||0;
+ const remaining=Number(o.jobPayment?.balance??Math.max(0,t.total-totalPaid(o)))||0;
+ const paid=remaining<=0.005;
+ const currency=esc(o.currency||"USD");
+ const money=n=>currency+" "+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ return `<style>
+ .centric-payment-receipt{max-width:760px;margin:0 auto;padding:30px;background:#fff;color:#202a33;border:1px solid #d6dadd;border-radius:4px;font-family:Inter,Arial,sans-serif}
+ .centric-payment-receipt *{box-sizing:border-box}.centric-payment-receipt .cr-head{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:3px solid #b3392b;padding-bottom:18px}
+ .centric-payment-receipt .cr-brand{font-size:22px;font-weight:850;line-height:1.05}.centric-payment-receipt .cr-brand small{display:block;color:#b3392b;font-size:14px;margin-top:4px}
+ .centric-payment-receipt .cr-title{text-align:right;font-size:25px;font-weight:900;color:#b3392b;letter-spacing:.02em}
+ .centric-payment-receipt .cr-meta{display:flex;justify-content:space-between;gap:12px;margin:18px 0;padding:12px;background:#f0f1f2;border:1px solid #d6dadd}
+ .centric-payment-receipt .cr-meta span,.centric-payment-receipt .cr-block small{display:block;color:#626b73;font-size:11px;text-transform:uppercase;font-weight:750;letter-spacing:.06em}
+ .centric-payment-receipt .cr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.centric-payment-receipt .cr-block{border:1px solid #d6dadd;padding:13px;min-height:88px}
+ .centric-payment-receipt .cr-block strong{display:block;margin:6px 0;font-size:15px}.centric-payment-receipt .cr-amount{margin:18px 0;padding:18px;border:2px solid #b3392b;display:flex;align-items:center;justify-content:space-between;gap:12px}
+ .centric-payment-receipt .cr-amount strong{font-size:27px;color:#b3392b;font-variant-numeric:tabular-nums}
+ .centric-payment-receipt .cr-balance{display:flex;align-items:center;justify-content:space-between;font-weight:750;padding:10px 0;border-bottom:1px solid #d6dadd}
+ .centric-payment-receipt .cr-stamp{display:inline-block;border:3px double #b3392b;color:#b3392b;padding:5px 13px;font-size:17px;font-weight:950;letter-spacing:.08em;transform:rotate(-5deg)}
+ .centric-payment-receipt .cr-sign{width:45%;margin:36px 0 0;border-top:1px solid #202a33;padding-top:7px;font-size:11px;text-align:center}
+ .centric-payment-receipt .cr-foot{border-top:1px solid #b3392b;margin-top:20px;padding-top:10px;text-align:center;color:#626b73;font-size:11px}
+ @media(max-width:600px){.centric-payment-receipt{padding:16px}.centric-payment-receipt .cr-head{align-items:flex-start}.centric-payment-receipt .cr-title{font-size:18px}.centric-payment-receipt .cr-grid{grid-template-columns:1fr}.centric-payment-receipt .cr-amount strong{font-size:21px}}
+ @media print{.centric-payment-receipt{max-width:none;border:0;padding:8mm;border-radius:0}.centric-payment-receipt .cr-sign{margin-top:22px}}
+ </style>
+ <article class="centric-payment-receipt" aria-label="Payment receipt">
+  <header class="cr-head"><div class="cr-brand">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div><div class="cr-title">PAYMENT RECEIPT</div></header>
+  <div class="cr-meta"><div><span>Receipt number</span><strong>${esc(o.number||"—")}</strong></div><div style="text-align:right"><span>Date</span><strong>${dt(o.date)}</strong></div><div style="text-align:right"><span>Payment method</span><strong>${esc(o.paymentMethod||"Not recorded")}</strong></div></div>
+  <div class="cr-grid">
+   <section class="cr-block"><small>Received from</small><strong>${esc(o.customer?.company_name||o.customer?.name||"Walk-in customer")}</strong>${esc(o.customer?.phone||"")}</section>
+   <section class="cr-block"><small>Payment for</small><strong>${esc(o.ref||"Customer payment")}</strong>${o.jobCard?.checklistNumber?"Job card: "+esc(o.jobCard.checklistNumber):""}${o.paymentItemsLabel?" · "+esc(o.paymentItemsLabel):""}</section>
+  </div>
+  <div class="cr-amount"><b>Amount paid</b><strong>${money(received)}</strong></div>
+  <div class="cr-balance"><span>Balance remaining</span><span>${money(remaining)}</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span style="font-size:12px;color:#626b73">${o.voidedAt?"This receipt has been voided":paid?"Payment settled in full":"Part payment received"}</span><span class="cr-stamp">${o.voidedAt?"VOID":paid?"PAID":"PART PAID"}</span></div>
+  ${o.voidedAt?`<p><b>Void reason:</b> ${esc(o.voidReason||"Not provided")}</p>`:""}
+  <div class="cr-sign">Authorised signature</div>
+  <footer class="cr-foot">Centric Auto Mobile · ${esc(CO.email||"")}<br>Thank you for your business.</footer>
+ </article>`;
+}
 return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs · ${CO.email}</div></div>
 <div><h1>${inv?"INVOICE":isCreditNote?"CUSTOMER CREDIT NOTE":isRefundReceipt?"REFUND RECEIPT":"RECEIPT"}</h1><div style="text-align:right"><b>${esc(o.number)}</b><br>${dt(o.date)}</div></div></div>
 <div class="fiscal-warning">NOT FISCALISED THROUGH ZIMRA FDMS · NOT A FISCAL TAX DOCUMENT</div>
