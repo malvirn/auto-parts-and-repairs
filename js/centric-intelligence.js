@@ -32,7 +32,7 @@ async function loadIntelligence() {
   status("Refreshing live records from Centric Auto…");
   const [jobsResult, receiptsResult, partsResult, payablesResult, invoicesResult, expensesResult, voidedPayablesResult] = await Promise.all([
     supabase.from("repair_jobs").select("id,job_number,cro_number,status,created_at,completed_at,total_cost").order("created_at", { ascending:false }).limit(1500),
-    supabase.from("receipts").select("id,receipt_number,amount,issued_at,voided_at,void_reason,currency_code").order("issued_at", { ascending:false }).limit(3000),
+    supabase.from("receipts").select("id,receipt_number,amount,tender_amount,issued_at,voided_at,void_reason,currency_code").order("issued_at", { ascending:false }).limit(3000),
     supabase.from("parts").select("id,name,quantity_in_stock,minimum_stock").order("quantity_in_stock", { ascending:true }).limit(1000),
     supabase.from("payables").select("id,bill_number,due_date,amount,amount_paid,status,voided_at,suppliers(name)").neq("status","paid").is("voided_at",null).limit(1500),
     supabase.from("invoices").select("id,invoice_number,total,amount_paid,discount,subtotal,status,issued_at,due_date").order("issued_at", { ascending:false }).limit(2000),
@@ -54,7 +54,7 @@ async function loadIntelligence() {
   const voidedReceipts = receipts.filter(receipt => receipt.voided_at && dateInHarare(receipt.voided_at) >= daysAgo(30));
   const collectedByCurrency = recentReceipts.reduce((groups, receipt) => {
     const currency = String(receipt.currency_code || "USD").toUpperCase();
-    groups[currency] = (groups[currency] || 0) + Number(receipt.amount || 0);
+    groups[currency] = (groups[currency] || 0) + Number(receipt.tender_amount ?? receipt.amount ?? 0);
     return groups;
   }, {});
   const recentInvoices = invoices.filter(invoice => invoice.issued_at && dateInHarare(invoice.issued_at) >= daysAgo(30) && String(invoice.status || "").toLowerCase() !== "void");
