@@ -1,0 +1,1 @@
+revoke all privileges on table public.credit_voucher_lookup_limits from public, anon, authenticated;

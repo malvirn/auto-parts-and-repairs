@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>document.documentElement.style.visibility = "hidden";</script>
+  
+  <script src="../js/theme.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Centric Auto Mobile | Cash Book</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="../css/theme-tokens.css">
+<link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-5">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    #cashbook-table td:nth-child(3), #cashbook-table td:nth-child(4), #cashbook-table td:nth-child(5),
+    #petty-cash-table td:nth-child(3) {
+      text-align: right; font-variant-numeric: tabular-nums;
+    }
+    #cashbook-table th:nth-child(3), #cashbook-table th:nth-child(4), #cashbook-table th:nth-child(5),
+    #petty-cash-table th:nth-child(3) { text-align: right; }
+    .cash-in { color: var(--success, #2e7d4f); }
+    .cash-out { color: var(--danger, #b23b3b); }
+    .float-status { font-size: .82rem; margin-top: 6px; }
+    .float-status.low { color: var(--danger, #b23b3b); font-weight: 600; }
+    .float-status.ok { color: var(--success, #2e7d4f); }
+  </style>
+  <link rel="stylesheet" href="../css/mh-theme.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Auto Parts">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <script src="../js/pwa.js" defer></script>
+  <link rel="stylesheet" href="../css/repair-pages.css">
+
+
+
+
+  <link rel="stylesheet" href="../css/ui-consistency.css">
+
+
+  <link rel="stylesheet" href="../css/theme-background.css?v=20261116-bgfix1">
+<style id="dashboard-chrome-prepaint">
+body.dashboard-page:not(.dashboard-chrome-ready) .main__header,
+body.dashboard-page:not(.dashboard-chrome-ready) .app-header,
+body.dashboard-page:not(.dashboard-chrome-ready) .dashboard-topbar{visibility:hidden!important}
+body.dashboard-page .dashboard-topbar{height:68px;min-height:68px}
+body.dashboard-page .main{min-width:0}
+</style>
+  <link rel="stylesheet" href="../css/workshop-buttons.css?v=phase5">
+
+<style id="module-design-cashbook">
+
+/* Cash book: page-specific Centric surface design. Header and sidebar remain owned by the app shell. */
+body.dashboard-page.module-cashbook { --module-accent:var(--success); --module-glass:var(--surface); --module-edge:var(--border); --module-ink:var(--text); --module-muted:var(--muted); }
+:root[data-theme="light"] body.dashboard-page.module-cashbook { --module-glass:rgba(250,252,254,.84); --module-edge:rgba(255,255,255,.9); --module-ink:#172431; --module-muted:#5c6b79; }
+body.dashboard-page.module-cashbook .main { color:var(--module-ink); font-family:Inter,"Segoe UI",system-ui,sans-serif; }
+body.dashboard-page.module-cashbook .main .page-section { margin:0 0 22px; padding:clamp(14px,2vw,22px); border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(8,18,25,.18); }
+:root[data-theme="light"] body.dashboard-page.module-cashbook .main .page-section { background:rgba(255,255,255,.24); border-color:rgba(26,45,60,.08); }
+body.dashboard-page.module-cashbook .main :is(.section-heading,.page-intro) { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:15px; }
+body.dashboard-page.module-cashbook .main :is(.section-heading h1,.section-heading h2,.page-title,h1) { color:var(--module-ink); font-weight:750; letter-spacing:-.035em; }
+body.dashboard-page.module-cashbook .main .section-kicker { color:var(--module-accent); font-size:.7rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+body.dashboard-page.module-cashbook .main :is(.section-note,.muted,.empty-state,.help-text) { color:var(--module-muted); }
+body.dashboard-page.module-cashbook .main :is(.module-tabs,.panel,.cashbook-summary,.card-grid,.table-wrap,#cashbook-table) { background:linear-gradient(145deg,var(--module-glass),color-mix(in srgb,var(--module-glass) 72%,transparent)) !important; border:1px solid var(--module-edge) !important; border-radius:16px !important; box-shadow:0 14px 34px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.08) !important; color:var(--module-ink); -webkit-backdrop-filter:blur(18px) saturate(145%); backdrop-filter:blur(18px) saturate(145%); }
+body.dashboard-page.module-cashbook .main :is(table,thead,tbody,tfoot,tr) { background:transparent !important; }
+body.dashboard-page.module-cashbook .main :is(th,td) { border-color:var(--module-edge) !important; color:var(--module-ink); }
+body.dashboard-page.module-cashbook .main th { color:var(--module-muted); font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+body.dashboard-page.module-cashbook .main tbody tr:hover { background:color-mix(in srgb,var(--module-accent) 10%,transparent) !important; }
+body.dashboard-page.module-cashbook .main :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { background:rgba(3,13,20,.28) !important; border:1px solid var(--module-edge) !important; border-radius:10px; color:var(--module-ink) !important; min-height:40px; }
+:root[data-theme="light"] body.dashboard-page.module-cashbook .main :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { background:rgba(255,255,255,.78) !important; }
+body.dashboard-page.module-cashbook .main :is(input,textarea)::placeholder { color:var(--module-muted) !important; }
+body.dashboard-page.module-cashbook .main :is(button,.btn,[role="button"]) { border-radius:10px; }
+body.dashboard-page.module-cashbook .main :is(.btn--primary,.btn-primary,.button-primary,button[type=submit]) { background:linear-gradient(135deg,var(--module-accent),color-mix(in srgb,var(--module-accent) 72%,#182633)) !important; border-color:var(--module-accent) !important; color:#fff !important; box-shadow:0 7px 18px color-mix(in srgb,var(--module-accent) 22%,transparent); }
+body.dashboard-page.module-cashbook .main :is(.status-badge,.badge,.pill,.tag) { border-radius:999px; }
+body.dashboard-page.module-cashbook .main :is(.table-wrap,.table-container,.table-responsive) { overflow-x:auto; }
+@media(max-width:720px) {
+ body.dashboard-page.module-cashbook .main .page-section { padding:13px; border-radius:14px; margin-bottom:15px; }
+ body.dashboard-page.module-cashbook .main :is(.section-heading h1,.section-heading h2,.page-title,h1) { font-size:1.2rem; }
+ body.dashboard-page.module-cashbook .main :is(.module-tabs,.panel,.cashbook-summary,.card-grid,.table-wrap,#cashbook-table) { border-radius:13px !important; }
+}
+@media(prefers-reduced-motion:reduce) { body.dashboard-page.module-cashbook .main * { scroll-behavior:auto; } }
+
+</style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=4">
+  <link rel="stylesheet" href="../css/system-neumorphism.css?v=1">
+  <link rel="stylesheet" href="../css/glass-tiles.css?v=tiles-3">
+</head>
+<body class="dashboard-page system-page dashboard-workshop module-cashbook">
+  <div class="app-shell">
+  
+
+    <main class="main">
+      <div class="module-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+      <a href="accounting.html" class="btn"><i data-lucide="arrow-left"></i> All Modules</a>
+      <a href="ledger.html" class="btn"><i data-lucide="book-open-check"></i> Ledger</a>
+      <a href="payables.html" class="btn"><i data-lucide="banknote"></i> Payables</a>
+      <a href="cashbook.html" class="btn btn--primary"><i data-lucide="wallet"></i> Cash Book</a>
+      <a href="commissions.html" class="btn"><i data-lucide="percent"></i> Commissions</a>
+      <a href="landed-cost.html" class="btn"><i data-lucide="ship"></i> Landed Cost</a>
+      <a href="fixed-assets.html" class="btn"><i data-lucide="wrench"></i> Fixed Assets</a>
+      <a href="financial-statements.html" class="btn"><i data-lucide="file-bar-chart"></i> Statements</a>
+      </div>
+
+      
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Record a movement</p><h2><i class="section-heading-icon" data-lucide="arrow-left-right"></i>New Cash Transaction</h2></div><span class="section-note">For anything not already covered by Payables or Receipts</span></div>
+        <form id="cash-form" class="panel" style="padding:20px;">
+          <div class="form-grid" style="max-width:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="field"><label>Date</label><input type="date" id="cash-date" required /></div>
+            <div class="field"><label>Money movement</label>
+              <select id="cash-direction">
+                <option value="in">Money In</option>
+                <option value="out">Money Out</option>
+              </select>
+            </div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="cash-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Cash / Bank Account</label><select id="cash-account" required></select></div>
+            <div class="field"><label>Category or other account</label><select id="cash-contra-account" required></select></div>
+            <div class="field"><label>Description</label><input type="text" id="cash-description" placeholder="e.g. Bank deposit, owner drawing" required /></div>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-top:10px;"><i data-lucide="plus"></i> Post Transaction</button>
+          <p id="cash-form-message" class="form-message"></p>
+        </form>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading">
+          <div><p class="section-kicker">Zimbabwe business date</p><h2><i class="section-heading-icon" data-lucide="calendar-days"></i>Daily Cash Activity</h2></div>
+          <label for="float-date">Business date <input type="date" id="float-date" style="min-height:38px;" /></label>
+        </div>
+        <p style="color:var(--text-muted); font-size:.85rem; margin-bottom:10px;">The selected date filters the cash book, cash drawer, petty-cash activity and reconciliation. Quotation deposits appear as cash/bank receipts, while credit refunds appear as cash/bank payments. Both are posted automatically through the ledger. All dates use Africa/Harare (Zimbabwe) time.</p>
+        <div class="card-grid" id="daily-float-summary"></div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading">
+          <div><p class="section-kicker">Allocated ledger movements</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Cash Book</h2></div>
+          <select id="cashbook-filter" style="min-height:38px;">
+            <option value="all">Cash on Hand + Bank + EcoCash</option>
+            <option value="1000">Cash on Hand only</option>
+            <option value="1010">Bank Account only</option>
+            <option value="1020">EcoCash only</option>
+          </select>
+        </div>
+        <div class="card-grid" id="cashbook-summary"></div>
+        <div class="panel">
+          <table id="cashbook-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Money In</th><th>Money Out</th><th>Running Balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section" id="customer-balances-section">
+        <div class="section-heading"><div><p class="section-kicker">Customer liabilities</p><h2><i class="section-heading-icon" data-lucide="users"></i>Customer Balances We Owe</h2></div></div>
+        <p class="section-note">Money held for customers, including quotation deposits and invoice overpayments. These balances are liabilities, not workshop income.</p>
+        <div class="card-grid" id="customer-balances-summary"></div>
+        <div class="panel">
+          <table id="customer-balances-table">
+            <thead><tr><th>Customer</th><th>Source / Reference</th><th>Date</th><th>Amount owed</th></tr></thead>
+            <tbody><tr><td colspan="4" class="empty-state">Loading customer balances…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Physical cash drawer</p><h2><i class="section-heading-icon" data-lucide="banknote"></i>Cash Drawer · Selected Day</h2></div></div>
+        <div class="card-grid" id="cash-drawer-summary"></div>
+        <div class="panel">
+          <table id="cash-drawer-table">
+            <thead><tr><th>Time (Zimbabwe)</th><th>Transaction</th><th>Money In</th><th>Money Out</th><th>Drawer Balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state">Select a business date.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">End-of-day control</p><h2><i class="section-heading-icon" data-lucide="clipboard-check"></i>Cash Reconciliation</h2></div></div>
+        <div class="panel" style="padding:18px;">
+          <p class="section-note">Expected drawer cash includes the opening balance, cash receipts, and cash paid out for the selected Zimbabwe business date.</p>
+          <div class="form-grid" style="max-width:none;grid-template-columns:repeat(3,minmax(0,1fr));">
+            <div class="field"><label>Expected drawer cash</label><output id="reconciliation-expected">$0.00</output></div>
+            <div class="field"><label for="reconciliation-counted">Actual cash counted ($)</label><input id="reconciliation-counted" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter counted total"></div>
+            <div class="field"><label for="reconciliation-notes">Notes (optional)</label><input id="reconciliation-notes" type="text" maxlength="500" placeholder="Explain any overage or shortage"></div>
+          </div>
+          <button type="button" class="btn btn--primary" id="reconciliation-save"><i data-lucide="save"></i> Save daily reconciliation</button>
+          <p id="reconciliation-message" class="form-message" role="status" aria-live="polite"></p>
+          <div id="reconciliation-history" aria-live="polite"></div>
+          <button type="button" class="btn" id="generate-daily-summary" style="margin-top:12px;"><i data-lucide="file-text"></i> Generate Summary</button>
+          <pre id="daily-summary-output" class="panel" style="margin-top:12px;white-space:pre-wrap;display:none;"></pre>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Small day-to-day spend</p><h2><i class="section-heading-icon" data-lucide="coins"></i>Petty Cash</h2></div></div>
+        <div class="card-grid">
+          <div class="stat-card">
+            <div class="stat-card__label">Current Float</div>
+            <div class="stat-card__value" id="petty-cash-balance">—</div>
+            <div class="float-status" id="petty-cash-status"></div>
+          </div>
+        </div>
+
+        <div class="analytics-grid" style="grid-template-columns: 1fr 1fr; margin-top:16px;">
+          <form id="petty-expense-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem; margin-bottom:10px;">Log an Expense</h3>
+            <div class="field"><label>Date</label><input type="date" id="pe-date" required /></div>
+            <div class="field"><label>What for</label><input type="text" id="pe-description" placeholder="e.g. Fuel for parts run" required /></div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="pe-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Expense Account</label><select id="pe-account" required></select></div>
+            <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="minus"></i> Log Expense</button>
+            <p id="pe-form-message" class="form-message"></p>
+          </form>
+
+          <form id="petty-topup-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem; margin-bottom:10px;">Top Up Float</h3>
+            <div class="field"><label>Date</label><input type="date" id="pt-date" required /></div>
+            <div class="field"><label>Amount ($)</label><input type="number" id="pt-amount" step="0.01" min="0.01" required /></div>
+            <div class="field"><label>Money supplied by</label><input type="text" id="pt-supplier" maxlength="120" required placeholder="Person or organization"></div>
+            <div class="field"><label>Issuing account / source</label><select id="pt-account" required></select></div>
+            <button type="submit" class="btn btn--primary" style="margin-top:8px;"><i data-lucide="plus"></i> Top Up</button>
+            <p id="pt-form-message" class="form-message"></p>
+          </form>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <table id="petty-cash-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+            <tbody><tr><td colspan="3" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-section">
+        <div class="section-heading"><div><p class="section-kicker">Staff cash advances</p><h2><i class="section-heading-icon" data-lucide="hand-coins"></i>Advanced Cash Balances</h2></div></div>
+        <div class="card-grid" id="staff-advances-summary"></div>
+        <div class="analytics-grid" style="grid-template-columns:1fr 1fr;margin-top:16px;">
+          <form id="staff-advance-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem;margin-bottom:10px;">Issue a cash advance</h3>
+            <div class="field"><label for="staff-advance-name">Staff member</label><input id="staff-advance-name" type="text" maxlength="120" required placeholder="Staff member name"></div>
+            <div class="field"><label for="staff-advance-date">Date</label><input id="staff-advance-date" type="date" required></div>
+            <div class="field"><label for="staff-advance-amount">Amount ($)</label><input id="staff-advance-amount" type="number" min="0.01" step="0.01" required></div>
+            <button type="submit" class="btn btn--primary"><i data-lucide="hand-coins"></i> Issue advance</button>
+            <p id="staff-advance-message" class="form-message" role="status"></p>
+          </form>
+          <form id="staff-advance-repayment-form" class="panel" style="padding:18px;">
+            <h3 style="font-size:.85rem;margin-bottom:10px;">Record repayment</h3>
+            <div class="field"><label for="staff-advance-repayment-id">Advance to repay</label><select id="staff-advance-repayment-id" required></select></div>
+            <div class="field"><label for="staff-advance-repayment-date">Date</label><input id="staff-advance-repayment-date" type="date" required></div>
+            <div class="field"><label for="staff-advance-repayment-amount">Amount ($)</label><input id="staff-advance-repayment-amount" type="number" min="0.01" step="0.01" required></div>
+            <button type="submit" class="btn"><i data-lucide="corner-down-left"></i> Record repayment</button>
+            <p id="staff-advance-repayment-message" class="form-message" role="status"></p>
+          </form>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <table id="staff-advances-table">
+            <thead><tr><th>Staff member</th><th>Date issued</th><th>Advanced</th><th>Repaid</th><th>Outstanding balance</th></tr></thead>
+            <tbody><tr><td colspan="5" class="empty-state">Loading staff advances…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/notifications.js"></script>
+  <script type="module" src="../js/cashbook.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", () => { if (window.lucide) lucide.createIcons(); });</script>
+  <script type="module" src="../js/repair-pages-navigation.js?v=shared-header-phase2"></script>
+  <script type="module" src="../js/dashboard-search.js"></script>
+  <script type="module" src="../js/phone-inputs.js"></script>
+<script defer src="../js/progressive-lists.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+/* Centric Auto Mobile shared photographic background.
+   Keep one continuous image behind every module and both colour themes. */
+:root {
+  --cam-bg-image: url("../assets/night-sky.webp");
+  --cam-bg-wash: rgba(5, 7, 13, .10);
+}
+:root[data-theme="light"] {
+  --cam-bg-wash: rgba(238, 242, 248, .88);
+}
+html {
+  min-height: 100%;
+  background-color: #05070d !important;
+  background-image: linear-gradient(var(--cam-bg-wash), var(--cam-bg-wash)), var(--cam-bg-image) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+body {
+  position: relative;
+  min-height: 100vh;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+/* Prevent page-level wrappers from painting an opaque sheet over the image. */
+body.dashboard-page,
+body.dashboard-page .app-shell,
+body.dashboard-page .main,
+body.dashboard-page .main-content,
+body.dashboard-page .page-content,
+body.dashboard-page .dash-content,
+body.dashboard-page .dashboard-content {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+/* Glass content surfaces. Keep these inside the page content, not the chrome. */
+body.dashboard-page .main :is(
+  .card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,
+  .table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,
+  .repair-card,.repair-panel,.job-card-panel,.job-card-modal,.modal-content,
+  .modal-card,.modal-dialog,.quotation-modal,.quick-sale-popup,.quick-sale-modal,
+  .lane,.job-card,.jc,.ci-card,.ci-panel,.chart-card,.report-card,.module-card,
+  .settings-card,.stock-summary-card,.summary-card,.info-card,.metric-card,
+  .kpi-card,.activity-card,.dashboard-card,.insight-card,.inventory-card,
+  .dashboard-table-panel,.alert-card,.dept-card,.payroll-banner,
+  .objective-card,.gauge-card,.form-grid.panel,form.panel
+) {
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+}
+/* Home dashboard surfaces use the same glass treatment. */
+body.dashboard-home .dash-content :is(
+  .panel,.stat-card,.objective-card,.chart-card,.report-card,.metric-card,
+  .activity-card,.insight-card,.inventory-card
+) {
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+}
+/* Shared header and navigation remain legible while allowing the photo to show through. */
+body.dashboard-page :is(.main__header,.dashboard-topbar,.app-header,.hdr,.header,.topbar) {
+  background: rgba(16, 29, 32, .48) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(155%);
+  backdrop-filter: blur(20px) saturate(155%);
+}
+body.dashboard-page .sidebar {
+  background: linear-gradient(180deg, rgba(13,27,29,.78), rgba(8,18,20,.72)) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+}
+:root[data-theme="light"] body.dashboard-page :is(.main__header,.dashboard-topbar,.app-header,.hdr,.header,.topbar) {
+  background: rgba(247,250,252,.62) !important;
+  border-color: rgba(24,33,43,.12) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar {
+  background: linear-gradient(180deg, rgba(245,248,250,.88), rgba(230,237,241,.82)) !important;
+  border-color: rgba(24,33,43,.12) !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-link {
+  color: #253342 !important;
+}
+:root[data-theme="light"] body.dashboard-page .sidebar .nav-grp {
+  color: #526171 !important;
+}
+body.login-page .sync {
+  background: rgba(5, 8, 10, .72);
+}
+@media (max-width: 720px) {
+  html { background-attachment: scroll !important; }
+}
+@media print {
+  html, body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+}
+
+
+/* Universal module background fallback.
+   Do not depend on the JavaScript shell class: every dashboard module gets
+   the same workshop image even if the shell mounts late or a legacy page
+   uses a different wrapper. */
+body.dashboard-page {
+  isolation: isolate;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body.dashboard-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--cam-bg-wash), var(--cam-bg-wash)),
+    var(--cam-bg-image);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+body.dashboard-page > .app-shell,
+body.dashboard-page .app-shell,
+body.dashboard-page .main,
+body.dashboard-page .main-content,
+body.dashboard-page .page-content,
+body.dashboard-page .dash-content,
+body.dashboard-page .dashboard-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+body.dashboard-page > .app-shell {
+  position: relative;
+  z-index: 1;
+}

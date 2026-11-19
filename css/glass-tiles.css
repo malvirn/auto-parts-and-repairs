@@ -1,0 +1,78 @@
+/* Glass tiles: blurred image backgrounds for buttons inside system modules only.
+   Sidebar, bottom bar and the dashboard home are intentionally NOT styled. Presentation only.
+   Images live in /assets/tiles/. */
+:root{
+  --tile-customers:url("../assets/tiles/customers.webp");
+  --tile-credits:url("../assets/tiles/credits.webp");
+  --tile-debt:url("../assets/tiles/debt.webp");
+  --tile-veil:rgba(4,12,10,.52);
+  --tile-veil-active:rgba(4,12,10,.18);
+  --tile-border:rgba(255,255,255,.14);
+}
+:root[data-theme="light"]{--tile-veil:rgba(255,255,255,.66);--tile-veil-active:rgba(255,255,255,.28);--tile-border:rgba(20,40,35,.16)}
+
+/* Checkbox-like toggle buttons (filter chips, tabs) inside module content: calm image off, emerald glow on */
+main.main .cs-chip,main.main .rc-tabs .seg,main.main [role="tab"].seg{
+  --tile:var(--tile-customers);
+  background-color:transparent!important;
+  background-image:linear-gradient(var(--tile-veil),var(--tile-veil)),var(--tile)!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  border:1px solid var(--tile-border)!important;
+  -webkit-backdrop-filter:blur(6px) saturate(130%);backdrop-filter:blur(6px) saturate(130%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.45);
+}
+:root[data-theme="light"] main.main .cs-chip,:root[data-theme="light"] main.main .rc-tabs .seg,:root[data-theme="light"] main.main [role="tab"].seg{text-shadow:none}
+main.main .cs-chip:hover,main.main .rc-tabs .seg:hover,main.main [role="tab"].seg:hover{
+  background-image:linear-gradient(rgba(4,12,10,.30),rgba(4,12,10,.30)),var(--tile)!important;
+}
+main.main .cs-chip[aria-pressed="true"],main.main .rc-tabs .seg[aria-pressed="true"],main.main .rc-tabs .seg[aria-selected="true"],main.main [role="tab"].seg[aria-selected="true"]{
+  --tile:var(--tile-credits);
+  background-image:linear-gradient(var(--tile-veil-active),var(--tile-veil-active)),var(--tile)!important;
+  border-color:rgba(52,211,153,.75)!important;
+  box-shadow:inset 0 0 0 1px rgba(52,211,153,.55),0 0 14px rgba(52,211,153,.28)!important;
+  color:#fff!important;
+}
+@media (prefers-reduced-motion:no-preference){
+  main.main .cs-chip,main.main .rc-tabs .seg{transition:background-image .2s,border-color .2s,box-shadow .2s}
+}
+@media print{main.main .cs-chip,main.main .rc-tabs .seg{background-image:none!important;backdrop-filter:none}}
+
+/* ---- All module buttons (.btn and variants): normal = calm image, primary = emerald glow, danger = amber/red ---- */
+body.dashboard-workshop:not(.module-home) :is(.btn,.pane-btn):not(.glass-nav *):not(.ftbar *){
+  --tile:var(--tile-customers);
+  color:#f4faf7!important;
+  background-color:transparent!important;
+  background-image:linear-gradient(var(--tile-veil),var(--tile-veil)),var(--tile)!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  border:1px solid var(--tile-border)!important;border-radius:10px!important;
+  -webkit-backdrop-filter:blur(6px) saturate(130%);backdrop-filter:blur(6px) saturate(130%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.45)!important;font-weight:650;
+  transition:filter .15s,border-color .15s,box-shadow .15s,transform .1s;
+}
+:root[data-theme="light"] body.dashboard-workshop:not(.module-home) :is(.btn,.pane-btn):not(.glass-nav *):not(.ftbar *){color:#14221e!important;text-shadow:none!important}
+body.dashboard-workshop:not(.module-home) :is(.btn,.pane-btn):not(.glass-nav *):not(.ftbar *):hover{filter:brightness(1.12);transform:none}
+body.dashboard-workshop:not(.module-home) :is(.btn,.pane-btn):not(.glass-nav *):not(.ftbar *):active{transform:translateY(1px);filter:brightness(.95)}
+body.dashboard-workshop:not(.module-home) :is(.btn,.pane-btn):not(.glass-nav *):not(.ftbar *):disabled{opacity:.5;filter:saturate(.5);cursor:not-allowed}
+
+/* Primary: emerald glow */
+body.dashboard-workshop:not(.module-home) :is(.btn--primary,.quotation-btn--primary,.quotation-btn--success,.pos-submit,.btn--button-7,[data-button-style="primary"]):not(.btn--danger):not(.glass-nav *):not(.ftbar *){
+  --tile:var(--tile-credits);
+  color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.5)!important;
+  background-image:linear-gradient(var(--tile-veil-active),var(--tile-veil-active)),var(--tile)!important;
+  border-color:rgba(52,211,153,.75)!important;
+  box-shadow:inset 0 0 0 1px rgba(52,211,153,.45),0 0 12px rgba(52,211,153,.25)!important;
+}
+:root[data-theme="light"] body.dashboard-workshop:not(.module-home) :is(.btn--primary,.quotation-btn--primary,.quotation-btn--success,.pos-submit,.btn--button-7,[data-button-style="primary"]):not(.btn--danger):not(.glass-nav *):not(.ftbar *){
+  background-image:linear-gradient(rgba(4,12,10,.34),rgba(4,12,10,.34)),var(--tile)!important}
+
+/* Danger / delete / void: amber-red */
+body.dashboard-workshop:not(.module-home) :is(.btn--danger,.btn-danger,.btn--button-7-danger,.rc-delete,.rc-void-action,.requires-super-admin-delete,[data-action="void"],[data-action="delete"],[data-action="cancel"],#receipt-void-confirm):not(.glass-nav *):not(.ftbar *){
+  --tile:var(--tile-debt);
+  color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.5)!important;
+  background-image:linear-gradient(rgba(30,6,4,.38),rgba(30,6,4,.38)),var(--tile)!important;
+  border-color:rgba(248,113,113,.7)!important;
+  box-shadow:inset 0 0 0 1px rgba(248,113,113,.4),0 0 12px rgba(239,68,68,.25)!important;
+}
+@media print{body.dashboard-workshop :is(.btn,.pane-btn){background-image:none!important;backdrop-filter:none}}

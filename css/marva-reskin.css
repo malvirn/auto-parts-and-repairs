@@ -1,0 +1,1705 @@
+/* Marva Technologies visual reskin for Auto Parts & Repairs.
+   Presentation only. Existing markup, IDs, data attributes and JavaScript hooks stay intact. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap');
+
+:root {
+  color-scheme: dark;
+  --background: #0A0A0A;
+  --surface: #141414;
+  --text: #F5F5F5;
+  --muted: #A3A3A3;
+  --border: rgba(255,255,255,.14);
+  --accent: #E8E2D9;
+  --accent-rgb: 232,226,217;
+  --header-bg: rgba(10,10,10,.55);
+  --header-solid: rgba(10,10,10,.85);
+  --soft: rgba(255,255,255,.06);
+  --pure: #fff;
+  --pure-inv: #000;
+  --deep: #08090b;
+  --ink-rgb: 255,255,255;
+  --shade-rgb: 0,0,0;
+  --bg-rgb: 10,10,10;
+
+  /* Compatibility aliases used by the existing application styles. */
+  --bg: var(--background);
+  --surface-2: #1C1C1C;
+  --surface-alt: var(--surface);
+  --line: var(--border);
+  --text-muted: var(--muted);
+  --text-faint: var(--muted);
+  --text-link: var(--accent);
+  --input-bg: #101010;
+  --input-text: var(--text);
+  --placeholder: var(--muted);
+  --ok: #A3A3A3;
+  --warn: #C9BBA8;
+  --success: #568A70;
+  --success-rgb: 86,138,112;
+  --warning: #B18A55;
+  --warning-rgb: 177,138,85;
+  --danger: #B96C68;
+  --danger-rgb: 185,108,104;
+  --font: "Inter", Arial, sans-serif;
+  --font-body: "Inter", Arial, sans-serif;
+  --font-heading: "Sora", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --cam-content-font: "Inter", Arial, sans-serif;
+  --cam-content-heading: "Sora", Arial, sans-serif;
+  --cam-content-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --cam-content-text: var(--text);
+  --cam-content-muted: var(--muted);
+  --cam-content-line: var(--border);
+  --cam-content-glass-a: var(--surface);
+  --cam-content-glass-b: var(--surface);
+  --cam-content-glass-edge: var(--border);
+  --cam-content-shadow: none;
+  --cam-content-control: var(--input-bg);
+  --cam-content-hover: var(--soft);
+  --cam-glass-blur: 0px;
+  --cam-glass-shadow: none;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 18px;
+  --shadow: 0 8px 30px rgba(0,0,0,.22);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --background: #F6F4EF;
+  --surface: #FFFFFF;
+  --text: #0E1116;
+  --muted: #5A606B;
+  --border: rgba(14,17,22,.14);
+  --accent: #7A5230;
+  --accent-rgb: 122,82,48;
+  --header-bg: rgba(246,244,239,.7);
+  --header-solid: rgba(246,244,239,.9);
+  --soft: rgba(14,17,22,.05);
+  --pure: #000;
+  --pure-inv: #fff;
+  --deep: #ECE8E0;
+  --ink-rgb: 14,17,22;
+  --shade-rgb: 40,50,80;
+  --bg-rgb: 246,244,239;
+  --bg: var(--background);
+  --surface-2: #F2F0EB;
+  --surface-alt: var(--surface);
+  --line: var(--border);
+  --text-muted: var(--muted);
+  --text-faint: var(--muted);
+  --text-link: var(--accent);
+  --input-bg: #FFFFFF;
+  --input-text: var(--text);
+  --placeholder: var(--muted);
+  --ok: #5A606B;
+  --warn: #8A684B;
+  --success: #477A60;
+  --success-rgb: 71,122,96;
+  --warning: #8A684B;
+  --warning-rgb: 138,104,75;
+  --danger: #A34F47;
+  --danger-rgb: 163,79,71;
+  --cam-content-text: var(--text);
+  --cam-content-muted: var(--muted);
+  --cam-content-line: var(--border);
+  --cam-content-glass-a: var(--surface);
+  --cam-content-glass-b: var(--surface);
+  --cam-content-glass-edge: var(--border);
+  --cam-content-control: var(--input-bg);
+  --cam-content-hover: var(--soft);
+  --cam-glass-blur: 0px;
+  --cam-glass-shadow: none;
+  --shadow: 0 8px 30px rgba(40,50,80,.08);
+}
+
+/* Global motion removal. No visual movement on hover, focus, load or scroll. */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+  caret-color: auto;
+}
+
+html, body {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body, body.dashboard-page, body.system-page {
+  --bg: var(--background) !important;
+  --line: var(--border) !important;
+  --text-muted: var(--muted) !important;
+  --green: var(--success) !important;
+  --green-bright: var(--success) !important;
+  --orange: var(--warning) !important;
+  --grey: var(--muted) !important;
+  --cam-green: var(--success) !important;
+  --cam-green-deep: var(--success) !important;
+  --cam-orange: var(--warning) !important;
+  --cam-border: var(--border) !important;
+  --cam-surface: var(--surface) !important;
+  --cam-surface-2: var(--surface-2) !important;
+  --cam-text: var(--text) !important;
+  --cam-muted: var(--muted) !important;
+  --font: "Inter", Arial, sans-serif !important;
+  --font-body: "Inter", Arial, sans-serif !important;
+  --font-heading: "Sora", Arial, sans-serif !important;
+  background-color: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-heading h2,.stat-value,.stat-card__value,.kpi-value,.hdr-name) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+  letter-spacing: -.025em;
+}
+body :is(p,li,td,th,label,legend,small,button,input,select,textarea,a,span,div) {
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body :is(.muted,.text-muted,.section-note,.help-text,.form-hint,.field-hint,small,.hdr-sub,.hdr-hello) {
+  color: var(--muted);
+}
+body a { color: inherit; }
+body :is(hr,.divider,.table-divider) { border-color: var(--border) !important; }
+
+/* Shared Marva floating header treatment, preserving the app's existing controls. */
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead,.main__header.app-header) {
+  position: sticky;
+  top: 10px;
+  z-index: 1200;
+  min-height: 66px;
+  margin: 10px 10px 22px;
+  padding: 8px 16px;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--header-bg) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead).scrolled {
+  background: var(--header-solid) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(a,button,span,strong,small,p) {
+  color: var(--text);
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.hdr-name,.glass-brand-name,#dashboard-greeting) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.hdr-sub,.hdr-hello,#dashboard-date,.glass-search kbd) {
+  color: var(--muted) !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(button,.dashboard-toolbar-button,.glass-icon-button,#global-notif-bell,.theme-toggle,.hdr-more) {
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(svg,i) {
+  color: currentColor;
+  stroke: currentColor;
+}
+body.dashboard-page :is(.glass-search,.hs-bar,#hs-input) {
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page :is(.glass-search,.hs-bar) input {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-search,.hs-bar) input::placeholder { color: var(--muted) !important; }
+
+/* Sidebar remains a sidebar. Its visual language follows Marva's surfaces and type. */
+body.dashboard-page :is(.glass-sidebar,.sidebar) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(a,button,span,strong,small,p,h1,h2,h3,h4) {
+  font-family: "Inter", Arial, sans-serif !important;
+  color: var(--text);
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(.glass-brand-name,.sidebar__brand) {
+  font-family: "Sora", Arial, sans-serif !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-nav-heading,.nav-grp,.glass-profile-copy small,.sidebar .nav-grp) {
+  color: var(--muted) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body.dashboard-page :is(.glass-nav-link,.sidebar .nav-link,.nav-link) {
+  min-height: 42px;
+  margin: 2px 8px;
+  padding: 10px 12px;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 500 14px/1.35 "Inter", Arial, sans-serif !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-page :is(.glass-nav-link,.sidebar .nav-link,.nav-link):hover {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+}
+body.dashboard-page :is(.glass-nav-link.is-active,.sidebar .nav-link.active,.nav-link.active) {
+  background: var(--soft) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+body.dashboard-page :is(.glass-nav-link.is-active,.sidebar .nav-link.active)::before {
+  background: var(--accent) !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(.glass-sidebar-brand,.sidebar__brand) {
+  border-bottom: 1px solid var(--border) !important;
+}
+body.dashboard-page :is(.glass-sidebar,.sidebar) :is(img,.brand-logo) {
+  box-shadow: none !important;
+}
+
+/* Consistent flat Marva surfaces, no gradients or glass cards. */
+body :is(.card,.stat-card,.objective-card,.panel,.panel-card,.content-card,.section-card,.form-card,
+.table-container,.table-wrap,.table-responsive,.settings-welcome,.sg,.repair-card,.repair-panel,
+.job-card-panel,.job-card-modal,.modal-content,.modal-card,.modal-dialog,.quotation-modal,
+.quick-sale-popup,.quick-sale-modal,.lane,.job-card,.jc,.ci-card,.ci-panel,.chart-card,
+.report-card,.module-card,.settings-card,.stock-summary-card,.summary-card,.info-card,
+.metric-card,.kpi-card,.activity-card,.dashboard-card,.insight-card,.inventory-card,
+.rc,.rc-tabs,.rc-stats,.rc-form,.rc-build,.st,.jm-grid,.jc-wrap,.jc-left,.jc-right,
+.pos-catalogue,.pos-cart-panel,.pos-payment-panel,.payroll-banner,.payroll-table-wrap,
+.inspection-diagram-panel,.inspection-side-panel,.inspection-summary,.customer-account-summary,
+.customer-account-stat,.payment-summary,.landed-summary,.online-search-panel,.parts-filter-panel,
+.alert-card,.dashboard-table-panel,.settings-card) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.modal-content,.modal-card,.modal-dialog,.quotation-modal) :is(h1,h2,h3,h4,h5,h6,p,span,label,small,strong,td,th,li) {
+  color: var(--text);
+}
+body :is(.card,.stat-card,.panel,.panel-card,.content-card,.section-card,.form-card,.modal-content,.modal-card,.modal-dialog,.quotation-modal) :is(.muted,.text-muted,.section-note,small) {
+  color: var(--muted);
+}
+body :is(.page-section,.dashboard-section,.dash-content,.main,.app-shell) {
+  background: transparent !important;
+  color: var(--text);
+}
+body :is(.hero,.hero-bg,.dashboard-hero,.dashboard-hero::before) {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+body.dashboard-page .main { font-family: "Inter", Arial, sans-serif !important; }
+body.dashboard-page .main :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.section-heading h2,.stat-value,.stat-card__value,.kpi-value) {
+  font-family: "Sora", Arial, sans-serif !important;
+}
+
+/* Inputs, selects and textareas. */
+body :is(input:not([type=checkbox]):not([type=radio]),select,textarea,.form-control,.form-select) {
+  min-height: 40px;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  font: 400 14px/1.4 "Inter", Arial, sans-serif !important;
+  box-shadow: none !important;
+}
+body :is(input,textarea)::placeholder { color: var(--placeholder) !important; opacity: 1; }
+body :is(input,select,textarea):focus {
+  border-color: var(--accent) !important;
+  outline: 2px solid color-mix(in srgb,var(--accent) 22%,transparent) !important;
+  outline-offset: 1px;
+  box-shadow: none !important;
+}
+
+/* Marva button treatment without overriding compact controls or layout transforms. */
+body :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):not(.pos-keypad button):not(.pos-key):not(.keypad-key):not(.qty-step):not(.stepper-btn):not(.quotation-qty-step):not(.icon-btn):not(.btn-icon):not(.table-icon-btn):not(.table-action-icon) {
+  border:1px solid var(--border)!important;
+  background:var(--surface)!important;
+  background-image:none!important;
+  color:var(--text)!important;
+  font:600 13px/1.2 "Inter",Arial,sans-serif!important;
+  text-shadow:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+body :is(button,.btn,a.btn,[role="button"],input[type="button"],input[type="submit"]):not(.pos-keypad button):not(.pos-key):not(.keypad-key):not(.qty-step):not(.stepper-btn):not(.quotation-qty-step):not(.icon-btn):not(.btn-icon):not(.table-icon-btn):not(.table-action-icon):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:var(--soft)!important;
+  border-color:var(--border)!important;
+  color:var(--text)!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+body :is(.btn:not(.btn-sm):not(.btn-icon):not(.icon-btn):not(.quotation-qty-step):not(.qty-step):not(.stepper-btn):not(.keypad-key):not(.pos-key):not(.table-icon-btn):not(.table-action-icon):not(.pos-keypad button),a.btn:not(.btn-sm):not(.btn-icon):not(.icon-btn):not(.table-icon-btn):not(.table-action-icon),button[type="submit"]:not(.pos-keypad button):not(.keypad-key):not(.table-icon-btn):not(.table-action-icon)) {
+  border-radius:999px!important;
+}
+body :is(.btn--primary,.btn-primary,.button-primary,.btn.primary,[data-variant="primary"],button[type="submit"]) {
+  background:var(--text)!important;border-color:var(--text)!important;color:var(--background)!important;
+}
+body :is(.btn--success,.btn-success,[data-variant="success"]) {
+  color:var(--success)!important;border-color:color-mix(in srgb,var(--success) 45%,var(--border))!important;
+  background:color-mix(in srgb,var(--success) 12%,var(--surface))!important;
+}
+body :is(.btn--warning,.btn-warning,[data-variant="warning"]) {
+  color:var(--warning)!important;border-color:color-mix(in srgb,var(--warning) 45%,var(--border))!important;
+  background:color-mix(in srgb,var(--warning) 12%,var(--surface))!important;
+}
+body :is(.btn--danger,.btn-danger,.button-danger,.btn--delete,.delete-btn,[data-variant="danger"],[data-action*="delete"]) {
+  color:var(--danger)!important;border-color:color-mix(in srgb,var(--danger) 55%,var(--border))!important;
+  background:color-mix(in srgb,var(--danger) 16%,var(--surface))!important;
+}
+body :is(button,.btn,[role="button"]):disabled,body :is(button,.btn,[role="button"])[aria-disabled="true"] {
+  opacity:.45!important;cursor:not-allowed!important;box-shadow:none!important;
+}
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner,.sync-go i,.sync-step[data-state="active"] .sync-ico) {
+  animation:marva-spinner .8s linear infinite!important;
+}
+@keyframes marva-spinner { to { transform:rotate(360deg); } }
+
+/* Tables, tabs, badges, menus, dialogs and notifications. */
+body table { border-collapse: collapse; color: var(--text); font-variant-numeric: tabular-nums; }
+body :is(th,td) { border-color: var(--border) !important; }
+body th {
+  color: var(--muted) !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+body tbody tr:hover { background: var(--soft) !important; }
+body :is(.badge,.pill,.status-badge,.type-badge,.tag,.chip,.filter-chip) {
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,
+.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel,
+.modal,.modal-content,.modal-card,.modal-dialog,.dialog,.toast,.toast-container) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body :is(.dropdown-menu,.dropdown-content,.popover,.popover-content,.hdr-menu,.hs-panel,
+.global-search__results,.glass-profile-menu,.notification-panel,#global-notif-panel) :is(a,button,span,p,small,strong,label) {
+  color: var(--text);
+}
+
+/* Login and customer portal share the same typography, palette and restrained panels. */
+body:is(.login-page,.portal-page,.auth-page) {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(h1,h2,h3,h4,.brand-title,.login-title,.portal-title) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(.login-card,.login-panel,.auth-card,.portal-card,.portal-panel,.login-container,.portal-container) {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(input,select,textarea) {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border) !important;
+}
+body:is(.login-page,.portal-page,.auth-page) :is(button,.btn,[role="button"]) {
+  border-radius: 999px !important;
+}
+
+/* Printed quotations and receipts retain the original main-branch styles. */
+@media (max-width: 900px) {
+  body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) {
+    top: 8px;
+    margin: 8px 8px 18px;
+    min-height: 58px;
+    padding: 6px 10px;
+  }
+}
+
+
+/* Customer repair portal uses portal-shell rather than a body theme class. */
+body:has(.portal-shell) {
+  background: var(--background) !important;
+  color: var(--text) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body:has(.portal-shell) :is(.portal-shell,.portal-hero,.portal-panel,.portal-result,.portal-card) {
+  background: var(--surface) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body:has(.portal-shell) :is(h1,h2,h3,.portal-title) {
+  font-family: "Sora", Arial, sans-serif !important;
+  color: var(--text) !important;
+}
+body:has(.portal-shell) :is(p,span,label,small) { color: var(--muted); }
+body:has(.portal-shell) input {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--border) !important;
+}
+body:has(.portal-shell) .portal-button {
+  background: var(--text) !important;
+  color: var(--background) !important;
+  border-color: var(--text) !important;
+}
+
+
+/* The workshop's compact utility header is generated by existing scripts. */
+body.dashboard-workshop .dashboard-topbar {
+  position: fixed !important;
+  top: 10px !important;
+  left: 10px !important;
+  right: 10px !important;
+  width: auto !important;
+  max-width: 1200px !important;
+  height: 66px !important;
+  margin: 0 auto !important;
+  padding: 7px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px !important;
+  background: var(--header-bg) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a,.hs-bar,#hs-input) {
+  border-color: var(--border) !important;
+  border-radius: 999px !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a) {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar :is(button,a):hover {
+  background: var(--soft) !important;
+  color: var(--text) !important;
+  transform: none !important;
+}
+body.dashboard-workshop .dashboard-topbar .hs-bar {
+  background: var(--soft) !important;
+  border: 1px solid var(--border) !important;
+}
+body.dashboard-workshop .dashboard-topbar .hs-bar input,
+body.dashboard-workshop .dashboard-topbar #hs-input {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+body.dashboard-workshop .dashboard-topbar .dashboard-topbar-actions {
+  gap: 8px !important;
+}
+@media (max-width: 900px) {
+  body.dashboard-workshop .dashboard-topbar {
+    top: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    height: 58px !important;
+    padding: 6px 9px !important;
+  }
+}
+
+
+/* Repoint legacy dashboard accent variables and text accents to Marva's neutral accent. */
+body.dashboard-page :is(.hdr-name em,.hero-title em,.section-kicker,.section-kicker strong,
+.page-section .section-kicker,.accent-bar,.glass-nav-link.is-active,.nav-link.active) {
+  color: var(--accent) !important;
+}
+body.dashboard-page .accent-bar {
+  background: var(--accent) !important;
+}
+body.dashboard-page :is(.tile,.cs-chip[aria-pressed="true"],.nav-link.active) {
+  border-color: var(--border) !important;
+}
+
+/* Keep the reference header's scrolled state and compact controls static. */
+body.dashboard-page .dashboard-topbar.scrolled,body.dashboard-workshop .dashboard-topbar.scrolled { background:rgba(var(--bg-rgb),.9)!important; border-color:rgba(var(--ink-rgb),.22)!important; box-shadow:0 8px 30px rgba(var(--shade-rgb),.48)!important; }
+body.dashboard-page .dashboard-topbar .dashboard-topbar-actions { gap:8px!important; }
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner,.sync-go i) { animation:marva-spinner .8s linear infinite!important; }
+@keyframes marva-spinner { to { transform:rotate(360deg); } }
+
+
+/* Login: flat Marva canvas, no garage photo, overlays, gradients or pointer-driven movement. */
+body.login-page { --bg:var(--background); --panel-bg:var(--surface); --accent-teal:var(--accent); --teal-bright:var(--accent); --orange:var(--accent); background:var(--background)!important; color:var(--text)!important; }
+body.login-page .stage { background:var(--background)!important; }
+body.login-page .photo,body.login-page .stage::before { display:none!important;content:none!important; }
+body.login-page .hero,body.login-page .brand,body.login-page .tag,body.login-page .lede,body.login-page .login-logo,body.login-page .login-title,body.login-page .login-subtitle,body.login-page .login-field,body.login-page .login-submit,body.login-page .fp-box { transform:none!important; }
+body.login-page .login-card { background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:none!important;transform:none!important; }
+body.login-page .login-card::after { display:none!important; }
+body.login-page .brand-name,body.login-page .tag,body.login-page .feat h3,body.login-page .login-title { color:var(--text)!important; }
+body.login-page .brand-name em,body.login-page .brand-sub,body.login-page .tag b,body.login-page .tag::after,body.login-page .ico,body.login-page .ico.o,body.login-page .forgot-link,body.login-page .fp-ic { color:var(--accent)!important; }
+body.login-page .tag::after { background:var(--accent)!important; }
+body.login-page .lede,body.login-page .brand-sub,body.login-page .feat p { color:var(--muted)!important; }
+body.login-page .feat,body.login-page .ico,body.login-page .ico.o,body.login-page .fp-btn,body.login-page .fp-ic { background:var(--soft)!important;border-color:var(--border)!important; }
+body.login-page .login-input-wrap input,body.login-page .fp-btn { background:var(--input-bg)!important;color:var(--text)!important;border-color:var(--border)!important; }
+body.login-page .login-input-wrap input::placeholder { color:var(--muted)!important; }
+body.login-page .login-input-wrap input:focus { border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)!important; }
+body.login-page .login-submit { background:var(--text)!important;color:var(--background)!important;border:1px solid var(--text)!important;border-radius:999px!important;box-shadow:none!important; }
+body.login-page .login-submit:active { transform:none!important;box-shadow:none!important; }
+body.login-page .login-message[data-tone="error"] { color:var(--danger)!important; }
+body.login-page .login-message[data-tone="info"],body.login-page .forgot { color:var(--muted)!important; }
+body.login-page .login-submit .spin { animation:marva-spinner .8s linear infinite!important; }
+@media(prefers-color-scheme:light) {
+ html:not([data-theme="dark"]) body.login-page { --background:#F6F4EF;--surface:#fff;--text:#0E1116;--muted:#5A606B;--border:rgba(14,17,22,.14);--accent:#7A5230;--soft:rgba(14,17,22,.05);--input-bg:#fff;--input-text:#0E1116; }
+}
+
+/* Marva reference header: 62px mobile, 66px desktop, 10px offset, 1200px max, 14px blur. */
+body.dashboard-page .dashboard-topbar,body.dashboard-workshop .dashboard-topbar { position:fixed!important;z-index:1200!important;min-height:62px!important;height:62px!important;max-width:1200px!important;top:10px!important;left:10px!important;right:10px!important;margin:0 auto!important;padding:7px 10px 7px 16px!important;gap:12px!important;border-radius:999px!important;border:1px solid rgba(var(--ink-rgb),.16)!important;background:rgba(var(--bg-rgb),.6)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important; }
+body.dashboard-page .dashboard-topbar.scrolled { background:rgba(var(--bg-rgb),.9)!important;border-color:rgba(var(--ink-rgb),.22)!important;box-shadow:0 8px 30px rgba(var(--shade-rgb),.48)!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-link,.glass-nav-link) { border-radius:999px!important;padding:12px 11px!important;color:var(--muted)!important;background:transparent!important;font-size:12px!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-link,.glass-nav-link):is(:hover,.active,[aria-current="page"]) { color:var(--text)!important;background:rgba(var(--ink-rgb),.08)!important; }
+body.dashboard-page :is(.glass-header,.app-header,.dashboard-topbar,.site-masthead) :is(.nav-pill,.active-pill,.nav-indicator) { border-radius:999px!important;background:rgba(var(--ink-rgb),.1)!important;border:1px solid rgba(var(--ink-rgb),.2)!important;box-shadow:0 0 18px rgba(var(--ink-rgb),.08)!important; }
+@media(min-width:900px) {
+ body.dashboard-page .dashboard-topbar,body.dashboard-workshop .dashboard-topbar { left:50%!important;right:auto!important;width:calc(100% - 40px)!important;transform:translateX(-50%)!important;min-height:66px!important;height:66px!important;padding-inline:18px 14px!important;gap:16px!important; }
+}
+
+
+/* Login sync overlay follows the same flat Marva surfaces and semantic status tones. */
+.sync { background:rgba(var(--shade-rgb),.72)!important;color:var(--text)!important;font-family:"Inter",Arial,sans-serif!important;animation:none!important; }
+.sync-card { background:var(--surface)!important;background-image:none!important;border:1px solid var(--border)!important;box-shadow:none!important; }
+.sync-title,.sync-result h2 { color:var(--text)!important;font-family:"Sora",Arial,sans-serif!important; }
+.sync-sub,.sync-result p,.sync-step,.sync-go { color:var(--muted)!important; }
+.sync-bar { background:var(--soft)!important; }
+.sync-fill { background:var(--accent)!important; }
+.sync-step { background:var(--soft)!important;border-color:var(--border)!important; }
+.sync-step[data-state="active"] { color:var(--text)!important;background:var(--soft)!important;border-color:var(--border)!important; }
+.sync-step[data-state="active"] .sync-ico { border-color:var(--border)!important;border-top-color:var(--accent)!important;animation:marva-spinner .8s linear infinite!important; }
+.sync-step[data-state="done"] { color:var(--success)!important; }
+.sync-step[data-state="done"] .sync-ico,.sync-badge.ok { background:var(--success)!important;border-color:var(--success)!important;color:#fff!important; }
+.sync-step[data-state="error"] { color:var(--danger)!important;background:color-mix(in srgb,var(--danger) 12%,var(--surface))!important;border-color:var(--danger)!important; }
+.sync-step[data-state="error"] .sync-ico,.sync-badge.bad { background:var(--danger)!important;border-color:var(--danger)!important;color:#fff!important; }
+.sync-badge { animation:none!important;box-shadow:none!important; }
+.sync-level { background:color-mix(in srgb,var(--success) 12%,var(--surface))!important;border-color:color-mix(in srgb,var(--success) 45%,var(--border))!important; }
+.sync-level strong { color:var(--success)!important; }
+.sync-areas li { background:var(--soft)!important;color:var(--muted)!important;animation:none!important; }
+.sync-note { color:var(--warning)!important; }
+.sync-btn { background:var(--text)!important;color:var(--background)!important;border:1px solid var(--text)!important;box-shadow:none!important;border-radius:999px!important; }
+.sync-btn.ghost { background:var(--soft)!important;color:var(--text)!important;border-color:var(--border)!important; }
+.sync-btn:focus-visible { outline-color:var(--accent)!important; }
+.sync-go i { border-color:var(--border)!important;border-top-color:var(--accent)!important;animation:marva-spinner .8s linear infinite!important; }
+
+/* Portal content stays on the flat page canvas; only its actual panels use the surface token. */
+body:has(.portal-shell) :is(.portal-shell,.portal-hero) {
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body:has(.portal-shell) :is(.portal-panel,.portal-result,.portal-card) {
+  background:var(--surface)!important;
+  background-image:none!important;
+  border:1px solid var(--border)!important;
+  box-shadow:none!important;
+}
+body:has(.portal-shell) { background:var(--background)!important; }
+
+
+/* Disable pointer-hover motion without touching modal/popup centering transforms. */
+body.login-page *:hover { transform:none!important; }
+body.dashboard-page :is(button,a,.btn,[role="button"],.module-card,.quick-action,.quick-action--job,.quick-action--customer,.quick-action--quote,.quick-action--receipt,.quick-action--analytics,.card,.stat-card,.panel,#quotation-list .quote-action,#quotation-list .quotation-load-more):hover {
+ transform:none!important;filter:none!important;
+}
+body.dashboard-page .module-card:hover,body.dashboard-page .quick-action:hover,body.dashboard-page button.btn:hover:not(:disabled),body.dashboard-page #quotation-list .quote-action:hover:not(:disabled),body.dashboard-page #quotation-list .quotation-load-more:hover { box-shadow:none!important; }
+
+body.dashboard-page :is(.quick-action,.quick-action--job,.quick-action--customer,.quick-action--quote,.quick-action--receipt,.quick-action--analytics,.module-card):hover {
+ border-color:var(--border)!important;background:var(--soft)!important;
+}
+
+
+/* The password-reset route has no dashboard body class, so give its standalone card the same Marva surface treatment. */
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) {
+ background:var(--surface)!important;background-image:none!important;color:var(--text)!important;
+ border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:none!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) :is(h1,h2,h3,h4) {
+ color:var(--text)!important;font-family:"Sora",Arial,sans-serif!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) p,
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) label { color:var(--muted)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) :is(button,.back) {
+ border:1px solid var(--text)!important;border-radius:999px!important;
+ background:var(--text)!important;background-image:none!important;color:var(--background)!important;
+ box-shadow:none!important;
+}
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="error"] { color:var(--danger)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="success"] { color:var(--success)!important; }
+body:not(.dashboard-page):not(.login-page) > main:not(.portal-shell) #reset-message[data-tone="info"] { color:var(--muted)!important; }
+
+/* =====================================================================
+MARVA HEADER (header only)
+Target: the shared app header built by js/glass-app-shell.js (#glass-header).
+Source of truth: marvatechnologies .site-header, .brand-lockup, .wordmark-main,
+.menu-button, .header-cta and .theme-icon-btn.
+CSS only. No markup, ID, JS or layout-offset changes. No animation.
+===================================================================== */
+
+/* ---- Bar: fixed beside the sidebar (restores the shell geometry), Marva pill ---- */
+body.dashboard-page.glass-app-shell #glass-header {
+position: fixed;
+top: 12px;
+left: calc(var(--glass-sidebar-width) + 18px);
+right: 18px;
+width: auto;
+max-width: none;
+height: 66px;
+min-height: 0;
+margin: 0;
+padding: 0 14px 0 16px;
+display: flex;
+align-items: center;
+gap: 12px;
+z-index: 1520;
+transform: none;
+color: var(--text) !important;
+border: 1px solid rgba(var(--ink-rgb), .16) !important;
+border-radius: 999px !important;
+background: rgba(var(--bg-rgb), .9) !important;
+background-image: none !important;
+-webkit-backdrop-filter: blur(14px) !important;
+backdrop-filter: blur(14px) !important;
+box-shadow: 0 8px 30px rgba(var(--shade-rgb), .28) !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-header { left: 100px; }
+
+/* ---- Brand lockup: Sora wordmark + circular monogram ---- */
+#glass-header .glass-header-brand { display: flex; align-items: center; gap: 11px; flex: none; min-width: 0; }
+#glass-header .glass-header-brand .glass-brand-mark {
+display: grid; place-items: center; flex: none;
+width: 42px; height: 42px; border-radius: 50%;
+border: 1px solid rgba(var(--ink-rgb), .3);
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+color: var(--text) !important;
+box-shadow: none !important;
+font: 700 19px/1 "Sora", Arial, sans-serif !important;
+letter-spacing: 0;
+}
+#glass-header .glass-header-brand strong {
+color: var(--text) !important;
+font: 700 19px/1 "Sora", Arial, sans-serif !important;
+letter-spacing: .06em;
+text-transform: uppercase;
+white-space: nowrap;
+}
+
+/* ---- Menu button: Marva .menu-button (42px ring, two hairlines) ---- */
+#glass-header .glass-icon-button.glass-menu-toggle {
+position: relative; display: grid; place-items: center; flex: none;
+width: 42px !important; height: 42px !important; min-height: 0 !important; padding: 0 !important;
+border: 1px solid rgba(var(--ink-rgb), .35) !important;
+border-radius: 50% !important;
+background: transparent !important;
+color: var(--text) !important;
+box-shadow: none !important;
+}
+#glass-header .glass-menu-toggle > * { display: none !important; }
+#glass-header .glass-menu-toggle::before,
+#glass-header .glass-menu-toggle::after {
+content: ""; position: absolute; left: 50%; width: 16px; height: 1px; margin-left: -8px;
+background: currentColor;
+}
+#glass-header .glass-menu-toggle::before { top: 17px; }
+#glass-header .glass-menu-toggle::after { top: 23px; }
+#glass-header .glass-menu-toggle:hover { border-color: var(--text) !important; background: rgba(var(--ink-rgb), .08) !important; }
+
+/* ---- Search: ONE layer. The pill is the only box; the input inside is flat. ---- */
+#glass-header .glass-search {
+position: relative; display: flex; align-items: center; gap: 10px;
+flex: 1 1 auto; min-width: 0; max-width: 620px; height: 42px; margin: 0 auto; padding: 0 16px;
+border: 1px solid rgba(var(--ink-rgb), .16) !important;
+border-radius: 999px !important;
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+box-shadow: none !important;
+color: var(--muted) !important;
+}
+#glass-header .glass-search:focus-within {
+border-color: rgba(var(--ink-rgb), .5) !important;
+box-shadow: 0 0 0 3px rgba(var(--ink-rgb), .1) !important;
+}
+#glass-header .glass-search > i,
+#glass-header .glass-search > .lucide-stub { flex: none; display: inline-flex; color: var(--muted) !important; }
+#glass-header .glass-search > i svg,
+#glass-header .glass-search > .lucide-stub svg { width: 17px; height: 17px; stroke: currentColor; }
+#glass-header .glass-search input#hs-input {
+flex: 1 1 auto; width: 100%; min-width: 0; height: 100%; min-height: 0 !important;
+margin: 0; padding: 0 !important;
+border: 0 !important; border-radius: 0 !important;
+outline: 0 !important; box-shadow: none !important;
+background: transparent !important; background-image: none !important;
+color: var(--text) !important;
+font: 500 13px/1 "Inter", Arial, sans-serif !important;
+-webkit-appearance: none; appearance: none;
+}
+#glass-header .glass-search input#hs-input:focus,
+#glass-header .glass-search input#hs-input:focus-visible {
+border: 0 !important; outline: 0 !important; box-shadow: none !important; background: transparent !important;
+}
+#glass-header .glass-search input#hs-input::placeholder { color: var(--muted) !important; opacity: 1; }
+#glass-header .glass-search input#hs-input::-webkit-search-cancel-button,
+#glass-header .glass-search input#hs-input::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+#glass-header .glass-search kbd {
+flex: none; padding: 0; border: 0 !important; background: none !important; box-shadow: none !important;
+color: var(--muted) !important; font: 500 12px/1 "Inter", Arial, sans-serif;
+}
+
+/* Search results panel: Marva menu card */
+#glass-header .glass-search .hs-panel {
+top: calc(100% + 10px); left: 0; right: 0; padding: 12px;
+border: 1px solid var(--border) !important;
+border-radius: 22px !important;
+background: rgba(var(--bg-rgb), .97) !important;
+background-image: none !important;
+color: var(--text) !important;
+-webkit-backdrop-filter: blur(14px) !important;
+backdrop-filter: blur(14px) !important;
+box-shadow: 0 18px 45px rgba(var(--shade-rgb), .45) !important;
+}
+#glass-header .glass-search .hs-chip {
+min-height: 0 !important; padding: 6px 12px !important;
+border: 1px solid var(--border) !important; border-radius: 999px !important;
+background: transparent !important; color: var(--muted) !important;
+font: 500 12px/1.2 "Inter", Arial, sans-serif !important;
+}
+#glass-header .glass-search .hs-chip[aria-pressed="true"] {
+background: var(--text) !important; border-color: var(--text) !important; color: var(--background) !important;
+}
+#glass-header .glass-search .hs-item { border-radius: 14px; color: var(--text) !important; }
+#glass-header .glass-search .hs-item:hover { background: rgba(var(--ink-rgb), .08); }
+#glass-header .glass-search .hs-item small,
+#glass-header .glass-search .hs-empty { color: var(--muted) !important; }
+
+/* ---- Actions ---- */
+#glass-header .glass-header-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+
+/* Primary action: Marva .header-cta (solid inverted pill) */
+#glass-header .glass-job-action {
+display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none;
+height: 40px; min-height: 40px; padding: 0 15px; white-space: nowrap;
+border: 1px solid var(--text) !important;
+border-radius: 999px !important;
+background: var(--text) !important;
+background-image: none !important;
+color: var(--background) !important;
+box-shadow: none !important;
+font: 600 12px/1 "Inter", Arial, sans-serif !important;
+text-decoration: none;
+}
+#glass-header .glass-job-action span,
+#glass-header .glass-job-action svg { color: var(--background) !important; stroke: currentColor; }
+#glass-header .glass-job-action:hover { background: var(--text) !important; opacity: .88; }
+
+/* Circle icon buttons (shop, notifications, theme): Marva .theme-icon-btn */
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell {
+position: relative; display: grid; place-items: center; flex: none;
+width: 42px !important; height: 42px !important; min-height: 0 !important; padding: 0 !important;
+border: 1px solid rgba(var(--ink-rgb), .3) !important;
+border-radius: 50% !important;
+background: rgba(var(--ink-rgb), .05) !important;
+background-image: none !important;
+color: var(--text) !important;
+box-shadow: none !important;
+}
+#glass-header .glass-header-actions .glass-icon-button svg,
+#glass-header .glass-header-actions #global-notif-bell svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; }
+#glass-header .glass-header-actions .glass-icon-button:hover,
+#glass-header .glass-header-actions #global-notif-bell:hover {
+border-color: #D97757 !important;
+background: rgba(var(--ink-rgb), .08) !important;
+box-shadow: 0 0 22px rgba(217, 119, 87, .45) !important;
+}
+
+/* Theme icon: drawn in CSS so it always shows (the injected SVG is hidden).
+Dark mode shows the sun (#FFC857), light mode shows the moon (#3B4FD8), as on Marva. */
+#glass-header .theme-toggle {
+--ti: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E");
+--ti-color: #FFC857;
+overflow: hidden;
+border-color: rgba(var(--ink-rgb), .4) !important;
+}
+html[data-theme="light"] #glass-header .theme-toggle {
+--ti: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'/%3E%3C/svg%3E");
+--ti-color: #3B4FD8;
+}
+#glass-header .theme-toggle > * { display: none !important; }
+#glass-header .theme-toggle::before {
+content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+background-color: var(--ti-color);
+-webkit-mask: var(--ti) center / contain no-repeat;
+mask: var(--ti) center / contain no-repeat;
+}
+
+/* Notification slot keeps the bell on the same baseline */
+#glass-header .glass-notification-slot { display: flex; align-items: center; flex: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1180px) {
+#glass-header .glass-header-brand strong { display: none; }
+}
+@media (max-width: 1024px) {
+#glass-header .glass-job-action { width: 42px; height: 42px; padding: 0; border-radius: 50% !important; }
+#glass-header .glass-job-action span { display: none; }
+#glass-header .glass-job-action svg { width: 18px; height: 18px; }
+}
+@media (max-width: 900px) {
+body.dashboard-page.glass-app-shell #glass-header { top: 8px; left: 8px; right: 8px; height: 58px; gap: 8px; padding: 0 9px; }
+#glass-header .glass-search kbd { display: none; }
+#glass-header .glass-header-brand .glass-brand-mark { width: 38px; height: 38px; font-size: 17px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 38px !important; height: 38px !important; }
+#glass-header .glass-job-action { min-height: 0; }
+#glass-header .glass-menu-toggle::before { top: 14px; }
+#glass-header .glass-menu-toggle::after { top: 20px; }
+#glass-header .glass-search { height: 38px; padding: 0 12px; gap: 8px; }
+#glass-header .glass-search input#hs-input { font-size: 12px !important; }
+#glass-header .glass-header-actions { gap: 6px; }
+#glass-header .theme-toggle::before { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
+}
+@media (max-width: 480px) {
+#glass-header .glass-header-brand { display: none; }
+body.dashboard-page.glass-app-shell #glass-header { gap: 6px; padding: 0 7px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 36px !important; height: 36px !important; }
+#glass-header .glass-menu-toggle::before { top: 13px; }
+#glass-header .glass-menu-toggle::after { top: 19px; }
+#glass-header .glass-search { padding: 0 10px; gap: 6px; }
+#glass-header .glass-header-actions { gap: 4px; }
+}
+@media (max-width: 360px) {
+body.dashboard-page.glass-app-shell #glass-header { gap: 4px; padding: 0 5px; }
+#glass-header .glass-icon-button.glass-menu-toggle,
+#glass-header .glass-header-actions .glass-icon-button,
+#glass-header .glass-header-actions #global-notif-bell,
+#glass-header .glass-job-action { width: 34px !important; height: 34px !important; }
+#glass-header .glass-menu-toggle::before { top: 12px; }
+#glass-header .glass-menu-toggle::after { top: 18px; }
+#glass-header .glass-search > i,
+#glass-header .glass-search > .lucide-stub { display: none; }
+}
+
+
+/* =====================================================================
+MARVA SIDEBAR
+Premium companion treatment for #glass-sidebar.
+CSS only. Preserves the shell geometry, DOM hooks, drawer states and all
+navigation/profile behavior. No motion or hover transforms.
+===================================================================== */
+
+/* ---- Floating surface and fixed shell geometry ---- */
+body.dashboard-page.glass-app-shell {
+  --glass-sidebar-width: 264px !important;
+}
+body.dashboard-page.glass-app-shell.glass-sidebar-collapsed {
+  --glass-sidebar-width: 82px !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar {
+  position: fixed !important;
+  top: 12px !important;
+  bottom: 12px !important;
+  left: 12px !important;
+  width: 252px !important;
+  max-width: calc(100vw - 24px) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  overflow: visible !important;
+  padding: 12px !important;
+  border: 1px solid rgba(var(--ink-rgb), .16) !important;
+  border-radius: 28px !important;
+  background: rgba(var(--bg-rgb), .9) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 8px 30px rgba(var(--shade-rgb), .28) !important;
+  z-index: 1500 !important;
+  isolation: isolate;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar,
+body.dashboard-page.glass-app-shell #glass-sidebar * {
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar :is(a,button) {
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar :is(a,button):focus-visible {
+  outline: 2px solid rgba(var(--ink-rgb), .5) !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+
+/* ---- Brand lockup: same monogram and wordmark as the header ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  min-height: 66px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  margin: 0 2px 12px !important;
+  padding: 2px 4px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(var(--ink-rgb), .14) !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-mark {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 42px !important;
+  border: 1px solid rgba(var(--ink-rgb), .3) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .05) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  font: 700 19px/1 "Sora", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-name {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: var(--text) !important;
+  font: 700 19px/1 "Sora", Arial, sans-serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close {
+  display: none !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  margin-left: auto !important;
+  padding: 0 !important;
+  place-items: center !important;
+  border: 1px solid rgba(var(--ink-rgb), .3) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .05) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+
+/* ---- Navigation: independently scrollable, pinned brand and account ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 15px !important;
+  margin: 0 !important;
+  padding: 8px 0 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav:hover {
+  scrollbar-color: rgba(var(--ink-rgb), .24) transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: transparent;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-nav:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--ink-rgb), .24);
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-group {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-heading {
+  min-height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 8px 12px 4px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 600 10px/1.2 "Inter", Arial, sans-serif !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link {
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 13px !important;
+  overflow: hidden !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > .lucide-stub {
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  display: inline-flex !important;
+  flex: 0 0 20px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > i svg,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > .lucide-stub svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link:hover {
+  border-color: transparent !important;
+  background: rgba(var(--ink-rgb), .06) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link:hover > i {
+  color: var(--text) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] {
+  border-color: rgba(var(--ink-rgb), .2) !important;
+  background: rgba(var(--ink-rgb), .1) !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 18px rgba(var(--ink-rgb), .08) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active::before,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"]::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 7px !important;
+  top: 50% !important;
+  width: 3px !important;
+  height: 17px !important;
+  border-radius: 99px !important;
+  background: var(--accent) !important;
+  transform: translateY(-50%) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] > i {
+  color: var(--accent) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link.is-active > span,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"] > span {
+  color: var(--text) !important;
+  font-weight: 600 !important;
+}
+
+/* ---- Account card and profile menu ---- */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-wrap {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin: 8px 0 0 !important;
+  padding: 12px 0 0 !important;
+  border-top: 1px solid rgba(var(--ink-rgb), .14) !important;
+  background: transparent !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(var(--ink-rgb), .16) !important;
+  border-radius: 20px !important;
+  background: rgba(var(--ink-rgb), .045) !important;
+  color: var(--text) !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-avatar {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  display: grid !important;
+  flex: 0 0 38px !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--ink-rgb), .28) !important;
+  border-radius: 50% !important;
+  background: rgba(var(--ink-rgb), .08) !important;
+  color: var(--text) !important;
+  font: 700 12px/1 "Sora", Arial, sans-serif !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: var(--text) !important;
+  font: 600 13px/1.2 "Sora", Arial, sans-serif !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-copy small {
+  color: var(--muted) !important;
+  font: 500 11px/1.2 "Inter", Arial, sans-serif !important;
+  text-transform: capitalize !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > i,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > .lucide-stub {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > i svg,
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile > .lucide-stub svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: calc(100% + 10px) !important;
+  z-index: 1550 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  padding: 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 22px !important;
+  background: rgba(var(--bg-rgb), .97) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 18px 45px rgba(var(--shade-rgb), .45) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu[hidden] {
+  display: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button) {
+  width: 100% !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--text) !important;
+  font: 500 13px/1.2 "Inter", Arial, sans-serif !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button):hover {
+  background: rgba(var(--ink-rgb), .07) !important;
+  color: var(--text) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu :is(a,button) svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke: currentColor !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu button[data-glass-signout] {
+  margin-top: 3px !important;
+  border-top-color: rgba(var(--ink-rgb), .12) !important;
+  color: var(--muted) !important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-profile-menu button[data-glass-signout]:hover {
+  background: rgba(var(--ink-rgb), .06) !important;
+  color: var(--text) !important;
+}
+
+/* ---- Collapsed icon rail: keep the established 82px shell geometry ---- */
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar {
+  width: 82px !important;
+  padding: 10px 8px !important;
+  align-items: center !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+  width: 100% !important;
+  justify-content: center !important;
+  margin: 0 0 10px !important;
+  padding: 2px 0 12px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-brand-name,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > span,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-copy,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile > i {
+  display: none !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-sidebar-nav {
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 6px 0 10px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-group {
+  width: 100% !important;
+  gap: 5px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading {
+  display: block !important;
+  width: 28px !important;
+  min-height: 1px !important;
+  height: 1px !important;
+  margin: 8px auto !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: rgba(var(--ink-rgb), .18) !important;
+  font-size: 0 !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link {
+  width: 46px !important;
+  min-width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 999px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > i {
+  width: 20px !important;
+  min-width: 20px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link.is-active::before,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link[aria-current="page"]::before {
+  left: 3px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-wrap {
+  display: flex !important;
+  justify-content: center !important;
+  padding-top: 10px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile {
+  width: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  justify-content: center !important;
+  padding: 4px !important;
+  border-radius: 50% !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-avatar {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-menu {
+  left: calc(100% + 10px) !important;
+  right: auto !important;
+  bottom: 0 !important;
+  width: 220px !important;
+}
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link[title] {
+  cursor: pointer;
+}
+
+/* ---- Drawer: preserve the existing open/closed transform and visibility rules ---- */
+body.dashboard-page.glass-app-shell .glass-sidebar-backdrop {
+  background: rgba(var(--shade-rgb), .5) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+@media (max-width: 900px) {
+  body.dashboard-page.glass-app-shell #glass-sidebar {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 12px !important;
+    border-radius: 0 28px 28px 0 !important;
+    z-index: 1600 !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-close {
+    display: grid !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-sidebar-brand {
+    min-height: 58px !important;
+    padding-bottom: 12px !important;
+  }
+  body.dashboard-page.glass-app-shell #glass-sidebar .glass-brand-name {
+    font-size: 17px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar {
+    width: min(320px, calc(100vw - 24px)) !important;
+    padding: 12px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-brand-name,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link > span,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-copy,
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile > i {
+    display: initial !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-heading {
+    width: auto !important;
+    min-height: 22px !important;
+    height: auto !important;
+    margin: 8px 12px 4px !important;
+    background: transparent !important;
+    font-size: 10px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-link {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 0 13px !important;
+    margin: 0 !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 60px !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    padding: 8px 10px !important;
+    border-radius: 20px !important;
+  }
+  body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-profile-menu {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(100% + 10px) !important;
+    width: auto !important;
+  }
+}
+
+
+/* ---- Marva type system: Sora headings, Inter body, JetBrains Mono for labels and numbers ---- */
+body :is(.section-kicker,.stat-card__label,.portal-kicker,.jc-kicker,.quotation-paper-kicker,.quotation-category-label,.quotation-status-pill,.sys-tag,.objective-chip,.global-search__group-label,.sidebar-account__role,.eyebrow,.badge,.pill,.chip,.status-pill,.stat-label,.kpi-label,table th,.table th),
+body.dashboard-page .main :is(.section-kicker,.stat-card__label,.eyebrow,.badge,.pill,.chip,.status-pill,.stat-label,.kpi-label,table th) {
+  font-family: var(--font-mono) !important;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
+body :is(.stat-card__value,.stat-value,.kpi-value,.ci-value,.quotation-total strong,.quotation-summary-total,.quotation-footer-total,.quick-sale-total,.part-price-output,.job-money,.close-job-money,.checklist-number,.amount,.money,.price,.num,td.num,td.text-right,.gauge-info .value,input[type="number"]),
+body.dashboard-page .main :is(.stat-card__value,.stat-value,.kpi-value,.ci-value,.amount,.money,.price,.num) {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+
+
+/* ---- Mobile fit for every page: no sideways drift, no auto-zoom when tapping inputs ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:hidden}
+@supports(overflow:clip){html,body{overflow-x:clip}}
+body.dashboard-page{touch-action:manipulation}
+body.dashboard-page :is(.main,.dash-content,.panel){min-width:0;max-width:100%}
+body.dashboard-page :is(img,video,canvas){max-width:100%;height:auto}
+body.dashboard-page .main :is(.panel:has(>table),.table-wrap,.table-container,.table-responsive){overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:760px){
+  body.dashboard-page :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){font-size:16px!important}
+  body.dashboard-page :is(.btn,button.btn){min-height:44px}
+  body.dashboard-page .modal{max-width:calc(100vw - 24px)!important}
+}
+
+
+/* ---- Dark mode = black (replaces the blue-slate palette). Light theme untouched. ---- */
+:root:not([data-theme="light"]):not(#mh),
+:root:not([data-theme="light"]):not(#mh) body {
+  --mh-bg:#000000; --mh-card:#0b0b0b; --mh-bd:#2e2e2e; --mh-in:#181818; --mh-tx:#f5f5f5; --mh-mu:#a3a3a3;
+  --mh-sh2:0 12px 32px rgba(0,0,0,.6);
+}
+/* Text boxes: a step lighter than the black card, with a clear border so they stay easy to see. */
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea) {
+  background:#1a1a1a !important;
+  border:1px solid #4a4a4a !important;
+  color:#f5f5f5 !important;
+}
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input,textarea)::placeholder { color:#8a8a8a !important; }
+:root:not([data-theme="light"]) body.dashboard-page .main :is(input,select,textarea):focus {
+  border-color:#9a9a9a !important; box-shadow:0 0 0 3px rgba(255,255,255,.12) !important; outline:none;
+}
+/* Job cards page buttons/chips were blue in dark mode */
+:root[data-theme="dark"] body.dashboard-workshop .rc :is(.btn,.seg) { background:#161616 !important; border-color:#3a3a3a !important; color:#f5f5f5 !important; }
+:root[data-theme="dark"] body.dashboard-workshop .rc .seg[aria-pressed="true"] { background:#2a2a2a !important; border-color:#6a6a6a !important; color:#fff !important; }
+
+
+/* ---- Canonical accent tokens (loaded last). Several older sheets define --accent/--success in terms of each
+   other, which the browser treats as a reference cycle and drops to "empty". These values are plain colours.
+   Dark = green, light = brown. Every loading state reads --accent / --accent-rgb. ---- */
+:root[data-theme="dark"]:not(#mh),
+:root[data-theme="dark"]:not(#mh) body {
+  --accent:#5FE0A0; --accent-rgb:95,224,160; --accent-hover:#7BEBB4; --accent-dim:rgba(95,224,160,.35); --primary:#5FE0A0;
+  --ok:#5FE0A0; --success:#5FE0A0; --success-rgb:95,224,160;
+  --warning:#B18A55; --warning-rgb:177,138,85; --danger:#B96C68; --danger-rgb:185,108,104;
+  --mh-ac:#5FE0A0; --mh-ah:#7BEBB4; --mh-al:#5FE0A0; --mh-vi:#5FE0A0; --mh-gr:#5FE0A0; --mh-tl:#5FE0A0; --mh-am:#B18A55; --mh-rs:#B96C68;
+  --on-accent:#06281a;
+}
+:root[data-theme="light"]:not(#mh),
+:root[data-theme="light"]:not(#mh) body {
+  --accent:#7A5230; --accent-rgb:122,82,48; --accent-hover:#8F6340; --accent-dim:rgba(122,82,48,.3); --primary:#7A5230;
+  --ok:#477A60; --success:#477A60; --success-rgb:71,122,96;
+  --warning:#8A684B; --warning-rgb:138,104,75; --danger:#A34F47; --danger-rgb:163,79,71;
+  --mh-ac:#7A5230; --mh-ah:#8F6340; --mh-al:#7A5230; --mh-vi:#7A5230; --mh-gr:#477A60; --mh-tl:#477A60; --mh-am:#8A684B; --mh-rs:#A34F47;
+  --on-accent:#fff;
+}
+/* Light text on a bright green fill is unreadable, so filled accent buttons use dark ink in dark mode. */
+:root[data-theme="dark"] .apr-network-banner button { color:var(--on-accent); }
+/* Spinners and progress bars follow the theme accent. */
+body :is(.spin,.spinner,.loading-spinner,.lucide-loader-circle,.fa-spinner) { color:var(--accent); }
+.apr-state--loading .apr-state__icon { color:var(--accent); }
+.boot-fill,.sync-fill { background:linear-gradient(90deg,var(--accent),var(--accent-hover),var(--accent))!important; background-size:200% 100%; }
+
+/* ---- Light-mode versions of the credit-note / voucher panel (its own styles are dark-only). Generated. ---- */
+:root[data-theme="light"] .customer-credit-panel-scope .credit-detail-row>span{color:#3b4858!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-brand-header{border-bottom:1px solid #cdd0d5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-narrative p{color:#1b2635!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-narrative p strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-voucher-modal-qr{border:1px solid var(--line,#c8cbd0)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record){background:linear-gradient(145deg,#f6f8f7 0%,#f8f9f9 100%)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-id{color:#1cb15c!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer strong{color:#18231a!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-customer small{color:#516458!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance strong{color:#1d9f52!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .credit-note-balance small{color:#4a5b50!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record:not(.overpayment-credit-record) .customer-credit-document{background:#f7f9f8!important}
+:root[data-theme="light"] #voucher-redeem-video{background:#fcfcfc!important}
+:root[data-theme="light"] .rc-tabs .seg[aria-pressed="true"]{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary>div,:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-actions,:root[data-theme="light"] .customer-credit-panel-scope .credit-available-card,:root[data-theme="light"] .customer-credit-panel-scope .credit-details-card,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-facts,:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-totals,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-job-link{background:#f2f4f5!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-id,:root[data-theme="light"] .customer-credit-panel-scope .credit-note-status,:root[data-theme="light"] .customer-credit-panel-scope .credit-modal-title h3,:root[data-theme="light"] .customer-credit-panel-scope .credit-job-balance{color:#1c2631!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-apply,:root[data-theme="light"] .customer-credit-panel-scope .btn--primary,:root[data-theme="light"] .customer-credit-panel-scope .credit-modal-close{background:#eceeef!important;border-color:#cbced2!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary{border-color:#ced1d5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{background:#f5f6f7!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet{background:#f5f6f7!important;border-color:#cbced2!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-modal-title h3{color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-available-card,:root[data-theme="light"] .credit-modal-sheet .credit-details-card,:root[data-theme="light"] .credit-modal-sheet .credit-doc-heading,:root[data-theme="light"] .credit-modal-sheet .credit-doc-facts,:root[data-theme="light"] .credit-modal-sheet .credit-doc-totals,:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions{background:#f2f4f5!important;border-color:#ced1d5!important;color:#161e27!important}
+:root[data-theme="light"] .credit-modal-sheet .customer-credit-apply,:root[data-theme="light"] .credit-modal-sheet .credit-modal-close{background:#eceeef!important;border-color:#cbced2!important;color:#141414!important}
+:root[data-theme="light"] .credit-modal-sheet .credit-note-status,:root[data-theme="light"] .credit-modal-sheet .credit-unused-badge{background:#eff0f1!important;border-color:#cbced2!important;color:#1c2631!important}
+:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions input,:root[data-theme="light"] .credit-modal-sheet .customer-credit-actions select{background:#f6f7f8!important;border-color:#cbced2!important;color:#161e27!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-partial{color:#c98711!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-refunded{color:#920000!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-applied{color:#003692!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading{background:#edeff2!important;color:#0e1928!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading small{color:#d36200!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading h3{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{background:#f7f9f8!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary strong{color:#18231a!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-document,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__body{background:#f8faf9!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary>div{border:1px solid #c6d1db!important;background:linear-gradient(145deg,#f0f3f6,#f2f5f8)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary small{color:#284b6b!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-summary strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record{border:1px solid #c3ced9!important;background:#f4f6f8!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary{background:linear-gradient(115deg,#ecf0f5 0%,#f0f3f6 65%,#eff2f5 100%)!important;border-bottom:1px solid #c6d1db!important}
+:root[data-theme="light"] .customer-credit-panel-scope .customer-credit-record__summary:hover,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary:hover{background:linear-gradient(115deg,#e8eef3,#edf1f5)!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-id{background:#f1f5f8!important;color:#0075aa!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-customer small,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>span:first-child small{color:#284157!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-available{color:#0f6535!important;background:#f1f7f6!important;border:1px solid #c3ded4!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-partial{color:#7e5500!important;background:#f6f3ef!important;border:1px solid #ded3bf!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-refunded{color:#620000!important;background:#f4efef!important;border:1px solid #d6c2c5!important}
+:root[data-theme="light"] .customer-credit-panel-scope .status-applied{color:#004169!important;background:#ecf1f5!important;border:1px solid #bdced9!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance strong,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong{color:#0075aa!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-note-balance small,:root[data-theme="light"] .customer-credit-panel-scope .overpayment-credit-record__summary>strong small{color:#253e55!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading{background:linear-gradient(110deg,#e4eef5,#ebf0f5)!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-panel-scope .credit-doc-heading small{color:#00688f!important}
+:root[data-theme="light"] .customer-credit-confirm-modal{border:1px solid #ced2d7!important;background:#f2f3f5!important;color:#14202c!important}
+:root[data-theme="light"] .customer-credit-confirm-heading p{color:#404e62!important}
+:root[data-theme="light"] .customer-credit-confirm-form label small{color:#404e62!important}
+:root[data-theme="light"] .customer-credit-confirm-form input{border:1px solid #cbcfd3!important;background:#f4f6f7!important;color:#121d29!important}
+:root[data-theme="light"] .customer-credit-confirm-form input:focus{border-color:#bcdfcd!important}
+:root[data-theme="light"] .customer-credit-confirm-actions button{border:1px solid #cbcfd3!important}
+:root[data-theme="light"] .customer-credit-confirm-submit{border-color:#c0e2d0!important;background:#e3f2ea!important;color:#141414!important}
+:root[data-theme="light"] .customer-credit-confirm-submit:hover{background:#e7f4ed!important}
+
+/* ---- Light-mode readability fixes ---- */
+/* repair-pages.css gives .page-intro near-white text for the dark hero; inside page sections on a light page it vanished. */
+:root[data-theme="light"] body.dashboard-page .main :is(.page-section,.dashboard-section,.panel) .page-intro { color:var(--muted)!important; opacity:1!important; }
+/* Technicians re-confirm card was dark-only. */
+:root[data-theme="light"] .technicians-reconfirm { background:rgba(246,244,239,.88)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card { background:var(--surface)!important; color:var(--text)!important; border-color:var(--border)!important; box-shadow:0 24px 80px rgba(14,17,22,.18)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card :is(h1,label) { color:var(--text)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card p { color:var(--muted)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card input { background:var(--input-bg)!important; color:var(--text)!important; border-color:var(--border)!important; }
+:root[data-theme="light"] .technicians-reconfirm__card a { color:var(--accent)!important; }
+:root[data-theme="light"] .technicians-reconfirm__icon { color:var(--accent)!important; background:rgba(var(--accent-rgb),.1)!important; border-color:rgba(var(--accent-rgb),.28)!important; }
+:root[data-theme="light"] #technicians-reconfirm-message { color:var(--danger)!important; }
+
+/* ======== Sidebar tree: folder buttons (with icons) toggle, sub-modules (coloured dots) navigate ======== */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder { display:block; width:100%; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn {
+  position:relative; width:100%; min-width:0; height:44px; min-height:44px; display:flex; align-items:center; gap:12px;
+  margin:0; padding:0 13px; overflow:hidden; border:1px solid transparent!important; border-radius:999px!important; background:transparent!important;
+  color:var(--muted)!important; font:500 13px/1.2 "Inter",Arial,sans-serif!important; letter-spacing:0; text-align:left; white-space:nowrap;
+  cursor:pointer; box-shadow:none!important; -webkit-appearance:none; appearance:none; transition:background .16s,color .16s,border-color .16s;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn > :first-child { width:20px; min-width:20px; height:20px; flex:0 0 20px; display:inline-flex; align-items:center; justify-content:center; color:var(--muted); }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn > span { min-width:0; overflow:hidden; text-overflow:ellipsis; color:inherit; font:inherit; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn > :last-child { width:16px; min-width:16px; height:16px; flex:0 0 16px; margin-left:auto; display:inline-flex; align-items:center; justify-content:center; opacity:.7; transition:transform .2s ease; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn svg { width:18px; height:18px; stroke:currentColor; stroke-width:1.8; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn > :last-child svg { width:15px; height:15px; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder.is-open > .glass-nav-folder-btn > :last-child { transform:rotate(180deg); }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder.is-open > .glass-nav-folder-btn { color:var(--text)!important; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder-btn:hover { background:rgba(var(--ink-rgb),.06)!important; color:var(--text)!important; }
+
+/* Sub-modules hang under the folder label: the text starts exactly where the folder's label starts. */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sub { display:grid; grid-template-rows:0fr; transition:grid-template-rows .22s ease; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder.is-open > .glass-nav-sub { grid-template-rows:1fr; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sub-inner { position:relative; min-height:0; overflow:hidden; visibility:hidden; transition:visibility 0s .22s; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder.is-open > .glass-nav-sub > .glass-nav-sub-inner { visibility:visible; transition-delay:0s; padding:2px 0 4px; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sub-inner::before { content:""; position:absolute; left:24px; top:2px; bottom:23px; width:1px; background:rgba(var(--ink-rgb),.16); }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink {
+  position:relative; width:100%; box-sizing:border-box; height:38px; display:flex; align-items:center; margin:0; padding:0 12px 0 45px;
+  overflow:hidden; border:1px solid transparent; border-radius:14px; background:transparent; color:var(--muted);
+  font:500 12.5px/1.2 "Inter",Arial,sans-serif; text-decoration:none; white-space:nowrap; text-overflow:ellipsis;
+  transition:background .16s,color .16s,border-color .16s;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink::after { content:""; position:absolute; left:24px; top:50%; width:8px; height:1px; background:rgba(var(--ink-rgb),.16); }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-dot { position:absolute; left:32px; top:50%; width:7px; height:7px; margin-top:-3.5px; border-radius:50%; background:var(--dot,#8A96A3); transition:transform .16s,box-shadow .16s; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink > span:last-child { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink:hover { background:rgba(var(--ink-rgb),.06); color:var(--text); }
+
+/* Active = three signals that don't rely on colour alone: accent bar, filled/outlined row, heavier text (plus aria-current). */
+body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink).is-active,
+body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink)[aria-current="page"],
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder[data-has-active] > .glass-nav-folder-btn[aria-expanded="false"],
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder[data-has-active] > .glass-nav-folder-btn {
+  border-color:rgba(var(--accent-rgb),.34)!important; background:rgba(var(--accent-rgb),.12)!important; color:var(--text)!important;
+  font-weight:600!important; box-shadow:none!important;
+}
+body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-sublink.is-active,.glass-nav-sublink[aria-current="page"],.glass-nav-folder[data-has-active] > .glass-nav-folder-btn[aria-expanded="false"])::before,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder[data-has-active] > .glass-nav-folder-btn::before {
+  content:""; position:absolute; left:7px; top:50%; width:3px; height:17px; border-radius:99px; background:var(--accent); transform:translateY(-50%);
+}
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink.is-active .glass-dot { transform:scale(1.35); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.22); }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-sublink.is-active > span:last-child { color:var(--text); font-weight:600; }
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-folder[data-has-active] > .glass-nav-folder-btn[aria-expanded="false"] > :first-child,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder[data-has-active] > .glass-nav-folder-btn > :first-child { color:var(--accent); }
+body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-folder-btn,.glass-nav-sublink,.glass-nav-link):focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media (forced-colors:active) {
+  body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-link,.glass-nav-sublink).is-active { outline:2px solid Highlight; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.dashboard-page.glass-app-shell #glass-sidebar :is(.glass-nav-sub,.glass-nav-sub-inner,.glass-nav-folder-btn > :last-child,.glass-dot) { transition:none!important; }
+}
+
+/* Narrow rail: folders show only their icon; clicking one opens the full sidebar. */
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder { display:flex; justify-content:center; }
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder-btn { width:46px; min-width:46px; height:46px; min-height:46px; justify-content:center; gap:0; padding:0; margin:0 auto; }
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder-btn > span,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder-btn > :last-child,
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-sub { display:none!important; }
+body.dashboard-page.glass-sidebar-collapsed.glass-app-shell #glass-sidebar .glass-nav-folder-btn::before { left:3px!important; }
+/* Home's icon matches the folder icons so every label starts at the same x. */
+body.dashboard-page.glass-app-shell #glass-sidebar .glass-nav-link > svg { width:20px; min-width:20px; height:20px; flex:0 0 20px; stroke:currentColor; stroke-width:1.8; }

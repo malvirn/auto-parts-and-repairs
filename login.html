@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>html{background:var(--background);color-scheme:dark}</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Centric Auto Mobile — Sign In</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="css/theme-tokens.css?v=theme-v5">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/login-sync.css?v=theme-v5">
+  <link rel="stylesheet" href="css/theme-background.css?v=theme-v5">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Centric Auto Mobile">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <script src="js/pwa.js" defer></script>
+  <script>window.__ACLOGO="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 110"><ellipse cx="86" cy="55" rx="80" ry="48" fill="#ff7a12"/><ellipse cx="82" cy="55" rx="64" ry="35" fill="#00a884"/><path d="M180 20a40 38 0 1 0 0 70" fill="none" stroke="#ff7a12" stroke-width="13" stroke-linecap="round"/><path d="M52 86L82 20l30 66M64 64h38" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>');</script>
+
+  <style id="login-design">
+    html{width:100%;height:100%;overflow-x:hidden}
+    html body.login-page{width:100%;min-height:100vh;min-height:100svh;padding:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+    body.login-page{
+      --bg:var(--background); --panel-bg:#161d24; --accent-teal:var(--success); --teal-bright:var(--success); --orange:var(--warning);
+      --font:"Inter","Segoe UI",system-ui,sans-serif;
+      --ease:cubic-bezier(.2,.78,.2,1);
+      --rx:0deg; --ry:0deg; --gx:50%; --gy:50%; --px:0; --py:0;
+      display:block; width:100%; min-height:100vh; min-height:100svh; margin:0; padding:0; color:var(--text);
+      font-family:var(--font); -webkit-font-smoothing:antialiased; background:var(--bg);
+    }
+    body.login-page *{box-sizing:border-box}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    .stage{position:relative;isolation:isolate;width:100%;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+      background:transparent}
+    .photo{position:fixed;z-index:-3;inset:0;background:#05070d url("assets/night-sky.webp") center/cover no-repeat}
+    .stage::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+      background:linear-gradient(90deg,rgba(5,7,13,.45),rgba(5,7,13,.1) 55%,transparent)}
+
+    .scene{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);gap:clamp(24px,4vw,64px);
+      align-items:center;padding:clamp(32px,5vw,64px) clamp(20px,5vm,72px);width:100%;max-width:1440px;margin:0 auto;perspective:1400px}
+
+    /* ---- left: brand + features ---- */
+    .hero{transform-style:preserve-3d;transform:rotateY(calc(var(--ry)*-.35)) rotateX(calc(var(--rx)*-.25));transition:transform 140ms linear}
+    .brand{display:flex;align-items:center;gap:clamp(14px,2vw,24px);transform:translateZ(40px)}
+    .brand img{width:clamp(80px,10vw,140px);height:auto;flex:none;filter:drop-shadow(0 14px 18px rgba(0,0,0,.6))}
+    .brand-name{margin:0;font-weight:800;font-size:clamp(28px,3.8vw,52px);line-height:1;letter-spacing:-.03em;color:#fff}
+    .brand-name em{display:inline-block;font-style:normal;color:var(--orange)}
+    .brand-sub{margin:10px 0 0;color:#9eb0c1;letter-spacing:.15em;font-weight:700;font-size:clamp(11px,1.1vw,14px);text-transform:uppercase}
+    .tag{margin:clamp(20px,3vw,36px) 0 12px;font-weight:700;font-size:clamp(18px,1.7vw,24px);color:#fff;transform:translateZ(24px)}
+    .tag b{color:var(--orange);font-weight:700;font-style:italic}
+    .tag::after{content:"";display:inline-block;width:56px;height:3px;margin-left:14px;vertical-align:middle;background:linear-gradient(90deg,var(--orange),var(--accent-teal));border-radius:2px}
+    .lede{max-width:520px;margin:0 0 clamp(20px,2.4vw,32px);color:#b0c0d0;line-height:1.6;font-size:clamp(14px,1.2vw,16px);transform:translateZ(16px)}
+    
+    .feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;margin:0;padding:0;list-style:none;transform-style:preserve-3d}
+    .feat{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:rgba(22,29,36,.6);border:1px solid var(--line);
+      transition:transform 450ms var(--ease),background 300ms,border-color 300ms,box-shadow 450ms var(--ease)}
+    .feat:hover{transform:translateZ(46px) translateY(-6px);background:rgba(27,37,47,.85);border-color:rgba(var(--success-rgb),.4);box-shadow:0 20px 30px rgba(0,0,0,.5)}
+    .ico{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;color:var(--teal-bright);background:rgba(var(--success-rgb),.12);border:1px solid rgba(var(--success-rgb),.25)}
+    .ico.o{color:var(--orange);background:rgba(var(--warning-rgb),.12);border-color:rgba(var(--warning-rgb),.25)}
+    .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .feat h3{margin:0 0 2px;font-size:13px;font-weight:700;color:#fff}
+    .feat p{margin:0;color:var(--muted);font-size:11px;line-height:1.35}
+
+    /* ---- right: login card ---- */
+    .card-wrap{justify-self:center;width:min(100%,480px)}
+    body.login-page .login-card{position:relative;overflow:visible;width:100%;max-width:none;margin:0;
+      padding:clamp(24px,3vw,38px);border-radius:20px;transform-style:preserve-3d;
+      background:linear-gradient(160deg,rgba(24,33,42,.95),rgba(16,23,30,.98));border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 30px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05) inset,0 0 40px rgba(var(--success-rgb),.1);
+      transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform 140ms linear}
+    body.login-page .login-card::before{display:none}
+    body.login-page .login-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+      background:radial-gradient(420px circle at var(--gx) var(--gy),rgba(255,255,255,.08),transparent 55%);mix-blend-mode:soft-light}
+    body.login-page .login-logo{display:grid;place-items:center;margin:0 0 8px;transform:translateZ(60px)}
+    body.login-page .login-logo img{height:auto;width:clamp(90px,10vw,130px);filter:drop-shadow(0 12px 16px rgba(0,0,0,.5))}
+    body.login-page .login-sys{display:none}
+    body.login-page .login-title{margin:2px 0 4px;text-align:center;font-family:"Sora","Inter",Arial,sans-serif;font-weight:800;letter-spacing:-.025em;font-size:clamp(24px,2.5vw,34px);color:#fff;transform:translateZ(46px)}
+    body.login-page .login-subtitle{margin:0 0 22px;text-align:center;color:var(--muted);font-size:14px;transform:translateZ(30px)}
+
+    body.login-page .login-field{margin:0 0 16px;transform:translateZ(26px)}
+    body.login-page .login-input-wrap{position:relative;display:flex;align-items:center}
+    body.login-page .login-input-wrap .field-icon{position:absolute;left:18px;width:20px;height:20px;color:var(--muted);pointer-events:none}
+    body.login-page .login-input-wrap input{width:100%;height:50px;padding:0 48px 0 52px;color:var(--text);font:inherit;font-size:15px;
+      background:rgba(13,18,23,.75);border:1.5px solid var(--line);border-radius:10px;outline:0;
+      transition:border-color 200ms,box-shadow 300ms,transform 400ms var(--ease)}
+    body.login-page .login-input-wrap input::placeholder{color:#6e7681}
+    body.login-page .login-input-wrap input:focus{border-color:var(--accent-teal);box-shadow:0 0 0 3px rgba(var(--success-rgb),.2),0 10px 20px rgba(0,0,0,.3);transform:translateZ(15px) translateY(-1px)}
+    body.login-page .login-input-wrap .toggle-password{position:absolute;right:10px;width:38px;height:38px;display:grid;place-items:center;
+      background:none;border:0;border-radius:50%;color:var(--muted);cursor:pointer}
+    body.login-page .login-input-wrap .toggle-password:hover{color:#fff;background:rgba(255,255,255,.06)}
+    body.login-page .toggle-password svg{width:20px;height:20px}
+
+    body.login-page .login-submit{width:100%;height:50px;margin:6px 0 0;padding:0;border:0;border-radius:10px;cursor:pointer;color:#fff;
+      font:inherit;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;
+      background:linear-gradient(180deg,var(--teal-bright),var(--accent-teal));
+      box-shadow:0 6px 0 var(--success),0 18px 24px rgba(0,0,0,.35);transform:translateZ(40px);
+      transition:transform 160ms var(--ease),box-shadow 160ms var(--ease),filter 200ms}
+    body.login-page .login-submit:hover{filter:brightness(1.08);transform:translateZ(50px) translateY(-2px)}
+    body.login-page .login-submit:active{transform:translateZ(40px) translateY(5px);box-shadow:0 1px 0 var(--success),0 6px 10px rgba(0,0,0,.4)}
+    body.login-page .login-submit:disabled{opacity:.7;cursor:not-allowed;filter:grayscale(.3)}
+    body.login-page .login-submit svg{width:20px;height:20px}
+    body.login-page .login-submit .spin{animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    body.login-page .login-message{margin:14px 0 0;min-height:1.2em;font-size:.88rem;text-align:center}
+    body.login-page .login-message[data-tone="error"]{color:var(--danger)}
+    body.login-page .login-message[data-tone="info"]{color:var(--muted)}
+    body.login-page .forgot-link{padding:0;border:0;background:none;color:var(--teal-bright);font:inherit;text-decoration:none;cursor:pointer;font-weight:500}
+    body.login-page .forgot-link:hover{color:#fff;text-decoration:underline}
+
+    /* fingerprint sign-in */
+    body.login-page .fp-box{margin:0 0 16px;transform:translateZ(30px)}
+    body.login-page .fp-box[hidden]{display:none}
+    body.login-page .fp-btn{width:100%;display:flex;align-items:center;gap:14px;padding:10px 14px;text-align:left;cursor:pointer;color:#fff;font:inherit;
+      background:rgba(13,18,23,.75);border:1.5px solid var(--line);border-radius:10px;transition:transform 300ms var(--ease),border-color 200ms,box-shadow 300ms}
+    body.login-page .fp-btn:hover{border-color:var(--accent-teal);transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.3)}
+    body.login-page .fp-ic{display:grid;place-items:center;width:38px;height:38px;border-radius:8px;border:1px solid rgba(var(--success-rgb),.3);color:var(--teal-bright);background:rgba(var(--success-rgb),.1);flex:none}
+    body.login-page .fp-ic svg{width:18px;height:18px}
+    body.login-page .fp-tx{display:grid;gap:2px}
+    body.login-page .fp-tx b{font-size:13px}
+    body.login-page .fp-tx small{color:var(--muted);font-size:11px}
+    body.login-page .fp-or{display:flex;align-items:center;gap:12px;margin:14px 0 0;color:var(--muted);font-size:12px;text-align:center}
+    body.login-page .fp-or::before,body.login-page .fp-or::after{content:"";flex:1;height:1px;background:var(--line)}
+
+    .forgot{margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px}
+
+    /* sign-in button: always full width, thumb-sized, no 3D lift on touch */
+    body.login-page .login-submit{min-height:50px;max-width:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+    body.login-page .login-submit:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+    body.login-page .login-submit[aria-busy="true"]{cursor:progress}
+    body.login-page .login-title{text-wrap:balance;line-height:1.15}
+    @media (hover:none),(pointer:coarse){
+      body.login-page .login-submit,body.login-page .login-submit:hover{transform:none}
+      body.login-page .login-submit:active{transform:translateY(4px);box-shadow:0 1px 0 var(--success),0 6px 10px rgba(0,0,0,.4)}
+      body.login-page .login-card,body.login-page .hero{transform:none!important}
+    }
+
+    @media (max-width:980px){
+      
+      .scene{grid-template-columns:minmax(0,1fr);padding:24px 16px;}
+      .hero{display:none}
+      .card-wrap{width:min(100%,430px);}
+      body.login-page .login-card{padding:24px 20px;}
+    }
+    @media (max-width:520px){
+      .scene{padding:16px 12px;}
+      body.login-page .login-card{padding:20px 16px;border-radius:16px;}
+      body.login-page .login-logo img{width:80px;}
+      body.login-page .login-subtitle{margin-bottom:16px;}
+      body.login-page .login-field{margin-bottom:12px;}
+      body.login-page .login-input-wrap input{height:48px;font-size:16px;} /* 16px stops iOS zooming in on focus */
+      body.login-page .login-submit{height:52px;font-size:17px;}
+      body.login-page .login-title{font-size:24px;}
+      .stage{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+    }
+  </style>
+  <link rel="stylesheet" href="/css/marva-reskin.css?v=4">
+</head>
+<body class="login-page">
+  <main class="stage">
+    <div class="photo" aria-hidden="true"></div>
+
+    <div class="scene">
+      <!-- LEFT: brand + features -->
+      <section class="hero" aria-label="Centric Auto Mobile">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Centric Auto Mobile Logo" onerror="this.onerror=null;this.src=window.__ACLOGO">
+          <div>
+            <p class="brand-name">Centric Auto <em>Mobile</em></p>
+            <p class="brand-sub">Workshop Management System</p>
+          </div>
+        </div>
+        <p class="tag">Smart Workshop. <b>Better Service.</b></p>
+        <p class="lede">Empowering your auto workshop with end-to-end management — track job cards, spare parts inventory, quotes, invoices, and accounting seamlessly.</p>
+        <ul class="feats">
+          <li class="feat"><span class="ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.9 6.91a2.12 2.12 0 0 1-3-3l6.91-6.9a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><div><h3>Job Cards</h3><p>Manage repairs & progress</p></div></li>
+          <li class="feat"><span class="ico o"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span><div><h3>Inventory</h3><p>Spare parts & stock alerts</p></div></li>
+          <li class="feat"><span class="ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><div><h3>Customers</h3><p>Client & vehicle records</p></div></li>
+          <li class="feat"><span class="ico o"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><div><h3>Quotations</h3><p>Track quotes & sales</p></div></li>
+          <li class="feat"><span class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span><div><h3>Invoicing</h3><p>Billing & payments</p></div></li>
+          <li class="feat"><span class="ico o"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><div><h3>Accounting</h3><p>General ledger & analytics</p></div></li>
+        </ul>
+      </section>
+
+      <!-- RIGHT: the sign-in card -->
+      <div class="card-wrap">
+        <div class="login-card">
+          <div class="login-logo"><img src="assets/logo.png" alt="Centric Auto Mobile" onerror="this.onerror=null;this.src=window.__ACLOGO"></div>
+          
+          <h1 class="login-title">Welcome Back to Centric</h1>
+          <p class="login-subtitle">Sign in to access your workshop dashboard</p>
+
+          <div id="fp-box" class="fp-box" hidden>
+            <button type="button" id="fp-signin" class="fp-btn">
+              <span class="fp-ic" aria-hidden="true"><i data-lucide="fingerprint"></i></span>
+              <span class="fp-tx"><b>Sign in with biometric ID</b><small>Verify with device fingerprint or Face ID</small></span>
+            </button>
+            <p id="fp-message" class="login-message" role="status"></p>
+            <div class="fp-or"><span>or sign in with password</span></div>
+          </div>
+
+          <form id="login-form">
+            <div class="login-field">
+              <label for="login-email" class="sr-only">Username or email</label>
+              <div class="login-input-wrap">
+                <i data-lucide="user-round" class="field-icon"></i>
+                <input type="text" id="login-email" autocomplete="username" placeholder="Username or email" required />
+              </div>
+            </div>
+
+            <div class="login-field">
+              <label for="login-password" class="sr-only">Password</label>
+              <div class="login-input-wrap">
+                <i data-lucide="lock" class="field-icon"></i>
+                <input type="password" id="login-password" autocomplete="current-password" placeholder="Password" required />
+                <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password">
+                  <i data-lucide="eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-submit" id="login-submit">
+              <i data-lucide="log-in"></i> Sign In
+            </button>
+
+            <p id="login-message" class="login-message" role="alert"></p>
+          </form>
+
+          <p class="forgot">Forgot your password? <button type="button" class="forgot-link" id="forgot-password">Reset it by email</button></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/login.js"></script>
+  <script>
+    lucide.createIcons();
+    const pwInput = document.getElementById("login-password");
+    const toggleBtn = document.getElementById("toggle-password");
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = pwInput.type === "password";
+      pwInput.type = isHidden ? "text" : "password";
+      toggleBtn.innerHTML = isHidden ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+      toggleBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+      lucide.createIcons();
+    });
+
+  </script>
+
+  <script>
+    (() => {
+      const root = document.documentElement, card = document.querySelector(".login-card");
+      if (!card || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+      const loop = () => {
+        cx += (tx - cx) * .12; cy += (ty - cy) * .12;
+        root.style.setProperty("--ry", (cx * 11).toFixed(2) + "deg");
+        root.style.setProperty("--rx", (cy * -8).toFixed(2) + "deg");
+        root.style.setProperty("--px", cx.toFixed(3));
+        root.style.setProperty("--py", cy.toFixed(3));
+        raf = (Math.abs(tx - cx) > .001 || Math.abs(ty - cy) > .001) ? requestAnimationFrame(loop) : 0;
+      };
+      const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+      addEventListener("pointermove", e => {
+        tx = Math.max(-.5, Math.min(.5, e.clientX / innerWidth - .5));
+        ty = Math.max(-.5, Math.min(.5, e.clientY / innerHeight - .5));
+        const r = card.getBoundingClientRect();
+        root.style.setProperty("--gx", ((e.clientX - r.left) / r.width * 100).toFixed(1) + "%");
+        root.style.setProperty("--gy", ((e.clientY - r.top) / r.height * 100).toFixed(1) + "%");
+        kick();
+      }, { passive: true });
+      document.addEventListener("pointerleave", () => { tx = ty = 0; kick(); });
+    })();
+  </script>
+</body>
+</html>
