@@ -395,8 +395,11 @@ async function sendReceiptWhatsApp() {
 
 async function sendReceiptEmail() {
   if (!currentReceipt || !receiptEmailBtn) return;
-  const email = (currentReceipt.customer?.email || "").trim() || prompt("Customer email address:");
-  if (!email) return;
+  const email = (currentReceipt.customer?.email || "").trim();
+  if (!email) {
+    window.aprToast?.("Customer email is missing", "error", "Add an email address to the customer record before sharing this receipt.");
+    return;
+  }
 
   await withButtonBusy(receiptEmailBtn, "Sending…", async () => {
     try {
