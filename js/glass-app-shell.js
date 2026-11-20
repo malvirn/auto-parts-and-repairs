@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { initNetworkStatus } from "./network-status.js";
 
 const NAV = [
   { title: "Main", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
@@ -77,7 +78,9 @@ function navGroups(current) {
         '<span class="glass-dot" aria-hidden="true"></span><span>' + esc(item.label) + '</span></a>').join("") +
       '</div></div></div>';
   }).join("");
-  return flat + (folders ? '<section class="glass-nav-group" aria-label="Workspace"><div class="glass-nav-heading">Workspace</div>' + folders + '</section>' : "");
+  const alerts = '<section class="glass-nav-group" aria-label="Alerts"><button class="glass-nav-link glass-notif-link" type="button" data-open-notifications title="Notifications">' +
+    icon("bell") + '<span>Notifications</span><span class="glass-nav-badge" data-attn-total hidden></span></button></section>';
+  return alerts + flat + (folders ? '<section class="glass-nav-group" aria-label="Workspace"><div class="glass-nav-heading">Workspace</div>' + folders + '</section>' : "");
 }
 
 function buildSidebar(current) {
@@ -104,7 +107,7 @@ function buildHeader() {
     '<div class="glass-header-actions"><a class="glass-job-action" href="' + esc(hrefFor("pages/repairs.html")) + '?new=1">' + icon("plus") + '<span>Job Card</span></a>' +
     '<a class="glass-icon-button glass-shop-action" href="' + esc(hrefFor("pages/shop.html")) + '" aria-label="Open shop" title="Shop">' + icon("shopping-cart") + '</a>' +
     '<button class="glass-icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"></button>' +
-    '<div class="glass-notification-slot" id="glass-notification-slot"></div></div></header>';
+    '<div class="glass-notification-slot" id="glass-network-slot"><button class="glass-net" id="glass-net" type="button" data-level="" aria-label="Network strength" title="Checking connection…"><span class="glass-net-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="glass-net-label">Checking…</span></button></div></div></header>';
 }
 
 
@@ -121,6 +124,38 @@ const canon = html => String(html)
 const themeName = () => document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
 const normPath = p => { p = String(p).replace(/\.html$/i, "").replace(/\/+$/, ""); return p.replace(/\/index$/, "") || "/"; };
 const samePath = (a, b) => normPath(a) === normPath(b);
+
+const pageOf = href => { try { return new URL(href, location.href).pathname.split("/").pop().replace(/\.html$/i, "") || "index"; } catch (_) { return ""; } };
+const badgeText = n => (n > 9 ? "9+" : String(n));
+
+// Shows how many things need attention on each page next to its sidebar link (and on a collapsed folder).
+function applyAttention(root, detail) {
+  if (!root) return;
+  const counts = (detail && detail.counts) || {};
+  root.querySelectorAll(".glass-nav-badge[data-attn-page], .glass-nav-badge[data-attn-folder]").forEach(n => n.remove());
+  const make = (n, attr) => {
+    const b = document.createElement("span");
+    b.className = "glass-nav-badge"; b.setAttribute(attr, "");
+    b.textContent = badgeText(n);
+    b.title = n + (n === 1 ? " item needs attention" : " items need attention");
+    return b;
+  };
+  root.querySelectorAll("a.glass-nav-link, a.glass-nav-sublink").forEach(a => {
+    const n = counts[pageOf(a.getAttribute("href"))] || 0;
+    a.toggleAttribute("data-attention", n > 0);
+    if (n) a.append(make(n, "data-attn-page"));
+  });
+  root.querySelectorAll(".glass-nav-folder").forEach(folder => {
+    let n = 0;
+    folder.querySelectorAll("a.glass-nav-sublink").forEach(a => { n += counts[pageOf(a.getAttribute("href"))] || 0; });
+    folder.toggleAttribute("data-attention", n > 0);
+    const btn = folder.querySelector(".glass-nav-folder-btn");
+    if (btn && n) btn.append(make(n, "data-attn-folder"));
+  });
+  const total = root.querySelector("[data-attn-total]");
+  if (total) { const u = (detail && detail.unread) || 0; total.hidden = !u; total.textContent = u ? badgeText(u) : ""; }
+}
+window.addEventListener("apr:attention-change", event => applyAttention(document.getElementById("glass-app-chrome"), event.detail));
 
 function markActive(root) {
   root.querySelectorAll("a.glass-nav-link, a.glass-nav-sublink").forEach(a => {
@@ -153,6 +188,12 @@ function cacheShell(root, sig) {
     clone.querySelectorAll("[data-has-active]").forEach(a => a.removeAttribute("data-has-active"));
     clone.querySelectorAll("[aria-current]").forEach(a => a.removeAttribute("aria-current"));
     clone.querySelectorAll("#global-notif-bell, #global-notif-panel").forEach(n => n.remove());
+    clone.querySelectorAll(".glass-nav-badge[data-attn-page], .glass-nav-badge[data-attn-folder]").forEach(n => n.remove());
+    clone.querySelectorAll("[data-attention]").forEach(n => n.removeAttribute("data-attention"));
+    clone.querySelectorAll("[data-attn-total]").forEach(n => { n.hidden = true; n.textContent = ""; });
+    clone.querySelectorAll("#hs-input").forEach(n => { n.removeAttribute("data-search-bound"); n.removeAttribute("value"); });
+    clone.querySelectorAll("#hs-chips, #hs-results").forEach(n => { n.innerHTML = ""; });
+    clone.querySelectorAll("#glass-net").forEach(n => { n.removeAttribute("data-bound"); n.dataset.level = ""; });
     clone.querySelectorAll("#glass-profile-menu, #hs-panel").forEach(n => n.setAttribute("hidden", ""));
     clone.querySelectorAll("[aria-expanded]:not(.glass-nav-folder-btn)").forEach(n => n.setAttribute("aria-expanded", "false"));
     clone.removeAttribute("data-cached");
@@ -252,15 +293,14 @@ function bindShell(root) {
     window.dispatchEvent(new CustomEvent("apr:theme-changed", { detail: { mode: next } }));
   });
 
-  // The existing notification module owns the data and alert behaviour.
-  const moveBell = () => {
-    const bell = document.getElementById("global-notif-bell");
-    if (bell && !header.querySelector("#global-notif-bell")) header.querySelector("#glass-notification-slot").append(bell);
-  };
-  moveBell();
-  const observer = new MutationObserver(moveBell);
-  observer.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener("beforeunload", () => observer.disconnect(), { once: true });
+  // The notification module owns the data; the sidebar entry just opens its panel next to the button.
+  root.querySelector("[data-open-notifications]")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    document.dispatchEvent(new CustomEvent("apr:open-notifications", { detail: { anchor: event.currentTarget, toggle: true } }));
+  });
+  initNetworkStatus();
+  try { applyAttention(root, JSON.parse(sessionStorage.getItem("apr-attention") || "null")); } catch (_) {}
 
   // dashboard-search.js is loaded by each dashboard page and binds to #hs-input.
   if (window.lucide) window.lucide.createIcons();

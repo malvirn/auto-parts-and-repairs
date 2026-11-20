@@ -98,12 +98,17 @@ import supabase from "./supabaseClient.js";
     const BY_KEY = Object.fromEntries(SOURCES.map(s => [s.key, s]));
 
     // ---------- search UI ----------
+    // The header is saved and restored between pages, so bind to whichever search box is on screen now
+    // (and again if the header gets replaced) instead of trusting a flag stored in the saved HTML.
+    const boundSearchInputs = new WeakSet();
+    function bindHeaderSearch() {
     const input = document.querySelector(".sidebar-search #hs-input") || $("hs-input");
     const panel = input?.closest(".hs")?.querySelector("#hs-panel") || $("hs-panel");
     const chips = panel?.querySelector("#hs-chips") || $("hs-chips");
     const out = panel?.querySelector("#hs-results") || $("hs-results");
-    if (input && panel && chips && out && !input.dataset.searchBound) {
-      input.dataset.searchBound = "true";
+    if (input && panel && chips && out && !boundSearchInputs.has(input)) {
+      boundSearchInputs.add(input);
+      input.removeAttribute("data-search-bound");
       let filter = "all", seq = 0, warmed = false;
       chips.innerHTML = [{ key: "all", label: "All" }, ...SOURCES].map(s => `<button type="button" class="hs-chip" data-f="${s.key}" aria-pressed="${s.key === "all"}">${esc(s.label)}</button>`).join("");
 
@@ -188,6 +193,10 @@ import supabase from "./supabaseClient.js";
         run();
       }
     }
+    }
+    bindHeaderSearch();
+    new MutationObserver(() => bindHeaderSearch()).observe(document.body, { childList: true });
+    window.addEventListener("apr:shell-ready", bindHeaderSearch);
 
     // ---------- top-right More menu ----------
     const btn = $("hdr-menu-btn"), menu = $("hdr-menu");

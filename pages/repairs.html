@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="../css/theme-tokens.css">
-<link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-5">
+<link rel="stylesheet" href="../css/glass-app-shell.css?v=glass-shell-6">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -1623,7 +1623,7 @@ async function saveEditedParts(draft){
  }
  const lines=draft.map(part=>({job_part_id:part.job_part_id||null,part_id:part.part_id||null,part_name:String(part.part_name||"").trim(),quantity:Number(part.quantity),price_at_time:Number(part.price_at_time)||0,awaiting_accounting_price:Boolean(part.awaiting_accounting_price)}));
  const{error}=await supabase.rpc("replace_job_parts",{p_job_id:cur.id,p_lines:lines});
- if(error)throw new Error("Couldn't save job-card parts atomically: "+error.message);
+ if(error)throw new Error("Couldn't save job-card parts atomically: "+error.message);document.dispatchEvent(new CustomEvent("apr:refresh-notifications"));
  const{data:refreshedParts,error:refreshError}=await supabase.from("job_parts").select("id,part_id,part_name,quantity,price_at_time,awaiting_accounting_price,parts(description)").eq("job_id",cur.id);
  if(refreshError)throw new Error("Parts were saved, but could not be reloaded: "+refreshError.message);
  curParts=refreshedParts||[];
@@ -2276,7 +2276,7 @@ $("save").onclick=async()=>{const b=$("save");
   }));
   if(partRows.length){
    const{error:partsError}=await supabase.from("job_parts").insert(partRows);
-   if(partsError)throw new Error(`Couldn't add job-card parts: ${partsError.message}`);
+   if(partsError)throw new Error(`Couldn't add job-card parts: ${partsError.message}`);document.dispatchEvent(new CustomEvent("apr:refresh-notifications"));
    const partsCost=selectedJobParts.reduce((sum,item)=>sum+item.price*item.quantity,0);
    const{error:totalError}=await supabase.from("repair_jobs").update({parts_cost:partsCost}).eq("id",createdJobId);
    if(totalError)throw new Error(`Job card was created, but its parts total could not be saved: ${totalError.message}`);

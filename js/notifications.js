@@ -7,7 +7,7 @@ import supabase from "./supabaseClient.js";
 // <body>, except on dashboard pages with a header action cluster.
 // ============================================================
 
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // re-check every 5 minutes
+const REFRESH_INTERVAL_MS = 2 * 60 * 1000; // re-check every 2 minutes
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -112,12 +112,23 @@ function injectBellUI() {
     renderNotifications(window.__centricCurrentNotifications || []);
   });
 
-  const setPanelOpen = open => {
+  let panelAnchor = null;
+  const setPanelOpen = (open, anchor) => {
+    if (anchor) panelAnchor = anchor;
     panel.classList.toggle("open", Boolean(open));
     bell.setAttribute("aria-expanded", String(Boolean(open)));
     if (!open) return;
-    const rect = bell.getBoundingClientRect();
+    panel.style.zIndex = "3000";
     const panelWidth = Math.min(340, Math.max(240, window.innerWidth - 24));
+    if (panelAnchor && panelAnchor.isConnected) {
+      // Opened from the sidebar: sit beside the button, or under it on a narrow screen.
+      const rect = panelAnchor.getBoundingClientRect();
+      let left = rect.right + 10, top = Math.max(12, Math.min(rect.top, window.innerHeight - 220));
+      if (left + panelWidth > window.innerWidth - 12) { left = 12; top = Math.min(window.innerHeight - 220, rect.bottom + 8); }
+      panel.style.left = `${left}px`; panel.style.top = `${top}px`; panel.style.right = "auto";
+      return;
+    }
+    const rect = bell.getBoundingClientRect();
     const right = Math.max(12, window.innerWidth - rect.right);
     panel.style.top = `${Math.min(window.innerHeight - 120, rect.bottom + 8)}px`;
     panel.style.right = `${Math.min(right, Math.max(12, window.innerWidth - panelWidth - 12))}px`;
@@ -131,7 +142,11 @@ function injectBellUI() {
   document.addEventListener("click", event => {
     if (!panel.contains(event.target) && !bell.contains(event.target)) setPanelOpen(false);
   });
-  document.addEventListener("apr:open-notifications", () => setPanelOpen(true));
+  document.addEventListener("apr:open-notifications", event => {
+    const detail = event.detail || {};
+    if (detail.toggle && panel.classList.contains("open")) setPanelOpen(false);
+    else setPanelOpen(true, detail.anchor);
+  });
   window.addEventListener("resize", () => {
     if (panel.classList.contains("open")) setPanelOpen(true);
   });
@@ -174,6 +189,17 @@ function renderNotifications(items) {
   window.__centricCurrentNotifications = items;
   const read = new Set(readNotificationKeys());
   const unread = items.filter(item => !read.has(notificationKey(item)));
+  // Sidebar badges: every active item counts toward its page until the underlying issue is fixed
+  // (marking a notification read only clears it from the Notifications list, not from the page badge).
+  const counts = {};
+  items.forEach(item => {
+    const page = String(item.link || "").split(/[?#]/)[0].split("/").pop().replace(/\.html$/i, "");
+    if (page) counts[page] = (counts[page] || 0) + 1;
+  });
+  const attention = { counts, unread: unread.length, total: items.length };
+  window.__centricAttention = attention;
+  try { sessionStorage.setItem("apr-attention", JSON.stringify(attention)); } catch (_) {}
+  window.dispatchEvent(new CustomEvent("apr:attention-change", { detail: attention }));
   if (unread.length) {
     badge.textContent = unread.length > 9 ? "9+" : String(unread.length);
     badge.style.display = "flex";
@@ -505,6 +531,12 @@ function init() {
     document.addEventListener("apr:access-ready", runAllChecks, { once: true });
   }
   setInterval(runAllChecks, REFRESH_INTERVAL_MS);
+  let lastRun = Date.now();
+  const refresh = () => { if (document.body.dataset.role && Date.now() - lastRun > 15000) { lastRun = Date.now(); runAllChecks(); } };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  window.addEventListener("focus", refresh);
+  // Pages fire this after saving something that can raise an alert (e.g. adding a part to a job card).
+  document.addEventListener("apr:refresh-notifications", () => { lastRun = Date.now(); if (document.body.dataset.role) runAllChecks(); });
 }
 
 if (document.readyState === "loading") {
