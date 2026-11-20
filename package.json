@@ -1,8 +1,10 @@
 {
   "devDependencies": {
-    "supabase": "^2.117.0"
+    "supabase": "^2.117.0",
+    "vitest": "^3.2.4"
   },
   "scripts": {
-    "check:js": "node scripts/check-js.mjs"
+    "check:js": "node scripts/check-js.mjs",
+    "test": "vitest run"
   }
 }
