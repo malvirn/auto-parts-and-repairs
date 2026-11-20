@@ -59,7 +59,7 @@ function normalizeRole(role) {
 function applyAccess(role, account = {}) {
   role = normalizeRole(role);
   document.body.dataset.role = role;
-  document.body.dataset.accountName = String(account.email || "").toLowerCase() === "malvirngomo8@gmail.com" ? "Admin" : account.fullName || account.email || "Account";
+  document.body.dataset.accountName = role === "super_admin" ? "Admin" : account.fullName || account.email || "Account";
   document.body.dataset.accountEmail = account.email || "";
   document.body.dataset.accessLevel = String(account.accessLevel ?? "");
   const markDeleteControls = root => {
