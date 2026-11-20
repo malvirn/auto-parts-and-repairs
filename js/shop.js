@@ -64,14 +64,21 @@ let BUSINESS_VAT_REGISTERED = false;
 let BUSINESS_VAT_RATE = 0;
 
 async function loadBusinessTaxProfile() {
-  const profile = await fetchBusinessTaxProfile(supabase);
-  BUSINESS_VAT_REGISTERED = profile.vatRegistered;
-  BUSINESS_VAT_RATE = profile.vatRate;
+  try {
+    const profile = await fetchBusinessTaxProfile(supabase);
+    BUSINESS_VAT_REGISTERED = profile.vatRegistered;
+    BUSINESS_VAT_RATE = profile.vatRate;
+  } catch (error) {
+    console.error("Could not load business VAT settings:", error);
+    BUSINESS_VAT_REGISTERED = false;
+    BUSINESS_VAT_RATE = 0;
+  }
   const options = `<option value="0">0%</option>${BUSINESS_VAT_REGISTERED && BUSINESS_VAT_RATE > 0 ? `<option value="${BUSINESS_VAT_RATE}">${BUSINESS_VAT_RATE}%</option>` : ""}`;
   [vatRate, editVatRate].forEach(select => {
     if (!select) return;
     select.innerHTML = options;
     select.value = String(BUSINESS_VAT_REGISTERED ? BUSINESS_VAT_RATE : 0);
+    select.disabled = true;
   });
 }
 let settingsRowId = null;
