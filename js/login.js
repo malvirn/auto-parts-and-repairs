@@ -9,7 +9,6 @@ const messageEl = document.getElementById("login-message");
 const submitBtn = document.getElementById("login-submit");
 const forgotPasswordBtn = document.getElementById("forgot-password");
 const openedFromFile = window.location.protocol === "file:";
-const ADMIN_LOGIN_EMAIL = "malvirngomo8@gmail.com";
 
 const LOGIN_GUARD_KEY = "centric-login-guard-v1";
 const LOGIN_GUARD_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -103,7 +102,7 @@ function isInvalidCredentials(error) {
 
 function resolveLoginEmail(value) {
   const input = String(value || "").trim();
-  return input.toLowerCase() === "admin" ? ADMIN_LOGIN_EMAIL : input;
+  return input;
 }
 
 if (openedFromFile) {
@@ -140,7 +139,7 @@ forgotPasswordBtn?.addEventListener("click", async () => {
     showMessage("Enter your email address first, then choose the password reset link.", "error");
     return;
   }
-  if (enteredLogin.toLowerCase() !== "admin" && !emailInput.checkValidity()) {
+  if (!emailInput.checkValidity()) {
     emailInput.reportValidity();
     return;
   }
