@@ -1,5 +1,6 @@
 import supabase from "./supabaseClient.js";
 import { getRate } from "./currency.js";
+import { loadBusinessTaxProfile as fetchBusinessTaxProfile } from "./business-tax.js";
 
 const quoteForm = document.getElementById("quotation-form");
 const jobSelect = document.getElementById("quote-job");
@@ -27,7 +28,7 @@ let editingQuoteDetailText = "";
 let editingOrderDetailText = "";
 let exchangeRate = 26.6908;
 let BUSINESS_VAT_REGISTERED = false;
-let BUSINESS_VAT_RATE = 15.5;
+let BUSINESS_VAT_RATE = 0;
 let quotationRows = [];
 let quotationVisibleCount = 50;
 let quoteSubmissionInProgress = false;
@@ -69,11 +70,14 @@ function quotationTotals(items, vatRate = BUSINESS_VAT_RATE) {
 }
 function quotationVatRate() { return BUSINESS_VAT_REGISTERED && quoteVatEnabled?.checked ? BUSINESS_VAT_RATE : 0; }
 async function loadBusinessTaxProfile() {
-  const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
-  if (error) { console.error("Couldn't load business VAT settings:", error); BUSINESS_VAT_REGISTERED = false; }
-  else {
-    BUSINESS_VAT_REGISTERED = Boolean(data?.vat_registered);
-    BUSINESS_VAT_RATE = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+  try {
+    const profile = await fetchBusinessTaxProfile(supabase);
+    BUSINESS_VAT_REGISTERED = profile.vatRegistered;
+    BUSINESS_VAT_RATE = profile.vatRate;
+  } catch (error) {
+    console.error("Couldn't load business VAT settings:", error);
+    BUSINESS_VAT_REGISTERED = false;
+    BUSINESS_VAT_RATE = 0;
   }
   const explicitNoVat = new URLSearchParams(window.location.search).get("vat") === "0";
   if (quoteVatEnabled) {
