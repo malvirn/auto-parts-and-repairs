@@ -1,4 +1,5 @@
 import supabase from "./supabaseClient.js";
+import { loadBusinessTaxProfile as fetchBusinessTaxProfile } from "./business-tax.js";
 
 const requestBody = document.getElementById("shop-job-part-purchase-body");
 const message = document.getElementById("shop-job-part-purchase-message");
@@ -8,12 +9,11 @@ if (requestBody && message && refreshButton) {
   let stockParts = [];
   let markupRate = 0.15;
   let businessVatRegistered = false;
-  let businessVatRate = 15.5;
+  let businessVatRate = 0;
   async function loadBusinessTaxProfile() {
-    const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
-    if (error) throw new Error("Could not load business VAT settings: " + error.message);
-    businessVatRegistered = Boolean(data?.vat_registered);
-    businessVatRate = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+    const profile = await fetchBusinessTaxProfile(supabase);
+    businessVatRegistered = profile.vatRegistered;
+    businessVatRate = profile.vatRate;
   }
 
   function escapeHtml(value) {
