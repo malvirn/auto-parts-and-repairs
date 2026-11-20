@@ -158,6 +158,15 @@ function refreshInstall() {
 $("inst-btn")?.addEventListener("click", () => window.aprInstall ? window.aprInstall() : alert("To install: open the browser menu and tap Install app or Add to Home screen."));
 window.addEventListener("appinstalled", refreshInstall);
 
+// VAT settings are visible only to the Super Admin. Supabase RLS remains
+// the security boundary for writes.
+function syncVatSettingsAccess() {
+  const section = $("business-vat-settings");
+  if (section) section.hidden = document.body.dataset.role !== "super_admin";
+}
+document.addEventListener("apr:access-ready", syncVatSettingsAccess);
+syncVatSettingsAccess();
+
 // ---- Business details ----
 async function loadBusinessSettings() {
   const { data, error } = await supabase.from("business_settings").select("*").eq("id", 1).maybeSingle();
@@ -170,7 +179,7 @@ async function loadBusinessSettings() {
   set("biz-email", data.email);
   set("biz-hours", data.hours);
   set("biz-vat-number", data.vat_number);
-  set("biz-vat-rate", data.vat_rate ?? 15.5);
+  set("biz-vat-rate", data.vat_rate ?? 0);
   set("biz-fdms-device", data.fdms_device_id);
   const vatToggle = $("biz-vat-registered");
   if (vatToggle) vatToggle.checked = Boolean(data.vat_registered);
@@ -183,7 +192,7 @@ $("save-business-btn")?.addEventListener("click", async (e) => {
   if (!get("biz-name")) { say("m-biz", "Enter the business name.", false); return; }
   const vatRegistered = $("biz-vat-registered")?.checked || false;
   const vatNumber = get("biz-vat-number");
-  const vatRate = Number($("biz-vat-rate")?.value ?? 15.5);
+  const vatRate = Number($("biz-vat-rate")?.value ?? 0);
   if (vatRegistered && !vatNumber) { say("m-biz", "Enter the ZIMRA VAT registration number before enabling VAT.", false); $("biz-vat-number")?.focus(); return; }
   if (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100) { say("m-biz", "Enter a valid VAT rate between 0 and 100.", false); $("biz-vat-rate")?.focus(); return; }
   busy(e.currentTarget, true);
