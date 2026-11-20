@@ -49,11 +49,7 @@ export async function loadUserProfile(userId) {
   const profileRole = normalizeRole(profile?.role);
   const resolved = {
     ...profile,
-    role: profileRole === "accounting"
-      ? "accounting"
-      : Number(profile?.access_level) >= 2 || profileRole === "super_admin"
-        ? "super_admin"
-        : profileRole,
+    role: profileRole,
     is_active: activeResult.status === "fulfilled" && !activeResult.value.error
       ? activeResult.value.data?.is_active !== false
       : true,
