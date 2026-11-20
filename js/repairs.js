@@ -5,16 +5,20 @@ import { hydrate } from "./data-cache.js";
 import { confirmTypedDelete } from "./bulk-delete.js";
 import { getRate as getBankRate } from "./currency.js";
 import { usdEquivalent } from "./payment-currency.js";
+import { loadBusinessTaxProfile as fetchBusinessTaxProfile } from "./business-tax.js";
 
 const $ = (id) => document.getElementById(id);
 let BUSINESS_VAT_REGISTERED = false;
-let BUSINESS_VAT_RATE = 15.5;
+let BUSINESS_VAT_RATE = 0;
 async function loadBusinessTaxProfile() {
-  const { data, error } = await supabase.from("business_settings").select("vat_registered,vat_rate").eq("id", 1).maybeSingle();
-  if (error) { console.error("Couldn't load business VAT settings:", error); BUSINESS_VAT_REGISTERED = false; }
-  else {
-    BUSINESS_VAT_REGISTERED = Boolean(data?.vat_registered);
-    BUSINESS_VAT_RATE = Math.min(100, Math.max(0, Number(data?.vat_rate ?? 15.5)));
+  try {
+    const profile = await fetchBusinessTaxProfile(supabase);
+    BUSINESS_VAT_REGISTERED = profile.vatRegistered;
+    BUSINESS_VAT_RATE = profile.vatRate;
+  } catch (error) {
+    console.error("Couldn't load business VAT settings:", error);
+    BUSINESS_VAT_REGISTERED = false;
+    BUSINESS_VAT_RATE = 0;
   }
   const toggle = $("job-vat-enabled");
   if (toggle) { toggle.checked = BUSINESS_VAT_REGISTERED; toggle.disabled = !BUSINESS_VAT_REGISTERED; }
