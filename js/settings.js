@@ -161,8 +161,8 @@ window.addEventListener("appinstalled", refreshInstall);
 // VAT settings are visible only to the Super Admin. Supabase RLS remains
 // the security boundary for writes.
 function syncVatSettingsAccess() {
-  const section = $("business-vat-settings");
-  if (section) section.hidden = document.body.dataset.role !== "super_admin";
+  const isSuperAdmin = document.body.dataset.role === "super_admin";
+  document.querySelectorAll(".business-vat-admin-only").forEach(section => { section.hidden = !isSuperAdmin; });
 }
 document.addEventListener("apr:access-ready", syncVatSettingsAccess);
 syncVatSettingsAccess();
