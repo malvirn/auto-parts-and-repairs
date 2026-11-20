@@ -1,6 +1,7 @@
 import supabase from "./supabaseClient.js";
 import { getRate } from "./currency.js";
 import { confirmTypedDelete, installBulkDelete } from "./bulk-delete.js";
+import { loadBusinessTaxProfile as fetchBusinessTaxProfile } from "./business-tax.js";
 
 const form = document.getElementById("part-form");
 const tableBody = document.getElementById("parts-table");
@@ -59,7 +60,20 @@ let allSuppliers = [];              // [{id, name}]
 let purchaseAccounts = [];
 let currentPartSuppliers = {};      // part_id -> [{id, name, is_preferred}]
 let MARKUP_RATE = 0.15;
-const DEFAULT_VAT_RATE = 15.5;
+let BUSINESS_VAT_REGISTERED = false;
+let BUSINESS_VAT_RATE = 0;
+
+async function loadBusinessTaxProfile() {
+  const profile = await fetchBusinessTaxProfile(supabase);
+  BUSINESS_VAT_REGISTERED = profile.vatRegistered;
+  BUSINESS_VAT_RATE = profile.vatRate;
+  const options = `<option value="0">0%</option>${BUSINESS_VAT_REGISTERED && BUSINESS_VAT_RATE > 0 ? `<option value="${BUSINESS_VAT_RATE}">${BUSINESS_VAT_RATE}%</option>` : ""}`;
+  [vatRate, editVatRate].forEach(select => {
+    if (!select) return;
+    select.innerHTML = options;
+    select.value = String(BUSINESS_VAT_REGISTERED ? BUSINESS_VAT_RATE : 0);
+  });
+}
 let settingsRowId = null;
 
 function escapeHtml(str) {
@@ -82,7 +96,7 @@ function updateSellingPrice(costInput, priceInput, markupInput, vatInput) {
     priceInput.value = sellingPriceFor(
       costInput.value,
       (Number.isFinite(markupPercent) ? markupPercent : MARKUP_RATE * 100) / 100,
-      Number(vatInput?.value || DEFAULT_VAT_RATE),
+      Number(vatInput?.value ?? 0),
     );
   }
 }
@@ -636,7 +650,7 @@ function openEditModal(part) {
   editQty.value = part.quantity_in_stock;
   editMinimumStock.value = part.minimum_stock || 0;
   editCost.value = part.cost_price;
-  editVatRate.value = String(part.vat_rate ?? DEFAULT_VAT_RATE);
+  editVatRate.value = String(BUSINESS_VAT_REGISTERED ? BUSINESS_VAT_RATE : 0);
   editPrice.value = Number(part.selling_price || 0).toFixed(2);
   const markup = Number(part.cost_price) > 0
     ? ((Number(part.selling_price) / Number(part.cost_price) - 1) * 100)
@@ -754,7 +768,7 @@ if (form) form.addEventListener("submit", async (e) => {
 
   if (error) { alert("Failed to add part: " + error.message); return; }
   form.reset();
-  vatRate.value = String(DEFAULT_VAT_RATE);
+  vatRate.value = String(BUSINESS_VAT_REGISTERED ? BUSINESS_VAT_RATE : 0);
   document.getElementById("part-markup-rate").value = (MARKUP_RATE * 100).toFixed(1);
   updateSellingPrice(document.getElementById("part-cost"), document.getElementById("part-price"), document.getElementById("part-markup-rate"), vatRate);
   await loadParts();
@@ -1117,6 +1131,7 @@ document.getElementById("quick-sale-form")?.addEventListener("submit", async (e)
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadBusinessTaxProfile();
   await loadMarkupRate();
   await loadSuppliersIntoSelect();
   await loadParts();
