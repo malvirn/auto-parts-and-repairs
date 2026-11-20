@@ -359,6 +359,7 @@ async function checkCompletedJobCards() {
     const { data, error } = await supabase.from("repair_jobs")
       .select("id,job_number,cro_number,completed_at,status")
       .not("completed_at", "is", null)
+      .is("closed_at", null) // once the job card is closed there is nothing left to review
       .order("completed_at", { ascending: false })
       .limit(500);
     if (error) throw error;
