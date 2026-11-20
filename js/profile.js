@@ -1,7 +1,7 @@
 import supabase from "./supabaseClient.js";
 
 const PROFILE_TIMEOUT_MS = 8000;
-const PROFILE_CACHE_PREFIX = "apr-profile-cache:";
+const PROFILE_CACHE_PREFIX = "apr-profile-cache-v2:";
 
 function withTimeout(promise, label) {
   let timeoutId;
@@ -18,7 +18,7 @@ function normalizeRole(role) {
 
 export async function loadUserProfile(userId) {
   const roleRequest = supabase.from("profiles")
-    .select("role, full_name, access_level")
+    .select("role, full_name")
     .eq("id", userId)
     .maybeSingle();
   const activeRequest = supabase.from("profiles")
