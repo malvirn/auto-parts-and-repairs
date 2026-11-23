@@ -8,9 +8,9 @@ const NAV = [
   ]},
   { title: "Jobs", icon: "wrench", items: [
     { label: "Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff"] },
-    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist" },
-    { label: "Quotations", href: "pages/quotations.html", color: "#A78BFA", page: "quotations" },
-    { label: "Billing & Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts" }
+    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist", roles: ["super_admin","staff"] },
+    { label: "Quotations", href: "pages/quotations.html", color: "#A78BFA", page: "quotations", roles: ["super_admin","staff"] },
+    { label: "Billing & Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts", roles: ["super_admin","staff","accounting"] }
   ]},
   { title: "Stock", icon: "package", items: [
     { label: "Parts & Quick Sale", href: "pages/shop.html", color: "#34D399", page: "shop" },
