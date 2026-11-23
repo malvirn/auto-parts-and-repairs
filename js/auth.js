@@ -16,6 +16,7 @@ const dashboardPath = inPagesFolder ? "../index.html" : "index.html";
 // is accessible to every logged-in role by default; RLS is still the
 // real boundary underneath regardless of what this hides or allows.
 const PAGE_ACCESS = {
+  "index": ["super_admin"],
   "accounting": ["super_admin", "accounting"],
   "ledger": ["super_admin", "accounting"],
   "payables": ["super_admin", "accounting"],
@@ -24,18 +25,24 @@ const PAGE_ACCESS = {
   "landed-cost": ["super_admin", "accounting"],
   "fixed-assets": ["super_admin", "accounting"],
   "financial-statements": ["super_admin", "accounting"],
-  "technicians": ["super_admin"], // salary/bank data — super_admin only
-  "customers": ["super_admin", "staff"], // accounting has no reason to see customer PII
-  "repairs": ["super_admin", "staff"], // accounting has no reason to edit repair jobs directly
-  "suppliers": ["super_admin", "staff"], // accounting still reads the suppliers TABLE fine (for Payables/Landed Cost dropdowns) — this only hides the management PAGE
+  "technicians": ["super_admin", "accounting"],
+  "customers": ["super_admin", "staff"],
+  "repairs": ["super_admin", "staff", "workshop"],
+  "checklist": ["super_admin", "staff", "workshop"],
+  "quotations": ["super_admin", "staff", "workshop", "accounting"],
+  "receipts": ["super_admin", "staff", "accounting"],
+  "shop": ["super_admin", "staff", "workshop", "accounting"],
+  "suppliers": ["super_admin", "staff", "workshop", "accounting"],
   "analytics": ["super_admin", "accounting"],
-  "centric-intelligence": ["super_admin", "accounting"], // includes payroll-adjacent figures — staff/mechanics don't see this
+  "centric-intelligence": ["super_admin", "accounting"],
 };
 
 // Where each role lands instead of the generic dashboard, since "their
 // dashboard should only show things related to their department" is best
 // served by sending them straight to the hub that's actually theirs.
 const DASHBOARD_REDIRECT = {
+  workshop: "repairs",
+  staff: "customers",
   accounting: "accounting",
 };
 
