@@ -257,11 +257,15 @@ async function loadCustomerHistory(customer) {
   const events = [];
   let totalCharges = 0;
   let totalPaid = 0;
+  // A closed repair job can also have a linked customer invoice. Once invoiced,
+  // the invoice is the receivable source of truth; counting both doubles the balance.
+  const invoicedJobIds = new Set(invoices.map(invoice => invoice.repair_job_id).filter(Boolean));
   for (const job of jobs) {
     const total = Number(job.total_cost || 0);
     const paid = jobPaid.get(job.id) || 0;
-    const contributesToBalance = paid > 0
-      || ["Ready for Pickup", "Unclaimed", "Collected", "Processed"].includes(job.status);
+    const hasLinkedInvoice = invoicedJobIds.has(job.id);
+    const contributesToBalance = !hasLinkedInvoice && (paid > 0
+      || ["Ready for Pickup", "Unclaimed", "Collected", "Processed"].includes(job.status));
     const vehicle = vehicleById.get(job.vehicle_id);
     const parts = jobPartsById.get(job.id) || [];
     if (contributesToBalance) {
