@@ -1570,3 +1570,88 @@ html[data-theme="light"] { background:var(--soft) !important; color-scheme:light
   background:#ffffff !important;
   color:#17211b !important;
 }
+
+
+/* Dashboard: readable, separated Needs Attention rows */
+body.dashboard-page #attention-panel {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch;
+  gap:9px !important;
+  padding:12px !important;
+  overflow:hidden;
+}
+body.dashboard-page #attention-panel .attention-item {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  min-width:0;
+  min-height:64px;
+  padding:12px 14px;
+  border:1px solid var(--mh-bd);
+  border-radius:13px;
+  background:var(--mh-card);
+  color:var(--mh-tx);
+  text-decoration:none;
+  line-height:1.45;
+  box-sizing:border-box;
+}
+body.dashboard-page #attention-panel .attention-item__label {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:1 1 auto;
+  min-width:0;
+  font-size:14px;
+  font-weight:550;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+body.dashboard-page #attention-panel .attention-item__symbol {
+  display:grid;
+  place-items:center;
+  flex:0 0 38px;
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  background:var(--mh-in);
+}
+body.dashboard-page #attention-panel .attention-item__icon {
+  display:block;
+  width:20px;
+  height:20px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--mh-mu);
+}
+body.dashboard-page #attention-panel .attention-item.urgent .attention-item__symbol { background:color-mix(in srgb,var(--mh-rs) 13%,transparent); }
+body.dashboard-page #attention-panel .attention-item.urgent .attention-item__icon { color:var(--mh-rs); }
+body.dashboard-page #attention-panel .attention-item.warning .attention-item__symbol { background:color-mix(in srgb,var(--mh-am) 13%,transparent); }
+body.dashboard-page #attention-panel .attention-item.warning .attention-item__icon { color:var(--mh-am); }
+body.dashboard-page #attention-panel .attention-item__chevron {
+  display:block;
+  flex:0 0 17px;
+  width:17px;
+  height:17px;
+  color:var(--mh-mu);
+}
+body.dashboard-page #attention-panel .attention-item:hover {
+  border-color:var(--mh-al);
+  background:var(--mh-in);
+}
+body.dashboard-page #attention-panel .attention-empty {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:54px;
+  padding:12px;
+  line-height:1.5;
+}
+@media(max-width:560px) {
+  body.dashboard-page #attention-panel .attention-item { min-height:68px; padding:11px 12px; }
+  body.dashboard-page #attention-panel .attention-item__label { gap:10px; font-size:13.5px; }
+}
