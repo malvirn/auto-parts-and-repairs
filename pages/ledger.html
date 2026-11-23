@@ -1048,7 +1048,7 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
     });
 
     $("jb-search").addEventListener("input", () => { visibleJobPage = 1; render(); });
-    $("jb-filter").addEventListener("change", () => { visibleJobCount = 5; render(); });
+    $("jb-filter").addEventListener("change", () => { visibleJobPage = 1; render(); });
     $("jb-refresh").addEventListener("click", load);
     load();
   </script>
