@@ -27,7 +27,7 @@ const showValue = v => {
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 };
-const actorLabel = r => r.actor_name || (r.actor_id ? "Unnamed user · " + String(r.actor_id).slice(0, 8) : "Not recorded");
+const actorLabel = r => r.actor_name || (r.actor_id && state.actors.get(r.actor_id)) || (r.actor_id ? "Unnamed user · " + String(r.actor_id).slice(0, 8) : "System / not recorded");
 const status = (msg, kind = "info") => { const n = $("ci-audit-status"); if (n) { n.textContent = msg; n.dataset.kind = kind; n.hidden = !msg; } };
 
 function filters() {
