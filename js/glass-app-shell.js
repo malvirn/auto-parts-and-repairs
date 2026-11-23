@@ -58,7 +58,7 @@ function navGroups(current) {
   const saved = savedGroups();
   const flat = visible.filter(group => !group.icon).map(group =>
     '<section class="glass-nav-group" aria-label="' + esc(group.title) + '">' +
-    '<div class="glass-nav-heading">' + esc(group.title) + '</div>' +
+    (group.items.length === 1 && group.items[0].label === group.title ? "" : '<div class="glass-nav-heading">' + esc(group.title) + '</div>') +
     group.items.map(item => '<a class="glass-nav-link' + (item.page === current ? ' is-active' : '') + '" href="' + esc(hrefFor(item.href)) + '"' +
       (item.page === current ? ' aria-current="page"' : '') + ' title="' + esc(item.label) + '">' +
       icon(item.icon) + '<span>' + esc(item.label) + '</span></a>').join("") +
