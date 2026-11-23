@@ -2,34 +2,32 @@ import supabase from "./supabaseClient.js";
 import { initNetworkStatus } from "./network-status.js?v=icon-only-network-20261123";
 
 const NAV = [
-  { title: "Main", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
-  { title: "Workshop", icon: "wrench", items: [
-    { label: "Repairs / Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff"] },
-    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist" },
-    { label: "Technicians", href: "pages/technicians.html", color: "#A78BFA", page: "technicians", roles: ["super_admin"] },
-    { label: "Commissions", href: "pages/commissions.html", color: "#FACC15", page: "commissions", roles: ["super_admin","accounting"] }
+  { title: "Home", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
+  { title: "Customers", items: [
+    { label: "Customers", href: "pages/customers.html", icon: "users", page: "customers", roles: ["super_admin","staff"] }
   ]},
-  { title: "Inventory", icon: "package", items: [
-    { label: "Shop / Parts", href: "pages/shop.html", color: "#34D399", page: "shop" },
+  { title: "Jobs", icon: "wrench", items: [
+    { label: "Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff"] },
+    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist" },
+    { label: "Quotations", href: "pages/quotations.html", color: "#A78BFA", page: "quotations" },
+    { label: "Billing & Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts" }
+  ]},
+  { title: "Stock", icon: "package", items: [
+    { label: "Parts & Quick Sale", href: "pages/shop.html", color: "#34D399", page: "shop" },
     { label: "Suppliers", href: "pages/suppliers.html", color: "#2DD4BF", page: "suppliers", roles: ["super_admin","staff"] },
     { label: "Landed Cost", href: "pages/landed-cost.html", color: "#F472B6", page: "landed-cost", roles: ["super_admin","accounting"] }
   ]},
-  { title: "Finance", icon: "landmark", items: [
-    { label: "Quotations", href: "pages/quotations.html", color: "#60A5FA", page: "quotations" },
-    { label: "Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts" },
+  { title: "More", icon: "ellipsis", items: [
+    { label: "Technicians & Payroll", href: "pages/technicians.html", color: "#A78BFA", page: "technicians", roles: ["super_admin"] },
+    { label: "Commissions", href: "pages/commissions.html", color: "#FACC15", page: "commissions", roles: ["super_admin","accounting"] },
     { label: "Cashbook", href: "pages/cashbook.html", color: "#F58A4B", page: "cashbook", roles: ["super_admin","accounting"] },
     { label: "Payables", href: "pages/payables.html", color: "#A78BFA", page: "payables", roles: ["super_admin","accounting"] },
-    { label: "Ledger", href: "pages/ledger.html", color: "#FB7185", page: "ledger", roles: ["super_admin","accounting"] },
-    { label: "Accounting", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
+    { label: "Ledger & Customer Accounts", href: "pages/ledger.html", color: "#FB7185", page: "ledger", roles: ["super_admin","accounting"] },
+    { label: "Accounting Tools", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
     { label: "Fixed Assets", href: "pages/fixed-assets.html", color: "#2DD4BF", page: "fixed-assets", roles: ["super_admin","accounting"] },
-    { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] }
-  ]},
-  { title: "Intelligence", icon: "brain-circuit", items: [
+    { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] },
+    { label: "Analytics", href: "pages/analytics.html", color: "#60A5FA", page: "analytics", roles: ["super_admin","accounting"] },
     { label: "Centric Intelligence", href: "pages/centric-intelligence.html", color: "#A78BFA", page: "centric-intelligence", roles: ["super_admin","accounting"] },
-    { label: "Analytics", href: "pages/analytics.html", color: "#60A5FA", page: "analytics", roles: ["super_admin","accounting"] }
-  ]},
-  { title: "Administration", icon: "shield-check", items: [
-    { label: "Customers", href: "pages/customers.html", color: "#34D399", page: "customers", roles: ["super_admin","staff"] },
     { label: "Settings", href: "pages/settings.html", color: "#F58A4B", page: "settings" }
   ]}
 ];
