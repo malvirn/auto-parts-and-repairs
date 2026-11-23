@@ -2,7 +2,7 @@ import supabase from "./supabaseClient.js";
 import { initNetworkStatus } from "./network-status.js?v=icon-only-network-20261123";
 
 const NAV = [
-  { title: "Home", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
+  { title: "Home", items: [{ label: "Home", href: "index.html", icon: "house", page: "index", roles: ["super_admin"] }] },
   { title: "Customers", items: [
     { label: "Customers", href: "pages/customers.html", icon: "users", page: "customers", roles: ["super_admin","staff"] }
   ]},
