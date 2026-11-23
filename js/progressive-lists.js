@@ -113,7 +113,7 @@
     .centric-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;width:100%;max-width:100%;color:var(--muted,#9aa6a0);font:inherit}
     .centric-pagination__summary{font-size:12px;font-weight:600;white-space:nowrap}
     .centric-pagination__controls{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
-    .centric-page-number,.centric-page-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 9px;border:1px solid var(--line,#34423b);border-radius:8px;background:var(--surface-2,#17211d);color:var(--text,#f3f7f4);font:600 13px/1 inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+    .centric-page-number,.centric-page-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 9px;border:1px solid var(--line,#34423b);border-radius:8px;background:var(--surface-2,#17211d);color:var(--text,#f3f7f4);font-family:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
     .centric-page-number:hover:not(:disabled),.centric-page-arrow:hover:not(:disabled){border-color:var(--green-bright,#36b979);background:rgba(54,185,121,.13)}
     .centric-page-number.is-current{border-color:var(--green-bright,#36b979);background:var(--green-bright,#248a58);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
     .centric-page-number:focus-visible,.centric-page-arrow:focus-visible{outline:2px solid var(--orange,#f58220);outline-offset:2px}
