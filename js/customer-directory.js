@@ -162,7 +162,7 @@ async function loadCustomerHistory(customer) {
       .select("id,order_number,status,total_usd,discount_usd,payment_method,created_at,quotation_id,sales_order_items(part_name,quantity,total_usd)")
       .eq("customer_id", customer.id).order("created_at", { ascending: false }), warnings),
     loadOptionalRows("Invoices", () => supabase.from("invoices")
-      .select("id,invoice_number,total,amount_paid,status,issued_at,due_date,reference,items")
+      .select("id,invoice_number,total,amount_paid,status,issued_at,due_date,reference,items,repair_job_id")
       .eq("customer_id", customer.id).order("issued_at", { ascending: false }), warnings),
     loadOptionalRows("Customer overpayment credits", () => supabase.from("customer_overpayment_credits")
       .select("id,amount,available_amount,payment_date,created_at,invoice_id,customer_overpayment_credit_notes(note_number)")
