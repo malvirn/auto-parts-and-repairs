@@ -30,7 +30,8 @@ let exchangeRate = 26.6908;
 let BUSINESS_VAT_REGISTERED = false;
 let BUSINESS_VAT_RATE = 0;
 let quotationRows = [];
-let quotationVisibleCount = 50;
+let quotationCurrentPage = 1;
+const QUOTATIONS_PAGE_SIZE = 25;
 let quoteSubmissionInProgress = false;
 const busyActions = new WeakSet();
 const lib = src => new Promise((resolve, reject) => {
@@ -723,13 +724,26 @@ function renderQuotationRows() {
       && (!from || createdDate >= from) && (!to || createdDate <= to)
       && (!status || quote.status === status);
   });
-  const visibleQuotes = filtered.slice(0, quotationVisibleCount);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / QUOTATIONS_PAGE_SIZE));
+  quotationCurrentPage = Math.max(1, Math.min(totalPages, quotationCurrentPage));
+  const visibleQuotes = filtered.slice((quotationCurrentPage - 1) * QUOTATIONS_PAGE_SIZE, quotationCurrentPage * QUOTATIONS_PAGE_SIZE);
   quoteTable.innerHTML = visibleQuotes.length ? visibleQuotes.map(quote => {
     const depositExpired = !quote.repair_job_id && quote.created_at && Date.now() > Date.parse(quote.created_at) + 7 * 86400000;
     return `<tr class="quotation-row" data-quote-id="${quote.id}" tabindex="0" aria-expanded="false" aria-label="Expand quotation ${quote.quotation_number}"><td><span class="quote-expand-mark" aria-hidden="true">＋</span> #${quote.quotation_number}</td><td>${escapeHtml(quote.customers?.company_name || quote.customers?.full_name || quote.walk_in_name || "—") + `<small>${escapeHtml(quote.customers?.customer_code || "")}</small>`}</td><td>${escapeHtml(quote.prepared_by || "—")}</td><td>${quote.repair_jobs ? escapeHtml(jobRef(quote.repair_jobs)) : "—"}</td><td>${quote.created_at ? new Date(quote.created_at).toLocaleString() : "—"}</td><td>${escapeHtml(quote.status)}${depositExpired ? ' <small class="section-note">Deposit window expired</small>' : ""}</td><td>${money(quote.total_usd)}</td><td>${Number(quote.total_zig || 0).toFixed(2)}</td></tr><tr class="quotation-actions-row" data-actions-for="${quote.id}" hidden><td colspan="9"><div class="quotation-action-bar"><span class="quotation-action-label">Quotation actions</span><div class="quotation-action-buttons"><button type="button" class="quote-action quote-action--primary open-quote-job" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}"><i data-lucide="clipboard-plus"></i> Open Job Card</button><button type="button" class="quote-action quote-action--primary record-quote-deposit" data-id="${quote.id}" data-job-id="${quote.repair_job_id || ""}" data-number="${quote.quotation_number}" data-total="${quote.total_usd}" ${depositExpired ? 'disabled title="Quotation deposits are accepted for seven days after issue"' : ""}><i data-lucide="badge-dollar-sign"></i> ${depositExpired ? "Deposit expired" : "Record Deposit"}</button><button type="button" class="quote-action quote-action--secondary edit-quote" data-id="${quote.id}"><i data-lucide="pencil"></i> Amend / Edit</button><button type="button" class="quote-action quote-action--secondary print-quote" data-id="${quote.id}"><i data-lucide="printer"></i> Print</button><button type="button" class="quote-action quote-action--whatsapp whatsapp-quote" data-id="${quote.id}"><i data-lucide="message-circle"></i> WhatsApp</button><button type="button" class="quote-action quote-action--secondary email-quote" data-id="${quote.id}"><i data-lucide="mail"></i> Email</button></div></div></td></tr>`;
   }).join("") : `<tr><td colspan="9" class="empty-state"><i data-lucide="file-x-2"></i><span>${quotationRows.length ? "No quotations match these filters" : "No quotations yet"}</span></td></tr>`;
-  if (filtered.length > quotationVisibleCount) quoteTable.insertAdjacentHTML("beforeend", `<tr class="quotation-load-more-row"><td colspan="9"><button type="button" class="quotation-load-more">Load more (${filtered.length - quotationVisibleCount} remaining)</button></td></tr>`);
-  quoteTable.querySelector(".quotation-load-more")?.addEventListener("click", () => { quotationVisibleCount += 50; renderQuotationRows(); });
+  if (filtered.length > QUOTATIONS_PAGE_SIZE) {
+    const pageNumbers = [...new Set([1, totalPages, quotationCurrentPage - 1, quotationCurrentPage, quotationCurrentPage + 1].filter(n => n >= 1 && n <= totalPages))].sort((a,b)=>a-b);
+    const pagination = [];
+    let previous = 0;
+    pageNumbers.forEach(number => { if (previous && number - previous > 1) pagination.push('<span class="centric-page-ellipsis">…</span>'); pagination.push(`<button type="button" class="centric-page-number ${number===quotationCurrentPage?"is-current":""}" data-quote-page="${number}" ${number===quotationCurrentPage?'aria-current="page"':""}>${number}</button>`); previous=number; });
+    quoteTable.insertAdjacentHTML("beforeend", `<tr class="quotation-pagination-row"><td colspan="9"><nav class="centric-pagination" aria-label="Quotation pages"><span class="centric-pagination__summary">${filtered.length.toLocaleString()} quotations</span><div class="centric-pagination__controls"><button type="button" class="centric-page-arrow" data-quote-page="${quotationCurrentPage-1}" aria-label="Previous page" ${quotationCurrentPage===1?"disabled":""}>‹</button>${pagination.join("")}<button type="button" class="centric-page-arrow" data-quote-page="${quotationCurrentPage+1}" aria-label="Next page" ${quotationCurrentPage===totalPages?"disabled":""}>›</button></div></nav></td></tr>`);
+    quoteTable.querySelectorAll("[data-quote-page]").forEach(button => button.addEventListener("click", () => {
+      const next = Number(button.dataset.quotePage);
+      if (next < 1 || next > totalPages || next === quotationCurrentPage) return;
+      quotationCurrentPage = next;
+      renderQuotationRows();
+    }));
+  }
   quoteTable.querySelectorAll(".quotation-row").forEach(row => {
     const toggle = () => {
       const expanded = row.getAttribute("aria-expanded") === "true";
