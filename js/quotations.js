@@ -31,7 +31,7 @@ let BUSINESS_VAT_REGISTERED = false;
 let BUSINESS_VAT_RATE = 0;
 let quotationRows = [];
 let quotationCurrentPage = 1;
-const QUOTATIONS_PAGE_SIZE = 25;
+const QUOTATIONS_PAGE_SIZE = 10;
 let quoteSubmissionInProgress = false;
 const busyActions = new WeakSet();
 const lib = src => new Promise((resolve, reject) => {
