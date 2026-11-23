@@ -7,18 +7,18 @@ const NAV = [
     { label: "Customers", href: "pages/customers.html", icon: "users", page: "customers", roles: ["super_admin","staff"] }
   ]},
   { title: "Jobs", icon: "wrench", items: [
-    { label: "Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff"] },
-    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist", roles: ["super_admin","staff"] },
-    { label: "Quotations", href: "pages/quotations.html", color: "#A78BFA", page: "quotations", roles: ["super_admin","staff"] },
+    { label: "Job Cards", href: "pages/repairs.html", color: "#F58A4B", page: "repairs", roles: ["super_admin","staff","workshop"] },
+    { label: "Vehicle Checklist", href: "pages/checklist.html", color: "#60A5FA", page: "checklist", roles: ["super_admin","staff","workshop"] },
+    { label: "Quotations", href: "pages/quotations.html", color: "#A78BFA", page: "quotations", roles: ["super_admin","staff","workshop"] },
     { label: "Billing & Receipts", href: "pages/receipts.html", color: "#34D399", page: "receipts", roles: ["super_admin","staff","accounting"] }
   ]},
   { title: "Stock", icon: "package", items: [
     { label: "Parts & Quick Sale", href: "pages/shop.html", color: "#34D399", page: "shop" },
-    { label: "Suppliers", href: "pages/suppliers.html", color: "#2DD4BF", page: "suppliers", roles: ["super_admin","staff"] },
+    { label: "Suppliers", href: "pages/suppliers.html", color: "#2DD4BF", page: "suppliers", roles: ["super_admin","staff","workshop","accounting"] },
     { label: "Landed Cost", href: "pages/landed-cost.html", color: "#F472B6", page: "landed-cost", roles: ["super_admin","accounting"] }
   ]},
   { title: "More", icon: "ellipsis", items: [
-    { label: "Technicians & Payroll", href: "pages/technicians.html", color: "#A78BFA", page: "technicians", roles: ["super_admin"] },
+    { label: "Technicians & Payroll", href: "pages/technicians.html", color: "#A78BFA", page: "technicians", roles: ["super_admin","accounting"] },
     { label: "Commissions", href: "pages/commissions.html", color: "#FACC15", page: "commissions", roles: ["super_admin","accounting"] },
     { label: "Cashbook", href: "pages/cashbook.html", color: "#F58A4B", page: "cashbook", roles: ["super_admin","accounting"] },
     { label: "Payables", href: "pages/payables.html", color: "#A78BFA", page: "payables", roles: ["super_admin","accounting"] },
