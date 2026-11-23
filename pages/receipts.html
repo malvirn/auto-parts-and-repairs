@@ -719,6 +719,13 @@ select.st option{background:#10181a;color:#eef3ef}
   #doc { padding: 14px 8px; }
   #doc th, #doc td { padding: 6px 3px; font-size: 9px; }
 }
+/* Keep the complete receipt/invoice document visible. Long descriptions and totals must not be clipped by the preview shell. */
+body.module-receipts .rc-doc-wrap{min-width:0;max-width:100%;overflow:visible}
+body.module-receipts #doc{height:auto;max-height:none;overflow:visible!important;contain:none}
+body.module-receipts #doc table{max-width:100%}
+body.module-receipts #doc td,body.module-receipts #doc th{overflow-wrap:anywhere;word-break:normal}
+body.module-receipts .cm-doc{height:auto;max-height:none;overflow:visible;overflow-wrap:anywhere}
+@media(max-width:760px){body.module-receipts .rc-doc-wrap{overflow:visible}body.module-receipts #doc{width:100%;max-width:100%;padding:14px 8px}body.module-receipts .cm-doc{width:100%;max-width:100%;--pad:12px}}
 </style>
   <link rel="stylesheet" href="../css/ui-consistency.css">
 <style id="credit-note-neutral-palette">
@@ -2843,6 +2850,6 @@ async function loadReceiptsSafely(){
 loadReceiptsSafely();
 </script>
 <script type="module" src="../js/phone-inputs.js"></script>
-<script defer src="../js/progressive-lists.js?v=numbered-pagination-20261123"></script>
+<script defer src="../js/progressive-lists.js?v=receipts-visibility-job-board-pages-20261123"></script>
 </body>
 </html>
