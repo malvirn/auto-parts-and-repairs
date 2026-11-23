@@ -81,8 +81,7 @@
     #jb-payment-modal .payment-summary span { display:block; color:var(--text-muted); font-size:.76rem; }
     #jb-payment-modal .payment-summary strong { display:block; margin-top:3px; font-variant-numeric:tabular-nums; }
     #jb-payment-modal .change-due { color:var(--success,var(--success)); }
-    #jb-load-more-wrap { display:flex; justify-content:center; margin-top:12px; }
-    #jb-load-more-wrap[hidden] { display:none; }
+    #jb-pagination-wrap{margin-top:12px}
     @media(max-width:560px) {
       #job-part-pricing-modal { padding:10px; }
       #job-part-pricing-modal .modal,
@@ -416,7 +415,7 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
         </div>
         <p id="jb-message" class="form-message" role="status" aria-live="polite"></p>
         <div id="jb-list" class="jb-list"><p class="empty-state">Loading closed jobs…</p></div>
-        <div id="jb-load-more-wrap" hidden><button id="jb-load-more" type="button" class="btn">Load more jobs</button></div>
+        <div id="jb-pagination-wrap" class="centric-pagination-wrap" hidden></div>
       </section>
       <section class="page-section" id="unpriced-job-parts" aria-labelledby="unpriced-job-parts-heading">
         <div class="section-heading">
@@ -688,7 +687,8 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
     const veh = v => v ? [v.year, v.make, v.model].filter(Boolean).join(" ") : "";
     const waNum = p => { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0")) d = "263" + d.slice(1); return d; };
     let rows = [];
-    let visibleJobCount = 5;
+    let visibleJobPage = 1;
+    const JOBS_PAGE_SIZE = 10;
     const focusJob = new URLSearchParams(location.search).get("job");
 
     function build(job, parts, paid, invoicePaid = 0, creditApplied = 0) {
@@ -762,7 +762,9 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
       $("jb-paid").textContent = money(rows.reduce((s, r) => s + r.paid, 0));
       const list = rows.filter(r => (f === "all" || (f === "owing") === (r.balance > 0.005)) &&
         (!q || [jn(r.job), r.job.customers?.full_name, r.job.vehicles?.license_plate].join(" ").toLowerCase().includes(q)));
-      const shown = list.slice(0, visibleJobCount);
+      const totalPages = Math.max(1, Math.ceil(list.length / JOBS_PAGE_SIZE));
+      visibleJobPage = Math.max(1, Math.min(totalPages, visibleJobPage));
+      const shown = list.slice((visibleJobPage - 1) * JOBS_PAGE_SIZE, visibleJobPage * JOBS_PAGE_SIZE);
       $("jb-list").innerHTML = shown.map(r => {
         const j = r.job, paid = r.balance <= 0.005;
         return `<div class="jb-job" data-id="${esc(j.id)}">
@@ -796,11 +798,20 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
           </div>
         </div>`;
       }).join("") || `<p class="empty-state">${f === "owing" ? "Nothing waiting to be billed." : "No closed jobs found."}</p>`;
-      const more = $("jb-load-more-wrap");
-      if (more) {
-        more.hidden = list.length <= visibleJobCount;
-        const lm = $("jb-load-more");
-        if (lm) lm.textContent = `Load more jobs (${list.length - visibleJobCount} remaining)`;
+      const pagination = $("jb-pagination-wrap");
+      if (pagination) {
+        pagination.hidden = list.length <= JOBS_PAGE_SIZE;
+        const numbers = [...new Set([1, totalPages, visibleJobPage - 1, visibleJobPage, visibleJobPage + 1].filter(n => n >= 1 && n <= totalPages))].sort((a,b)=>a-b);
+        const controls = [];
+        let previous = 0;
+        numbers.forEach(number => { if (previous && number - previous > 1) controls.push('<span class="centric-page-ellipsis">…</span>'); controls.push(`<button type="button" class="centric-page-number ${number===visibleJobPage?"is-current":""}" data-jb-page="${number}" ${number===visibleJobPage?'aria-current="page"':""}>${number}</button>`); previous=number; });
+        pagination.innerHTML = list.length > JOBS_PAGE_SIZE ? `<nav class="centric-pagination" aria-label="Closed job pages"><span class="centric-pagination__summary">${list.length.toLocaleString()} job cards</span><div class="centric-pagination__controls"><button type="button" class="centric-page-arrow" data-jb-page="${visibleJobPage-1}" aria-label="Previous page" ${visibleJobPage===1?"disabled":""}>‹</button>${controls.join("")}<button type="button" class="centric-page-arrow" data-jb-page="${visibleJobPage+1}" aria-label="Next page" ${visibleJobPage===totalPages?"disabled":""}>›</button></div></nav>` : "";
+        pagination.querySelectorAll("[data-jb-page]").forEach(button => button.addEventListener("click", () => {
+          const next = Number(button.dataset.jbPage);
+          if (next < 1 || next > totalPages || next === visibleJobPage) return;
+          visibleJobPage = next;
+          render();
+        }));
       }
       window.lucide?.createIcons();
       const hit = focusJob && $("jb-list").querySelector(`[data-id="${CSS.escape(focusJob)}"]`);
@@ -1036,9 +1047,8 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
       }
     });
 
-    $("jb-search").addEventListener("input", () => { visibleJobCount = 5; render(); });
+    $("jb-search").addEventListener("input", () => { visibleJobPage = 1; render(); });
     $("jb-filter").addEventListener("change", () => { visibleJobCount = 5; render(); });
-    $("jb-load-more")?.addEventListener("click", () => { visibleJobCount += 5; render(); });
     $("jb-refresh").addEventListener("click", load);
     load();
   </script>
