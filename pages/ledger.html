@@ -801,7 +801,7 @@ body.dashboard-page.module-ledger .main :is(.table-wrap,.table-container,.table-
       const pagination = $("jb-pagination-wrap");
       if (pagination) {
         pagination.hidden = list.length <= JOBS_PAGE_SIZE;
-        const numbers = [...new Set([1, totalPages, visibleJobPage - 1, visibleJobPage, visibleJobPage + 1].filter(n => n >= 1 && n <= totalPages))].sort((a,b)=>a-b);
+        const numbers = [...new Set([1, 2, 3, totalPages - 1, totalPages, visibleJobPage - 1, visibleJobPage, visibleJobPage + 1].filter(n => n >= 1 && n <= totalPages))].sort((a,b)=>a-b);
         const controls = [];
         let previous = 0;
         numbers.forEach(number => { if (previous && number - previous > 1) controls.push('<span class="centric-page-ellipsis">…</span>'); controls.push(`<button type="button" class="centric-page-number ${number===visibleJobPage?"is-current":""}" data-jb-page="${number}" ${number===visibleJobPage?'aria-current="page"':""}>${number}</button>`); previous=number; });
