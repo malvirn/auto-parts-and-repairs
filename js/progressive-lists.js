@@ -26,7 +26,7 @@
     if (container.matches("tbody")) return [...container.children].filter(el => el.matches("tr"));
     return [...container.children].filter(el =>
       el.nodeType === 1 &&
-      !el.matches(".progressive-more-wrap, script, style, template") &&
+      !el.matches(".progressive-more-wrap, .centric-pagination-wrap, .ov-empty, .empty-state, .apr-state, .customer-credit-empty, .message, script, style, template") &&
       !el.hasAttribute("data-progressive-control")
     );
   }
