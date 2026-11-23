@@ -6,7 +6,7 @@
     "#list", "#checklist-list", "#customer-credit-records", "#customer-credit-list",
     "#off-days-list", "#quotation-list", "#recent-jobs", "#ov-quotes", "#credit-voucher-list",
     "#v-list", "#unpriced-job-parts-list", "#supplier-list", "#employee-list",
-    ".quotation-list", ".customer-credit-records", ".record-list",
+    ".quotation-list", ".customer-credit-records", ".record-list", ".job-board-cards",
     ".records-list", ".data-list", ".activity-list"
   ].join(",");
   const TABLE_EXCLUDES = [
@@ -26,7 +26,7 @@
     if (container.matches("tbody")) return [...container.children].filter(el => el.matches("tr"));
     return [...container.children].filter(el =>
       el.nodeType === 1 &&
-      !el.matches(".progressive-more-wrap, .centric-pagination-wrap, .ov-empty, .empty-state, .apr-state, .customer-credit-empty, .message, script, style, template") &&
+      !el.matches(".progressive-more-wrap, .centric-pagination-wrap, .ov-empty, .empty-state, .apr-state, .customer-credit-empty, .job-board-empty, .message, script, style, template") &&
       !el.hasAttribute("data-progressive-control")
     );
   }
@@ -120,6 +120,7 @@
     .centric-page-number:disabled,.centric-page-arrow:disabled{opacity:.35;cursor:not-allowed}
     .centric-page-ellipsis{padding:0 3px;color:var(--muted,#9aa6a0)}
     @media(max-width:560px){.centric-pagination{justify-content:center;gap:8px}.centric-pagination__summary{width:100%;text-align:center}.centric-pagination__controls{gap:3px}.centric-page-number,.centric-page-arrow{min-width:32px;height:34px;padding:0 7px}}
+    .job-board-column>.centric-pagination-wrap{padding:10px 4px 16px}.job-board-column .centric-pagination{justify-content:center;gap:8px}.job-board-column .centric-pagination__summary{width:100%;text-align:center}
   `;
   document.head.append(style);
   process();
