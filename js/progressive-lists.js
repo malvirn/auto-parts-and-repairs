@@ -98,7 +98,7 @@
     root.querySelectorAll?.(LIST_SELECTORS).forEach(update);
     root.querySelectorAll?.("table").forEach(table => {
       if (table.matches(TABLE_EXCLUDES) || table.closest(TABLE_EXCLUDES)) return;
-      if (!table.matches(TABLE_SELECTORS) && !table.id && !table.classList.contains("data-table")) return;
+      if (!table.matches(TABLE_SELECTORS) && !table.id && !table.classList.contains("data-table") && !table.closest(".modal, .modal-content")) return;
       const body = table.tBodies?.[0];
       if (body) update(body);
     });
