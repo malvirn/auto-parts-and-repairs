@@ -9,7 +9,7 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-const ROLE_LABELS = { super_admin: "Super Admin", accounting: "Accounting", staff: "Staff" };
+const ROLE_LABELS = { super_admin: "Super Admin", workshop: "Workshop", accounting: "Accounting", staff: "Staff" };
 
 // ---------- Password re-confirmation modal ----------
 // The real security boundary is the database RLS policy (super_admin
@@ -100,6 +100,17 @@ async function renderRoster(myId) {
   if (error) { content.innerHTML = `<p style="color:#ff4d4d;">Failed to load users: ${escapeHtml(error.message)}</p>`; return; }
 
   content.innerHTML = `
+    <section style="padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:16px;">
+      <h3 style="margin:0 0 10px;">Create staff account</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+        <label class="field">Full name<input id="new-user-name" maxlength="120" autocomplete="name" placeholder="Full name"></label>
+        <label class="field">Email<input id="new-user-email" type="email" autocomplete="off" placeholder="name@centric.test"></label>
+        <label class="field">Role<select id="new-user-role"><option value="workshop">Workshop</option><option value="staff">Staff</option><option value="accounting">Accounting</option></select></label>
+        <label class="field">Temporary password<input id="new-user-password" type="text" value="12345678" autocomplete="new-password"></label>
+      </div>
+      <button type="button" class="btn btn--primary" id="create-user-btn">Create account</button>
+      <p id="create-user-message" class="form-message" role="status" aria-live="polite"></p>
+    </section>
     <p style="color:var(--text-dim,#7c9490); font-size:.85rem; margin-bottom:14px;">
       <strong>Super Admin</strong> — full access, including this page and individual salaries.
       <strong>Accounting</strong> — Ledger, Payables, Cash Book, Commissions, Landed Cost, Fixed Assets, Statements. No payroll/salary access, no customer or vehicle data, and job cards / sales orders are read-only.
@@ -123,6 +134,7 @@ async function renderRoster(myId) {
       <td>
         <select class="role-select" ${p.id === myId ? "disabled" : ""}>
           <option value="super_admin" ${p.role === "super_admin" ? "selected" : ""}>Super Admin</option>
+          <option value="workshop" ${p.role === "workshop" ? "selected" : ""}>Workshop</option>
           <option value="accounting" ${p.role === "accounting" ? "selected" : ""}>Accounting</option>
           <option value="staff" ${p.role === "staff" ? "selected" : ""}>Staff</option>
         </select>
@@ -141,6 +153,38 @@ async function renderRoster(myId) {
   `).join("");
 
   if (window.lucide) lucide.createIcons();
+
+  document.getElementById("create-user-btn")?.addEventListener("click", async () => {
+    const button = document.getElementById("create-user-btn");
+    const message = document.getElementById("create-user-message");
+    const fullName = document.getElementById("new-user-name").value.trim();
+    const email = document.getElementById("new-user-email").value.trim().toLowerCase();
+    const role = document.getElementById("new-user-role").value;
+    const password = document.getElementById("new-user-password").value;
+    if (!fullName || !email || !password) {
+      message.textContent = "Complete all fields first.";
+      message.dataset.tone = "error";
+      return;
+    }
+    button.disabled = true;
+    message.textContent = "Creating account…";
+    message.dataset.tone = "info";
+    try {
+      const { data, error } = await supabase.functions.invoke("create-user", { body: { fullName, email, role, password } });
+      if (error || data?.error) throw new Error(data?.error || error.message);
+      message.textContent = "Account created: " + data.user.email + " (" + ROLE_LABELS[data.user.role] + ").";
+      message.dataset.tone = "success";
+      document.getElementById("new-user-name").value = "";
+      document.getElementById("new-user-email").value = "";
+      await renderRoster(myId);
+    } catch (error) {
+      message.textContent = "Failed: " + (error?.message || error);
+      message.dataset.tone = "error";
+    } finally {
+      const current = document.getElementById("create-user-btn");
+      if (current) current.disabled = false;
+    }
+  });
 
   tbody.querySelectorAll(".save-role-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
