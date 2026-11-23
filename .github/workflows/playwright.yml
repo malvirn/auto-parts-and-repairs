@@ -1,0 +1,41 @@
+
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright
+        run: npm install --no-save @playwright/test
+
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run JavaScript checks
+        run: npm run check:js
+
+      - name: Run existing tests
+        run: npm test
+
+      - name: Run Playwright tests
+        run: npx playwright test
