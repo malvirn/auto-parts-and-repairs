@@ -225,8 +225,11 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
   el.innerHTML = items.length
     ? items.map(item => `
       <a class="attention-item ${item.level}" href="${item.href}">
-        <span class="attention-item__label"><i class="attention-item__icon" data-lucide="${item.icon}"></i>${escapeHtml(item.text)}</span>
-        <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+        <span class="attention-item__label">
+          <span class="attention-item__symbol"><i class="attention-item__icon" data-lucide="${item.icon}"></i></span>
+          <span class="attention-item__text">${escapeHtml(item.text)}</span>
+        </span>
+        <i class="attention-item__chevron" data-lucide="chevron-right" aria-hidden="true"></i>
       </a>
     `).join("")
     : `<div class="attention-empty"><i data-lucide="check-circle-2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"></i>All caught up — nothing urgent right now.</div>`;
