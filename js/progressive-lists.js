@@ -10,7 +10,7 @@
     ".records-list", ".data-list", ".activity-list"
   ].join(",");
   const TABLE_EXCLUDES = [
-    ".items", "#doc", "#jb-lines", "#quotation-paper-table", "#receipt-items",
+    ".items", "#doc", "#jb-lines", "#quotation-paper-table", "#receipt-items", "#quotations-table", "#orders-table",
     ".receipt-document", ".invoice-document", ".job-card-print", ".payslip",
     ".modal table", ".modal-content table", "[data-no-progressive]"
   ].join(",");
