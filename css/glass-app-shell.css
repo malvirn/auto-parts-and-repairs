@@ -228,10 +228,10 @@ body.dashboard-page.glass-app-shell .hero-bg { display: none !important; }
 
 /* ===== Network strength (header) ===== */
 body.glass-app-shell #global-notif-bell { display:none!important; }
-.glass-net { --net:#9aa4ad; display:inline-flex; width:38px; min-width:38px; align-items:center; justify-content:center; height:38px; padding:0; border:1px solid rgba(255,255,255,.18); border-radius:11px; background:rgba(255,255,255,.07); color:inherit; cursor:pointer; }
+.glass-net { --net:#9aa4ad; color:var(--net)!important; display:inline-flex; width:38px; min-width:38px; align-items:center; justify-content:center; height:38px; padding:0; border:1px solid rgba(255,255,255,.18); border-radius:11px; background:rgba(255,255,255,.07); color:inherit; cursor:pointer; }
 .glass-net:hover { background:rgba(255,255,255,.12); }
 .glass-net-label{display:none!important}.glass-net-bars { display:inline-flex; align-items:flex-end; gap:2px; height:16px; color:var(--net); }
-.glass-net-bars i { display:block; width:3.5px; border-radius:1px; background:currentColor; opacity:.28; }
+.glass-net-bars i { display:block; width:3.5px; border-radius:1px; background:var(--net)!important; opacity:.28; }
 .glass-net-bars i:nth-child(1) { height:5px; } .glass-net-bars i:nth-child(2) { height:8px; }
 .glass-net-bars i:nth-child(3) { height:12px; } .glass-net-bars i:nth-child(4) { height:16px; }
 .glass-net[data-level="0"] { --net:#ef4444; } .glass-net[data-level="1"] { --net:#f97316; }
