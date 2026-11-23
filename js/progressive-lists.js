@@ -3,7 +3,7 @@
 
   const PAGE_SIZE = 10;
   const LIST_SELECTORS = [
-    "#list", "#customer-credit-records", "#customer-credit-list",
+    "#list", "#checklist-list", "#customer-credit-records", "#customer-credit-list",
     "#off-days-list", "#quotation-list", "#recent-jobs", "#ov-quotes",
     "#v-list", "#unpriced-job-parts-list", "#supplier-list", "#employee-list",
     ".quotation-list", ".customer-credit-records", ".record-list",
