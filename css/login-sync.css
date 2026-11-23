@@ -1,37 +1,72 @@
-/* Sign-in loading screen (js/boot.js). Self-contained: login.html does not load the app theme. */
-.ld{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;
-  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
-  background:rgba(5,8,10,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  color:#e6edf3;font-family:"Inter","Segoe UI",system-ui,sans-serif;animation:ldIn .25s ease-out both}
-.ld[hidden],.ld [hidden]{display:none!important}
-.ld-box{width:min(100%,340px);text-align:center}
+/* Login page + sign-in progress (js/boot.js). Self-contained: login.html loads no other theme. */
+:root{--bg:#0b0f14;--card:#121a22;--line:#25313d;--tx:#eef3f7;--mu:#8b9bab;--ac:#00a884;--danger:#ff6b6b;--warn:#ff9a3d;--field:#0d141b;color-scheme:dark light}
+@media (prefers-color-scheme:light){:root{--bg:#f3f5f7;--card:#fff;--line:#dbe2e8;--tx:#10181f;--mu:#5d6b78;--ac:#008f72;--danger:#d92d3a;--warn:#b25e00;--field:#f7f9fa}}
 
-.ld-ring{position:relative;display:grid;place-items:center;width:96px;height:96px;margin:0 auto 22px}
-.ld-ring::before,.ld-ring::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--success,#00a884);opacity:0;animation:ldPulse 1.8s ease-out infinite}
-.ld-ring::after{animation-delay:.9s}
-.ld-ring img{position:relative;height:56px;width:auto;max-width:72px;object-fit:contain;animation:ldBreathe 1.8s ease-in-out infinite}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body.login-page{margin:0;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--tx);
+  font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.stage{min-height:100vh;min-height:100dvh;display:grid;place-items:center;
+  padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 
-.ld-text{margin:0 0 16px;min-height:1.4em;font-size:15px;font-weight:600;color:#cfd8e0}
-.ld-bar{height:3px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}
-.ld-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--success,#00a884),var(--warning,#ff7a12));transition:width .45s cubic-bezier(.2,.78,.2,1)}
+.card{width:min(100%,380px);padding:32px 26px 26px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  animation:cardIn .35s cubic-bezier(.2,.78,.2,1) both;transition:opacity .25s ease,transform .25s ease}
+.logo{display:block;height:64px;width:auto;max-width:140px;object-fit:contain;margin:0 auto 14px}
+h1{margin:0 0 22px;text-align:center;font-size:22px;font-weight:700;letter-spacing:-.02em}
 
-.ld-result{animation:ldUp .3s ease-out both}
-.ld-badge{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;color:#fff;animation:ldPop .4s cubic-bezier(.2,.8,.2,1.4) both}
-.ld-badge.ok{background:var(--success,#00a884)}
-.ld-badge.bad{background:var(--danger,#e5484d)}
-.ld-badge svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.ld-result h2{margin:0 0 6px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#fff}
-.ld-result p{margin:0;font-size:14px;color:#9eb0c1;word-break:break-word}
-.ld-note{margin-top:10px!important;color:var(--warning,#ff7a12)!important}
-.ld-actions{display:grid;gap:10px;margin-top:18px}
-.ld-btn{min-height:48px;padding:0 18px;border:0;border-radius:12px;font:inherit;font-size:16px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation;background:var(--success,#00a884)}
-.ld-btn:active{transform:scale(.98)}
-.ld-btn.ghost{background:rgba(255,255,255,.07);color:#cdd9e5;border:1px solid rgba(255,255,255,.14)}
-.ld-btn:focus-visible{outline:3px solid var(--warning,#ff7a12);outline-offset:2px}
+label{display:block;margin:0 0 6px;font-size:13px;font-weight:600;color:var(--mu)}
+input{width:100%;height:50px;margin:0 0 16px;padding:0 14px;font:inherit;font-size:16px;color:var(--tx);
+  background:var(--field);border:1.5px solid var(--line);border-radius:10px;outline:0;transition:border-color .15s,box-shadow .15s}
+input:focus{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+.pw{position:relative}
+.pw input{padding-right:48px}
+.toggle-password{position:absolute;right:6px;top:6px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--mu);cursor:pointer}
+.toggle-password:hover{color:var(--tx)}
+.toggle-password svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toggle-password .eye-off{display:none}
+.toggle-password.on .eye{display:none}
+.toggle-password.on .eye-off{display:block}
 
-@keyframes ldIn{from{opacity:0}to{opacity:1}}
-@keyframes ldUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes ldPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
-@keyframes ldPulse{0%{transform:scale(.55);opacity:.7}100%{transform:scale(1.25);opacity:0}}
-@keyframes ldBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-@media (prefers-reduced-motion:reduce){.ld,.ld *{animation-duration:.01ms!important;transition-duration:.01ms!important}.ld-ring::before,.ld-ring::after{animation:none;opacity:.4;transform:none}}
+.btn{width:100%;height:50px;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:2px;border:0;border-radius:10px;
+  font:inherit;font-size:16px;font-weight:700;color:#fff;background:var(--ac);cursor:pointer;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;transition:filter .15s,transform .1s,background .2s}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.985)}
+.btn:disabled{cursor:progress;filter:none}
+.btn:focus-visible,.fp-btn:focus-visible{outline:3px solid color-mix(in srgb,var(--ac) 55%,transparent);outline-offset:2px}
+.btn-spin{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .7s linear infinite}
+.btn-check{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:draw .35s .05s ease-out forwards}
+
+.msg{margin:12px 0 0;min-height:1.2em;font-size:14px;text-align:center;line-height:1.4}
+.msg[data-tone="error"]{color:var(--danger)}
+.msg[data-tone="info"]{color:var(--mu)}
+.msg[data-tone="warn"]{color:var(--warn)}
+.forgot-link{display:block;margin:14px auto 0;padding:6px 8px;border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--mu);cursor:pointer}
+.forgot-link:hover{color:var(--tx);text-decoration:underline}
+
+.fp-box[hidden]{display:none}
+.fp-btn{width:100%;height:50px;display:flex;align-items:center;justify-content:center;gap:10px;font:inherit;font-size:15px;font-weight:600;color:var(--tx);
+  background:var(--field);border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s}
+.fp-btn:hover{border-color:var(--ac)}
+.fp-btn svg{width:22px;height:22px;fill:none;stroke:var(--ac);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fp-box .msg{margin-top:8px}
+.or{display:flex;align-items:center;gap:12px;margin:14px 0 18px;color:var(--mu);font-size:12px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---- sign-in progress (js/boot.js): thin top bar, no overlay ---- */
+.ld-top{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+.ld-top i{display:block;height:100%;width:0;background:var(--ac);transition:width .4s cubic-bezier(.2,.78,.2,1)}
+body.booting .ld-top{opacity:1}
+body.booting .card form,body.booting .fp-box{pointer-events:none}
+body.booting .card input{opacity:.7}
+body.leaving .card{opacity:0;transform:translateY(-8px) scale(.985)}
+body.errored #login-submit{display:none}
+
+.ld-retry{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.ld-retry button{height:46px;border-radius:10px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid var(--line);background:var(--field);color:var(--tx)}
+.ld-retry button.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

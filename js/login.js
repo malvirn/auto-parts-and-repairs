@@ -114,15 +114,13 @@ if (openedFromFile) {
 function setLoading() {
   submitBtn.disabled = true;
   submitBtn.setAttribute("aria-busy", "true");
-  submitBtn.innerHTML = '<i data-lucide="loader-circle" class="spin"></i> Signing in…';
-  if (window.lucide) lucide.createIcons();
+  submitBtn.innerHTML = '<span class="btn-spin" aria-hidden="true"></span><span>Signing in…</span>';
 }
 
 function resetButton() {
   submitBtn.disabled = false;
   submitBtn.removeAttribute("aria-busy");
-  submitBtn.innerHTML = '<i data-lucide="log-in"></i> Sign In';
-  if (window.lucide) lucide.createIcons();
+  submitBtn.innerHTML = '<span>Sign in</span>';
 }
 
 function showMessage(text, tone) {
@@ -335,7 +333,6 @@ async function doFingerprint() {
 (async () => {
   if (!fpBox || !(await fingerprintSupported())) return;
   fpBox.hidden = false;
-  if (window.lucide) lucide.createIcons();
   fpBtn.addEventListener("click", doFingerprint);
   // Opened as the installed app on a device that already has a passkey:
   // offer the device verification prompt straight away.
