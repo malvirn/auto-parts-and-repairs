@@ -29,8 +29,6 @@ function update() {
   el.dataset.level = String(bars);
   el.title = "Network: " + LABELS[bars] + detail + readOnly + " (tap to re-test)";
   el.setAttribute("aria-label", "Network strength: " + LABELS[bars]);
-  const label = el.querySelector(".glass-net-label");
-  if (label) label.textContent = LABELS[bars];
 }
 
 async function probe() {
