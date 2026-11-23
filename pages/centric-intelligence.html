@@ -33,6 +33,16 @@
     .ci-columns{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.ci-panel{padding:20px}.ci-panel h2{margin:0 0 15px;font-size:15px}.ci-insights{display:grid;gap:10px}.ci-insight{display:flex;gap:12px;align-items:flex-start;padding:13px;border:1px solid var(--cam-glass-line);border-radius:12px;background:var(--cam-hover)}.ci-insight>i{color:#ff9b4a;flex:none}.ci-insight strong{display:block;font-size:12px}.ci-insight p{margin:4px 0 0;color:var(--text-muted);font-size:11px;line-height:1.5}.ci-insight a{display:inline-block;margin-top:7px;color:#ffad68;font-size:11px;text-decoration:none;font-weight:700}.ci-list{display:grid;gap:10px}.ci-list-row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--cam-glass-line);font-size:12px;color:var(--text)}.ci-list-row:last-child{border-bottom:0}.ci-list-row span:last-child{color:var(--text);font-weight:700;text-align:right}.ci-status{padding:12px 14px;border-radius:11px;background:var(--cam-hover);color:var(--text-muted);font-size:12px}.ci-status[data-kind="error"]{color:#ffb4a7}.ci-status[data-kind="success"]{color:var(--ok)}
     .ci-ask{display:grid;gap:12px}.ci-ask-row{display:flex;gap:9px}.ci-ask-row input{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--cam-glass-edge);border-radius:11px;background:rgba(255,255,255,.07);color:var(--text);font:500 13px Inter,system-ui}.ci-ask-row button,.ci-suggestion{border:1px solid var(--cam-glass-edge);border-radius:10px;background:rgba(255,255,255,.08);color:var(--text);padding:10px 13px;font:600 11px Inter,system-ui;cursor:pointer}.ci-suggestions{display:flex;flex-wrap:wrap;gap:7px}.ci-answer{min-height:58px;padding:13px 14px;border:1px solid var(--cam-glass-line);border-radius:12px;background:var(--cam-hover);color:var(--text);font-size:12px;line-height:1.65;white-space:pre-wrap}.ci-panel-note{margin:-7px 0 13px;color:var(--text-muted);font-size:11px;line-height:1.5}
     .ci-insight[data-ci-detail]{cursor:pointer}.ci-modal-hint{display:inline-flex;align-items:center;gap:5px;margin-top:8px;color:#ffad68;font-size:11px;font-weight:700}.ci-list-row{width:100%;border:0;background:transparent;text-align:left;cursor:pointer;font:inherit}.ci-list-row span:last-child{display:inline-flex;align-items:center;gap:7px}.ci-modal-open{overflow:hidden}.ci-detail-modal[hidden]{display:none}.ci-detail-modal{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.ci-modal-card{width:min(980px,100%);max-height:min(82vh,850px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:var(--surface);color:var(--text);box-shadow:0 25px 80px rgba(0,0,0,.38)}.ci-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.ci-modal-head h2{margin:0;font-size:16px;color:var(--text)}.ci-modal-close{width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);cursor:pointer}.ci-detail-body{padding:16px 20px 20px;overflow:auto;background:var(--surface);color:var(--text)}.ci-detail-count{margin-bottom:12px;color:var(--muted);font-size:12px}.ci-detail-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}.ci-detail-table{width:100%;border-collapse:collapse;min-width:560px;font-size:12px;background:var(--surface)}.ci-detail-table th,.ci-detail-table td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}.ci-detail-table th{position:sticky;top:0;background:var(--surface-2);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.07em}.ci-detail-table tr:last-child td{border-bottom:0}.ci-detail-table td{color:var(--text)}@media(max-width:520px){.ci-ask-row{flex-direction:column}.ci-ask-row button{width:100%}.ci-detail-modal{padding:9px}.ci-modal-card{max-height:90vh;border-radius:14px}.ci-modal-head,.ci-detail-body{padding:14px}}
+    /* Activity & audit trail */
+    .ci-audit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}.ci-audit-head h2{margin:0 0 6px}.ci-audit-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .ci-audit-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid var(--cam-glass-edge);border-radius:10px;background:rgba(255,255,255,.08);color:var(--text);font:600 11px Inter,system-ui;cursor:pointer}.ci-audit-btn:disabled{opacity:.55;cursor:default}
+    .ci-audit-filters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:6px 0 14px}.ci-audit-filters label{display:grid;gap:5px;color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}.ci-audit-filters input,.ci-audit-filters select{width:100%;min-width:0;padding:10px 11px;border:1px solid var(--cam-glass-edge);border-radius:10px;background:rgba(255,255,255,.07);color:var(--text);font:500 12px Inter,system-ui}.ci-audit-filters .ci-audit-search{grid-column:span 2}
+    .ci-audit-table{min-width:880px}.ci-audit-table td small{display:block;margin-top:2px;color:var(--muted);font-size:10px;text-transform:capitalize}.ci-audit-table td:first-child small{text-transform:none}.ci-audit-row{cursor:pointer}.ci-audit-row:focus-visible{outline:2px solid #ff9b4a;outline-offset:-2px}.ci-audit-summary{white-space:normal!important;min-width:260px;max-width:460px}.ci-audit-empty{padding:26px!important;text-align:center;color:var(--muted)}
+    .ci-audit-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:rgba(120,140,160,.2)}.ci-audit-badge[data-action="INSERT"]{background:rgba(46,204,113,.18);color:#2ecc71}.ci-audit-badge[data-action="UPDATE"]{background:rgba(255,155,74,.2);color:#ff9b4a}.ci-audit-badge[data-action="DELETE"]{background:rgba(231,76,60,.2);color:#ff6b5c}
+    .ci-audit-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--text-muted);font-size:11px}.ci-audit-foot>div{display:flex;gap:12px;align-items:center}
+    .ci-audit-lead{margin:0 0 14px;font-size:14px;font-weight:700;line-height:1.5}.ci-audit-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:0 0 18px}.ci-audit-meta div{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)}.ci-audit-meta dt{margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}.ci-audit-meta dd{margin:0;font-size:12px;word-break:break-word}.ci-detail-body h3{margin:0 0 9px;font-size:13px}.ci-audit-old{color:#ff6b5c}.ci-audit-new{color:#2ecc71}.ci-detail-table td{white-space:normal;word-break:break-word}
+    @media(max-width:980px){.ci-audit-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.ci-audit-filters .ci-audit-search{grid-column:span 2}}
+    @media(max-width:520px){.ci-audit-meta{grid-template-columns:1fr}.ci-audit-actions,.ci-audit-btn{width:100%}.ci-audit-btn{justify-content:center}}
     :root[data-theme="light"] .ci-hero h1,:root[data-theme="light"] .ci-card,:root[data-theme="light"] .ci-panel{color:var(--text)}
     :root[data-theme="dark"] .ci-hero h1,:root[data-theme="dark"] .ci-card,:root[data-theme="dark"] .ci-panel{color:var(--text)}
     @media(max-width:980px){.ci-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ci-columns{grid-template-columns:1fr}.ci-main{padding-top:20px}}
@@ -110,6 +120,32 @@ body.dashboard-page.module-centric-intelligence .main :is(.table-wrap,.table-con
         <article class="ci-panel"><h2>Profit &amp; cashflow intelligence</h2><p class="ci-panel-note">Revenue, collections, expenses and outstanding invoices are shown separately. These figures are not a net-profit calculation.</p><div class="ci-list" id="ci-profit"><div class="ci-status">Loading financial records…</div></div></article>
       </section>
       <section class="ci-panel"><h2>Transaction review</h2><p class="ci-panel-note">These are unusual-record signals for an authorised manager to review. They are not proof of fraud.</p><div class="ci-list" id="ci-review"><div class="ci-status">Checking transaction records…</div></div></section>
+      <section class="ci-panel ci-audit" id="ci-audit" aria-labelledby="ci-audit-title">
+        <div class="ci-audit-head">
+          <div><h2 id="ci-audit-title">Activity &amp; audit trail</h2><p class="ci-panel-note">Who did what, and when, across job cards, checklists, invoices, payments, receipts, expenses, stock and customers. Select any row for the full before-and-after detail. Visible to accounting and super admin users only.</p></div>
+          <div class="ci-audit-actions">
+            <button class="ci-audit-btn" id="ci-audit-refresh" type="button"><i data-lucide="refresh-cw"></i> Refresh</button>
+            <button class="ci-audit-btn" id="ci-audit-export" type="button"><i data-lucide="download"></i> Export CSV</button>
+          </div>
+        </div>
+        <form class="ci-audit-filters" id="ci-audit-filters" autocomplete="off">
+          <label>From<input id="ci-audit-from" type="date"></label>
+          <label>To<input id="ci-audit-to" type="date"></label>
+          <label>Person<select id="ci-audit-actor"><option value="">Everyone</option></select></label>
+          <label>Area<select id="ci-audit-area"><option value="">All areas</option></select></label>
+          <label>Action<select id="ci-audit-action"><option value="">All actions</option><option value="INSERT">Created</option><option value="UPDATE">Updated</option><option value="DELETE">Deleted</option></select></label>
+          <label class="ci-audit-search">Search<input id="ci-audit-text" type="search" placeholder="Record, person or what changed"></label>
+          <button class="ci-audit-btn" id="ci-audit-reset" type="button">Clear filters</button>
+        </form>
+        <div class="ci-status" id="ci-audit-status" role="status" aria-live="polite" hidden></div>
+        <div class="ci-detail-table-wrap">
+          <table class="ci-detail-table ci-audit-table">
+            <thead><tr><th>When (Harare)</th><th>Who</th><th>Action</th><th>Area</th><th>Record</th><th>What happened</th></tr></thead>
+            <tbody id="ci-audit-body"><tr><td colspan="6" class="ci-audit-empty">Loading activity…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="ci-audit-foot"><div><span id="ci-audit-count"></span><span id="ci-audit-deletes"></span></div><button class="ci-audit-btn" id="ci-audit-more" type="button" hidden>Load more</button></div>
+      </section>
       <section class="ci-panel"><h2>Inventory watchlist</h2><div class="ci-list" id="ci-inventory"><div class="ci-status">Loading stock records…</div></div></section>
     </main>
   </div>
@@ -119,6 +155,12 @@ body.dashboard-page.module-centric-intelligence .main :is(.table-wrap,.table-con
       <div class="ci-detail-body" id="ci-detail-body"></div>
     </section>
   </div>
+  <div class="ci-detail-modal" id="ci-audit-modal" role="dialog" aria-modal="true" aria-labelledby="ci-audit-modal-title" hidden>
+    <section class="ci-modal-card">
+      <header class="ci-modal-head"><h2 id="ci-audit-modal-title">Activity detail</h2><button class="ci-modal-close" type="button" data-audit-close aria-label="Close details"><i data-lucide="x"></i></button></header>
+      <div class="ci-detail-body" id="ci-audit-detail"></div>
+    </section>
+  </div>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script type="module" src="../js/auth.js"></script>
   <script type="module" src="../js/app.js"></script>
@@ -126,5 +168,6 @@ body.dashboard-page.module-centric-intelligence .main :is(.table-wrap,.table-con
   <script type="module" src="../js/repair-pages-navigation.js?v=task-navigation-v3-20261123"></script>
   <script type="module" src="../js/dashboard-search.js"></script>
   <script type="module" src="../js/centric-intelligence.js"></script>
+  <script type="module" src="../js/ci-audit-trail.js"></script>
 </body>
 </html>
