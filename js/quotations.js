@@ -779,11 +779,12 @@ function renderQuotationRows() {
 }
 
 ["quote-filter-search", "quote-filter-number", "quote-filter-from", "quote-filter-to", "quote-filter-status"].forEach(id => {
-  document.getElementById(id).addEventListener("input", renderQuotationRows);
-  document.getElementById(id).addEventListener("change", renderQuotationRows);
+  document.getElementById(id).addEventListener("input", () => { quotationCurrentPage = 1; renderQuotationRows(); });
+  document.getElementById(id).addEventListener("change", () => { quotationCurrentPage = 1; renderQuotationRows(); });
 });
 document.getElementById("quote-filter-clear").addEventListener("click", () => {
   ["quote-filter-search", "quote-filter-number", "quote-filter-from", "quote-filter-to", "quote-filter-status"].forEach(id => { document.getElementById(id).value = ""; });
+  quotationCurrentPage = 1;
   renderQuotationRows();
 });
 
