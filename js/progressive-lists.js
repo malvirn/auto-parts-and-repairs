@@ -12,7 +12,7 @@
   const TABLE_EXCLUDES = [
     ".items", "#doc", "#jb-lines", "#quotation-paper-table", "#receipt-items", "#quotations-table", "#orders-table",
     ".receipt-document", ".invoice-document", ".job-card-print", ".payslip",
-    ".modal table", ".modal-content table", "[data-no-progressive]"
+    "[data-no-progressive]"
   ].join(",");
   const TABLE_SELECTORS = [
     "#customers-table", "#suppliers-table", "#employees-table",
