@@ -1,5 +1,5 @@
 import supabase from "./supabaseClient.js";
-import { initNetworkStatus } from "./network-status.js";
+import { initNetworkStatus } from "./network-status.js?v=icon-only-network-20261123";
 
 const NAV = [
   { title: "Main", items: [{ label: "Home", href: "index.html", icon: "house", page: "index" }] },
@@ -107,7 +107,7 @@ function buildHeader() {
     '<div class="glass-header-actions"><a class="glass-job-action" href="' + esc(hrefFor("pages/repairs.html")) + '?new=1">' + icon("plus") + '<span>Job Card</span></a>' +
     '<a class="glass-icon-button glass-shop-action" href="' + esc(hrefFor("pages/shop.html")) + '" aria-label="Open shop" title="Shop">' + icon("shopping-cart") + '</a>' +
     '<button class="glass-icon-button theme-toggle" type="button" aria-label="Switch theme" title="Switch theme"></button>' +
-    '<div class="glass-notification-slot" id="glass-network-slot"><button class="glass-net" id="glass-net" type="button" data-level="" aria-label="Network strength" title="Checking connection…"><span class="glass-net-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="glass-net-label">Checking…</span></button></div></div></header>';
+    '<div class="glass-notification-slot" id="glass-network-slot"><button class="glass-net" id="glass-net" type="button" data-level="" aria-label="Network strength" title="Checking connection…"><span class="glass-net-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button></div></div></header>';
 }
 
 
