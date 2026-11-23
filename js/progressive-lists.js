@@ -135,7 +135,7 @@
         if (target) {
           if (target.matches?.(LIST_SELECTORS) || target.matches?.("tbody")) {
             target.dataset.progressiveTotal = "-1";
-            target.dataset.progressiveVisible = String(INITIAL);
+            target.dataset.progressivePage = "1";
           }
           process(target);
         }
