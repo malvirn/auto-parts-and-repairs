@@ -1,61 +1,37 @@
-/* Sign-in sync screen (js/boot.js). Self-contained: login.html does not load the app theme. */
-.sync{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;
+/* Sign-in loading screen (js/boot.js). Self-contained: login.html does not load the app theme. */
+.ld{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;
   padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
-  background:rgba(5,8,10,.72);
-  color:#e6edf3;font-family:"Inter","Segoe UI",system-ui,sans-serif;overflow-y:auto;animation:syncIn .3s ease-out both}
-.sync[hidden],.sync [hidden]{display:none!important}
-.sync-card{width:min(100%,420px);padding:28px 24px;border-radius:20px;text-align:center;
-  background:linear-gradient(160deg,rgba(24,33,42,.96),rgba(16,23,30,.98));border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 40px rgba(var(--success-rgb),.1)}
-.sync-logo{display:block;height:64px;width:auto;margin:0 auto 14px}
-.sync-title{margin:0 0 4px;font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}
-.sync-sub{margin:0 0 20px;font-size:14px;color:#8b949e;min-height:1.3em}
+  background:rgba(5,8,10,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  color:#e6edf3;font-family:"Inter","Segoe UI",system-ui,sans-serif;animation:ldIn .25s ease-out both}
+.ld[hidden],.ld [hidden]{display:none!important}
+.ld-box{width:min(100%,340px);text-align:center}
 
-.sync-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;margin:0 0 18px}
-.sync-fill{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--success),var(--success),var(--warning));transition:width .5s cubic-bezier(.2,.78,.2,1)}
+.ld-ring{position:relative;display:grid;place-items:center;width:96px;height:96px;margin:0 auto 22px}
+.ld-ring::before,.ld-ring::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--success,#00a884);opacity:0;animation:ldPulse 1.8s ease-out infinite}
+.ld-ring::after{animation-delay:.9s}
+.ld-ring img{position:relative;height:56px;width:auto;max-width:72px;object-fit:contain;animation:ldBreathe 1.8s ease-in-out infinite}
 
-.sync-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;text-align:left}
-.sync-step{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:600;color:#6e7681;
-  background:rgba(255,255,255,.03);border:1px solid transparent;transition:color .25s,background .25s,border-color .25s}
-.sync-step small{display:block;margin-top:1px;font-size:12px;font-weight:500;color:inherit;opacity:.8}
-.sync-ico{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.15);transition:all .25s}
-.sync-ico svg{width:15px;height:15px;opacity:0;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.sync-step[data-state="active"]{color:#fff;background:rgba(var(--success-rgb),.1);border-color:rgba(var(--success-rgb),.35)}
-.sync-step[data-state="active"] .sync-ico{border-color:rgba(var(--success-rgb),.3);border-top-color:var(--success);animation:syncSpin .8s linear infinite}
-.sync-step[data-state="done"]{color:#cfe9e2}
-.sync-step[data-state="done"] .sync-ico{background:var(--success);border-color:var(--success);color:#fff}
-.sync-step[data-state="done"] .sync-ico svg{opacity:1}
-.sync-step[data-state="error"]{color:var(--danger);background:rgba(var(--danger-rgb),.1);border-color:rgba(var(--danger-rgb),.4)}
-.sync-step[data-state="error"] .sync-ico{background:var(--danger);border-color:var(--danger);color:#fff}
-.sync-step[data-state="error"] .sync-ico svg{opacity:1}
+.ld-text{margin:0 0 16px;min-height:1.4em;font-size:15px;font-weight:600;color:#cfd8e0}
+.ld-bar{height:3px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}
+.ld-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--success,#00a884),var(--warning,#ff7a12));transition:width .45s cubic-bezier(.2,.78,.2,1)}
 
-/* success + access level */
-.sync-result{animation:syncUp .4s ease-out both}
-.sync-badge{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 12px;border-radius:50%;color:#fff;animation:syncPop .5s cubic-bezier(.2,.8,.2,1.4) both}
-.sync-badge.ok{background:var(--success);box-shadow:0 0 0 8px rgba(var(--success-rgb),.18)}
-.sync-badge.bad{background:var(--danger);box-shadow:0 0 0 8px rgba(var(--danger-rgb),.18)}
-.sync-badge svg{width:32px;height:32px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.sync-result h2{margin:0 0 4px;font-size:22px;font-weight:800;color:#fff}
-.sync-result p{margin:0;font-size:14px;color:#9eb0c1;word-break:break-word}
-.sync-level{margin:16px 0 6px;padding:12px;border-radius:14px;background:rgba(var(--success-rgb),.1);border:1px solid rgba(var(--success-rgb),.35)}
-.sync-level span{display:block;font-size:12px;font-weight:600;color:#8b949e;margin-bottom:2px}
-.sync-level strong{font-size:22px;font-weight:800;color:var(--success)}
-.sync-areas{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-.sync-areas li{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(255,255,255,.07);color:#cdd9e5;animation:syncPop .35s calc(.2s + var(--i)*40ms) ease-out both}
-.sync-note{margin:12px 0 0!important;font-size:13px!important;color:var(--warning)!important}
-.sync-actions{display:grid;gap:10px;margin-top:18px}
-.sync-btn{min-height:48px;padding:0 18px;border:0;border-radius:12px;font:inherit;font-size:16px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation;
-  background:linear-gradient(180deg,var(--success),var(--success));box-shadow:0 4px 0 var(--success)}
-.sync-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--success)}
-.sync-btn.ghost{background:rgba(255,255,255,.07);box-shadow:none;color:#cdd9e5;border:1px solid rgba(255,255,255,.14)}
-.sync-btn.ghost:active{transform:none}
-.sync-btn:focus-visible{outline:3px solid var(--warning);outline-offset:2px}
-.sync-go{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:13px;color:#8b949e}
-.sync-go i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);border-top-color:var(--success);animation:syncSpin .8s linear infinite}
+.ld-result{animation:ldUp .3s ease-out both}
+.ld-badge{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;color:#fff;animation:ldPop .4s cubic-bezier(.2,.8,.2,1.4) both}
+.ld-badge.ok{background:var(--success,#00a884)}
+.ld-badge.bad{background:var(--danger,#e5484d)}
+.ld-badge svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ld-result h2{margin:0 0 6px;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#fff}
+.ld-result p{margin:0;font-size:14px;color:#9eb0c1;word-break:break-word}
+.ld-note{margin-top:10px!important;color:var(--warning,#ff7a12)!important}
+.ld-actions{display:grid;gap:10px;margin-top:18px}
+.ld-btn{min-height:48px;padding:0 18px;border:0;border-radius:12px;font:inherit;font-size:16px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation;background:var(--success,#00a884)}
+.ld-btn:active{transform:scale(.98)}
+.ld-btn.ghost{background:rgba(255,255,255,.07);color:#cdd9e5;border:1px solid rgba(255,255,255,.14)}
+.ld-btn:focus-visible{outline:3px solid var(--warning,#ff7a12);outline-offset:2px}
 
-@keyframes syncIn{from{opacity:0}to{opacity:1}}
-@keyframes syncUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes syncPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
-@keyframes syncSpin{to{transform:rotate(360deg)}}
-@media (max-width:380px){.sync-card{padding:22px 16px}.sync-step{font-size:14px;padding:10px}}
-@media (prefers-reduced-motion:reduce){.sync *,.sync{animation-duration:.01ms!important;transition-duration:.01ms!important}.sync-step[data-state="active"] .sync-ico,.sync-go i{animation:syncSpin 1.6s linear infinite!important}}
+@keyframes ldIn{from{opacity:0}to{opacity:1}}
+@keyframes ldUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ldPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes ldPulse{0%{transform:scale(.55);opacity:.7}100%{transform:scale(1.25);opacity:0}}
+@keyframes ldBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.ld,.ld *{animation-duration:.01ms!important;transition-duration:.01ms!important}.ld-ring::before,.ld-ring::after{animation:none;opacity:.4;transform:none}}

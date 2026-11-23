@@ -1,89 +1,66 @@
-// Sign-in sync screen. login.js drives it with the REAL sign-in work:
+// Sign-in loading screen. login.js drives it with the REAL sign-in work:
 //   bootStart() -> bootStep(i, "active" | "done" | "error") -> bootSuccess() | bootError()
-// Steps: verifying credentials, loading profile, syncing user data, preparing dashboard.
+// Minimal design: pulsing logo ring, one status line, thin progress bar.
 
 const STEPS = [
-  { title: "Verifying credentials", detail: "Checking your email and password" },
-  { title: "Loading profile", detail: "Fetching your account and access level" },
-  { title: "Syncing user data", detail: "Pulling jobs, customers and stock" },
-  { title: "Preparing dashboard", detail: "Setting up your workspace" },
+  "Verifying credentials",
+  "Loading your profile",
+  "Syncing your data",
+  "Preparing dashboard",
 ];
 
-// Mirrors the page rules in auth.js (PAGE_ACCESS).
-const ROLE_INFO = {
-  super_admin: {
-    label: "Super Admin", summary: "Full access to every module",
-    areas: ["Job Cards", "Customers", "Mechanics", "Shop", "Quotations", "Receipts", "Suppliers", "Accounting", "Analytics", "Settings"],
-  },
-  accounting: {
-    label: "Accounting", summary: "Finance, reports and sales records",
-    areas: ["Accounting", "Ledger", "Payables", "Cash Book", "Statements", "Analytics", "Shop", "Quotations", "Receipts", "Settings"],
-  },
-  staff: {
-    label: "Staff", summary: "Workshop and sales",
-    areas: ["Job Cards", "Customers", "Suppliers", "Shop", "Quotations", "Receipts", "Settings"],
-  },
-};
-
-const REDIRECT_DELAY_MS = 3000;
+const REDIRECT_DELAY_MS = 900;
 const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const CROSS = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 let el = null, redirectTimer = 0;
+const states = STEPS.map(() => "pending");
 
 function build() {
   const wrap = document.createElement("div");
-  wrap.className = "sync";
+  wrap.className = "ld";
   wrap.setAttribute("role", "status");
   wrap.setAttribute("aria-live", "polite");
   wrap.innerHTML = `
-    <div class="sync-card">
-      <img class="sync-logo" src="assets/logo.png" alt="" onerror="this.onerror=null;this.src=window.__ACLOGO">
-      <div id="sync-progress">
-        <h2 class="sync-title" id="sync-title">Signing you in</h2>
-        <p class="sync-sub" id="sync-sub">This only takes a moment</p>
-        <div class="sync-bar" role="progressbar" aria-label="Sign-in progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="sync-bar"><div class="sync-fill" id="sync-fill"></div></div>
-        <ol class="sync-steps">
-          ${STEPS.map((s, i) => `<li class="sync-step" data-step="${i}" data-state="pending"><span class="sync-ico">${CHECK}</span><span>${s.title}<small>${s.detail}</small></span></li>`).join("")}
-        </ol>
+    <div class="ld-box">
+      <div id="ld-main">
+        <div class="ld-ring"><img src="assets/logo.png" alt="" onerror="this.onerror=null;this.src=window.__ACLOGO"></div>
+        <p class="ld-text" id="ld-text">${STEPS[0]}</p>
+        <div class="ld-bar" role="progressbar" aria-label="Sign-in progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="ld-bar"><i id="ld-fill"></i></div>
       </div>
-      <div class="sync-result" id="sync-result" hidden></div>
+      <div class="ld-result" id="ld-result" hidden></div>
     </div>`;
   document.body.appendChild(wrap);
   return wrap;
 }
 
 function setProgress() {
-  const states = [...el.querySelectorAll(".sync-step")].map((n) => n.dataset.state);
   const done = states.filter((s) => s === "done").length;
   const active = states.includes("active") ? 0.5 : 0;
   const pct = Math.round(((done + active) / STEPS.length) * 100);
-  el.querySelector("#sync-fill").style.width = pct + "%";
-  el.querySelector("#sync-bar").setAttribute("aria-valuenow", String(pct));
+  el.querySelector("#ld-fill").style.width = pct + "%";
+  el.querySelector("#ld-bar").setAttribute("aria-valuenow", String(pct));
+  const i = states.findIndex((s) => s === "active");
+  if (i >= 0) el.querySelector("#ld-text").textContent = STEPS[i] + "…";
 }
 
 export function bootStart() {
   clearTimeout(redirectTimer);
   if (!el) el = build();
+  states.fill("pending");
   el.hidden = false;
-  el.querySelectorAll(".sync-step").forEach((n) => { n.dataset.state = "pending"; n.querySelector(".sync-ico").innerHTML = CHECK; });
-  el.querySelector("#sync-progress").hidden = false;
-  el.querySelector("#sync-result").hidden = true;
-  el.querySelector("#sync-title").textContent = "Signing you in";
-  el.querySelector("#sync-sub").textContent = "This only takes a moment";
+  el.querySelector("#ld-main").hidden = false;
+  el.querySelector("#ld-result").hidden = true;
+  el.querySelector("#ld-text").textContent = STEPS[0] + "…";
   document.body.classList.add("booting");
   setProgress();
 }
 
-export function bootStep(index, state, detail) {
-  if (!el) return;
-  const row = el.querySelector(`.sync-step[data-step="${index}"]`);
-  if (!row) return;
-  row.dataset.state = state;
-  row.querySelector(".sync-ico").innerHTML = state === "error" ? CROSS : CHECK;
-  if (detail) row.querySelector("small").textContent = detail;
+export function bootStep(index, state) {
+  if (!el || index < 0 || index >= STEPS.length) return;
+  states[index] = state;
   setProgress();
 }
 
@@ -99,15 +76,15 @@ export function bootCancel() {
 export function bootError(message, { canRetry = true } = {}) {
   return new Promise((resolve) => {
     if (!el) return resolve("back");
-    const box = el.querySelector("#sync-result");
-    el.querySelector("#sync-progress").hidden = true;
+    const box = el.querySelector("#ld-result");
+    el.querySelector("#ld-main").hidden = true;
     box.innerHTML = `
-      <div class="sync-badge bad" aria-hidden="true">${CROSS}</div>
+      <div class="ld-badge bad" aria-hidden="true">${CROSS}</div>
       <h2>Couldn't sign you in</h2>
       <p>${esc(message || "Something went wrong.")}</p>
-      <div class="sync-actions">
-        ${canRetry ? '<button type="button" class="sync-btn" data-act="retry">Try again</button>' : ""}
-        <button type="button" class="sync-btn ghost" data-act="back">Back to sign in</button>
+      <div class="ld-actions">
+        ${canRetry ? '<button type="button" class="ld-btn" data-act="retry">Try again</button>' : ""}
+        <button type="button" class="ld-btn ghost" data-act="back">Back to sign in</button>
       </div>`;
     box.hidden = false;
     box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => {
@@ -117,26 +94,23 @@ export function bootError(message, { canRetry = true } = {}) {
   });
 }
 
-// Everything worked: show success + the access level, then open the dashboard.
+// Everything worked: quick checkmark, then straight to the dashboard.
 export function bootSuccess(profile, email, { destination = "index.html", warning = "" } = {}) {
   if (!el) return;
-  const info = ROLE_INFO[profile?.role] || ROLE_INFO.staff;
   const who = profile?.full_name || email || "";
-  const box = el.querySelector("#sync-result");
-  el.querySelector("#sync-progress").hidden = true;
+  const box = el.querySelector("#ld-result");
+  el.querySelector("#ld-main").hidden = true;
   box.innerHTML = `
-    <div class="sync-badge ok" aria-hidden="true">${CHECK}</div>
-    <h2>You're in${who ? `, ${esc(who.split(" ")[0])}` : ""}</h2>
-    <p>Signed in successfully</p>
-    <div class="sync-level"><span>Your access level</span><strong>${esc(info.label)}</strong></div>
-    <p>${esc(info.summary)}</p>
-    <ul class="sync-areas">${info.areas.map((a, i) => `<li style="--i:${i}">${esc(a)}</li>`).join("")}</ul>
-    ${warning ? `<p class="sync-note">${esc(warning)}</p>` : ""}
-    <div class="sync-actions"><button type="button" class="sync-btn" id="sync-continue">Open dashboard</button></div>
-    <p class="sync-go"><i aria-hidden="true"></i>Opening your dashboard…</p>`;
+    <div class="ld-badge ok" aria-hidden="true">${CHECK}</div>
+    <h2>Welcome${who ? `, ${esc(who.split(" ")[0])}` : ""}</h2>
+    ${warning ? `<p class="ld-note">${esc(warning)}</p><div class="ld-actions"><button type="button" class="ld-btn" id="ld-go">Open dashboard</button></div>` : ""}`;
   box.hidden = false;
   const go = () => { clearTimeout(redirectTimer); window.location.replace(destination); };
-  box.querySelector("#sync-continue").addEventListener("click", go);
-  box.querySelector("#sync-continue").focus();
-  redirectTimer = setTimeout(go, REDIRECT_DELAY_MS);
+  if (warning) {
+    // Give the person time to read the warning; they continue manually.
+    box.querySelector("#ld-go").addEventListener("click", go);
+    box.querySelector("#ld-go").focus();
+  } else {
+    redirectTimer = setTimeout(go, REDIRECT_DELAY_MS);
+  }
 }

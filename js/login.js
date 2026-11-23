@@ -159,7 +159,7 @@ forgotPasswordBtn?.addEventListener("click", async () => {
   }
 });
 
-const MIN_STEP_MS = 450; // so each step is readable even when the server answers instantly
+const MIN_STEP_MS = 150; // so each step is readable even when the server answers instantly
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const isNetworkError = (e) => /fetch|network|timed out|timeout|retryable/i.test(`${e?.name || ""} ${e?.message || ""}`);
 let busy = false;
