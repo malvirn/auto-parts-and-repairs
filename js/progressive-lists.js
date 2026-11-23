@@ -1,10 +1,9 @@
 (() => {
   "use strict";
 
-  const INITIAL = 3;
-  const STEP = 3;
+  const PAGE_SIZE = 10;
   const LIST_SELECTORS = [
-    "#list", "#jb-list", "#customer-credit-records", "#customer-credit-list",
+    "#list", "#customer-credit-records", "#customer-credit-list",
     "#off-days-list", "#quotation-list", "#recent-jobs", "#ov-quotes",
     "#v-list", "#unpriced-job-parts-list", "#supplier-list", "#employee-list",
     ".quotation-list", ".customer-credit-records", ".record-list",
@@ -17,7 +16,7 @@
   ].join(",");
   const TABLE_SELECTORS = [
     "#customers-table", "#suppliers-table", "#employees-table",
-    "#quotations-table", "#orders-table", "#customer-directory-table",
+    "#customer-directory-table",
     "#customer-accounts-table", "#trial-balance-table", "#accounts-table",
     "#entries-table", "#payroll-employees", "#credit-job-table",
     "#recent-jobs", "#jb-lines-table"
@@ -36,67 +35,63 @@
     return container.matches("tbody") ? container.closest("table") : container;
   }
 
-  function getButton(container) {
-    const anchor = anchorFor(container);
-    const key = container.id || anchor.id || container.dataset.progressiveKey || "record-list";
-    let wrap = anchor.parentElement?.querySelector(':scope > .progressive-more-wrap[data-for="' + CSS.escape(key) + '"]');
-    if (!wrap) {
-      wrap = document.createElement("div");
-      wrap.className = "progressive-more-wrap";
-      wrap.dataset.for = key;
-      wrap.setAttribute("data-progressive-control", "");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "progressive-more-btn";
-      wrap.append(button);
-      anchor.insertAdjacentElement("afterend", wrap);
+  function paginationMarkup(page, pages, total) {
+    const items = [];
+    const add = value => items.push(value);
+    const set = new Set([1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
+    const sorted = [...set].sort((a,b)=>a-b);
+    let previous = 0;
+    for (const number of sorted) {
+      if (previous && number - previous > 1) add("ellipsis");
+      add(number);
+      previous = number;
     }
-    return wrap.querySelector("button");
+    return `<nav class="centric-pagination" aria-label="List pages">
+      <span class="centric-pagination__summary">${total.toLocaleString()} records</span>
+      <div class="centric-pagination__controls">
+        <button type="button" class="centric-page-arrow" data-page="${page-1}" aria-label="Previous page" ${page===1?"disabled":""}>‹</button>
+        ${items.map(item=>item==="ellipsis"?'<span class="centric-page-ellipsis" aria-hidden="true">…</span>':`<button type="button" class="centric-page-number ${item===page?"is-current":""}" data-page="${item}" ${item===page?'aria-current="page"':""}>${item}</button>`).join("")}
+        <button type="button" class="centric-page-arrow" data-page="${page+1}" aria-label="Next page" ${page===pages?"disabled":""}>›</button>
+      </div>
+    </nav>`;
   }
 
-  function update(container, keepCount = false) {
+  function update(container) {
     if (!container.isConnected) return;
     const records = recordsFor(container);
     if (container.closest("[data-no-progressive]")) {
       records.forEach(record => { record.hidden = false; });
-      const wrap = anchorFor(container).nextElementSibling;
-      if (wrap?.classList.contains("progressive-more-wrap")) wrap.remove();
+      container.parentElement?.querySelector(':scope > .centric-pagination-wrap[data-for="' + CSS.escape(container.id || "record-list") + '"]')?.remove();
       return;
     }
-    if (records.length <= INITIAL) {
-      records.forEach(record => { record.hidden = false; });
-      container.dataset.progressiveTotal = String(records.length);
-      container.dataset.progressiveVisible = String(records.length);
-      const anchor = anchorFor(container);
-      const wrap = anchor.nextElementSibling;
-      if (wrap?.classList.contains("progressive-more-wrap")) wrap.remove();
-      return;
-    }
-
-    const previousTotal = Number(container.dataset.progressiveTotal || 0);
-    let visible = Number(container.dataset.progressiveVisible || INITIAL);
-    if (!keepCount && previousTotal !== records.length) visible = INITIAL;
-    visible = Math.max(INITIAL, Math.min(records.length, visible));
+    const key = container.id || container.dataset.progressiveKey || "record-list";
+    const previousTotal = Number(container.dataset.progressiveTotal || -1);
+    let page = Number(container.dataset.progressivePage || 1);
+    if (previousTotal !== records.length) page = 1;
+    const pages = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+    page = Math.max(1, Math.min(pages, page));
     container.dataset.progressiveTotal = String(records.length);
-    container.dataset.progressiveVisible = String(visible);
-    records.forEach((record, index) => { record.hidden = index >= visible; });
-
-    const button = getButton(container);
-    const wrap = button.closest(".progressive-more-wrap");
-    wrap.hidden = false;
-    if (visible >= records.length) {
-      if (button.textContent !== "Show less") button.textContent = "Show less";
-      button.onclick = () => {
-        container.dataset.progressiveVisible = String(INITIAL);
-        update(container, true);
-      };
-    } else {
-      if (button.textContent !== "More") button.textContent = "More";
-      button.onclick = () => {
-        container.dataset.progressiveVisible = String(Math.min(records.length, Number(container.dataset.progressiveVisible || INITIAL) + STEP));
-        update(container, true);
-      };
+    container.dataset.progressivePage = String(page);
+    records.forEach((record, index) => {
+      record.hidden = index < (page - 1) * PAGE_SIZE || index >= page * PAGE_SIZE;
+    });
+    let wrap = container.parentElement?.querySelector(':scope > .centric-pagination-wrap[data-for="' + CSS.escape(key) + '"]');
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "centric-pagination-wrap";
+      wrap.dataset.for = key;
+      container.insertAdjacentElement("afterend", wrap);
     }
+    wrap.hidden = records.length <= PAGE_SIZE;
+    wrap.innerHTML = records.length > PAGE_SIZE ? paginationMarkup(page, pages, records.length) : "";
+    wrap.querySelectorAll("[data-page]").forEach(button => {
+      button.addEventListener("click", () => {
+        const next = Number(button.dataset.page);
+        if (!Number.isInteger(next) || next < 1 || next > pages || next === page) return;
+        container.dataset.progressivePage = String(next);
+        update(container);
+      });
+    });
   }
 
   function process(root = document) {
@@ -113,12 +108,18 @@
 
   const style = document.createElement("style");
   style.textContent = `
-    .progressive-more-wrap{display:flex;justify-content:center;align-items:center;padding:12px 0 18px}
-    .progressive-more-wrap[hidden]{display:none!important}
-    .progressive-more-btn{min-width:112px;min-height:42px;padding:9px 22px;border:1px solid #75dba4;border-radius:11px;background:linear-gradient(180deg,#267d50,#145c38);color:#fff;font-family:inherit;font-size:14px;font-weight:700;line-height:1.2;letter-spacing:.02em;box-shadow:0 3px 0 #0c4027,0 5px 12px rgba(0,0,0,.2);cursor:pointer}
-    .progressive-more-btn:hover{background:linear-gradient(180deg,#319b63,#1c7045);border-color:#b4f2ce}
-    .progressive-more-btn:focus-visible{outline:3px solid #f58220;outline-offset:3px}
-    .progressive-more-btn:active{transform:translateY(1px);box-shadow:0 1px 0 #0c4027}
+    .centric-pagination-wrap{display:flex;justify-content:center;width:100%;padding:14px 0 18px}
+    .centric-pagination-wrap[hidden]{display:none!important}
+    .centric-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;width:100%;max-width:100%;color:var(--muted,#9aa6a0);font:inherit}
+    .centric-pagination__summary{font-size:12px;font-weight:600;white-space:nowrap}
+    .centric-pagination__controls{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+    .centric-page-number,.centric-page-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 9px;border:1px solid var(--line,#34423b);border-radius:8px;background:var(--surface-2,#17211d);color:var(--text,#f3f7f4);font:600 13px/1 inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+    .centric-page-number:hover:not(:disabled),.centric-page-arrow:hover:not(:disabled){border-color:var(--green-bright,#36b979);background:rgba(54,185,121,.13)}
+    .centric-page-number.is-current{border-color:var(--green-bright,#36b979);background:var(--green-bright,#248a58);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+    .centric-page-number:focus-visible,.centric-page-arrow:focus-visible{outline:2px solid var(--orange,#f58220);outline-offset:2px}
+    .centric-page-number:disabled,.centric-page-arrow:disabled{opacity:.35;cursor:not-allowed}
+    .centric-page-ellipsis{padding:0 3px;color:var(--muted,#9aa6a0)}
+    @media(max-width:560px){.centric-pagination{justify-content:center;gap:8px}.centric-pagination__summary{width:100%;text-align:center}.centric-pagination__controls{gap:3px}.centric-page-number,.centric-page-arrow{min-width:32px;height:34px;padding:0 7px}}
   `;
   document.head.append(style);
   process();
