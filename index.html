@@ -1117,7 +1117,7 @@ body.dashboard-page.module-home .main :is(.table-wrap,.table-container,.table-re
   <!-- supabase-js from jsDelivr; must stay before the module scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/app.js?v=role-greeting-2"></script>
+  <script type="module" src="js/app.js?v=attention-layout-20261123"></script>
   <script type="module" src="js/notifications.js"></script>
   <script type="module" src="js/repair-pages-navigation.js?v=icon-only-network-20261123"></script>
 
@@ -1568,6 +1568,21 @@ body.dashboard-page.dashboard-workshop .sidebar-quick-access>a:not(:first-of-typ
     /* One header only: the dashboard toolbar, styled exactly like the other pages.
        The duplicate banner (and its stray three-dots button) is hidden. */
     body.dashboard-workshop.dashboard-page .main > .app-header{display:none!important}
+
+/* Needs Attention: keep each alert in its own readable row on mobile and desktop. */
+body.dashboard-page #attention-panel{display:flex!important;flex-direction:column!important;align-items:stretch;gap:9px!important;padding:12px!important;overflow:hidden}
+body.dashboard-page #attention-panel .attention-item{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0;min-height:64px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface-2);color:var(--text);text-decoration:none;line-height:1.45;box-sizing:border-box}
+body.dashboard-page #attention-panel .attention-item__label{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;font-size:14px;font-weight:550;line-height:1.5;overflow-wrap:anywhere}
+body.dashboard-page #attention-panel .attention-item__symbol{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.07)}
+body.dashboard-page #attention-panel .attention-item__icon{display:block;width:20px;height:20px;padding:0;border:0;border-radius:0;background:transparent;color:var(--muted)}
+body.dashboard-page #attention-panel .attention-item.urgent .attention-item__symbol{background:rgba(239,68,68,.14)}
+body.dashboard-page #attention-panel .attention-item.urgent .attention-item__icon{color:#ef4444}
+body.dashboard-page #attention-panel .attention-item.warning .attention-item__symbol{background:rgba(245,158,11,.14)}
+body.dashboard-page #attention-panel .attention-item.warning .attention-item__icon{color:#f59e0b}
+body.dashboard-page #attention-panel .attention-item__chevron{display:block;flex:0 0 17px;width:17px;height:17px;color:var(--muted)}
+body.dashboard-page #attention-panel .attention-item:hover{border-color:var(--green-bright);background:rgba(255,255,255,.08)}
+body.dashboard-page #attention-panel .attention-empty{display:flex;align-items:center;gap:8px;min-height:54px;padding:12px;line-height:1.5}
+@media(max-width:560px){body.dashboard-page #attention-panel .attention-item{min-height:68px;padding:11px 12px}body.dashboard-page #attention-panel .attention-item__label{gap:10px;font-size:13.5px}}
   </style>
 <style id="index-tablet-drawer">
 /* Tablet / "desktop site" width (769-1024px): close the menu into a drawer, like every other page. */
