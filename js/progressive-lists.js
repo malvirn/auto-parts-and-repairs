@@ -38,7 +38,7 @@
   function paginationMarkup(page, pages, total) {
     const items = [];
     const add = value => items.push(value);
-    const set = new Set([1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
+    const set = new Set([1, 2, 3, pages - 1, pages, page - 1, page, page + 1].filter(n => n >= 1 && n <= pages));
     const sorted = [...set].sort((a,b)=>a-b);
     let previous = 0;
     for (const number of sorted) {
