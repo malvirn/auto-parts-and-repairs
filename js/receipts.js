@@ -78,7 +78,9 @@ function normalizeReceiptSource(receipt) {
   return null;
 }
 
-function renderReceipt(receipt) {
+async function renderReceipt(receipt) {
+  const { data: business } = await supabase.from("business_settings").select("business_name, tagline, address, phone, email, hours, vat_number, vat_rate").eq("id", 1).maybeSingle();
+  const biz = business || { business_name: SHOP_NAME, tagline: SHOP_TAGLINE, address: "", phone: "+263 71 690 5081", email: "", hours: "" };
   const source = normalizeReceiptSource(receipt);
   if (!source) {
     alert("This receipt isn't linked to a job card or sales order anymore — the underlying record was likely deleted after the receipt was issued.");
@@ -117,26 +119,26 @@ function renderReceipt(receipt) {
   const paidInFull = balanceDue <= 0.005;
   receiptDocument.innerHTML = `
     <style>
-      .centric-modal-receipt{background:#fff;color:#202a33;padding:24px;border:1px solid #d6dadd;font-family:Inter,Arial,sans-serif}
+      .centric-modal-receipt{background:#fff!important;color:#17212b!important;padding:24px;border:1px solid #cbd2d9;font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.5;width:100%;max-width:820px;margin:0 auto;overflow-wrap:anywhere}
       .centric-modal-receipt *{box-sizing:border-box}
-      .centric-modal-receipt .cm-head{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:3px solid #b3392b;padding-bottom:14px}
+      .centric-modal-receipt .cm-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:3px solid #b3392b;padding-bottom:14px}
       .centric-modal-receipt .cm-brand{font-size:22px;font-weight:900}.centric-modal-receipt .cm-brand small{display:block;color:#b3392b;font-size:12px}
       .centric-modal-receipt h1{font-size:22px;color:#b3392b;text-align:right;margin:0}
       .centric-modal-receipt .cm-meta,.centric-modal-receipt .cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
       .centric-modal-receipt .cm-box{border:1px solid #d6dadd;padding:12px}.centric-modal-receipt small{display:block;color:#626b73;text-transform:uppercase;font-size:10px;font-weight:800;letter-spacing:.06em}
-      .centric-modal-receipt .cm-box strong{display:block;margin-top:5px}
+      .centric-modal-receipt .cm-box strong{display:block;margin-top:5px;color:#17212b!important;font-size:14px;line-height:1.45;overflow-wrap:anywhere}.centric-modal-receipt .cm-contact{display:grid;gap:5px;margin-top:9px;color:#17212b!important;font-size:13px;line-height:1.5}.centric-modal-receipt .cm-contact span{display:block;overflow-wrap:anywhere}.centric-modal-receipt .cm-contact b{color:#46515d;font-weight:800;margin-right:5px}.centric-modal-receipt .cm-brand-details{margin-top:8px;color:#34404b;font-size:12px;line-height:1.55}.centric-modal-receipt .cm-brand-details span{display:block;overflow-wrap:anywhere}
       .centric-modal-receipt table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
       .centric-modal-receipt th,.centric-modal-receipt td{padding:8px;border:1px solid #d6dadd;text-align:left}
       .centric-modal-receipt th{background:#eef0f2}.centric-modal-receipt .cm-amount{margin-top:14px;padding:16px;border:2px solid #b3392b;display:flex;justify-content:space-between;align-items:center}
       .centric-modal-receipt .cm-amount strong{font-size:24px;color:#b3392b}
       .centric-modal-receipt .cm-balance{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #d6dadd;font-weight:800}
       .centric-modal-receipt .cm-paid{display:inline-block;border:3px double #b3392b;color:#b3392b;padding:5px 12px;font-weight:900;transform:rotate(-5deg)}
-      .centric-modal-receipt .cm-footer{text-align:center;border-top:1px solid #b3392b;margin-top:18px;padding-top:10px;color:#626b73;font-size:11px}
-      @media(max-width:560px){.centric-modal-receipt{padding:14px}.centric-modal-receipt .cm-meta,.centric-modal-receipt .cm-grid{grid-template-columns:1fr}.centric-modal-receipt h1{font-size:17px}}
+      .centric-modal-receipt .cm-footer{text-align:center;border-top:1px solid #b3392b;margin-top:18px;padding-top:12px;color:#34404b!important;font-size:12px;line-height:1.65}.centric-modal-receipt .cm-footer strong{color:#17212b!important}
+      @media(max-width:560px){.centric-modal-receipt{padding:13px!important;font-size:13px}.centric-modal-receipt .cm-meta,.centric-modal-receipt .cm-grid{grid-template-columns:1fr;gap:8px}.centric-modal-receipt .cm-head{align-items:flex-start}.centric-modal-receipt .cm-brand{font-size:20px}.centric-modal-receipt h1{font-size:17px;text-align:left}.centric-modal-receipt .cm-box{padding:11px}.centric-modal-receipt .cm-box strong{font-size:14px}.centric-modal-receipt table{font-size:11px;min-width:0}.centric-modal-receipt th,.centric-modal-receipt td{padding:6px 5px;overflow-wrap:anywhere}.centric-modal-receipt .cm-amount{gap:8px;padding:12px}.centric-modal-receipt .cm-amount strong{font-size:21px}}
       @media print{.centric-modal-receipt{border:0;padding:8mm}}
     </style>
     <article class="centric-modal-receipt">
-      <header class="cm-head"><div class="cm-brand">CENTRIC<small>AUTO PARTS &amp; REPAIRS</small></div><h1>PAYMENT RECEIPT</h1></header>
+      <header class="cm-head"><div><div class="cm-brand">${escapeHtml(biz.business_name || SHOP_NAME)}<small>${escapeHtml(biz.tagline || SHOP_TAGLINE)}</small></div><div class="cm-brand-details">${biz.address ? `<span>${escapeHtml(biz.address)}</span>` : ""}${biz.phone ? `<span>Phone: ${escapeHtml(biz.phone)}</span>` : ""}${biz.email ? `<span>Email: ${escapeHtml(biz.email)}</span>` : ""}${biz.hours ? `<span>${escapeHtml(biz.hours)}</span>` : ""}</div></div><h1>PAYMENT RECEIPT</h1></header>
       <div class="cm-meta">
         <div class="cm-box"><small>Receipt number</small><strong>${escapeHtml(String(receipt.receipt_number).padStart(7,"0"))}</strong></div>
         <div class="cm-box"><small>Date issued</small><strong>${issuedDate} · ${issuedTime}</strong></div>
@@ -144,14 +146,14 @@ function renderReceipt(receipt) {
         <div class="cm-box"><small>Reference</small><strong>${escapeHtml(source.referenceLabel)}</strong></div>
       </div>
       <div class="cm-grid">
-        <div class="cm-box"><small>Received from</small><strong>${escapeHtml(source.customer?.full_name || "Walk-in Customer")}</strong>${escapeHtml(source.customer?.phone || "")}</div>
+        <div class="cm-box"><small>Received from</small><strong>${escapeHtml(source.customer?.full_name || "Walk-in Customer")}</strong><div class="cm-contact">${source.customer?.phone ? `<span><b>Phone</b>${escapeHtml(source.customer.phone)}</span>` : ""}${source.customer?.email ? `<span><b>Email</b>${escapeHtml(source.customer.email)}</span>` : ""}${!source.customer?.phone && !source.customer?.email ? "<span>Contact details not recorded</span>" : ""}</div></div>
         <div class="cm-box"><small>Payment for</small><strong>${escapeHtml(source.vehicleLabel || (source.kind==="order"?"Parts / shop sale":"Vehicle service and repairs"))}</strong>${escapeHtml(source.plate || "")}</div>
       </div>
       <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
       <div class="cm-amount"><b>Amount paid</b><strong>${formatMoney(amountPaid)}</strong></div>
       <div class="cm-balance"><span>Balance remaining</span><span>${formatMoney(balanceDue)}</span></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><span style="font-size:11px;color:#626b73">${paidInFull?"Payment settled in full":"Part payment received"}</span><span class="cm-paid">${paidInFull?"PAID":"PART PAID"}</span></div>
-      <div class="cm-footer">Centric Auto Mobile · +263 71 690 5081<br>Thank you for your business.</div>
+      <div class="cm-footer"><strong>${escapeHtml(biz.business_name || SHOP_NAME)}</strong>${biz.phone ? ` · ${escapeHtml(biz.phone)}` : ""}${biz.email ? `<br>${escapeHtml(biz.email)}` : ""}<br>Thank you for your business.</div>
     </article>`;
   receiptModal.classList.remove("hidden");
   receiptModal.style.display = "flex";
