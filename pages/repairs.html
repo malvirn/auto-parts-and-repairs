@@ -353,6 +353,38 @@
 #doc .tot .g{border-top:3px solid var(--warning);font-size:17px;font-weight:800;margin-top:4px;padding-top:8px}
 #doc .stamp{display:inline-block;border:3px solid var(--success);color:var(--success);padding:2px 12px;border-radius:6px;font-weight:800;transform:rotate(-6deg);margin-top:8px}
 #doc .foot{margin-top:26px;padding-top:12px;border-top:1px solid #e4e8e5;color:#6b7570;font-size:11px}
+
+/* Receipt-matched job card */
+#doc{padding:0!important;background:#fff!important;color:#17212b!important;box-shadow:none!important;border:1px solid #d6dce2;border-radius:8px;overflow:hidden;font:14px/1.5 Inter,Arial,sans-serif}
+#doc .cm-job-doc{--job-red:#c8372d;--job-line:#cbd2d9;width:100%;padding:30px;background:#fff;color:#17212b;overflow-wrap:anywhere}
+#doc .cm-job-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:18px;border-bottom:3px solid var(--job-red)}
+#doc .cm-job-brand{min-width:0;flex:1}#doc .cm-job-brand-name{font-size:29px;line-height:1.12;font-weight:850;letter-spacing:-.04em}
+#doc .cm-job-tagline{margin-top:4px;color:#4b5662;font-size:14px;font-weight:650}
+#doc .cm-job-business-contact{display:grid;gap:3px;margin-top:10px;color:#34404b;font-size:12px;line-height:1.5}
+#doc .cm-job-title{text-align:right;display:grid;justify-items:end;gap:4px;min-width:150px}
+#doc .cm-job-title h1{margin:0;color:var(--job-red);font-size:29px;letter-spacing:.01em}#doc .cm-job-title strong{font-size:17px}
+#doc .cm-job-title span{font-size:12px;color:#46515d}#doc .cm-job-title em{margin-top:5px;padding:4px 10px;border:1.5px solid var(--job-red);border-radius:4px;color:var(--job-red);font-size:10px;font-style:normal;font-weight:850;letter-spacing:.06em}
+#doc .cm-job-title em.is-closed{border-color:#687481;color:#687481}
+#doc .cm-job-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+#doc .cm-job-panel{min-width:0;border:1px solid var(--job-line);border-radius:7px;overflow:hidden;break-inside:avoid}
+#doc .cm-job-panel h2,#doc .cm-job-section-title{margin:0;padding:7px 11px;background:var(--job-red);color:#fff;font-size:13px;font-weight:750}
+#doc .cm-job-panel>div{display:grid;gap:5px;padding:11px 12px;color:#17212b;font-size:13px;line-height:1.5}
+#doc .cm-job-panel>div strong{font-size:15px;font-weight:800}#doc .cm-job-panel>div span{display:block;overflow-wrap:anywhere}#doc .cm-job-panel b{color:#46515d}
+#doc .cm-job-wide{margin:12px 0}#doc .cm-job-detail-grid{display:grid!important;gap:9px!important}
+#doc .cm-job-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0;border:1px solid var(--job-line)}
+#doc .cm-job-table th{padding:8px;background:var(--job-red);color:#fff;text-align:left;font-size:11px;font-weight:750}
+#doc .cm-job-table td{padding:8px;border-bottom:1px solid #e3e6e9;color:#17212b;font-size:12px;overflow-wrap:anywhere}
+#doc .cm-job-table tbody tr:nth-child(even){background:#f4f5f6}#doc .cm-job-table .num{text-align:right;font-variant-numeric:tabular-nums}
+#doc .cm-job-totals{width:min(100%,350px);margin:14px 0 0 auto;border:1px solid var(--job-line);border-radius:6px;overflow:hidden}
+#doc .cm-job-totals>div{display:flex;justify-content:space-between;gap:12px;padding:8px 11px;border-bottom:1px solid var(--job-line);font-size:13px;font-weight:650}
+#doc .cm-job-totals>div:last-child{border:0}#doc .cm-job-totals .grand{background:var(--job-red);color:#fff;font-size:17px;font-weight:850}
+#doc .cm-job-signatures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:36px 0 18px}
+#doc .cm-job-signatures>div{min-height:34px;padding-top:7px;border-top:1px solid #59636d;text-align:center;color:#46515d;font-size:11px;font-weight:650}
+#doc .cm-job-footer{display:grid;gap:3px;margin:18px -30px -30px;padding:13px 30px;border-top:3px solid var(--job-red);background:#f5f6f7;text-align:center;color:#34404b;font-size:12px}
+#doc .cm-job-footer strong{font-size:13px;color:#17212b}#doc .cm-job-footer small{color:#687481;font-size:10px}
+@media(max-width:620px){#doc .cm-job-doc{padding:14px}#doc .cm-job-head{flex-wrap:wrap;gap:12px}#doc .cm-job-brand-name{font-size:22px}#doc .cm-job-title{width:100%;min-width:0;justify-items:start;text-align:left}#doc .cm-job-title h1{font-size:24px}#doc .cm-job-grid{grid-template-columns:1fr;gap:9px}#doc .cm-job-table th,#doc .cm-job-table td{padding:6px 5px;font-size:10px}#doc .cm-job-totals{width:100%}#doc .cm-job-signatures{grid-template-columns:1fr;gap:20px;margin-top:26px}#doc .cm-job-signatures>div{text-align:left}#doc .cm-job-footer{margin:16px -14px -14px;padding:12px 14px}}
+@media print{#doc{max-width:none!important;width:100%!important;border:0!important;box-shadow:none!important}#doc .cm-job-doc{padding:12mm!important}#doc .cm-job-footer{margin-left:-12mm!important;margin-right:-12mm!important;margin-bottom:-12mm!important;padding-left:12mm!important;padding-right:12mm!important}#doc .cm-job-panel,#doc .cm-job-table tr{break-inside:avoid}}
+
 #close-job-modal .modal{width:min(1080px,100%);padding:clamp(18px,3vw,30px)}
 .close-job-layout{display:flex;flex-direction:row;align-items:stretch;gap:20px;min-width:0}
 .close-job-context{flex:1 1 58%;min-width:0;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035)}
@@ -1078,6 +1110,7 @@ const CLOSED_STATUS="Ready for Pickup";
 const COLLECTED_STATUS="Collected";
 let pendingChecklists=[],activeChecklist=null;
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
+let jobBusinessSettings={};
 const inspectionState=new Map();
 const DAMAGE_TYPES=["Dent","Scratch","Crack","Broken","Missing"];
 const PART_SPRITES={
@@ -1241,10 +1274,12 @@ const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(job
 /* ---------- list ---------- */
 async function load(){
  $("list").innerHTML='<div class="apr-state apr-state--loading"><div class="apr-state__icon"><i data-lucide="loader-circle"></i></div><div class="apr-state__copy"><strong>Loading job cards</strong><p>Refreshing the latest workshop jobs…</p></div></div>';
- const [j,t,cl]=await Promise.all([
+ const [j,t,cl,businessResult]=await Promise.all([
   supabase.from("repair_jobs").select("*, customers(customer_code,full_name,phone,email,is_company,company_name,supervisor_name,company_email,supervisor_personal_phone,landline), vehicles(make,model,year,license_plate)").order("created_at",{ascending:false}).limit(500),
   supabase.from("technician_directory").select("id,full_name").limit(300),
-  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,status,updated_at").is("job_id",null).order("updated_at",{ascending:false}).limit(200)]);
+  supabase.from("job_condition_reports").select("id,checklist_number,customer_name,vehicle_registration,confirmed_at,status,updated_at").is("job_id",null).order("updated_at",{ascending:false}).limit(200),
+  supabase.from("business_settings").select("business_name,tagline,address,phone,email").eq("id",1).maybeSingle()]);
+ if(businessResult.error)console.warn("Could not load business contact details for job cards:",businessResult.error);else jobBusinessSettings=businessResult.data||{};
  if(j.error){$("list").innerHTML=`<div class="apr-state apr-state--error" role="alert"><div class="apr-state__icon"><i data-lucide="triangle-alert"></i></div><div class="apr-state__copy"><strong>Job cards could not be loaded</strong><p>${esc(j.error.message)}<br>This is usually a connection, server, or account-permission problem. Check your internet connection and access, then retry.</p></div><button type="button" class="btn apr-state__action" onclick="load().catch(e=>toast(e.message||e))">Retry</button></div>`;window.lucide?.createIcons();return}
  techs=Object.fromEntries((t.data||[]).map(x=>[x.id,x.full_name]));jobs=j.data||[];
  if(cl.error){console.error("Couldn't load checklists waiting for job cards:",cl.error);pendingChecklists=[]}else pendingChecklists=cl.data||[];
@@ -1294,25 +1329,26 @@ function render(){
 }
 
 /* ---------- job card document ---------- */
-function docHTML(j){const c=j.customers||{},v=j.vehicles||{};
-return `<div class="top"><div><img src="../assets/logo.png" alt="Centric Auto Mobile" onerror="this.style.display='none'"><div style="font-weight:800;font-size:16px;margin-top:4px">Centric Auto Mobile</div><div>Auto Parts &amp; Repairs</div></div>
-<div><h1>JOB CARD</h1><div style="text-align:right"><b>${jn(j)}</b>${j.cro_number?`<br>CRO ${esc(j.cro_number)}`:""}<br>${dt(j.created_at)}</div></div></div>
-<div class="meta"><div><small>Customer</small><b>${esc(c.company_name||c.full_name||"—")}</b><br>Customer ID: ${esc(c.customer_code||"No customer ID")}${c.is_company&&c.company_name?"<br>Company: "+esc(c.company_name):""}<br>${esc(c.is_company?(c.supervisor_name||c.full_name||""):(c.full_name||""))}<br>${esc(c.is_company?(c.supervisor_personal_phone||c.phone||""):(c.phone||""))}<br>${esc(c.is_company?(c.company_email||c.email||""):(c.email||""))}${c.is_company&&c.landline?"<br>Landline: "+esc(c.landline):""}${j.driver_name?"<br>Driver: "+esc(j.driver_name):""}${j.driver_phone?"<br>Driver phone: "+esc(j.driver_phone):""}</div>
-<div style="text-align:right"><small>Vehicle</small><b>${esc(veh(v)||"—")}</b><br>Reg: <b>${esc(v.license_plate||"—")}</b><br>Technician: ${esc(techs[j.technician_id]||"Unassigned")}</div></div>
-<div class="job-card-state ${isClosed(j)?"is-closed":""}"><small style="color:#6b7570;text-transform:uppercase;font-size:10px;letter-spacing:.08em">Status</small> <span class="stamp" style="transform:none;margin:0 0 0 6px;font-size:12px">${isClosed(j)?"JOB CARD CLOSED":esc((j.status||"open").toUpperCase())}</span></div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Fault reported</small><br>${esc(j.fault_reported||"—")}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Labour charge</small><br>${j.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based tier"} · ${money(j.labour_cost||0)}${j.labour_mode==="time_based"&&j.labour_hours?` (${Number(j.labour_hours)} hr${Number(j.labour_hours)===1?"":"s"})`:""}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work done</small><br>${esc(j.work_done||"—")}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Work still missing</small><br>${esc(j.work_missing||"—")}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Parts used</small><br>${curParts.map(part=>{
- const price=part.awaiting_accounting_price?null:Number(part.price_at_time)||0;
- return `${esc(part.parts?.description||part.part_name)} × ${esc(part.quantity)}${price===null?" — awaiting Accounting price":` — ${money(price)} each — ${money(price*Number(part.quantity||0))}`}`;
-}).join("<br>")||"—"}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Additional job costs</small><br>${curIncidentals.map(item=>`${esc(item.description||"Additional cost")} — ${money(Number(item.amount)||0)}`).join("<br>")||"—"}</div>
-<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Cost summary</small><br>Labour: ${money(Number(j.labour_cost)||0)}<br>Parts: ${money(curParts.reduce((sum,part)=>sum+(part.awaiting_accounting_price?0:(Number(part.price_at_time)||0)*Number(part.quantity||0)),0))}<br>Additional costs: ${money(curIncidentals.reduce((sum,item)=>sum+(Number(item.amount)||0),0))}<br><b>Total: ${money(j.total_cost!=null&&Number.isFinite(Number(j.total_cost))?Number(j.total_cost):curParts.reduce((sum,part)=>sum+(part.awaiting_accounting_price?0:(Number(part.price_at_time)||0)*Number(part.quantity||0)),0)+curIncidentals.reduce((sum,item)=>sum+(Number(item.amount)||0),0)+(Number(j.labour_cost)||0))}</b></div>
-${j.tested_by||j.next_service_mileage!=null?`<div class="box"><small style="color:#6b7570;text-transform:uppercase;font-size:10px">Vehicle test &amp; next checkup</small><br>Tested by: ${esc(j.tested_by||"—")}<br>Next checkup mileage: ${Number(j.next_service_mileage).toLocaleString()} km</div>`:""}
-<div class="sig"><div>Tested by: ${esc(j.tested_by||"")} · Date: ${dt(j.closed_at)}</div><div>Next checkup mileage: ${j.next_service_mileage==null?"—":`${Number(j.next_service_mileage).toLocaleString()} km`}</div></div>
-<div class="foot">Thank you for choosing Centric Auto Mobile.</div>`}
+function docHTML(j){
+ const c=j.customers||{},v=j.vehicles||{},closed=isClosed(j),business=jobBusinessSettings||{};
+ const customerName=c.company_name||c.full_name||"—",contactName=c.is_company?(c.supervisor_name||c.full_name||""):(c.full_name||"");
+ const contactPhone=c.is_company?(c.supervisor_personal_phone||c.phone||""):(c.phone||""),contactEmail=c.is_company?(c.company_email||c.email||""):(c.email||"");
+ const labour=Number(j.labour_cost)||0,partsTotal=curParts.reduce((sum,p)=>sum+(p.awaiting_accounting_price?0:(Number(p.price_at_time)||0)*Number(p.quantity||0)),0);
+ const incidentalsTotal=curIncidentals.reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+ const total=j.total_cost!=null&&Number.isFinite(Number(j.total_cost))?Number(j.total_cost):labour+partsTotal+incidentalsTotal;
+ const phones=String(business.phone||"").split(/[;,\n]/).map(x=>x.trim()).filter(Boolean);
+ const partRows=curParts.map(p=>{const price=p.awaiting_accounting_price?null:Number(p.price_at_time)||0;return `<tr><td>${esc(p.parts?.description||p.part_name)}</td><td class="num">${esc(p.quantity)}</td><td class="num">${price===null?"Awaiting price":money(price)}</td><td class="num">${price===null?"—":money(price*Number(p.quantity||0))}</td></tr>`;}).join("");
+ const incidentalRows=curIncidentals.map(x=>`<tr><td>${esc(x.description||"Additional job cost")}</td><td class="num">${money(Number(x.amount)||0)}</td></tr>`).join("");
+ return `<article class="cm-job-doc"><header class="cm-job-head"><div class="cm-job-brand"><div class="cm-job-brand-name">${esc(business.business_name||"Centric Auto Mobile")}</div><div class="cm-job-tagline">${esc(business.tagline||"Auto Parts & Repairs")}</div><div class="cm-job-business-contact">${business.address?`<span>${esc(business.address)}</span>`:""}${phones.map(p=>`<span>Phone: ${esc(p)}</span>`).join("")}${business.email?`<span>Email: ${esc(business.email)}</span>`:""}</div></div><div class="cm-job-title"><h1>JOB CARD</h1><strong>${esc(jn(j))}</strong>${j.cro_number?`<span>CRO ${esc(j.cro_number)}</span>`:""}<span>${esc(dt(j.created_at))}</span><em class="${closed?"is-closed":""}">${closed?"JOB CARD CLOSED":esc((j.status||"open").toUpperCase())}</em></div></header>
+ <section class="cm-job-grid"><div class="cm-job-panel"><h2>Customer details</h2><div><strong>${esc(customerName)}</strong>${c.customer_code?`<span><b>Customer ID:</b> ${esc(c.customer_code)}</span>`:""}${contactName&&contactName!==customerName?`<span><b>Contact person:</b> ${esc(contactName)}</span>`:""}${contactPhone?`<span><b>Phone:</b> ${esc(contactPhone)}</span>`:""}${contactEmail?`<span><b>Email:</b> ${esc(contactEmail)}</span>`:""}${c.is_company&&c.landline?`<span><b>Landline:</b> ${esc(c.landline)}</span>`:""}${j.driver_name?`<span><b>Driver:</b> ${esc(j.driver_name)}</span>`:""}${j.driver_phone?`<span><b>Driver phone:</b> ${esc(j.driver_phone)}</span>`:""}</div></div><div class="cm-job-panel"><h2>Vehicle details</h2><div><strong>${esc(veh(v)||"—")}</strong><span><b>Registration:</b> ${esc(v.license_plate||"—")}</span><span><b>Technician:</b> ${esc(techs[j.technician_id]||"Unassigned")}</span><span><b>Job card date:</b> ${esc(dt(j.created_at))}</span></div></div></section>
+ <section class="cm-job-panel cm-job-wide"><h2>Fault reported</h2><div>${esc(j.fault_reported||"—")}</div></section>
+ <section class="cm-job-panel cm-job-wide"><h2>Labour and work details</h2><div class="cm-job-detail-grid"><span><b>Labour charge:</b> ${j.labour_mode==="provider_estimate"?"Provider-estimated task price":"Time-based tier"} · ${money(labour)}${j.labour_mode==="time_based"&&j.labour_hours?` (${Number(j.labour_hours)} hr${Number(j.labour_hours)===1?"":"s"})`:""}</span><span><b>Work done:</b> ${esc(j.work_done||"—")}</span><span><b>Work still missing:</b> ${esc(j.work_missing||"—")}</span></div></section>
+ <section class="cm-job-wide"><h2 class="cm-job-section-title">Parts used</h2><table class="cm-job-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead><tbody>${partRows||'<tr><td colspan="4">No parts recorded</td></tr>'}</tbody></table></section>
+ <section class="cm-job-wide"><h2 class="cm-job-section-title">Additional job costs</h2><table class="cm-job-table"><thead><tr><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${incidentalRows||'<tr><td colspan="2">No additional costs recorded</td></tr>'}</tbody></table></section>
+ <section class="cm-job-totals"><div><span>Labour</span><strong>${money(labour)}</strong></div><div><span>Parts</span><strong>${money(partsTotal)}</strong></div><div><span>Additional costs</span><strong>${money(incidentalsTotal)}</strong></div><div class="grand"><span>Job total</span><strong>${money(total)}</strong></div></section>
+ ${j.tested_by||j.next_service_mileage!=null?`<section class="cm-job-panel cm-job-wide"><h2>Final inspection and next service</h2><div><span><b>Tested by:</b> ${esc(j.tested_by||"—")}</span><span><b>Next checkup mileage:</b> ${j.next_service_mileage==null?"—":Number(j.next_service_mileage).toLocaleString()+" km"}</span><span><b>Closed:</b> ${esc(dt(j.closed_at))}</span></div></section>`:""}
+ <section class="cm-job-signatures"><div>Customer / driver signature</div><div>Technician signature</div><div>Supervisor signature</div></section><footer class="cm-job-footer"><strong>${esc(business.business_name||"Centric Auto Mobile")}</strong><span>Thank you for choosing us.</span><small>Printed ${esc(new Date().toLocaleString())}</small></footer></article>`;
+}
 async function confirmDraftChecklist(){
  const msg=$("draft-msg"),number=Number($("draft-checklist-no").value);
  msg.classList.remove("err");
