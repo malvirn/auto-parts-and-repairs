@@ -1288,11 +1288,17 @@ async function createWorkshopJobFromChecklist(checklist){
  try{
   const{data,error}=await supabase.rpc("create_workshop_job_from_checklist",{p_request_id:request.requestId,p_checklist_id:checklist.id,p_fault_reported:faultReported});
   if(error)throw error;
-  workshopJobRequests.delete(checklist.id);
-  await load();
-  const created=jobs.find(job=>String(job.id)===String(data?.job_id));
-  if(created){await open(created);toast("Job card "+(data.cro_number||("JC-"+String(data.job_number).padStart(5,"0")))+" created. The confirmed checklist is linked.");}
-  else toast("Job card created, but refresh the job list to open it.");
+  try{
+   await load();
+   const created=jobs.find(job=>String(job.id)===String(data?.job_id));
+   if(!created)throw new Error("The job card was created, but it is not visible in the refreshed list yet.");
+   await open(created);
+   workshopJobRequests.delete(checklist.id);
+   toast("Job card "+(data.cro_number||("JC-"+String(data.job_number).padStart(5,"0")))+" created. The confirmed checklist is linked.");
+  }catch(refreshError){
+   console.error("Workshop job created but the screen could not refresh:",refreshError);
+   toast("Job card created successfully. Refresh the job list to open it.");
+  }
  }catch(error){
   console.error("Workshop job creation failed:",error);
   toast("Could not create job card: "+(error.message||String(error)));
