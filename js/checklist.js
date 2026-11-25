@@ -313,6 +313,7 @@ async function saveDraft(){
   if(workshopAccess&&(!customerId||!vehicleId))throw new Error("Select a registered customer and vehicle before saving a workshop checklist.");
   const customerName=$("customer-name-input").value.trim();
   const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
+  if(workshopAccess&&(!customerName||!vehicleRegistration))throw new Error("Enter the registered customer and vehicle registration before saving this workshop checklist.");
   const odometerText=$("odometer").value.trim();
   const odometer=odometerText?Number(odometerText):null;
   if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))throw new Error("Enter a valid whole-number odometer reading.");
