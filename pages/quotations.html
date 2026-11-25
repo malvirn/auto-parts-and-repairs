@@ -279,6 +279,20 @@
     @media(max-width:760px){.quotation-action-bar{align-items:flex-start;flex-direction:column;padding:13px}.quotation-action-buttons{justify-content:flex-start;width:100%}.quote-action{flex:1 1 calc(50% - 8px);min-width:135px}}
     @media(max-width:390px){.quote-action{flex-basis:100%}}
 
+    /* Match the compact, expandable filter control used on Receipts. */
+    body.dashboard-page .quotation-search-filters{display:flex!important;flex-wrap:wrap;align-items:center;gap:9px!important;margin:16px 0}
+    body.dashboard-page .quotation-search-filters>label:first-child{display:grid;flex:1 1 320px;min-width:min(100%,240px);gap:6px;color:var(--muted);font-size:.76rem;font-weight:700}
+    body.dashboard-page .quotation-search-filters>label:first-child input{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font:inherit}
+    body.dashboard-page .quotation-search-filters>.filter-more{position:relative;flex:0 0 auto}
+    body.dashboard-page .quotation-search-filters .filter-more>summary{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 13px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font-size:.82rem;font-weight:700;cursor:pointer;list-style:none}
+    body.dashboard-page .quotation-search-filters .filter-more>summary::-webkit-details-marker{display:none}
+    body.dashboard-page .quotation-search-filters .filter-more>summary svg{width:17px;height:17px}
+    body.dashboard-page .quotation-search-filters .filter-more[open]>summary{border-color:var(--orange);color:var(--orange)}
+    body.dashboard-page .quotation-search-filters .filter-more-grid{position:absolute;z-index:80;top:calc(100% + 8px);right:0;display:grid;grid-template-columns:repeat(2,minmax(170px,1fr));gap:10px;width:min(540px,calc(100vw - 36px));padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 18px 40px rgba(0,0,0,.38)}
+    body.dashboard-page .quotation-search-filters .filter-more-grid label{display:grid;gap:5px;min-width:0;color:var(--muted);font-size:.75rem;font-weight:700}
+    body.dashboard-page .quotation-search-filters .filter-more-grid input,body.dashboard-page .quotation-search-filters .filter-more-grid select{box-sizing:border-box;width:100%;min-width:0;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font:inherit}
+    body.dashboard-page .quotation-search-filters .filter-more-grid .btn{align-self:end;min-height:42px}
+    @media(max-width:560px){body.dashboard-page .quotation-search-filters{align-items:stretch}body.dashboard-page .quotation-search-filters>label:first-child{flex:1 1 100%;min-width:100%}body.dashboard-page .quotation-search-filters>.filter-more{width:100%}body.dashboard-page .quotation-search-filters .filter-more>summary{width:100%;justify-content:center}body.dashboard-page .quotation-search-filters .filter-more-grid{position:fixed;top:auto;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));left:12px;width:auto;grid-template-columns:repeat(2,minmax(0,1fr));max-height:65vh;overflow:auto}}
   </style>
 
 
@@ -420,13 +434,18 @@ body.dashboard-page.module-quotations .main :is(.table-wrap,.table-container,.ta
 
       <section class="page-section" id="quotation-list" data-no-progressive>
         <div class="section-heading"><div><p class="section-kicker">Issued documents</p><h2><i class="section-heading-icon" data-lucide="files"></i>Quotation List</h2></div><span class="section-note">Amend, negotiate, or convert</span></div>
-        <div class="quotation-search-filters" role="search" aria-label="Filter quotations">
-          <label>Search quotation, customer or creator<input id="quote-filter-search" type="search" placeholder="Name, quotation number, creator"></label>
-          <label>Quotation number<input id="quote-filter-number" type="search" inputmode="numeric" placeholder="e.g. 1024"></label>
-          <label>From date<input id="quote-filter-from" type="date"></label>
-          <label>To date<input id="quote-filter-to" type="date"></label>
-          <label>Status<select id="quote-filter-status"><option value="">All statuses</option><option>Draft</option><option>Approved</option><option>Amended</option></select></label>
-          <button type="button" class="btn" id="quote-filter-clear"><i data-lucide="x"></i> Clear</button>
+        <div class="receipt-list-filters quotation-search-filters" role="search" aria-label="Filter quotations">
+          <label for="quote-filter-search">Search quotations, customers or creators<input id="quote-filter-search" type="search" placeholder="Search quotations…" autocomplete="off"></label>
+          <details class="filter-more">
+            <summary><i data-lucide="sliders-horizontal"></i> More filters</summary>
+            <div class="filter-more-grid">
+              <label for="quote-filter-number">Quotation number<input id="quote-filter-number" type="search" inputmode="numeric" placeholder="e.g. 1024"></label>
+              <label for="quote-filter-from">From date<input id="quote-filter-from" type="date"></label>
+              <label for="quote-filter-to">To date<input id="quote-filter-to" type="date"></label>
+              <label for="quote-filter-status">Status<select id="quote-filter-status"><option value="">All statuses</option><option>Draft</option><option>Approved</option><option>Amended</option></select></label>
+              <button type="button" class="btn" id="quote-filter-clear"><i data-lucide="x"></i> Clear filters</button>
+            </div>
+          </details>
         </div>
         <div class="panel"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Created by</th><th>Job</th><th>Date</th><th>Status</th><th>Total USD</th><th>Total ZiG</th><th></th></tr></thead><tbody id="quotations-table" data-no-progressive><tr><td colspan="9" class="empty-state"><i data-lucide="loader-circle"></i><span>Loading…</span></td></tr></tbody></table></div>
       </section>
