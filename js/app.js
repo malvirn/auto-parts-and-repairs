@@ -217,7 +217,7 @@ function renderNeedsAttention(jobs, parts, receipts, payrollRuns) {
   const processed = payrollRuns.some(r => r.year === now2.getFullYear() && r.month === now2.getMonth() + 1);
   if (!processed && now2 >= dueDate) {
     items.push({
-      level: "urgent", icon: "banknote", href: "/index.html#analytics-payroll",
+      level: "urgent", icon: "banknote", href: "/index.html#analytics-home-content",
       text: `Payroll for ${now2.toLocaleString("default", { month: "long" })} is due and hasn't been processed`,
     });
   }
