@@ -34,7 +34,7 @@ export class SupabaseAuthGuard implements CanActivate {
       .switchToHttp()
       .getRequest<AuthenticatedRequest>();
     const authorization = request.headers.authorization || "";
-    const match = /^Bearer\\s+(.+)$/i.exec(authorization);
+    const match = /^Bearer\s+(.+)$/i.exec(authorization);
 
     if (!match?.[1]) {
       throw new UnauthorizedException("A valid Bearer session is required.");

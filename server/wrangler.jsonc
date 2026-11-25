@@ -5,6 +5,18 @@
   "compatibility_date": "2026-11-25",
   "workers_dev": true,
   "upload_source_maps": true,
+  "vars": {
+    "SUPABASE_URL": "https://pztwmmkmkyotszylbhsr.supabase.co",
+    "CORS_ORIGINS": "https://centric-auto-mobile.pages.dev"
+  },
+  "alias": {
+    "class-validator": "./src/worker-unused-optional.ts",
+    "class-transformer": "./src/worker-unused-optional.ts",
+    "@nestjs/microservices": "./src/worker-unused-optional.ts",
+    "@nestjs/microservices/microservices-module.js": "./src/worker-unused-optional.ts",
+    "@nestjs/websockets": "./src/worker-unused-optional.ts",
+    "@nestjs/websockets/socket-module.js": "./src/worker-unused-optional.ts"
+  },
   "observability": {
     "enabled": true,
     "logs": {
