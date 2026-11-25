@@ -107,16 +107,16 @@ jobs:
           me_status=$(curl --silent --output /tmp/centric-api-me.json --write-out '%{http_code}' http://127.0.0.1:8787/api/v1/me)
           test "$me_status" = "401"
 
-          allowed_cors_status=$(curl --silent --output /tmp/centric-api-cors-allowed.txt --write-out '%{http_code}' -X OPTIONS http://127.0.0.1:8787/api/v1/me \
+          allowed_cors_status=$(curl --silent --dump-header /tmp/centric-api-cors-allowed.headers --output /dev/null --write-out '%{http_code}' -X OPTIONS http://127.0.0.1:8787/api/v1/me \
             -H 'Origin: https://centric-auto-mobile.pages.dev' \
             -H 'Access-Control-Request-Method: GET' \
             -H 'Access-Control-Request-Headers: authorization,apikey')
           test "$allowed_cors_status" = "204"
-          grep -qi '^access-control-allow-origin: https://centric-auto-mobile.pages.dev' /tmp/centric-api-cors-allowed.txt
+          grep -qi '^access-control-allow-origin: https://centric-auto-mobile.pages.dev' /tmp/centric-api-cors-allowed.headers
 
-          denied_cors_status=$(curl --silent --output /tmp/centric-api-cors-denied.txt --write-out '%{http_code}' -X OPTIONS http://127.0.0.1:8787/api/v1/me \
+          denied_cors_status=$(curl --silent --dump-header /tmp/centric-api-cors-denied.headers --output /dev/null --write-out '%{http_code}' -X OPTIONS http://127.0.0.1:8787/api/v1/me \
             -H 'Origin: https://untrusted.example' \
             -H 'Access-Control-Request-Method: GET' \
             -H 'Access-Control-Request-Headers: authorization,apikey')
           test "$denied_cors_status" = "204"
-          ! grep -qi '^access-control-allow-origin:' /tmp/centric-api-cors-denied.txt
+          ! grep -qi '^access-control-allow-origin:' /tmp/centric-api-cors-denied.headers
