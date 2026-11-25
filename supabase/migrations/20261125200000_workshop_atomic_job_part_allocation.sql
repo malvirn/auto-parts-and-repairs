@@ -188,14 +188,24 @@ declare
   function_definition text;
   old_guard text := 'if auth.uid() is null or public.current_access_level() < 1 then';
   new_guard text := 'if auth.uid() is null or (coalesce(public.current_access_level(), 0) < 1 and not public.is_workshop()) then';
+  old_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;';
+  new_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;\n  if public.is_workshop() and job_row.status not in (''Draft'', ''Received'', ''Diagnosing'', ''Processing'') then\n    raise exception ''Workshop invoice refresh is limited to active jobs'' using errcode = ''42501'';\n  end if;';
 begin
   function_definition := pg_get_functiondef('public.sync_repair_job_invoice(uuid)'::regprocedure);
+
   if position(old_guard in function_definition) > 0 then
     function_definition := replace(function_definition, old_guard, new_guard);
-    execute function_definition;
   elsif position(new_guard in function_definition) = 0 then
     raise exception 'Could not safely identify the repair invoice synchronisation role check';
   end if;
+
+  if position(old_job_guard in function_definition) > 0 then
+    function_definition := replace(function_definition, old_job_guard, new_job_guard);
+  elsif position(new_job_guard in function_definition) = 0 then
+    raise exception 'Could not safely identify the repair invoice job-status check';
+  end if;
+
+  execute function_definition;
 end
 $patch$;
 
