@@ -315,9 +315,12 @@ set search_path = pg_catalog, public
 as $function$
 begin
   if public.is_workshop() then
-    if old.created_by is distinct from auth.uid()
+    if (
+         old.created_by is distinct from auth.uid()
+         and current_setting('app.workshop_checklist_link', true) is distinct from 'authorized'
+       )
        or new.created_by is distinct from old.created_by then
-      raise exception 'Workshop users may update only checklists they created'
+      raise exception 'Workshop users may update only their own checklists outside the approved job-card creation action'
         using errcode = '42501';
     end if;
 
