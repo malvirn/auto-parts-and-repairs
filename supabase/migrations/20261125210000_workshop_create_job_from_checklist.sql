@@ -64,6 +64,7 @@ declare
   v_existing_result jsonb;
   v_result jsonb;
   v_customer_name text;
+  v_vat_rate numeric(5,2) := 0;
 begin
   if v_user_id is null or not public.is_workshop() then
     raise exception 'Active workshop access is required to create this job card'
@@ -154,6 +155,16 @@ begin
     raise exception 'A job card is already linked to this checklist';
   end if;
 
+  -- Use the registered business VAT setting as the trusted default.
+  -- Workshop users cannot choose or override tax rates in the browser.
+  select case when coalesce(vat_registered, false)
+              then greatest(0, least(100, coalesce(vat_rate, 0)))
+              else 0 end
+    into v_vat_rate
+  from public.business_settings
+  where id = 1;
+  v_vat_rate := coalesce(v_vat_rate, 0);
+
   insert into public.repair_jobs (
     status,
     customer_id,
@@ -164,7 +175,8 @@ begin
     checklist_number,
     labour_cost,
     parts_cost,
-    incidentals_cost
+    incidentals_cost,
+    vat_rate
   ) values (
     'Draft',
     v_customer.id,
@@ -175,7 +187,8 @@ begin
     v_checklist.checklist_number,
     0,
     0,
-    0
+    0,
+    v_vat_rate
   )
   returning * into v_job;
 
