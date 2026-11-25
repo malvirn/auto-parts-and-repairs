@@ -971,6 +971,34 @@ body.dashboard-page.module-home .main :is(.table-wrap,.table-container,.table-re
   <link rel="stylesheet" href="css/system-neumorphism.css?v=1">
   <link rel="stylesheet" href="css/system-neumorphism.css?v=1">
   <link rel="stylesheet" href="css/glass-tiles.css?v=tiles-3">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style id="home-analytics-design">
+    body.dashboard-page.module-home .analytics-home-content{max-width:1600px;gap:20px;padding-top:0}
+    body.dashboard-page.module-home .analytics-home-content .page-section{margin:0;padding:clamp(14px,2vw,22px);border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:0 5px 18px rgba(24,42,75,.045)}
+    body.dashboard-page.module-home .analytics-home-content .section-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 15px}
+    body.dashboard-page.module-home .analytics-home-content .section-heading h2{color:var(--text);font-size:clamp(17px,1.8vw,22px);font-weight:750;letter-spacing:-.025em}
+    body.dashboard-page.module-home .analytics-home-content .section-kicker{color:var(--success);font-size:.7rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    body.dashboard-page.module-home .analytics-home-content .section-note{color:var(--muted)}
+    body.dashboard-page.module-home .analytics-home-content .analytics-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(240px,1fr);gap:16px;margin:0}
+    body.dashboard-page.module-home .analytics-home-content .chart-card{min-width:0;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text)}
+    body.dashboard-page.module-home .analytics-home-content .chart-card h3{display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:.95rem;font-weight:700}
+    body.dashboard-page.module-home .analytics-home-content .chart-card canvas{display:block;width:100%;max-width:100%;max-height:320px}
+    body.dashboard-page.module-home .analytics-home-content .leaderboard-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+    body.dashboard-page.module-home .analytics-home-content .leaderboard-row:last-child{border-bottom:0}
+    body.dashboard-page.module-home .analytics-home-content .payroll-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 16px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text)}
+    body.dashboard-page.module-home .analytics-home-content .payroll-banner .due-date{font-size:1.05rem;font-weight:700}
+    body.dashboard-page.module-home .analytics-home-content .payroll-banner .due-note{font-size:.82rem;color:var(--muted)}
+    body.dashboard-page.module-home .analytics-home-content .payroll-banner.processed{border-color:var(--success)}
+    body.dashboard-page.module-home .analytics-home-content .analytics-account-search{display:flex;align-items:end}
+    body.dashboard-page.module-home .analytics-home-content .analytics-account-search label,.analytics-date-controls label{display:grid;gap:6px;min-width:0;color:var(--muted);font-size:.78rem;font-weight:700}
+    body.dashboard-page.module-home .analytics-home-content .analytics-account-search label{flex:1}
+    body.dashboard-page.module-home .analytics-home-content .analytics-account-search input,.analytics-date-controls input{width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--soft);color:var(--text);font:inherit}
+    body.dashboard-page.module-home .analytics-home-content .analytics-date-controls{display:flex;gap:10px;flex-wrap:wrap}
+    body.dashboard-page.module-home .analytics-home-content .analytics-date-controls label{min-width:145px}
+    body.dashboard-page.module-home .analytics-home-content .turnaround-stat{font-size:2rem;font-weight:800;color:var(--success)}
+    @media(max-width:760px){body.dashboard-page.module-home .analytics-home-content .analytics-grid{grid-template-columns:minmax(0,1fr)}body.dashboard-page.module-home .analytics-home-content .page-section{padding:13px;border-radius:13px}body.dashboard-page.module-home .analytics-home-content .analytics-date-controls{width:100%}body.dashboard-page.module-home .analytics-home-content .analytics-date-controls label{flex:1 1 140px}}
+    @media(prefers-reduced-motion:reduce){body.dashboard-page.module-home .analytics-home-content *{scroll-behavior:auto}}
+  </style>
 </head>
 <body class="dashboard-page dashboard-workshop dashboard-home module-home">
 
@@ -982,13 +1010,25 @@ body.dashboard-page.module-home .main :is(.table-wrap,.table-container,.table-re
         <div class="hero-bg" aria-hidden="true"></div>
         <div class="hero-copy">
             <p class="welcome">Centric Auto Mobile</p>
-            <h1 class="hero-title">Good <em>afternoon</em></h1>
-            <p class="hero-lede">Manage your workshop efficiently<br>with Centric Auto Mobile.</p>
+            <h1 class="hero-title">Workshop <em>overview</em></h1>
+            <p class="hero-lede">Performance, activity, financials and operations in one place.</p>
           <span class="accent-bar" aria-hidden="true"></span>
         </div>
       </section>
 
-      <!-- EXISTING CONTENT: same ids / classes so js/app.js keeps filling it in -->
+      <div class="dash-content analytics-home-content" id="analytics-home-content">
+        <section class="page-section" id="analytics-date-overview"><div class="section-heading"><div><p class="section-kicker">Actual activity</p><h2><i class="section-heading-icon" data-lucide="calendar-range"></i>Daily &amp; Date-Range Overview</h2></div><div class="analytics-date-controls"><label for="analytics-from">From<input id="analytics-from" type="date"></label><label for="analytics-to">To<input id="analytics-to" type="date"></label></div></div><div class="card-grid" id="analytics-date-cards"></div><p class="section-note" id="analytics-date-summary"></p></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Account lookup</p><h2><i class="section-heading-icon" data-lucide="search"></i>Checklist Number Search</h2></div></div><p class="section-note">Search a checklist number to see its customer account, job cards, invoices, receipts, sales, parts, payments, and statement entries.</p><form id="checklist-account-search" class="payroll-banner analytics-account-search"><label for="checklist-number-query">Checklist number<input id="checklist-number-query" type="search" inputmode="numeric" placeholder="e.g. 1000" required></label><button type="submit" class="btn btn--primary">Search account</button></form><div id="checklist-account-results" aria-live="polite"></div></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">At a glance</p><h2><i class="section-heading-icon" data-lucide="gauge"></i>Performance Summary</h2></div><span class="section-note">All time</span></div><section class="card-grid" id="summary-cards"></section></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Right now</p><h2><i class="section-heading-icon" data-lucide="activity"></i>Daily Operations</h2></div><span class="section-note">Live workshop state</span></div><section class="card-grid" id="operations-cards"></section></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Manager view</p><h2><i class="section-heading-icon" data-lucide="layout-dashboard"></i>Capacity, Workforce &amp; Inventory</h2></div><span class="section-note">All time</span></div><section class="card-grid" id="manager-cards"></section></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Money</p><h2><i class="section-heading-icon" data-lucide="wallet"></i>Repair Income &amp; Customer Payments</h2></div><span class="section-note">Amounts billed, received and still due</span></div><section class="card-grid" id="financial-cards"></section></section>
+        <section class="page-section" id="analytics-payroll"><div class="section-heading"><div><p class="section-kicker">Payroll</p><h2><i class="section-heading-icon" data-lucide="banknote"></i>Staff Salaries</h2></div><span class="section-note">Paid on the last Friday of every month</span></div><div id="payroll-banner" class="payroll-banner"><div><div class="due-date" id="payroll-due-date">—</div><div class="due-note" id="payroll-due-note">Loading…</div></div><button id="process-payroll-btn" type="button" class="btn btn--primary"><i data-lucide="banknote"></i> Process This Month's Payroll</button></div><div class="analytics-grid"><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="trending-up"></i>Payroll (last 6 months)</h3><canvas id="payroll-chart" height="90"></canvas></div><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="history"></i>Recent Payroll Runs</h3><div id="payroll-history"></div></div></div></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Financial performance</p><h2><i class="section-heading-icon" data-lucide="trending-up"></i>Repair Billings &amp; Technician Activity</h2></div><span class="section-note">Six-month trend</span></div><div class="analytics-grid"><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="trending-up"></i>Completed Repair Billings (last 6 months)</h3><canvas id="revenue-chart" height="90"></canvas></div><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="hard-hat"></i>Top Mechanics</h3><div id="mechanic-leaderboard"></div></div></div></section>
+        <section class="page-section"><div class="section-heading"><div><p class="section-kicker">Demand &amp; efficiency</p><h2><i class="section-heading-icon" data-lucide="bar-chart-3"></i>Parts &amp; Turnaround</h2></div><span class="section-note">Operational signals</span></div><div class="analytics-grid"><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="package"></i>Top-Selling Parts</h3><div id="parts-leaderboard"></div></div><div class="chart-card"><h3><i class="chart-heading-icon" data-lucide="clock-3"></i>Avg. Turnaround Time</h3><div id="turnaround-stat" class="turnaround-stat">—</div><div class="section-note">From job creation to completion</div></div></div></section>
+      </div>
+
+
       <div class="dash-content">
         <section class="dashboard-section" id="system-overview">
           <div class="section-heading">
@@ -1214,220 +1254,8 @@ body.dashboard-page.module-home .main :is(.table-wrap,.table-container,.table-re
     })();
   </script>
 
-  <!-- Customer statements: reads the existing customer_account_statement view (+ credit notes). -->
-  <script type="module">
-    import supabase from "./js/supabaseClient.js";
-    const $ = id => document.getElementById(id);
-    const usd = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
-    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
-    const day = v => { const d = new Date(v + "T00:00:00"); return v && !isNaN(d) ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"; };
-    const wa = p => { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("0")) d = "263" + d.slice(1); return d; };
-    let customers = [], filter = "all", showAll = false;
-    const openIds = new Set();
-
-    function msg(text) { $("cs-list").innerHTML = '<div class="cs-msg">' + esc(text) + "</div>"; }
-
-    async function load() {
-      const [st, cr, customerCredit] = await Promise.all([
-        supabase.from("customer_account_statement").select("*").order("entry_date", { ascending: false }),
-        supabase.from("credit_notes").select("customer_id, amount"),
-        supabase.from("customer_credit_balances").select("customer_id, customer_name, phone, email, available_amount"),
-      ]);
-      if (st.error) {
-        console.error("Customer statements:", st.error);
-        msg("Couldn't load customer statements: " + st.error.message + ". If the view is missing, run supabase/migrations/customer-account-statement-view.sql.");
-        return;
-      }
-      const credits = new Map();
-      (cr.data || []).forEach(r => credits.set(r.customer_id, (credits.get(r.customer_id) || 0) + Number(r.amount || 0)));
-      const map = new Map();
-      const getCustomer = e => {
-        const key = e.customer_id || `walkin:${String(e.customer_name || "Unnamed customer").trim().toLocaleLowerCase()}:${String(e.phone || "").trim()}`;
-        let c = map.get(key);
-        if (!c) map.set(key, c = { id: e.customer_id || key, name: e.customer_name || "Unnamed customer", phone: e.phone || "", email: e.email || "", rows: [], total: 0, paid: 0, balance: 0, last: "", credits: credits.get(e.customer_id) || 0, availableCredit: 0, depositCredit: 0 });
-        return c;
-      };
-      if (customerCredit.error) console.warn("Customer deposit balances are unavailable:", customerCredit.error);
-      (customerCredit.data || []).forEach(e => {
-        const customer = getCustomer(e);
-        const available = Number(e.available_amount) || 0;
-        customer.availableCredit += available;
-        customer.depositCredit += available;
-      });
-      for (const e of st.data || []) {
-        const c = getCustomer(e);
-        c.rows.push(e);
-        c.total += Number(e.total_amount) || 0;
-        c.paid += Number(e.amount_paid) || 0;
-        c.balance += Number(e.balance_due) || 0;
-        if (e.entry_date > c.last) c.last = e.entry_date;
-      }
-      customers = [...map.values()].sort((a, b) => b.balance - a.balance || a.name.localeCompare(b.name));
-      cards();
-      render();
-    }
-
-    function cards() {
-      const sum = k => customers.reduce((s, c) => s + c[k], 0);
-      const vals = [usd(sum("total")), usd(sum("paid")), usd(customers.reduce((s, c) => s + Math.max(c.balance, 0), 0)), String(customers.filter(c => c.balance > 0.01).length), usd(customers.reduce((s, c) => s + c.availableCredit + Math.max(0, -c.balance), 0)), usd(sum("depositCredit"))];
-      document.querySelectorAll("#cs-cards .stat-card__value").forEach((el, i) => { el.textContent = vals[i]; });
-      window.__aprOwed = { amount: customers.reduce((s, c) => s + Math.max(c.balance, 0), 0), count: customers.filter(c => c.balance > 0.01).length };
-      document.dispatchEvent(new Event("apr:owed"));
-    }
-
-    function render() {
-      const q = $("cs-search").value.trim().toLowerCase();
-      const list = customers.filter(c => {
-        if (filter === "owing" && !(c.balance > 0.01)) return false;
-        if (filter === "clear" && c.balance > 0.01) return false;
-        return !q || (c.name + " " + c.phone + " " + c.rows.map(r => r.reference).join(" ")).toLowerCase().includes(q);
-      });
-      if (!list.length) { msg(customers.length ? "No customers match." : "No customer invoices yet."); return; }
-      const shown = showAll || q ? list : list.slice(0, 15);
-      $("cs-list").innerHTML = shown.map(c => {
-        const owe = c.balance > 0.01;
-        const label = owe ? usd(c.balance) + " owing" : c.balance < -0.01 ? usd(-c.balance) + " credit" : "Paid up";
-        const rows = c.rows.map(r => {
-          const bal = Number(r.balance_due) || 0, paid = Number(r.amount_paid) || 0;
-          const s = bal <= 0.01 ? ["paid", "Paid"] : paid > 0 ? ["part", "Part-paid"] : ["unpaid", "Unpaid"];
-          return `<tr><td>${day(r.entry_date)}</td><td>${esc(r.reference)}</td><td>${esc(r.source_type)}</td><td>${usd(r.total_amount)}</td><td>${usd(paid)}</td><td>${usd(bal)}</td><td><span class="cs-st ${s[0]}">${s[1]}</span></td></tr>`;
-        }).join("");
-        const remind = owe && c.phone ? `<a class="btn" style="margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/${wa(c.phone)}?text=${encodeURIComponent("Hi " + c.name + ", this is a reminder from Centric Auto Mobile: your outstanding balance is " + usd(c.balance) + ". Thank you.")}">WhatsApp reminder</a>` : "";
-        return `<details class="cs-cust" data-id="${esc(c.id)}"${openIds.has(c.id) ? " open" : ""}>
-          <summary><div><div class="cs-name">${esc(c.name)}</div><div class="cs-sub">${esc(c.phone || "No phone")} · ${c.rows.length} invoice${c.rows.length === 1 ? "" : "s"}</div></div><div class="cs-bal ${owe ? "owe" : "ok"}">${label}</div></summary>
-          <div class="cs-body">
-            <div class="cs-facts"><div>Invoiced<b>${usd(c.total)}</b></div><div>Paid<b>${usd(c.paid)}</b></div><div>Balance<b>${usd(c.balance)}</b></div><div>Credit notes<b>${usd(c.credits)}</b></div><div>Available credit<b>${usd(c.availableCredit + Math.max(0, -c.balance))}</b></div><div>Last activity<b>${day(c.last)}</b></div><div>Email<b style="font-size:.8rem;overflow-wrap:anywhere">${esc(c.email || "—")}</b></div></div>
-            <div class="cs-wrap"><table><thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Invoiced</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>${remind}
-          </div></details>`;
-      }).join("") + (!showAll && !q && list.length > 15 ? `<button type="button" class="btn" id="cs-all">Show all ${list.length} customers</button>` : "");
-    }
-
-    $("cs-list").addEventListener("toggle", e => { const id = e.target.dataset?.id; if (id) e.target.open ? openIds.add(id) : openIds.delete(id); }, true);
-    $("cs-list").addEventListener("click", e => { if (e.target.id === "cs-all") { showAll = true; render(); } });
-    $("cs-search").addEventListener("input", render);
-    $("cs-chips").addEventListener("click", e => {
-      const b = e.target.closest("[data-f]"); if (!b) return;
-      filter = b.dataset.f;
-      document.querySelectorAll("#cs-chips .cs-chip").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-      render();
-    });
-    load();
-  </script>
-  <script type="module" src="js/dashboard-search.js"></script>
-  <!-- System overview: KPI cards + key lists across the whole system. Each query fails on its own. -->
-  <script type="module">
-    import supabase from "./js/supabaseClient.js";
-    import { hydrate } from "./js/data-cache.js";
-    const $ = id => document.getElementById(id);
-    const enc = encodeURIComponent;
-    const esc = v => { const d = document.createElement("div"); d.textContent = v ?? ""; return d.innerHTML; };
-    const usd = n => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
-    const pad = n => (n == null ? "—" : String(n).padStart(4, "0"));
-    const shortDate = v => { const d = new Date(v); return v && !isNaN(d) ? d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—"; };
-    const q = async p => { try { const r = await p; if (r.error) { console.warn("Overview:", r.error.message); return null; } return r; } catch (e) { console.warn("Overview:", e); return null; } };
-
-    const STATUS_ORDER = ["Draft", "Processing", "Received", "Diagnosing", "Processed", "Ready for Pickup", "Unclaimed", "Collected"];
-    const IN_WORKSHOP = ["Processing", "Received", "Diagnosing"];
-    const AWAITING = ["Processed", "Ready for Pickup", "Unclaimed"];
-
-    async function fetchOverview() {
-      const [jobs, parts, receipts, quotes, payables, customers, suppliers, staff] = await Promise.all([
-        q(supabase.from("repair_jobs").select("id, job_number, status").limit(1000)),
-        q(supabase.from("parts").select("id, name, part_number, quantity_in_stock, minimum_stock, cost_price").limit(1000)),
-        q(supabase.from("receipts").select("id, receipt_number, amount, issued_at, repair_jobs ( customers ( full_name ) ), sales_orders ( walk_in_name, customers ( full_name ) )").order("issued_at", { ascending: false }).limit(1000)),
-        q(supabase.from("quotations").select("id, quotation_number, status, total_usd, created_at, walk_in_name, customers ( full_name )").order("created_at", { ascending: false }).limit(500)),
-        q(supabase.from("payables").select("id, bill_number, due_date, amount, amount_paid, suppliers ( name )").limit(1000)),
-        q(supabase.from("customers").select("id", { count: "exact", head: true }).is("deleted_at", null)),
-        q(supabase.from("suppliers").select("id", { count: "exact", head: true })),
-        q(supabase.from("technician_directory").select("id", { count: "exact", head: true }).eq("is_active", true)),
-      ]);
-      return {
-        jobs: jobs?.data ?? null, parts: parts?.data ?? null, receipts: receipts?.data ?? null, quotes: quotes?.data ?? null, payables: payables?.data ?? null,
-        customers: customers?.count ?? null, suppliers: suppliers?.count ?? null, staff: staff?.count ?? null,
-      };
-    }
-
-    let last = null;
-    function render(b) {
-      last = b;
-      const now = new Date(), todayStr = now.toISOString().slice(0, 10);
-      const monthKey = now.getFullYear() * 12 + now.getMonth();
-      const inMonth = v => { const d = new Date(v); return v && !isNaN(d) && d.getFullYear() * 12 + d.getMonth() === monthKey; };
-      const dash = "—";
-
-      const jobs = b.jobs, parts = b.parts, receipts = b.receipts, quotes = b.quotes, payables = b.payables;
-      const active = jobs ? jobs.filter(j => j.status !== "Collected") : null;
-      const low = parts ? parts.filter(p => Number(p.minimum_stock || 0) > 0 && Number(p.quantity_in_stock || 0) <= Number(p.minimum_stock)) : null;
-      const owedBills = payables ? payables.filter(p => (Number(p.amount) || 0) - (Number(p.amount_paid) || 0) > 0.01) : null;
-      const overdueBills = owedBills ? owedBills.filter(p => p.due_date && p.due_date < todayStr) : null;
-      const monthReceipts = receipts ? receipts.filter(r => inMonth(r.issued_at)) : null;
-      const owed = window.__aprOwed;
-
-      const cards = [
-        ["Active Job Cards", active ? active.length : dash, jobs ? `${jobs.length} in total` : "", "pages/repairs.html"],
-        ["In The Workshop", jobs ? jobs.filter(j => IN_WORKSHOP.includes(j.status)).length : dash, "Received, diagnosing, processing", "pages/repairs.html"],
-        ["Awaiting Pickup", jobs ? jobs.filter(j => AWAITING.includes(j.status)).length : dash, jobs ? `${jobs.filter(j => j.status === "Unclaimed").length} unclaimed` : "", "pages/repairs.html?status=Unclaimed"],
-        ["Revenue This Month", monthReceipts ? usd(monthReceipts.reduce((s, r) => s + Number(r.amount || 0), 0)) : dash, monthReceipts ? `${monthReceipts.length} receipt${monthReceipts.length === 1 ? "" : "s"}` : "", "pages/receipts.html"],
-        ["Owed By Customers", owed ? usd(owed.amount) : dash, owed ? `${owed.count} customer${owed.count === 1 ? "" : "s"} owing` : "", "#customer-statements"],
-        ["Quotations This Month", quotes ? quotes.filter(x => inMonth(x.created_at)).length : dash, "", "pages/quotations.html"],
-        ["Parts In Catalogue", parts ? parts.length : dash, low ? `${low.length} at or below minimum` : "", "pages/shop.html"],
-        ["Stock Value (Cost)", parts ? usd(parts.reduce((s, p) => s + Number(p.quantity_in_stock || 0) * Number(p.cost_price || 0), 0)) : dash, "", "pages/shop.html"],
-        ["Bills Outstanding", owedBills ? usd(owedBills.reduce((s, p) => s + (Number(p.amount) || 0) - (Number(p.amount_paid) || 0), 0)) : dash, overdueBills ? `${overdueBills.length} overdue` : "", "pages/payables.html"],
-        ["Customers", b.customers ?? dash, "", "pages/customers.html"],
-        ["Suppliers", b.suppliers ?? dash, "", "pages/suppliers.html"],
-        ["Active Staff", b.staff ?? dash, "", "pages/technicians.html"],
-      ];
-      const kpiIcons = ["clipboard-list","wrench","car-front","wallet","users","file-text","package","boxes","receipt","user-round","truck","users-round"];
-      const kpiTones = ["green","blue","purple","orange"];
-      $("ov-kpis").innerHTML = cards.map(([label, value, sub, href], index) =>
-        `<a class="stat-card" data-tone="${kpiTones[index % kpiTones.length]}" href="${href}"><span class="stat-card-icon"><i data-lucide="${kpiIcons[index % kpiIcons.length]}"></i></span><div class="stat-card-copy"><div class="stat-card__label">${esc(label)}</div><div class="stat-card__value">${esc(String(value))}</div>${sub ? `<div class="kpi-sub">${esc(sub)}</div>` : ""}</div></a>`).join("");
-      if (window.lucide) window.lucide.createIcons();
-      $("ov-updated").textContent = "Updated " + now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
-      // job cards by status
-      if (!jobs) $("ov-status").innerHTML = `<div class="ov-empty">Not available.</div>`;
-      else if (!jobs.length) $("ov-status").innerHTML = `<div class="ov-empty">No job cards yet.</div>`;
-      else {
-        const counts = {};
-        jobs.forEach(j => { counts[j.status || "Unknown"] = (counts[j.status || "Unknown"] || 0) + 1; });
-        const keys = Object.keys(counts).sort((a, c) => (STATUS_ORDER.indexOf(a) + 100) % 100 - (STATUS_ORDER.indexOf(c) + 100) % 100 || a.localeCompare(c));
-        const max = Math.max(...Object.values(counts));
-        $("ov-status").innerHTML = keys.map(k => `<a class="ov-row" href="pages/repairs.html?status=${enc(k)}"><div class="ov-main" style="flex:1">${esc(k)}<div class="ov-bar"><i style="width:${(counts[k] / max) * 100}%"></i></div></div><div class="ov-end">${counts[k]}</div></a>`).join("");
-      }
-
-      // low stock
-      if (!low) $("ov-lowstock").innerHTML = `<div class="ov-empty">Not available.</div>`;
-      else if (!low.length) $("ov-lowstock").innerHTML = `<div class="ov-empty">Every part is above its minimum.</div>`;
-      else {
-        const sorted = [...low].sort((a, c) => Number(a.quantity_in_stock) / Number(a.minimum_stock) - Number(c.quantity_in_stock) / Number(c.minimum_stock));
-        $("ov-lowstock").innerHTML = sorted.slice(0, 8).map(p => `<a class="ov-row" href="pages/shop.html"><div class="ov-main">${esc(p.name)}${p.part_number ? `<small>${esc(p.part_number)}</small>` : ""}</div><div class="ov-end ${Number(p.quantity_in_stock) <= 0 ? "bad" : "warn"}">${Number(p.quantity_in_stock || 0)} / ${Number(p.minimum_stock)}</div></a>`).join("")
-          + (sorted.length > 8 ? `<div class="ov-empty">+ ${sorted.length - 8} more</div>` : "");
-      }
-
-      // bills to pay
-      if (!owedBills) $("ov-payables").innerHTML = `<div class="ov-empty">Not available for your role.</div>`;
-      else if (!owedBills.length) $("ov-payables").innerHTML = `<div class="ov-empty">No unpaid bills.</div>`;
-      else {
-        const sorted = [...owedBills].sort((a, c) => String(a.due_date || "9999").localeCompare(String(c.due_date || "9999")));
-        $("ov-payables").innerHTML = sorted.slice(0, 6).map(p => {
-          const over = p.due_date && p.due_date < todayStr;
-          return `<a class="ov-row" href="pages/payables.html?highlight=${enc(p.id)}"><div class="ov-main">${esc(p.suppliers?.name || "Supplier")}<small>Bill ${esc(p.bill_number || "—")} · due ${esc(p.due_date ? shortDate(p.due_date + "T00:00:00") : "—")}${over ? " · overdue" : ""}</small></div><div class="ov-end ${over ? "bad" : ""}">${usd((Number(p.amount) || 0) - (Number(p.amount_paid) || 0))}</div></a>`;
-        }).join("") + (sorted.length > 6 ? `<div class="ov-empty">+ ${sorted.length - 6} more</div>` : "");
-      }
-
-      // recent quotations
-      if (!quotes) $("ov-quotes").innerHTML = `<div class="ov-empty">Not available.</div>`;
-      else if (!quotes.length) $("ov-quotes").innerHTML = `<div class="ov-empty">No quotations yet.</div>`;
-      else $("ov-quotes").innerHTML = quotes.slice(0, 5).map(x => `<a class="ov-row" href="pages/quotations.html?highlight=${enc(x.id)}"><div class="ov-main">Quote #${esc(x.quotation_number)} — ${esc(x.customers?.full_name || x.walk_in_name || "Walk-in")}<small>${esc(x.status || "")} · ${esc(shortDate(x.created_at))}</small></div><div class="ov-end">${usd(x.total_usd)}</div></a>`).join("");
-
-    }
-
-    document.addEventListener("apr:owed", () => { if (last) render(last); });
-    hydrate("dash:overview", fetchOverview, render).catch(err => {
-      console.error("System overview:", err);
-      $("ov-updated").textContent = "Couldn't load";
-    });
-  </script>
+    <script type="module" src="js/dashboard-search.js"></script>
+  <script type="module" src="js/analytics.js?v=home-analytics-1"></script>
 <script type="module" src="js/phone-inputs.js"></script>
 <script defer src="js/progressive-lists.js?v=numbered-pagination-popup-10-v2-20261123"></script>
 
