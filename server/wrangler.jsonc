@@ -4,6 +4,7 @@
   "main": "src/worker.ts",
   "compatibility_date": "2026-11-25",
   "workers_dev": true,
+  "preview_urls": false,
   "upload_source_maps": true,
   "vars": {
     "SUPABASE_URL": "https://pztwmmkmkyotszylbhsr.supabase.co",
