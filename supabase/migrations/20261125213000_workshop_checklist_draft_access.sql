@@ -129,7 +129,19 @@ using (
       and r.voided_at is null
       and (
         r.created_by = (select auth.uid())
-        or (r.status = 'completed' and r.confirmed_at is not null and r.job_id is null)
+        or (
+          r.status = 'completed'
+          and r.confirmed_at is not null
+          and (
+            r.job_id is null
+            or exists (
+              select 1
+              from public.repair_jobs j
+              where j.id = r.job_id
+                and j.status in ('Draft', 'Received', 'Diagnosing', 'Processing')
+            )
+          )
+        )
       )
   )
 );
@@ -222,7 +234,19 @@ using (
       and r.voided_at is null
       and (
         r.created_by = (select auth.uid())
-        or (r.status = 'completed' and r.confirmed_at is not null and r.job_id is null)
+        or (
+          r.status = 'completed'
+          and r.confirmed_at is not null
+          and (
+            r.job_id is null
+            or exists (
+              select 1
+              from public.repair_jobs j
+              where j.id = r.job_id
+                and j.status in ('Draft', 'Received', 'Diagnosing', 'Processing')
+            )
+          )
+        )
       )
   )
 );
