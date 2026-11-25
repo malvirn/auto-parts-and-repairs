@@ -570,4 +570,11 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-document.addEventListener("DOMContentLoaded", loadAnalytics);
+function startAnalyticsAfterAccess() {
+  if (document.body.dataset.analyticsStarted === "true") return;
+  document.body.dataset.analyticsStarted = "true";
+  loadAnalytics().catch(error => console.error("Analytics failed to load:", error));
+}
+
+if (document.body.dataset.role) startAnalyticsAfterAccess();
+else document.addEventListener("apr:access-ready", startAnalyticsAfterAccess, { once: true });
