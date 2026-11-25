@@ -54,7 +54,7 @@ describe("SupabaseAuthService", () => {
     const [profileUrl, profileOptions] = fetchMock.mock.calls[1] as [URL, RequestInit];
     expect(profileUrl.searchParams.get("select")).toBe("id,role,is_active");
     expect(profileUrl.searchParams.get("id")).toBe(`eq.${userId}`);
-    expect(profileOptions.method).toBeUndefined();
+    expect(profileOptions.method).toBe("GET");
   });
 
   it("rejects invalid or expired access tokens without querying profiles", async () => {
