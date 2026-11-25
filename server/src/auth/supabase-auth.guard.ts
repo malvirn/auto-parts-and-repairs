@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -17,7 +18,8 @@ interface AuthenticatedRequest {
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(SupabaseAuthService)
     private readonly authService: SupabaseAuthService,
   ) {}
 
@@ -32,7 +34,7 @@ export class SupabaseAuthGuard implements CanActivate {
       .switchToHttp()
       .getRequest<AuthenticatedRequest>();
     const authorization = request.headers.authorization || "";
-    const match = /^Bearer\s+(.+)$/i.exec(authorization);
+    const match = /^Bearer\\s+(.+)$/i.exec(authorization);
 
     if (!match?.[1]) {
       throw new UnauthorizedException("A valid Bearer session is required.");

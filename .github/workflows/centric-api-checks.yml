@@ -38,3 +38,6 @@ jobs:
 
       - name: Run API unit tests
         run: npm test
+
+      - name: Build Cloudflare Worker bundle
+        run: npm run build:worker

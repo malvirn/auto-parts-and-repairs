@@ -8,8 +8,11 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:worker": "wrangler deploy --dry-run --outdir .wrangler/deploy",
     "start": "node dist/main.js",
     "start:dev": "tsx watch src/main.ts",
+    "dev:worker": "wrangler dev --local",
+    "deploy:worker": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -26,6 +29,7 @@
     "@types/node": "22.19.1",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "wrangler": "4.168.0"
   }
 }

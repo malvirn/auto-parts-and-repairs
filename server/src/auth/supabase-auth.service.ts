@@ -1,10 +1,14 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { loadEnvironment } from "../config/env.js";
+import {
+  APP_ENVIRONMENT,
+  type AppEnvironment,
+} from "../config/env.js";
 import {
   isCentricRole,
   type AuthenticatedUser,
@@ -22,8 +26,12 @@ interface ProfileRecord {
 
 @Injectable()
 export class SupabaseAuthService {
+  constructor(
+    @Inject(APP_ENVIRONMENT) private readonly env: AppEnvironment,
+  ) {}
+
   async authenticate(accessToken: string): Promise<AuthenticatedUser> {
-    const env = loadEnvironment();
+    const env = this.env;
     const headers = {
       apikey: env.supabasePublishableKey,
       Authorization: `Bearer ${accessToken}`,
