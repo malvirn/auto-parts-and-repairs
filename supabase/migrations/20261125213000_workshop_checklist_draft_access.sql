@@ -42,6 +42,13 @@ with check (
     where c.id = public.job_condition_reports.customer_id
       and v.id = public.job_condition_reports.vehicle_id
       and c.deleted_at is null
+      and upper(btrim(coalesce(public.job_condition_reports.customer_name, ''))) =
+          upper(btrim(case
+            when c.is_company then coalesce(nullif(btrim(c.company_name), ''), c.full_name)
+            else c.full_name
+          end))
+      and upper(btrim(coalesce(public.job_condition_reports.vehicle_registration, ''))) =
+          upper(btrim(coalesce(v.license_plate, '')))
   )
   and (
     job_id is null
@@ -84,6 +91,13 @@ with check (
     where c.id = public.job_condition_reports.customer_id
       and v.id = public.job_condition_reports.vehicle_id
       and c.deleted_at is null
+      and upper(btrim(coalesce(public.job_condition_reports.customer_name, ''))) =
+          upper(btrim(case
+            when c.is_company then coalesce(nullif(btrim(c.company_name), ''), c.full_name)
+            else c.full_name
+          end))
+      and upper(btrim(coalesce(public.job_condition_reports.vehicle_registration, ''))) =
+          upper(btrim(coalesce(v.license_plate, '')))
   )
   and (
     job_id is null
