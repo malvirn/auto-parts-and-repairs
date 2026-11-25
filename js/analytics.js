@@ -482,7 +482,7 @@ async function loadPayrollSection(technicians) {
     note.textContent = `Payroll for ${now.toLocaleString("default", { month: "long" })} hasn't been processed yet.`;
     btn.disabled = false;
     btn.innerHTML = `<i data-lucide="settings-2"></i> Configure Payroll &amp; Create Payslips`;
-    btn.onclick = () => { window.location.href = "technicians.html#payroll-management"; };
+    btn.onclick = () => { window.location.href = "pages/technicians.html#payroll-management"; };
   }
   if (window.lucide) lucide.createIcons();
 }
@@ -518,7 +518,7 @@ async function processPayrollOnce(technicians, year, month, payDate) {
     return;
   }
   if (existingRun) {
-    alert("Payroll for this month has already been processed. Refresh the Analytics page to see the run.");
+    alert("Payroll for this month has already been processed. Refresh the Home dashboard to see the run.");
     await loadAnalytics();
     return;
   }
