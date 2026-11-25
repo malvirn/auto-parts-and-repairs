@@ -68,6 +68,61 @@ function applyAccess(role, account = {}) {
   document.body.dataset.role = role;
   document.body.dataset.accountName = role === "super_admin" ? "Admin" : account.fullName || account.email || "Account";
   document.body.dataset.accountEmail = account.email || "";
+  // Workshop is intentionally read-only in modules whose write workflows
+  // still share inventory, quotation approval, or financial operations.
+  // PostgreSQL RLS remains authoritative; these rules prevent dead-end UI.
+  if (!document.getElementById("workshop-readonly-ui-style")) {
+    const style = document.createElement("style");
+    style.id = "workshop-readonly-ui-style";
+    style.textContent = `
+      body[data-role="workshop"].module-repairs #job-money,
+      body[data-role="workshop"].module-repairs #s-inv,
+      body[data-role="workshop"].module-repairs #add-stock-part,
+      body[data-role="workshop"].module-repairs #edit-add-stock,
+      body[data-role="workshop"].module-repairs #edit-add-stock-part,
+      body[data-role="workshop"].module-repairs #edit-add-stock-qty,
+      body[data-role="workshop"].module-repairs [data-remove-build-part],
+      body[data-role="workshop"].module-repairs [data-remove-job-part],
+      body[data-role="workshop"].module-repairs #edit-job-delete {
+        display: none !important;
+      }
+
+      body[data-role="workshop"].module-quotations #quotation-create,
+      body[data-role="workshop"].module-quotations #quotation-list .quotation-actions-row,
+      body[data-role="workshop"].module-quotations #quotation-list .quote-action:not([data-action="view"]),
+      body[data-role="workshop"].module-quotations #quotation-list button,
+      body[data-role="workshop"].module-quotations #quotation-list a.btn,
+      body[data-role="workshop"].module-quotations .page-section:has(#orders-table) {
+        display: none !important;
+      }
+
+      body[data-role="workshop"].module-shop #shop-quick-sale,
+      body[data-role="workshop"].module-shop #shop-add-part,
+      body[data-role="workshop"].module-shop #shop-stock-summary,
+      body[data-role="workshop"].module-shop #shop-markup-control,
+      body[data-role="workshop"].module-shop #shop-restocks,
+      body[data-role="workshop"].module-shop #job-part-purchase-requests,
+      body[data-role="workshop"].module-shop #restock-modal,
+      body[data-role="workshop"].module-shop #edit-part-modal,
+      body[data-role="workshop"].module-shop #parts-table button,
+      body[data-role="workshop"].module-shop .shop-quick-access a[href="#shop-quick-sale"],
+      body[data-role="workshop"].module-shop .shop-quick-access a[href="#shop-add-part"],
+      body[data-role="workshop"].module-shop .shop-quick-access a[href="#shop-restocks"],
+      body[data-role="workshop"].module-shop .shop-quick-access a[href="#job-part-purchase-requests"] {
+        display: none !important;
+      }
+
+      body[data-role="workshop"].module-suppliers #supplier-form,
+      body[data-role="workshop"].module-suppliers #supplier-modal,
+      body[data-role="workshop"].module-suppliers #suppliers-table button,
+      body[data-role="workshop"].module-suppliers #supplier-save,
+      body[data-role="workshop"].module-suppliers #supplier-delete {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   const markDeleteControls = root => {
     root.querySelectorAll?.('button[id*="delete"], button[class*="delete"], button[id*="archive"], button[class*="archive"], .tier-del, .fp-del, [aria-label^="Delete"], [aria-label^="Remove"], [data-delete-document], .bulk-delete-toolbar').forEach(button => {
       button.classList.add("requires-super-admin-delete");
