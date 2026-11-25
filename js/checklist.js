@@ -26,6 +26,7 @@ const CONDITION_GROUPS=[
  ]]
 ];
 let selectedJob=null,record=null,report={parts:{},notes:""},editable=false;
+let workshopAccess=false;
 let checklistCustomers=[];
 
 
@@ -156,8 +157,8 @@ function setEditable(value){
  $("odometer").disabled=!editable;
  $("save-checklist").hidden=!editable;
  $("save-draft").hidden=!editable;
- $("delete-checklist").hidden=!record||Boolean(record.voided_at);
- $("void-checklist").hidden=!record||Boolean(record.voided_at);
+ $("delete-checklist").hidden=workshopAccess||!record||Boolean(record.voided_at);
+ $("void-checklist").hidden=workshopAccess||!record||Boolean(record.voided_at);
  $("confirm-check").checked=false;
  $("save-checklist").disabled=editable;
  $("confirm-label").classList.toggle("hidden",!editable);
@@ -343,7 +344,7 @@ async function saveDraft(){
   }
   try{localStorage.setItem("centric-inspection-draft-"+checklistId,JSON.stringify({report,updated_at:new Date().toISOString()}));localStorage.removeItem("centric-inspection-draft-new");}catch{}
   // Link automatically only when exactly one job matches this customer's vehicle.
-  if(!record.job_id&&customerName&&vehicleRegistration){
+  if(!workshopAccess&&!record.job_id&&customerName&&vehicleRegistration){
    const{data:jobs,error:jobsError}=await supabase.from("repair_jobs")
     .select("id,job_number,cro_number,customer_id,vehicle_id,customers(full_name,company_name,is_company),vehicles(license_plate)")
     .order("created_at",{ascending:false}).limit(1000);
@@ -628,6 +629,7 @@ $("link-job").onclick=async()=>{
  const button=$("link-job"),jobId=$("job-select").value;
  if(!record?.id||record.voided_at||!jobId)return;
  button.disabled=true;setDetailMessage("");
+ if(workshopAccess)return setDetailMessage("Workshop users cannot link checklists to job cards. Ask an authorised staff member.",true);
  const{error}=await supabase.rpc("link_vehicle_condition_checklist",{p_checklist_id:record.id,p_job_id:jobId});
  if(error){setDetailMessage(`Couldn't link checklist: ${error.message}`,true);button.disabled=false;return}
  location.href=`checklist.html?id=${encodeURIComponent(record.id)}`;
@@ -694,7 +696,7 @@ $("tab-checklists").onclick=()=>showTab("checklists");
 $("tab-drafts").onclick=()=>showTab("drafts");
 $("drafts-list").addEventListener("click",async event=>{
  const button=event.target.closest("[data-link-draft]");
- if(!button)return;
+ if(!button||workshopAccess)return;
  const jobId=button.dataset.linkDraft,input=[...$("drafts-list").querySelectorAll("[data-draft-number]")].find(el=>el.dataset.draftNumber===jobId),number=Number(input?.value);
  if(!Number.isSafeInteger(number)||number<1)return showMessage("Enter the checklist number to link.",true);
  button.disabled=true;showMessage("");
@@ -709,10 +711,20 @@ async function initialize(){
  const{data:sessionData,error:sessionError}=await supabase.auth.getSession();
  if(sessionError)throw new Error(`Couldn't verify your sign-in: ${sessionError.message}`);
  if(!sessionData.session){location.href="../login.html";return}
- const{data:access,error:accessError}=await supabase.rpc("current_access_level");
- if(accessError)throw new Error(`Couldn't verify staff access: ${accessError.message}`);
- if(Number(access)<1)throw new Error("You do not have permission to access workshop checklists.");
- await loadChecklistCustomers().catch(error=>{console.error("Checklist customer lookup failed:",error);showMessage(error.message||String(error),true)});
+ const [{data:access,error:accessError},{data:isWorkshop,error:workshopError}]=await Promise.all([
+ supabase.rpc("current_access_level"),supabase.rpc("is_workshop")
+]);
+if(accessError)throw new Error("Could not verify staff access: "+accessError.message);
+if(workshopError)throw new Error("Could not verify workshop access: "+workshopError.message);
+workshopAccess=Boolean(isWorkshop);
+if(Number(access)<1&&!workshopAccess)throw new Error("You do not have permission to access workshop checklists.");
+if(workshopAccess){
+ const style=document.createElement("style");
+ style.id="workshop-checklist-restrictions";
+ style.textContent="body[data-role=workshop] #open-job,body[data-role=workshop] #link-existing-fields,body[data-role=workshop] #link-job,body[data-role=workshop] #delete-checklist,body[data-role=workshop] #void-checklist,body[data-role=workshop] #reopen-inspection,body[data-role=workshop] #tab-drafts,body[data-role=workshop] #drafts-pane,body[data-role=workshop] [data-void-checklist],body[data-role=workshop] [data-delete-checklist],body[data-role=workshop] [data-link-draft]{display:none!important}";
+ document.head.appendChild(style);
+}
+await loadChecklistCustomers().catch(error=>{console.error("Checklist customer lookup failed:",error);showMessage(error.message||String(error),true)});
  const jobId=params.get("job"),checklistId=params.get("id");
  if(checklistId){await showRecord(await loadRecord(checklistId));return}
  if(jobId){
@@ -724,8 +736,10 @@ async function initialize(){
  }
  $("list-view").classList.remove("hidden");$("detail-view").classList.add("hidden");
  await loadList();
- await loadDrafts().catch(error=>showMessage(error.message||String(error),true));
- if(params.get("tab")==="drafts")showTab("drafts");
+ if(!workshopAccess){
+  await loadDrafts().catch(error=>showMessage(error.message||String(error),true));
+  if(params.get("tab")==="drafts")showTab("drafts");
+ }
 }
 initialize().catch(error=>{console.error("Checklist page failed to initialize:",error);showMessage(error.message||String(error),true)});
 
