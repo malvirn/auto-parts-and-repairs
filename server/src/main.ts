@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { Logger } from "@nestjs/common";
 import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import helmet from "helmet";
@@ -20,7 +21,7 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   await app.listen(env.port, "0.0.0.0");
-  app.getLogger().log(`Centric API listening on port ${env.port}`);
+  Logger.log(`Centric API listening on port ${env.port}`, "Bootstrap");
 }
 
 bootstrap().catch((error: unknown) => {
