@@ -1506,7 +1506,7 @@ async function open(j){
   }
  }
  $("s-edit").hidden=false;
- if(isWorkshopRole()){$("s-edit").textContent="Allocate parts";$("s-wa").hidden=true;$("s-mail").hidden=true;$("s-inv").hidden=true;$("close-job-card").hidden=true;$("mark-job-collected").hidden=true;$("job-money").hidden=true;$("save-daily-update").hidden=true;$("job-update-title").closest("section").hidden=true;$("draft-gate").hidden=true;$("d-work-done").disabled=true;$("d-work-missing").disabled=true;$("d-update-note").disabled=true;}
+ if(isWorkshopRole()){$("s-edit").innerHTML='<i data-lucide="package-plus"></i> Allocate parts';window.lucide?.createIcons();$("s-wa").hidden=true;$("s-mail").hidden=true;$("s-inv").hidden=true;$("close-job-card").hidden=true;$("mark-job-collected").hidden=true;$("job-money").hidden=true;$("save-daily-update").hidden=true;$("job-update-title").closest("section").hidden=true;$("draft-gate").hidden=true;$("d-work-done").disabled=true;$("d-work-missing").disabled=true;$("d-update-note").disabled=true;}
  const s=[...new Set([...statuses(),...DEFAULT_ST])].filter(x=>!/^closed$/i.test(x)&&!isTerminalStatus(x));
  if(isClosed(j))s.push(j.status);
  $("d-status").innerHTML=s.map(x=>`<option value="${esc(x)}" ${x===j.status?"selected":""}>${esc(x)}</option>`).join("");
@@ -1602,8 +1602,8 @@ async function showEditJobModal(){
  $("edit-add-stock-part").innerHTML='<option value="">Choose a stocked part</option>'+partsCatalog.map(part=>`<option value="${esc(part.id)}" ${Number(part.quantity_in_stock)<1?"disabled":""}>${esc(part.description||part.name)} — ${money(part.selling_price)} (${Number(part.quantity_in_stock)||0} in stock)</option>`).join("");
  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
  renderEditParts();
- const closed=isClosed(cur);
- $("edit-add-stock-part").disabled=closed;$("edit-add-stock-qty").disabled=closed;$("edit-add-stock").disabled=closed;
+ const closed=isClosed(cur),workshopCannotAllocate=isWorkshopRole()&&!["Draft","Received","Diagnosing","Processing"].includes(cur.status);
+ $("edit-add-stock-part").disabled=closed||workshopCannotAllocate;$("edit-add-stock-qty").disabled=closed||workshopCannotAllocate;$("edit-add-stock").disabled=closed||workshopCannotAllocate;
  $("edit-add-custom-name").disabled=closed;$("edit-add-custom-qty").disabled=closed;$("edit-add-custom").disabled=closed;
  $("edit-job-message").textContent="";
  if(isWorkshopRole()){
@@ -1647,7 +1647,9 @@ $("edit-add-stock").onclick=()=>{
  const item=partsCatalog.find(part=>part.id===$("edit-add-stock-part").value),quantity=Number($("edit-add-stock-qty").value);
  if(!item)return toast("Choose a stocked part");
  if(!Number.isInteger(quantity)||quantity<1)return toast("Enter a whole-number quantity greater than zero");
- editPartsDraft.push({job_part_id:null,part_id:item.id,part_name:item.name,quantity,price_at_time:Number(item.selling_price)||0,awaiting_accounting_price:false,parts:{description:item.description}});
+ const pending=isWorkshopRole()?editPartsDraft.find(part=>!part.job_part_id&&part.part_id===item.id):null;
+ if(pending)pending.quantity=Number(pending.quantity)+quantity;
+ else editPartsDraft.push({job_part_id:null,part_id:item.id,part_name:item.name,quantity,price_at_time:Number(item.selling_price)||0,awaiting_accounting_price:false,parts:{description:item.description}});
  $("edit-add-stock-part").value="";$("edit-add-stock-qty").value="1";renderEditParts();
 };
 $("edit-add-custom").onclick=()=>{
@@ -1691,21 +1693,22 @@ function validateEditParts(){
 }
 async function saveWorkshopJobParts(button,message){
  if(!cur)return;
- const existing=editPartsDraft.filter(part=>part.job_part_id);
- if(existing.length!==curParts.length)throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
- for(const original of curParts){
-  const match=existing.find(part=>String(part.job_part_id)===String(original.id));
-  if(!match||String(match.part_id||"")!==String(original.part_id||"")||String(match.part_name||"")!==String(original.part_name||"")||Number(match.quantity)!==Number(original.quantity)||Number(match.price_at_time||0)!==Number(original.price_at_time||0)||Boolean(match.awaiting_accounting_price)!==Boolean(original.awaiting_accounting_price))throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
- }
- const additions=editPartsDraft.filter(part=>!part.job_part_id);
- if(!additions.length)throw new Error("Choose at least one stocked part to allocate.");
- if(additions.some(part=>!part.part_id||part.awaiting_accounting_price))throw new Error("Only catalogue stock parts can be allocated by Workshop.");
- if(additions.some(part=>!Number.isInteger(Number(part.quantity))||Number(part.quantity)<1))throw new Error("Each quantity must be a whole number greater than zero.");
- const lines=additions.map(part=>({part_id:part.part_id,quantity:Number(part.quantity)}));
- const signature=JSON.stringify({job_id:cur.id,lines});
- if(signature!==workshopPartsRequestPayload){workshopPartsRequestPayload=signature;workshopPartsRequestId=crypto.randomUUID();}
- button.disabled=true;message.textContent="Allocating stock and updating the job invoice…";
+ let buttonLocked=false;
  try{
+  const existing=editPartsDraft.filter(part=>part.job_part_id);
+  if(existing.length!==curParts.length)throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
+  for(const original of curParts){
+   const match=existing.find(part=>String(part.job_part_id)===String(original.id));
+   if(!match||String(match.part_id||"")!==String(original.part_id||"")||String(match.part_name||"")!==String(original.part_name||"")||Number(match.quantity)!==Number(original.quantity)||Number(match.price_at_time||0)!==Number(original.price_at_time||0)||Boolean(match.awaiting_accounting_price)!==Boolean(original.awaiting_accounting_price))throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
+  }
+  const additions=editPartsDraft.filter(part=>!part.job_part_id);
+  if(!additions.length)throw new Error("Choose at least one stocked part to allocate.");
+  if(additions.some(part=>!part.part_id||part.awaiting_accounting_price))throw new Error("Only catalogue stock parts can be allocated by Workshop.");
+  if(additions.some(part=>!Number.isInteger(Number(part.quantity))||Number(part.quantity)<1))throw new Error("Each quantity must be a whole number greater than zero.");
+  const lines=additions.map(part=>({part_id:part.part_id,quantity:Number(part.quantity)})).sort((left,right)=>String(left.part_id).localeCompare(String(right.part_id)));
+  const signature=JSON.stringify({job_id:cur.id,lines});
+  if(signature!==workshopPartsRequestPayload){workshopPartsRequestPayload=signature;workshopPartsRequestId=crypto.randomUUID();}
+  button.disabled=true;buttonLocked=true;message.textContent="Allocating stock and updating the job invoice…";
   const{data,error}=await supabase.rpc("append_workshop_job_parts",{p_request_id:workshopPartsRequestId,p_job_id:cur.id,p_lines:lines});
   if(error)throw error;
   const jobId=cur.id;
@@ -1716,8 +1719,10 @@ async function saveWorkshopJobParts(button,message){
   await open(refreshed);
   workshopPartsRequestId=null;workshopPartsRequestPayload="";
   toast("Allocated "+Number(data?.parts_count||lines.length)+" part line(s). Stock, job cost and linked invoice updated.");
- }catch(error){message.textContent=error.message||String(error);}
- finally{button.disabled=false;}
+ }catch(error){
+  if(buttonLocked)$("edit-job-modal").classList.remove("hidden");
+  message.textContent=error.message||String(error);
+ }finally{if(buttonLocked)button.disabled=false;}
 }
 $("edit-customer-is-company").addEventListener("change",()=>{$("edit-company-name-wrap").hidden=!$("edit-customer-is-company").checked;$("edit-company-name").required=$("edit-customer-is-company").checked;if(!$("edit-customer-is-company").checked)$("edit-company-name").value="";});
 $("edit-job-form").onsubmit=async event=>{
@@ -2510,7 +2515,7 @@ function applyWorkshopRepairsMode(){
  ["s-wa","s-mail","s-inv","close-job-card","mark-job-collected","save-daily-update"].forEach(id=>{const el=$(id);if(el)el.hidden=true});
  const updateSection=$("job-update-title")?.closest("section");if(updateSection)updateSection.hidden=true;
  $("d-status").disabled=true;
- $("s-edit").textContent="Allocate parts";
+ $("s-edit").innerHTML='<i data-lucide="package-plus"></i> Allocate parts';window.lucide?.createIcons();
  render();
 }
 document.addEventListener("apr:access-ready",applyWorkshopRepairsMode);
