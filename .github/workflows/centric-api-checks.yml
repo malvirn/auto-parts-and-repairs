@@ -30,8 +30,16 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install pinned dependencies
+      - name: Install dependencies and generate lockfile
         run: npm install --no-audit --no-fund
+
+      - name: Upload generated API lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: centric-api-lockfile
+          path: server/package-lock.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Build API
         run: npm run build
