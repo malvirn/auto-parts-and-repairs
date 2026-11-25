@@ -307,13 +307,17 @@ async function saveDraft(){
  if(record?.confirmed_at)return setDetailMessage("This inspection is already completed.",true);
  button.disabled=true;setDetailMessage("");
  try{
+  const {customer:linkedCustomer,vehicle:linkedVehicle}=resolveChecklistCustomer();
+  const customerId=linkedCustomer?.id||record?.customer_id||selectedJob?.customer_id||null;
+  const vehicleId=linkedVehicle?.id||record?.vehicle_id||selectedJob?.vehicle_id||null;
+  if(workshopAccess&&(!customerId||!vehicleId))throw new Error("Select a registered customer and vehicle before saving a workshop checklist.");
   const customerName=$("customer-name-input").value.trim();
   const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
   const odometerText=$("odometer").value.trim();
   const odometer=odometerText?Number(odometerText):null;
   if(odometerText&&(!Number.isSafeInteger(odometer)||odometer<0))throw new Error("Enter a valid whole-number odometer reading.");
   const persistedReport={...report,notes:$("checklist-notes").value||"",parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||"",photo_path:value.photo_path||null}]))};
-  const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:linkedCustomer?.id||record?.customer_id||selectedJob?.customer_id||null,vehicle_id:linkedVehicle?.id||record?.vehicle_id||selectedJob?.vehicle_id||null,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
+  const payload={job_id:selectedJob?.id||record?.job_id||null,customer_id:customerId,vehicle_id:vehicleId,customer_name:customerName||null,vehicle_registration:vehicleRegistration||null,checked_by:$("checked-by-input").value.trim()||null,report:persistedReport,fuel_level_in:$("fuel").value||null,odometer_in:odometer,status:"draft",updated_at:new Date().toISOString()};
   let checklistId=record?.id;
   if(checklistId){
    const updatePayload={customer_id:payload.customer_id,vehicle_id:payload.vehicle_id,customer_name:payload.customer_name,vehicle_registration:payload.vehicle_registration,checked_by:payload.checked_by,report:payload.report,fuel_level_in:payload.fuel_level_in,odometer_in:payload.odometer_in,updated_at:payload.updated_at};
@@ -392,6 +396,10 @@ async function saveAndConfirm(){
  const button=$("save-checklist");
  if(record?.voided_at)return setDetailMessage("This checklist is voided and cannot be changed.",true);
  if(!validateInspection())return;
+ const {customer:linkedCustomer,vehicle:linkedVehicle}=resolveChecklistCustomer();
+ const customerId=record?.customer_id||selectedJob?.customer_id||linkedCustomer?.id||null;
+ const vehicleId=record?.vehicle_id||selectedJob?.vehicle_id||linkedVehicle?.id||null;
+ if(workshopAccess&&(!customerId||!vehicleId))return setDetailMessage("Select a registered customer and vehicle before completing a workshop checklist.",true);
  const customerName=$("customer-name-input").value.trim();
  const vehicleRegistration=$("vehicle-registration-input").value.trim().toUpperCase();
  const checkedBy=$("checked-by-input").value.trim();
@@ -407,8 +415,8 @@ async function saveAndConfirm(){
   const persistedReport={...report,parts:Object.fromEntries(Object.entries(report.parts||{}).map(([key,value])=>[key,{dmg:value.dmg||[],note:value.note||""}]))};
   const payload={
    job_id:selectedJob?.id||record?.job_id||null,
-   customer_id:record?.customer_id||selectedJob?.customer_id||null,
-   vehicle_id:record?.vehicle_id||selectedJob?.vehicle_id||null,
+   customer_id:customerId,
+   vehicle_id:vehicleId,
    customer_name:customerName,vehicle_registration:vehicleRegistration,
    checked_by:checkedBy,report:persistedReport,
    fuel_level_in:$("fuel").value||null,odometer_in:odometer,
@@ -417,6 +425,8 @@ async function saveAndConfirm(){
   let checklistId=record?.id;
   if(checklistId){
    const{error}=await supabase.from("job_condition_reports").update({
+    customer_id:payload.customer_id,
+    vehicle_id:payload.vehicle_id,
     customer_name:payload.customer_name,
     vehicle_registration:payload.vehicle_registration,
     checked_by:payload.checked_by,
@@ -721,7 +731,7 @@ if(Number(access)<1&&!workshopAccess)throw new Error("You do not have permission
 if(workshopAccess){
  const style=document.createElement("style");
  style.id="workshop-checklist-restrictions";
- style.textContent="body[data-role=workshop] #open-job,body[data-role=workshop] #link-existing-fields,body[data-role=workshop] #link-job,body[data-role=workshop] #delete-checklist,body[data-role=workshop] #void-checklist,body[data-role=workshop] #reopen-inspection,body[data-role=workshop] #tab-drafts,body[data-role=workshop] #drafts-pane,body[data-role=workshop] [data-void-checklist],body[data-role=workshop] [data-delete-checklist],body[data-role=workshop] [data-link-draft]{display:none!important}";
+ style.textContent="body[data-role=workshop] #open-job,body[data-role=workshop] #link-existing-fields,body[data-role=workshop] #link-job,body[data-role=workshop] #print-blank-checklist,body[data-role=workshop] #delete-checklist,body[data-role=workshop] #void-checklist,body[data-role=workshop] #reopen-inspection,body[data-role=workshop] #tab-drafts,body[data-role=workshop] #drafts-pane,body[data-role=workshop] [data-void-checklist],body[data-role=workshop] [data-delete-checklist],body[data-role=workshop] [data-link-draft]{display:none!important}";
  document.head.appendChild(style);
 }
 await loadChecklistCustomers().catch(error=>{console.error("Checklist customer lookup failed:",error);showMessage(error.message||String(error),true)});
