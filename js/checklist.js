@@ -331,6 +331,7 @@ async function saveDraft(){
    checklistId=data.id;record={...data,...payload};
   }
   record={...record,...payload,id:checklistId};
+  if(workshopAccess){$("checklist-customer-select").disabled=true;$("checklist-vehicle-select").disabled=true;}
   for(const [area,entry] of Object.entries(report.parts||{})){
    const conditions=Array.isArray(entry?.dmg)?entry.dmg:[];
    let photo_path=entry.photo_path||null;
