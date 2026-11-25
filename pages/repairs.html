@@ -1506,7 +1506,7 @@ async function open(j){
   }
  }
  $("s-edit").hidden=false;
- if(isWorkshopRole()){$("s-edit").innerHTML='<i data-lucide="package-plus"></i> Allocate parts';window.lucide?.createIcons();$("s-wa").hidden=true;$("s-mail").hidden=true;$("s-inv").hidden=true;$("close-job-card").hidden=true;$("mark-job-collected").hidden=true;$("job-money").hidden=true;$("save-daily-update").hidden=true;$("job-update-title").closest("section").hidden=true;$("draft-gate").hidden=true;$("d-work-done").disabled=true;$("d-work-missing").disabled=true;$("d-update-note").disabled=true;}
+ if(isWorkshopRole()){$("s-edit").hidden=!["Received","Diagnosing","Processing"].includes(j.status);$("s-edit").innerHTML='<i data-lucide="package-plus"></i> Allocate parts';window.lucide?.createIcons();$("s-wa").hidden=true;$("s-mail").hidden=true;$("s-inv").hidden=true;$("close-job-card").hidden=true;$("mark-job-collected").hidden=true;$("job-money").hidden=true;$("save-daily-update").hidden=true;$("job-update-title").closest("section").hidden=true;$("draft-gate").hidden=true;$("d-work-done").disabled=true;$("d-work-missing").disabled=true;$("d-update-note").disabled=true;}
  const s=[...new Set([...statuses(),...DEFAULT_ST])].filter(x=>!/^closed$/i.test(x)&&!isTerminalStatus(x));
  if(isClosed(j))s.push(j.status);
  $("d-status").innerHTML=s.map(x=>`<option value="${esc(x)}" ${x===j.status?"selected":""}>${esc(x)}</option>`).join("");
@@ -1602,7 +1602,7 @@ async function showEditJobModal(){
  $("edit-add-stock-part").innerHTML='<option value="">Choose a stocked part</option>'+partsCatalog.map(part=>`<option value="${esc(part.id)}" ${Number(part.quantity_in_stock)<1?"disabled":""}>${esc(part.description||part.name)} — ${money(part.selling_price)} (${Number(part.quantity_in_stock)||0} in stock)</option>`).join("");
  editPartsDraft=curParts.map(part=>({...part,job_part_id:part.id}));
  renderEditParts();
- const closed=isClosed(cur),workshopCannotAllocate=isWorkshopRole()&&!["Draft","Received","Diagnosing","Processing"].includes(cur.status);
+ const closed=isClosed(cur),workshopCannotAllocate=isWorkshopRole()&&!["Received","Diagnosing","Processing"].includes(cur.status);
  $("edit-add-stock-part").disabled=closed||workshopCannotAllocate;$("edit-add-stock-qty").disabled=closed||workshopCannotAllocate;$("edit-add-stock").disabled=closed||workshopCannotAllocate;
  $("edit-add-custom-name").disabled=closed;$("edit-add-custom-qty").disabled=closed;$("edit-add-custom").disabled=closed;
  $("edit-job-message").textContent="";
@@ -1695,6 +1695,7 @@ async function saveWorkshopJobParts(button,message){
  if(!cur)return;
  let buttonLocked=false;
  try{
+  if(!["Received","Diagnosing","Processing"].includes(cur.status))throw new Error("Parts can only be allocated after the checklist is confirmed, while the job is Received, Diagnosing or Processing.");
   const existing=editPartsDraft.filter(part=>part.job_part_id);
   if(existing.length!==curParts.length)throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
   for(const original of curParts){
