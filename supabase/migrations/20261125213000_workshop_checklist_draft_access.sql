@@ -126,8 +126,11 @@ using (
     select 1
     from public.job_condition_reports r
     where r.id = job_condition_report_marks.inspection_id
-      and r.created_by = (select auth.uid())
       and r.voided_at is null
+      and (
+        r.created_by = (select auth.uid())
+        or (r.status = 'completed' and r.confirmed_at is not null and r.job_id is null)
+      )
   )
 );
 
@@ -216,8 +219,11 @@ using (
     select 1
     from public.job_condition_reports r
     where r.id::text = split_part(storage.objects.name, '/', 1)
-      and r.created_by = (select auth.uid())
       and r.voided_at is null
+      and (
+        r.created_by = (select auth.uid())
+        or (r.status = 'completed' and r.confirmed_at is not null and r.job_id is null)
+      )
   )
 );
 
