@@ -29,7 +29,7 @@
     "@types/node": "22.19.1",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "vitest": "3.2.4",
+    "vitest": "3.2.7",
     "wrangler": "4.168.0"
   }
 }
