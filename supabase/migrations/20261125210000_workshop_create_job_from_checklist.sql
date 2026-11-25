@@ -13,7 +13,15 @@ using (
   and confirmed_at is not null
   and status = 'completed'
   and voided_at is null
-  and job_id is null
+  and (
+    job_id is null
+    or exists (
+      select 1
+      from public.repair_jobs j
+      where j.id = public.job_condition_reports.job_id
+        and j.status in ('Draft', 'Received', 'Diagnosing', 'Processing')
+    )
+  )
 );
 
 -- Private idempotency ledger. The browser cannot read or write this table.
