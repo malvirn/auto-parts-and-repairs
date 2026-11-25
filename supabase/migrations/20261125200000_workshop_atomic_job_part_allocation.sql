@@ -155,6 +155,9 @@ begin
 
   -- Invoice refresh is part of the same transaction. A failed invoice update
   -- rolls back the stock deduction, job-part rows and accounting trigger writes.
+  -- This transaction-scoped capability permits this RPC alone to invoke
+  -- invoice synchronisation for workshop users; direct RPC calls remain denied.
+  perform set_config('app.workshop_invoice_sync', 'authorized', true);
   perform public.sync_repair_job_invoice(p_job_id);
 
   v_result := jsonb_build_object(
@@ -187,7 +190,7 @@ do $patch$
 declare
   function_definition text;
   old_guard text := 'if auth.uid() is null or public.current_access_level() < 1 then';
-  new_guard text := 'if auth.uid() is null or (coalesce(public.current_access_level(), 0) < 1 and not public.is_workshop()) then';
+  new_guard text := 'if auth.uid() is null or (coalesce(public.current_access_level(), 0) < 1 and not (public.is_workshop() and current_setting(''app.workshop_invoice_sync'', true) = ''authorized'')) then';
   old_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;';
   new_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;\n  if public.is_workshop() and job_row.status not in (''Received'', ''Diagnosing'', ''Processing'') then\n    raise exception ''Workshop invoice refresh is limited to active jobs'' using errcode = ''42501'';\n  end if;';
 begin
