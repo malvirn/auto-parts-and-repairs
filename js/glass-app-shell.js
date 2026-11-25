@@ -26,7 +26,6 @@ const NAV = [
     { label: "Accounting Tools", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
     { label: "Fixed Assets", href: "pages/fixed-assets.html", color: "#2DD4BF", page: "fixed-assets", roles: ["super_admin","accounting"] },
     { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] },
-    { label: "Analytics", href: "pages/analytics.html", color: "#60A5FA", page: "analytics", roles: ["super_admin","accounting"] },
     { label: "Centric Intelligence", href: "pages/centric-intelligence.html", color: "#A78BFA", page: "centric-intelligence", roles: ["super_admin","accounting"] },
     { label: "Settings", href: "pages/settings.html", color: "#F58A4B", page: "settings" }
   ]}
