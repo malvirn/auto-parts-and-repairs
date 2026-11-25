@@ -5,6 +5,26 @@ export interface AppEnvironment {
   corsOrigins: string[];
 }
 
+function isPrivilegedSupabaseKey(value: string): boolean {
+  if (/service[_-]?role|sb_secret_/i.test(value)) return true;
+
+  // Legacy Supabase secret keys are JWTs. Inspect the role claim as a
+  // defensive configuration check; never use this as token verification.
+  const parts = value.split(".");
+  if (parts.length !== 3) return false;
+
+  try {
+    const payload = JSON.parse(
+      Buffer.from(parts[1], "base64url").toString("utf8"),
+    ) as { role?: unknown };
+    return ["service_role", "supabase_admin"].includes(
+      String(payload.role || "").toLowerCase(),
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function loadEnvironment(
   source: NodeJS.ProcessEnv = process.env,
 ): AppEnvironment {
@@ -30,9 +50,7 @@ export function loadEnvironment(
     throw new Error("SUPABASE_URL must use HTTPS.");
   }
 
-  if (
-    /service[_-]?role|sb_secret_/i.test(supabasePublishableKey)
-  ) {
+  if (isPrivilegedSupabaseKey(supabasePublishableKey)) {
     throw new Error(
       "Do not configure a Supabase service-role or secret key in this API foundation. Use the project publishable key.",
     );
