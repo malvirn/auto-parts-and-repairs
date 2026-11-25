@@ -1108,6 +1108,8 @@ const waNum=p=>{let d=String(p||"").replace(/\D/g,"");if(d.startsWith("0"))d="26
 const DEFAULT_ST=["Draft","Received","Diagnosing","Processing","Processed","Ready for Pickup","Unclaimed","Collected"]; // must match the repair_status enum exactly
 const CLOSED_STATUS="Ready for Pickup";
 const COLLECTED_STATUS="Collected";
+const isWorkshopRole=()=>document.body.dataset.role==="workshop";
+let workshopPartsRequestId=null,workshopPartsRequestPayload="";
 let pendingChecklists=[],activeChecklist=null;
 let jobs=[],techs={},cur=null,filter="all",vehicles=[],builderCustomers=[],labourTiers=[],partsCatalog=[],selectedJobParts=[],curParts=[],curIncidentals=[],editPartsDraft=[],curPartsLoaded=true;
 let jobBusinessSettings={};
@@ -1268,7 +1270,7 @@ $("job-labour-mode").addEventListener("change",updateLabourPreview);
 $("job-rate-tier").addEventListener("change",updateLabourPreview);
 $("job-labour-hours").addEventListener("input",updateLabourPreview);
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),3200)}
-function show(v){["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
+function show(v){if(isWorkshopRole()&&v==="build"){toast("Workshop users cannot create job cards.");v="list"}["list","build","doc"].forEach(k=>$("v-"+k).hidden=k!==v);scrollTo(0,0);window.lucide?.createIcons()}
 const statuses=()=>[...new Set([...jobs.map(j=>j.status).filter(Boolean),...(jobs.length?[]:DEFAULT_ST)])];
 
 /* ---------- list ---------- */
@@ -1286,16 +1288,18 @@ async function load(){
  const h=new URLSearchParams(location.search).get("highlight");render();
  const m=h&&jobs.find(x=>String(x.id)===h);if(m)open(m)}
 function render(){
- const q=( $("jc-search")?.value || $("hs-input")?.value || "" ).trim().toLowerCase(),sts=statuses();
- const cat=$("jc-category")?.value||"all";
- const catMatch=j=>cat==="all"||(cat==="active"&&!stClass(j.status))||(cat==="completed"&&!!stClass(j.status));
- const L=cat==="checklists"?[]:jobs.filter(j=>(filter==="all"||j.status===filter)&&catMatch(j)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.customers?.email,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported,j.work_done,j.status,techs[j.technician_id]].join(" ").toLowerCase().includes(q)));
- const active=jobs.filter(j=>!stClass(j.status)).length;
+ const workshop=isWorkshopRole();
+ const visibleJobs=workshop?jobs.filter(j=>["Draft","Received","Diagnosing","Processing"].includes(j.status)):jobs;
+ const q=( $("jc-search")?.value || $("hs-input")?.value || "" ).trim().toLowerCase(),sts=[...new Set([...visibleJobs.map(j=>j.status).filter(Boolean),...(visibleJobs.length?[]:DEFAULT_ST)])];
+ const cat=workshop?"all":($("jc-category")?.value||"all");
+ const catMatch=j=>workshop||cat==="all"||(cat==="active"&&!stClass(j.status))||(cat==="completed"&&!!stClass(j.status));
+ const L=cat==="checklists"?[]:visibleJobs.filter(j=>(filter==="all"||j.status===filter)&&catMatch(j)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.customers?.email,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported,j.work_done,j.status,techs[j.technician_id]].join(" ").toLowerCase().includes(q)));
+ const active=visibleJobs.length;
  const filtering=!!q||cat!=="all";
  const catSel=$("jc-category");
- if(catSel){catSel.innerHTML=[["all","All · "+jobs.length],["active","Active · "+active],["completed","Completed · "+(jobs.length-active)],["checklists","Checklists · "+pendingChecklists.length]].map(([v,t])=>`<option value="${v}">${t}</option>`).join("");catSel.value=cat}
- $("stats").innerHTML=[["Total jobs",jobs.length],["Active",active],["Completed",jobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
- $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+jobs.filter(j=>j.status===s).length}</button>`).join("");
+ if(catSel){catSel.innerHTML=(workshop?[["all","Active · "+visibleJobs.length]]:[["all","All · "+visibleJobs.length],["active","Active · "+active],["completed","Completed · "+(visibleJobs.length-active)],["checklists","Checklists · "+pendingChecklists.length]]).map(([v,t])=>`<option value="${v}">${t}</option>`).join("");catSel.value=cat}
+ $("stats").innerHTML=[["Total jobs",visibleJobs.length],["Active",active],["Completed",visibleJobs.length-active]].map(([a,b])=>`<div class="stat-card"><div class="stat-card__label">${a}</div><div class="stat-card__value">${b}</div></div>`).join("");
+ $("chips").innerHTML=["all",...sts].map(s=>`<button class="seg" aria-pressed="${s===filter}" data-s="${esc(s)}">${esc(s==="all"?"All":s)}${s==="all"?"":" · "+visibleJobs.filter(j=>j.status===s).length}</button>`).join("");
  $("chips").querySelectorAll(".seg").forEach(b=>b.onclick=()=>{filter=b.dataset.s;render()});
  const boardStatuses=cat==="checklists"?[]:filter==="all"?sts:[filter];
  const boardHtml=boardStatuses.map(status=>{
@@ -1306,7 +1310,7 @@ function render(){
  }).join("");
  $("list").innerHTML=`<div class="job-board-grid">${boardHtml}</div>`;
  $("list").querySelectorAll('.rc-row[data-i]').forEach(el=>el.onclick=()=>open(L[Number(el.dataset.i)]));
- const CL=filter==="all"&&(cat==="all"||cat==="checklists")?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
+ const CL=!workshop&&filter==="all"&&(cat==="all"||cat==="checklists")?pendingChecklists.filter(c=>!q||[`checklist ${c.checklist_number}`,c.customer_name,c.vehicle_registration].join(" ").toLowerCase().includes(q)):[];
  const draftCL=CL.filter(c=>c.status==="draft");
  const readyCL=CL.filter(c=>c.status!=="draft");
  const appendChecklistBoard=(items,kind,title,emptyText)=>{
@@ -1418,6 +1422,7 @@ async function autoApplyQuotationDeposit(job){
 }
 async function refreshJobMoney(job){
  const box=$("job-money"),note=$("jm-note");
+ if(isWorkshopRole()){box.hidden=true;return;}
  box.hidden=false;note.classList.remove("err");note.textContent="Loading payments…";
  try{
   const m=await loadJobMoney(job);
@@ -1501,16 +1506,17 @@ async function open(j){
   }
  }
  $("s-edit").hidden=false;
+ if(isWorkshopRole()){$("s-edit").textContent="Allocate parts";$("s-wa").hidden=true;$("s-mail").hidden=true;$("s-inv").hidden=true;$("close-job-card").hidden=true;$("mark-job-collected").hidden=true;$("job-money").hidden=true;$("save-daily-update").hidden=true;$("job-update-title").closest("section").hidden=true;$("draft-gate").hidden=true;$("d-work-done").disabled=true;$("d-work-missing").disabled=true;$("d-update-note").disabled=true;}
  const s=[...new Set([...statuses(),...DEFAULT_ST])].filter(x=>!/^closed$/i.test(x)&&!isTerminalStatus(x));
  if(isClosed(j))s.push(j.status);
  $("d-status").innerHTML=s.map(x=>`<option value="${esc(x)}" ${x===j.status?"selected":""}>${esc(x)}</option>`).join("");
  const isDraft=j.status==="Draft";
- $("d-status").disabled=isClosed(j)||isDraft;
+ $("d-status").disabled=isWorkshopRole()||isClosed(j)||isDraft;
  $("v-doc").classList.toggle("is-draft",isDraft);
  $("draft-gate").hidden=!isDraft;
  $("draft-checklist-no").value="";$("draft-msg").textContent="";$("draft-msg").classList.remove("err");
  $("draft-create-inspection").href="checklist.html?job="+encodeURIComponent(j.id);
- try{
+ if(!isWorkshopRole())try{
   const depositResult=await autoApplyQuotationDeposit(j);
   if(depositResult.appliedAmount>0.005)toast(`Quotation deposit of ${money(depositResult.appliedAmount)} automatically applied to this job card.`);
   if(depositResult.syncError)toast("Deposit applied, but the linked invoice could not be refreshed: "+depositResult.syncError.message);
@@ -1536,12 +1542,12 @@ function renderJobDoc(j){
  $("doc").innerHTML=docHTML(j);
 }
 function renderEditParts(){
- const closed=isClosed(cur);
+ const closed=isClosed(cur),workshop=isWorkshopRole();
  $("edit-job-parts").innerHTML=editPartsDraft.length?editPartsDraft.map((part,index)=>`
   <div class="job-edit-part">
-   <div>${part.part_id?`<b>${esc(part.parts?.description||part.part_name)}</b><small class="section-note">Stock item · ${money(part.price_at_time)} each</small>`:`<label>Typed-in part<input data-edit-part-name="${index}" value="${esc(part.part_name)}" maxlength="160" ${closed?"disabled":""}></label>`}</div>
-   <label>Quantity<input data-edit-part-quantity="${index}" type="number" min="1" step="1" value="${esc(part.quantity)}" ${closed?"disabled":""}></label>
-   <button class="btn" type="button" data-edit-part-remove="${index}" ${closed?"disabled":""}>Remove</button>
+   <div>${part.part_id?`<b>${esc(part.parts?.description||part.part_name)}</b><small class="section-note">Stock item · ${money(part.price_at_time)} each</small>`:`<label>Typed-in part<input data-edit-part-name="${index}" value="${esc(part.part_name)}" maxlength="160" ${closed||workshop?"disabled":""}></label>`}</div>
+   <label>Quantity<input data-edit-part-quantity="${index}" type="number" min="1" step="1" value="${esc(part.quantity)}" ${closed||(workshop&&Boolean(part.job_part_id))?"disabled":""}></label>
+   <button class="btn" type="button" data-edit-part-remove="${index}" ${closed?"disabled":""} ${workshop&&Boolean(part.job_part_id)?"hidden":""}>Remove</button>
   </div>`).join(""):'<p class="section-note">No parts recorded.</p>';
  $("edit-job-parts").querySelectorAll("[data-edit-part-name]").forEach(input=>input.oninput=()=>{editPartsDraft[Number(input.dataset.editPartName)].part_name=input.value});
  $("edit-job-parts").querySelectorAll("[data-edit-part-quantity]").forEach(input=>input.oninput=()=>{editPartsDraft[Number(input.dataset.editPartQuantity)].quantity=input.value});
@@ -1557,7 +1563,7 @@ async function showEditJobModal(){
  if(!cur)return;
  if(!curPartsLoaded){toast("Couldn't load the current parts. Reload the job card before editing.");return}
  try{
-  await Promise.all([loadInventoryParts(),loadLabourTiers()]);
+  if(isWorkshopRole())await loadInventoryParts();else await Promise.all([loadInventoryParts(),loadLabourTiers()]);
  }catch(error){console.error("Couldn't load job-edit options:",error);toast(error.message||String(error));return}
  const customer=cur.customers||{},vehicle=cur.vehicles||{};
  $("edit-customer-name").value=customer.full_name||"";
@@ -1600,9 +1606,20 @@ async function showEditJobModal(){
  $("edit-add-stock-part").disabled=closed;$("edit-add-stock-qty").disabled=closed;$("edit-add-stock").disabled=closed;
  $("edit-add-custom-name").disabled=closed;$("edit-add-custom-qty").disabled=closed;$("edit-add-custom").disabled=closed;
  $("edit-job-message").textContent="";
+ if(isWorkshopRole()){
+  $("edit-job-title").textContent="Allocate parts · "+jn(cur);
+  $("edit-job-form").querySelector(":scope > .section-note").hidden=true;
+  const grid=$("edit-job-form").querySelector(".job-edit-grid");
+  [...grid.children].forEach(node=>{
+   const keep=(node.matches("h3")&&node.textContent.trim()==="Parts")||node.id==="edit-job-parts"||Boolean(node.querySelector("#edit-add-stock"));
+   node.hidden=!keep;node.style.display=keep?"":"none";
+  });
+  $("edit-job-delete").hidden=true;$("edit-job-save").textContent="Save parts";
+  const note=$("edit-job-form").querySelector(".job-edit-note");if(note)note.hidden=true;
+ }else{$("edit-job-title").textContent="Edit job card details";$("edit-job-form").querySelector(":scope > .section-note").hidden=false;}
  $("edit-job-modal").classList.remove("hidden");
- updateEditLabourFields();
- $("edit-customer-name").focus();
+ if(!isWorkshopRole())updateEditLabourFields();
+ if(isWorkshopRole())$("edit-add-stock-part").focus();else $("edit-customer-name").focus();
 }
 $("s-edit").onclick=showEditJobModal;
 $("edit-labour-mode").onchange=updateEditLabourFields;
@@ -1672,12 +1689,43 @@ function validateEditParts(){
   if(!Number.isInteger(quantity)||quantity<1)throw new Error("Each part quantity must be a whole number greater than zero.");
  }
 }
+async function saveWorkshopJobParts(button,message){
+ if(!cur)return;
+ const existing=editPartsDraft.filter(part=>part.job_part_id);
+ if(existing.length!==curParts.length)throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
+ for(const original of curParts){
+  const match=existing.find(part=>String(part.job_part_id)===String(original.id));
+  if(!match||String(match.part_id||"")!==String(original.part_id||"")||String(match.part_name||"")!==String(original.part_name||"")||Number(match.quantity)!==Number(original.quantity)||Number(match.price_at_time||0)!==Number(original.price_at_time||0)||Boolean(match.awaiting_accounting_price)!==Boolean(original.awaiting_accounting_price))throw new Error("Workshop users can only add stocked parts. Existing job parts cannot be changed or removed.");
+ }
+ const additions=editPartsDraft.filter(part=>!part.job_part_id);
+ if(!additions.length)throw new Error("Choose at least one stocked part to allocate.");
+ if(additions.some(part=>!part.part_id||part.awaiting_accounting_price))throw new Error("Only catalogue stock parts can be allocated by Workshop.");
+ if(additions.some(part=>!Number.isInteger(Number(part.quantity))||Number(part.quantity)<1))throw new Error("Each quantity must be a whole number greater than zero.");
+ const lines=additions.map(part=>({part_id:part.part_id,quantity:Number(part.quantity)}));
+ const signature=JSON.stringify({job_id:cur.id,lines});
+ if(signature!==workshopPartsRequestPayload){workshopPartsRequestPayload=signature;workshopPartsRequestId=crypto.randomUUID();}
+ button.disabled=true;message.textContent="Allocating stock and updating the job invoice…";
+ try{
+  const{data,error}=await supabase.rpc("append_workshop_job_parts",{p_request_id:workshopPartsRequestId,p_job_id:cur.id,p_lines:lines});
+  if(error)throw error;
+  const jobId=cur.id;
+  $("edit-job-modal").classList.add("hidden");
+  await load();
+  const refreshed=jobs.find(item=>String(item.id)===String(jobId));
+  if(!refreshed)throw new Error("Parts were saved, but the updated job card could not be reloaded. Retry the same save; stock will not be deducted twice.");
+  await open(refreshed);
+  workshopPartsRequestId=null;workshopPartsRequestPayload="";
+  toast("Allocated "+Number(data?.parts_count||lines.length)+" part line(s). Stock, job cost and linked invoice updated.");
+ }catch(error){message.textContent=error.message||String(error);}
+ finally{button.disabled=false;}
+}
 $("edit-customer-is-company").addEventListener("change",()=>{$("edit-company-name-wrap").hidden=!$("edit-customer-is-company").checked;$("edit-company-name").required=$("edit-customer-is-company").checked;if(!$("edit-customer-is-company").checked)$("edit-company-name").value="";});
 $("edit-job-form").onsubmit=async event=>{
  event.preventDefault();
  if(!cur)return;
  const button=$("edit-job-save"),message=$("edit-job-message");
  message.textContent="";
+ if(isWorkshopRole()){await saveWorkshopJobParts(button,message);return;}
  const customerName=$("edit-customer-name").value.trim(),fault=$("edit-fault").value.trim(),isCompany=$("edit-customer-is-company").checked,companyName=$("edit-company-name").value.trim();
  if(!customerName||!fault){message.textContent="Customer name and reported fault are required.";return}
  if(isCompany&&!companyName){message.textContent="Company name is required."; $("edit-company-name").focus(); return}
@@ -2000,6 +2048,7 @@ $("job-whatsapp-send").onclick=()=>{
 
 /* ---------- create flow ---------- */
 async function openBuilder(fromChecklist=null){
+ if(isWorkshopRole()){toast("Workshop users cannot create job cards.");return}
  const params=new URLSearchParams(location.search);
  $("job-vat-enabled").checked=false;
  activeChecklist=fromChecklist&&fromChecklist.checklist_number?fromChecklist:null;
@@ -2450,13 +2499,25 @@ $("s-inv").onclick=async()=>{
 
 $("f-customer-cid-copy").onclick=async()=>{const code=$("f-customer-cid").textContent.replace("Customer ID:","").trim();if(!code)return;try{await navigator.clipboard.writeText(code);toast(code+" copied")}catch{toast("Copy was blocked. Select the Customer ID and copy it manually.")}};
 $("f-customer-cid-whatsapp").onclick=()=>{const code=$("f-customer-cid").textContent.replace(/^Customer ID:\\s*/,"").trim(),phone=String($("f-phone").value||"").replace(/[^0-9]/g,"");if(!code)return;const message="Hello "+($("f-company-name").value.trim()||$("f-name").value.trim()||"Customer")+", your Centric Auto Mobile Customer ID is "+code+". Please keep it for future visits.";window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank","noopener")};
-$("new-job").onclick=openBuilder;$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
+$("new-job").onclick=()=>{if(isWorkshopRole())return toast("Workshop users cannot create job cards.");openBuilder()};$("b-back").onclick=$("d-back").onclick=()=>{history.replaceState(null,"",location.pathname);show("list")};
 $("hs-input")?.addEventListener("input",render);
 {let t;$("jc-search")?.addEventListener("input",()=>{clearTimeout(t);t=setTimeout(render,120)})}
 $("jc-category")?.addEventListener("change",render);
+function applyWorkshopRepairsMode(){
+ if(!isWorkshopRole())return;
+ $("new-job").hidden=true;$("v-build").hidden=true;$("job-money").hidden=true;
+ $("jc-category").disabled=true;
+ ["s-wa","s-mail","s-inv","close-job-card","mark-job-collected","save-daily-update"].forEach(id=>{const el=$(id);if(el)el.hidden=true});
+ const updateSection=$("job-update-title")?.closest("section");if(updateSection)updateSection.hidden=true;
+ $("d-status").disabled=true;
+ $("s-edit").textContent="Allocate parts";
+ render();
+}
+document.addEventListener("apr:access-ready",applyWorkshopRepairsMode);
+if(document.body.dataset.role)applyWorkshopRepairsMode();
 load().then(()=>{
  const params=new URLSearchParams(location.search);
- if(params.get("quote")||(params.get("new")==="1"&&(params.get("customer")||params.get("plate"))))openBuilder();
+ if(!isWorkshopRole()&&(params.get("quote")||(params.get("new")==="1"&&(params.get("customer")||params.get("plate")))))openBuilder();
  else if(params.get("edit")){const target=jobs.find(x=>String(x.id)===params.get("edit"));if(target)open(target);else toast("That job card could not be found")}
 });
 </script>
