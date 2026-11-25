@@ -2,6 +2,7 @@ import "./dialogs.js";
 import supabase from "./supabaseClient.js";
 import { loadUserProfile } from "./profile.js";
 import { isReadOnly } from "./connectionManager.js";
+import { verifyCentricApiSession } from "./centricApi.js";
 
 const path = window.location.pathname.replace(/\\/g, "/");
 const isLoginPage = path.endsWith("/login.html") || path.endsWith("login.html");
@@ -305,6 +306,33 @@ function startAuthWatchdog() {
   }, 10000);
 }
 
+function startApiShadowVerification(session, profile) {
+  if (!session?.access_token || !session?.user?.id || !profile?.role) return;
+
+  const cacheKey = `centric-api-shadow-auth:${session.user.id}`;
+  const now = Date.now();
+  try {
+    const lastCheck = Number(sessionStorage.getItem(cacheKey) || 0);
+    if (now - lastCheck < 5 * 60 * 1000) return;
+    sessionStorage.setItem(cacheKey, String(now));
+  } catch (_) {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+
+  void verifyCentricApiSession({
+    accessToken: session.access_token,
+    userId: session.user.id,
+    role: normalizeRole(profile.role),
+  }).then(result => {
+    if (!result.ok) {
+      console.warn("[centric-api] background session verification did not pass:", {
+        status: result.status || null,
+        reason: result.reason || "unknown",
+      });
+    }
+  });
+}
+
 async function protectPage() {
   // getUser() verifies with Supabase's Auth server, unlike getSession()
   // which only reads local storage without checking whether that session
@@ -356,6 +384,17 @@ async function protectPage() {
 
   authStage = "applying page access";
   applyAccess(profile.role, { fullName: profile.full_name, email: user.email });
+
+  // Shadow-check the same Supabase session against the new API after the
+  // existing page gate has completed. This is deliberately non-blocking:
+  // an API outage must not delay login or change existing module access.
+  if (!isReadOnly() && navigator.onLine !== false) {
+    void supabase.auth.getSession().then(({ data }) => {
+      startApiShadowVerification(data?.session, profile);
+    }).catch(error => {
+      console.warn("[centric-api] couldn't read the current session for background verification:", error?.name || "unknown");
+    });
+  }
 }
 
 if (!isLoginPage) {
