@@ -16,7 +16,7 @@ const dashboardPath = inPagesFolder ? "../index.html" : "index.html";
 // is accessible to every logged-in role by default; RLS is still the
 // real boundary underneath regardless of what this hides or allows.
 const PAGE_ACCESS = {
-  "index": ["super_admin"],
+  "index": ["super_admin", "accounting"],
   "accounting": ["super_admin", "accounting"],
   "ledger": ["super_admin", "accounting"],
   "payables": ["super_admin", "accounting"],
@@ -163,7 +163,7 @@ function applyAccess(role, account = {}) {
   // always needs the pages/ prefix — a bare relative path here would
   // resolve against the root, not the pages folder, and 404.
   const isDashboard = currentPage === "index" || currentPage === "index.html" || currentPage === "";
-  if (isDashboard && DASHBOARD_REDIRECT[role]) {
+  if (isDashboard && DASHBOARD_REDIRECT[role] && window.location.hash !== "#analytics-home-content") {
     window.location.replace("pages/" + DASHBOARD_REDIRECT[role]);
     return; // stay hidden — a redirect is about to happen
   }
