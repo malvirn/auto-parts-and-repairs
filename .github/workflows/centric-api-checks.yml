@@ -41,3 +41,31 @@ jobs:
 
       - name: Build Cloudflare Worker bundle
         run: npm run build:worker
+
+      - name: Smoke test Worker runtime without database writes
+        shell: bash
+        run: |
+          printf 'SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci_test_key\n' > .dev.vars
+          npm run dev:worker -- --port 8787 > /tmp/centric-api-worker.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" 2>/dev/null || true; rm -f .dev.vars' EXIT
+
+          live_ok=false
+          for attempt in $(seq 1 30); do
+            if curl --silent --show-error --fail http://127.0.0.1:8787/api/v1/health/live > /tmp/centric-api-live.json; then
+              live_ok=true
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$live_ok" != "true" ]; then
+            cat /tmp/centric-api-worker.log
+            exit 1
+          fi
+
+          grep -q '"status":"ok"' /tmp/centric-api-live.json
+          curl --silent --show-error --fail http://127.0.0.1:8787/api/v1/health/ready | grep -q '"status":"ready"'
+
+          me_status=$(curl --silent --output /tmp/centric-api-me.json --write-out '%{http_code}' http://127.0.0.1:8787/api/v1/me)
+          test "$me_status" = "401"
