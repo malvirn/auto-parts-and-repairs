@@ -305,6 +305,49 @@ with check (
   )
 );
 
+
+-- Prevent workshop users from reassigning a saved checklist to a different
+-- customer or vehicle, or linking it to a job outside the dedicated RPC.
+create or replace function public.guard_workshop_checklist_identity()
+returns trigger
+language plpgsql
+set search_path = pg_catalog, public
+as $function$
+begin
+  if public.is_workshop() then
+    if old.created_by is distinct from auth.uid()
+       or new.created_by is distinct from old.created_by then
+      raise exception 'Workshop users may update only checklists they created'
+        using errcode = '42501';
+    end if;
+
+    if new.customer_id is distinct from old.customer_id
+       or new.vehicle_id is distinct from old.vehicle_id then
+      raise exception 'A saved workshop checklist cannot be reassigned to another customer or vehicle'
+        using errcode = '42501';
+    end if;
+
+    if new.job_id is distinct from old.job_id
+       and current_setting('app.workshop_checklist_link', true) is distinct from 'authorized' then
+      raise exception 'Use the approved job-card creation action to link this checklist'
+        using errcode = '42501';
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function public.guard_workshop_checklist_identity() from public, anon;
+
+drop trigger if exists guard_workshop_checklist_identity
+  on public.job_condition_reports;
+create trigger guard_workshop_checklist_identity
+before update of created_by, customer_id, vehicle_id, job_id
+on public.job_condition_reports
+for each row
+execute function public.guard_workshop_checklist_identity();
+
 -- Keep the existing completion validation and audit insert. Only extend the
 -- role gate, and require workshop users to complete checklists they created.
 do $patch$
