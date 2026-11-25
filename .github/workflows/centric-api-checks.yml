@@ -51,6 +51,28 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Report dependency security findings
+        continue-on-error: true
+        run: |
+          npm audit --json > /tmp/centric-npm-audit.json || true
+          node --input-type=commonjs -e '
+            const fs = require("fs");
+            const report = JSON.parse(fs.readFileSync("/tmp/centric-npm-audit.json", "utf8"));
+            console.log("Vulnerability totals:", JSON.stringify(report.metadata?.vulnerabilities ?? {}));
+            for (const [name, item] of Object.entries(report.vulnerabilities ?? {})) {
+              console.log(JSON.stringify({
+                package: name,
+                severity: item.severity,
+                direct: item.isDirect,
+                installed: item.range,
+                fixAvailable: item.fixAvailable,
+                via: item.via.map(v => typeof v === "string" ? v : {
+                  name: v.name, title: v.title, range: v.range, url: v.url
+                })
+              }));
+            }
+          '
+
       - name: Build API
         run: npm run build
 
