@@ -153,6 +153,7 @@ function setEditable(value){
  editable=value&&!record?.voided_at&&!record?.confirmed_at;
  ["customer-name-input","vehicle-registration-input","checked-by-input"].forEach(id=>$(id).readOnly=!editable);
  ["customer-name-input","vehicle-registration-input","checked-by-input","checklist-customer-select","checklist-vehicle-select","fuel","odometer","checklist-notes"].forEach(id=>$(id).disabled=!editable);
+ if(workshopAccess&&record?.id){$("checklist-customer-select").disabled=true;$("checklist-vehicle-select").disabled=true;}
  $("fuel").disabled=!editable;
  $("odometer").disabled=!editable;
  $("save-checklist").hidden=!editable;
