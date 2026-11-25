@@ -7,6 +7,10 @@ alter table public.job_condition_reports
 alter table public.job_condition_reports
   alter column created_by set default auth.uid();
 
+create index if not exists job_condition_reports_created_by_status_idx
+  on public.job_condition_reports (created_by, status, updated_at desc)
+  where created_by is not null;
+
 alter table public.job_condition_reports enable row level security;
 alter table public.job_condition_report_marks enable row level security;
 
