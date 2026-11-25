@@ -27,5 +27,10 @@
       "enabled": true,
       "head_sampling_rate": 0.05
     }
+  },
+  "secrets": {
+    "required": [
+      "SUPABASE_PUBLISHABLE_KEY"
+    ]
   }
 }
