@@ -44,4 +44,8 @@ for (const directory of [
   await copyPublicTree(directory);
 }
 
-for (const required of ["index.html", "login.html"]) {\n  await stat(path.join(out, required));\n}\n\nconsole.log("Cloudflare Pages output prepared in dist/ (frontend allowlist only).");
+for (const required of ["index.html", "login.html"]) {
+  await stat(path.join(out, required));
+}
+
+console.log("Cloudflare Pages output prepared in dist/ (frontend allowlist only).");
