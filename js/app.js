@@ -463,5 +463,9 @@ function initNavGroups() {
 document.addEventListener("DOMContentLoaded", () => {
   initNavGroups();
   initGlobalSearch();
+  if (document.body.classList.contains("module-home")) {
+    if (document.body.dataset.role) renderGreeting();
+    else document.addEventListener("apr:access-ready", renderGreeting, { once: true });
+  }
   if (recentJobsBody) loadDashboard();
 });
