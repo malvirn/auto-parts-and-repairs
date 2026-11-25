@@ -1294,7 +1294,7 @@ function render(){
  const cat=workshop?"all":($("jc-category")?.value||"all");
  const catMatch=j=>workshop||cat==="all"||(cat==="active"&&!stClass(j.status))||(cat==="completed"&&!!stClass(j.status));
  const L=cat==="checklists"?[]:visibleJobs.filter(j=>(filter==="all"||j.status===filter)&&catMatch(j)&&(!q||[jn(j),j.cro_number,j.customers?.customer_code,j.customers?.company_name,j.customers?.full_name,j.customers?.phone,j.customers?.email,j.vehicles?.license_plate,veh(j.vehicles),j.fault_reported,j.work_done,j.status,techs[j.technician_id]].join(" ").toLowerCase().includes(q)));
- const active=visibleJobs.length;
+ const active=visibleJobs.filter(j=>!stClass(j.status)).length;
  const filtering=!!q||cat!=="all";
  const catSel=$("jc-category");
  if(catSel){catSel.innerHTML=(workshop?[["all","Active · "+visibleJobs.length]]:[["all","All · "+visibleJobs.length],["active","Active · "+active],["completed","Completed · "+(visibleJobs.length-active)],["checklists","Checklists · "+pendingChecklists.length]]).map(([v,t])=>`<option value="${v}">${t}</option>`).join("");catSel.value=cat}
