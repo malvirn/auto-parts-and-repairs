@@ -78,16 +78,6 @@ function ensureActions(header) {
     actions.className = "dashboard-topbar-actions";
     header.append(actions);
   }
-  if (!actions.querySelector(".dashboard-analytics-link")) {
-    const analytics = document.createElement("a");
-    analytics.className = "dashboard-toolbar-button dashboard-analytics-link";
-    analytics.href = new URL("../pages/analytics.html", import.meta.url).href;
-    analytics.title = "Analytics";
-    analytics.setAttribute("aria-label", "Open analytics");
-    analytics.append(icon("chart-no-axes-combined"));
-    analytics.hidden = !document.querySelector('.sidebar a[href*="analytics.html"]');
-    actions.append(analytics);
-  }
   const searchToggle = header.querySelector(".dashboard-search-toggle");
   if (searchToggle && !actions.contains(searchToggle)) actions.prepend(searchToggle);
   const account = document.querySelector(".dashboard-login-level");
@@ -124,8 +114,7 @@ export function initializeSharedHeader() {
   const searchPanel = header.querySelector("#dashboard-search-panel, #hs-panel");
   const actions = header.querySelector(".dashboard-topbar-actions");
   if (actions) {
-    [actions.querySelector(".dashboard-search-toggle"), actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-analytics-link"),
-      actions.querySelector(".dashboard-connection-status"), actions.querySelector(".dashboard-refresh"),
+    [actions.querySelector(".dashboard-search-toggle"), actions.querySelector("#global-notif-bell"), actions.querySelector(".dashboard-connection-status"), actions.querySelector(".dashboard-refresh"),
       actions.querySelector(".dashboard-new-job"), actions.querySelector(".dashboard-login-level")]
       .filter(Boolean).forEach(node => actions.append(node));
   }
