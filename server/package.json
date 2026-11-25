@@ -13,7 +13,7 @@
     "start:dev": "tsx watch src/main.ts",
     "dev:worker": "wrangler dev --local",
     "deploy:worker": "wrangler deploy",
-    "test": "vitest run",
+    "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest"
   },
   "dependencies": {
