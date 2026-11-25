@@ -26,13 +26,14 @@ const NAV = [
     { label: "Accounting Tools", href: "pages/accounting.html", color: "#FACC15", page: "accounting", roles: ["super_admin","accounting"] },
     { label: "Fixed Assets", href: "pages/fixed-assets.html", color: "#2DD4BF", page: "fixed-assets", roles: ["super_admin","accounting"] },
     { label: "Financial Statements", href: "pages/financial-statements.html", color: "#F472B6", page: "financial-statements", roles: ["super_admin","accounting"] },
+    { label: "Analytics", href: "/index.html#analytics-home-content", color: "#60A5FA", page: "analytics", roles: ["super_admin","accounting"] },
     { label: "Centric Intelligence", href: "pages/centric-intelligence.html", color: "#A78BFA", page: "centric-intelligence", roles: ["super_admin","accounting"] },
     { label: "Settings", href: "pages/settings.html", color: "#F58A4B", page: "settings" }
   ]}
 ];
 
 const KEY = "centric-glass-sidebar";
-const page = () => (location.pathname.split("/").pop() || "index.html").replace(/\.html$/i, "");
+const page = () => location.pathname.endsWith("/index.html") && location.hash === "#analytics-home-content" ? "analytics" : (location.pathname.split("/").pop() || "index.html").replace(/\.html$/i, "");
 const inPages = () => /\/pages\//.test(location.pathname);
 const hrefFor = href => inPages() ? (href === "index.html" ? "../index.html" : href.replace(/^pages\//, "")) : href;
 const role = () => String(document.body.dataset.role || "staff").toLowerCase();
