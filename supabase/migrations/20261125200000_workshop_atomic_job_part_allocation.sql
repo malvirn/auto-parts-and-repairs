@@ -94,7 +94,7 @@ begin
   where id = p_job_id
   for update;
   if not found then raise exception 'Job card not found'; end if;
-  if v_job.status not in ('Draft', 'Received', 'Diagnosing', 'Processing') then
+  if v_job.status not in ('Received', 'Diagnosing', 'Processing') then
     raise exception 'Workshop parts can only be allocated while a job is in progress';
   end if;
 
@@ -189,7 +189,7 @@ declare
   old_guard text := 'if auth.uid() is null or public.current_access_level() < 1 then';
   new_guard text := 'if auth.uid() is null or (coalesce(public.current_access_level(), 0) < 1 and not public.is_workshop()) then';
   old_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;';
-  new_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;\n  if public.is_workshop() and job_row.status not in (''Draft'', ''Received'', ''Diagnosing'', ''Processing'') then\n    raise exception ''Workshop invoice refresh is limited to active jobs'' using errcode = ''42501'';\n  end if;';
+  new_job_guard text := E'if not found then\n    raise exception ''Repair job not found'';\n  end if;\n  if public.is_workshop() and job_row.status not in (''Received'', ''Diagnosing'', ''Processing'') then\n    raise exception ''Workshop invoice refresh is limited to active jobs'' using errcode = ''42501'';\n  end if;';
 begin
   function_definition := pg_get_functiondef('public.sync_repair_job_invoice(uuid)'::regprocedure);
 
