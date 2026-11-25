@@ -4,7 +4,10 @@
    canonical sidebar. Keep this policy in one place for every module page. */
 export function applySidebarAccessRules(sidebar, { role, indexUrl, currentPage, pageName }) {
   if (!sidebar || !indexUrl || typeof pageName !== "function") return;
+  // Keep this list aligned with PAGE_ACCESS in auth.js. These rules only
+  // control navigation visibility; database RLS remains the security boundary.
   const accessByPage = {
+    index: ["super_admin"],
     accounting: ["super_admin", "accounting"],
     ledger: ["super_admin", "accounting"],
     payables: ["super_admin", "accounting"],
@@ -13,12 +16,16 @@ export function applySidebarAccessRules(sidebar, { role, indexUrl, currentPage, 
     "landed-cost": ["super_admin", "accounting"],
     "fixed-assets": ["super_admin", "accounting"],
     "financial-statements": ["super_admin", "accounting"],
-    analytics: ["super_admin", "accounting"],
-    technicians: ["super_admin"],
+    technicians: ["super_admin", "accounting"],
     customers: ["super_admin", "staff"],
-    checklist: ["super_admin", "staff"],
-    repairs: ["super_admin", "staff"],
-    suppliers: ["super_admin", "staff"],
+    repairs: ["super_admin", "staff", "workshop"],
+    checklist: ["super_admin", "staff", "workshop"],
+    quotations: ["super_admin", "staff", "workshop", "accounting"],
+    receipts: ["super_admin", "staff", "accounting"],
+    shop: ["super_admin", "staff", "workshop", "accounting"],
+    suppliers: ["super_admin", "staff", "workshop", "accounting"],
+    analytics: ["super_admin", "accounting"],
+    "centric-intelligence": ["super_admin", "accounting"],
   };
 
   sidebar.querySelectorAll("a.nav-link").forEach(link => {
