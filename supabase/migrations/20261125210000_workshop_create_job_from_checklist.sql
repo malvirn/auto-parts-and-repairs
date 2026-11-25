@@ -210,6 +210,7 @@ begin
 
   -- Keep the established invoice calculation as the single source of truth.
   -- This creates the same zero-value/unpriced invoice as the normal checklist flow.
+  perform set_config('app.workshop_invoice_sync', 'authorized', true);
   perform public.sync_repair_job_invoice(v_job.id);
 
   v_result := jsonb_build_object(
