@@ -181,6 +181,8 @@ begin
 
   -- Link the checklist before moving the job to Received. The existing
   -- completed-inspection trigger verifies this relationship on the status change.
+  -- The checklist identity guard permits this one controlled link operation only.
+  perform set_config('app.workshop_checklist_link', 'authorized', true);
   update public.job_condition_reports
   set job_id = v_job.id,
       customer_id = v_customer.id,
