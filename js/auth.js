@@ -33,7 +33,6 @@ const PAGE_ACCESS = {
   "receipts": ["super_admin", "staff", "accounting"],
   "shop": ["super_admin", "staff", "workshop", "accounting"],
   "suppliers": ["super_admin", "staff", "workshop", "accounting"],
-  "analytics": ["super_admin", "accounting"],
   "centric-intelligence": ["super_admin", "accounting"],
 };
 
